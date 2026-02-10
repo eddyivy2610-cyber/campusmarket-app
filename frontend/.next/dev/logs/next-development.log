@@ -1,0 +1,2289 @@
+[05:05:30.016] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.017] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.018] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.019] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:1:1
+Module not found: Can't resolve '../components/header/Header'
+> 1 | import { Header } from "../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:3:1
+Module not found: Can't resolve '../components/hero/Features'
+  1 | import { Header } from "../components/header/Header";
+  2 | import { Hero } from "../components/hero/Hero";
+> 3 | import { Features } from "../components/hero/Features";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.042] Browser ERROR   ./app/page.tsx:2:1
+Module not found: Can't resolve '../components/hero/Hero'
+  1 | import { Header } from "../components/header/Header";
+> 2 | import { Hero } from "../components/hero/Hero";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/page.tsx:6:1
+Module not found: Can't resolve '../components/sections/FAQ'
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+> 6 | import { FAQ } from "../components/sections/FAQ";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+  9 | export default function Home() {
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/page.tsx:7:1
+Module not found: Can't resolve '../components/sections/Footer'
+   5 | import { NewsBlog } from "../components/sections/NewsBlog";
+   6 | import { FAQ } from "../components/sections/FAQ";
+>  7 | import { Footer } from "../components/sections/Footer";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function Home() {
+  10 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/page.tsx:4:1
+Module not found: Can't resolve '../components/sections/HowItWorks'
+  2 | import { Hero } from "../components/hero/Hero";
+  3 | import { Features } from "../components/hero/Features";
+> 4 | import { HowItWorks } from "../components/sections/HowItWorks";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { NewsBlog } from "../components/sections/NewsBlog";
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/page.tsx:5:1
+Module not found: Can't resolve '../components/sections/NewsBlog'
+  3 | import { Features } from "../components/hero/Features";
+  4 | import { HowItWorks } from "../components/sections/HowItWorks";
+> 5 | import { NewsBlog } from "../components/sections/NewsBlog";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { FAQ } from "../components/sections/FAQ";
+  7 | import { Footer } from "../components/sections/Footer";
+  8 |
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/layout.tsx:4:1
+Module not found: Can't resolve '../context/ThemeContext'
+  2 | import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
+  3 | import "./globals.css";
+> 4 | import { ThemeProvider } from "../context/ThemeContext";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 |
+  6 | const geistSans = Geist({
+  7 |   variable: "--font-geist-sans",
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/explore/page.tsx:5:1
+Module not found: Can't resolve '../../components/explore/ExploreHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/explore/page.tsx:6:1
+Module not found: Can't resolve '../../components/explore/ExploreSidebar'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+> 6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+  8 |
+  9 | export default function ExplorePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/explore/page.tsx:7:1
+Module not found: Can't resolve '../../components/explore/ProductCard'
+   5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+   6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+>  7 | import { ProductCard } from "../../components/explore/ProductCard";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 |
+   9 | export default function ExplorePage() {
+  10 |     const products = [
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/explore/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/explore/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ExploreHeader } from "../../components/explore/ExploreHeader";
+  6 | import { ExploreSidebar } from "../../components/explore/ExploreSidebar";
+  7 | import { ProductCard } from "../../components/explore/ProductCard";
+
+Import traces:
+  Client Component Browser:
+    ./app/explore/page.tsx [Client Component Browser]
+    ./app/explore/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/explore/page.tsx [Client Component SSR]
+    ./app/explore/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:3:1
+Module not found: Can't resolve '../../components/header/Header'
+  1 | "use client";
+  2 |
+> 3 | import { Header } from "../../components/header/Header";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:9:1
+Module not found: Can't resolve '../../components/profile/AccountUtilities'
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+>  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  10 | import { useState } from "react";
+  11 |
+  12 | export default function ProfilePage() {
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:7:1
+Module not found: Can't resolve '../../components/profile/ListingGrid'
+   5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+>  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:8:1
+Module not found: Can't resolve '../../components/profile/ProfileContent'
+   6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+   7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+>  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+  10 | import { useState } from "react";
+  11 |
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:5:1
+Module not found: Can't resolve '../../components/profile/ProfileHeader'
+  3 | import { Header } from "../../components/header/Header";
+  4 | import { Footer } from "../../components/sections/Footer";
+> 5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:6:1
+Module not found: Can't resolve '../../components/profile/ProfileTabs'
+  4 | import { Footer } from "../../components/sections/Footer";
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+> 6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+  8 | import { ReviewsSection, AboutSection } from "../../components/profile/ProfileContent";
+  9 | import { AccountUtilities } from "../../components/profile/AccountUtilities";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:30.043] Browser ERROR   ./app/profile/page.tsx:4:1
+Module not found: Can't resolve '../../components/sections/Footer'
+  2 |
+  3 | import { Header } from "../../components/header/Header";
+> 4 | import { Footer } from "../../components/sections/Footer";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  5 | import { ProfileHeader } from "../../components/profile/ProfileHeader";
+  6 | import { ProfileTabs } from "../../components/profile/ProfileTabs";
+  7 | import { ListingGrid } from "../../components/profile/ListingGrid";
+
+Import traces:
+  Client Component Browser:
+    ./app/profile/page.tsx [Client Component Browser]
+    ./app/profile/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/profile/page.tsx [Client Component SSR]
+    ./app/profile/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+[05:05:36.377] Server  ERROR   Error: Cannot find module 'next/dist/pages/_error'
+Require stack:
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\dev\on-demand-entry-handler.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\dev\hot-reloader-turbopack.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\start-server.js
+[05:05:37.497] Server  ERROR   Error: Cannot find module 'next/dist/pages/_error'
+Require stack:
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\dev\on-demand-entry-handler.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\dev\hot-reloader-turbopack.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\router-utils\setup-dev-bundler.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\router-server.js
+- C:\Users\ST PAUL'S MIL CHURCH\OneDrive\Desktop\campusmarket\frontend\node_modules\next\dist\server\lib\start-server.js
