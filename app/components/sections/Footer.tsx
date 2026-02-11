@@ -70,7 +70,7 @@ export function Footer() {
                         <h3 className="text-xl font-bold mb-8 font-sans border-b border-white/5 pb-4 inline-block text-foreground">Useful Links</h3>
                         <ul className="space-y-4">
                             <li>
-                                <a href="#" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
+                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
                                     <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
                                         <HelpCircle className="w-3.5 h-3.5 text-primary group-hover:text-white" />
                                     </div>
@@ -78,7 +78,7 @@ export function Footer() {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
+                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
                                     <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
                                         <FileText className="w-3.5 h-3.5 text-primary group-hover:text-white" />
                                     </div>
@@ -86,7 +86,7 @@ export function Footer() {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
+                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
                                     <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
                                         <Shield className="w-3.5 h-3.5 text-primary group-hover:text-white" />
                                     </div>
@@ -94,7 +94,7 @@ export function Footer() {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
+                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
                                     <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
                                         <RefreshCcw className="w-3.5 h-3.5 text-primary group-hover:text-white" />
                                     </div>
@@ -121,10 +121,10 @@ export function Footer() {
                         <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
                             Join a trusted student marketplace where buying and selling happens safely, locally, and on your terms.
                         </p>
-                        <button className="bg-primary hover:bg-orange-600 text-white font-black py-3 px-8 rounded-full shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
+                        <a href="/coming-soon" className="bg-primary hover:bg-orange-600 text-white font-black py-3 px-8 rounded-full shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
                             <ShoppingBag className="w-4 h-4" />
                             <span>Become a Seller</span>
-                        </button>
+                        </a>
                     </div>
 
                 </div>
@@ -142,14 +142,7 @@ export function Footer() {
                 </div>
             </div>
 
-            {/* Scroll to Top Mockup */}
-            <div className="fixed bottom-8 right-8 z-50">
-                <button className="w-12 h-12 bg-primary rounded-full shadow-2xl flex items-center justify-center text-white hover:bg-orange-600 transition-all transform hover:-translate-y-1 shadow-primary/30 active:scale-95">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" />
-                    </svg>
-                </button>
-            </div>
+
         </footer>
     );
 }

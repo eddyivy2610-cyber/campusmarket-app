@@ -41,10 +41,10 @@ export function Features() {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className={`flex flex-1 items-center gap-3 p-3 rounded-2xl hover:bg-gray-50 transition-all duration-300 group ${index !== features.length - 1 ? 'md:border-r border-gray-100' : ''
+                            className={`flex flex-1 items-center gap-3 p-3 rounded-2xl transition-all duration-300 group ${index !== features.length - 1 ? 'md:border-r border-gray-100' : ''
                                 }`}
                         >
-                            <div className={`${feature.bgColor} ${feature.color} p-3 rounded-xl group-hover:scale-110 transition-transform`}>
+                            <div className={`${feature.bgColor} ${feature.color} p-3 rounded-xl transition-transform`}>
                                 <feature.icon className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">

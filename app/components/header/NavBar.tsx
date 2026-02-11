@@ -35,7 +35,8 @@ export function NavBar() {
                             <div className="h-6 w-px bg-white/10 mx-2"></div>
 
                             {/* Campus Buzz */}
-                            <div
+                            <a
+                                href="/coming-soon"
                                 className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap relative group"
                                 onMouseEnter={() => setBuzzVisible(true)}
                                 onMouseLeave={() => setBuzzVisible(false)}
@@ -46,14 +47,14 @@ export function NavBar() {
                                 <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-primary transition-colors" />
 
                                 <BuzzDropdown isOpen={buzzVisible} />
-                            </div>
+                            </a>
 
                             {/* Campus Deals */}
-                            <div className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group">
+                            <a href="/coming-soon" className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group">
                                 <Heart className="w-4 h-4 text-primary" />
                                 <span className="font-sans font-medium text-sm">Campus Deals</span>
                                 <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-primary transition-colors" />
-                            </div>
+                            </a>
 
                             {/* Quick find */}
                             <div
@@ -82,18 +83,18 @@ export function NavBar() {
                             </div>
 
                             {/* Team */}
-                            <div className="flex items-center gap-1.5 py-1.5 px-3 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group">
+                            <a href="/coming-soon" className="flex items-center gap-1.5 py-1.5 px-3 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group">
                                 <Users2 className="w-3.5 h-3.5 text-gray-500 group-hover:text-primary transition-colors" />
                                 <span className="font-sans font-black text-[10px] uppercase tracking-wider">Team</span>
-                            </div>
+                            </a>
                         </div>
 
                         {/* Right CTA */}
-                        <div className="hidden md:block">
-                            <button className="bg-primary text-primary-foreground font-black py-2 px-4 rounded-full flex items-center gap-1.5 shadow-lg shadow-primary/20 hover:bg-orange-600 transition-all text-[9px] uppercase tracking-wider active:scale-95">
-                                <ShoppingBasket className="w-3 h-3" />
+                        <div className="hidden md:block pl-2">
+                            <a href="/coming-soon" className="bg-primary text-primary-foreground font-black py-2.5 px-6 rounded-full flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-orange-600 transition-all text-[11px] uppercase tracking-widest active:scale-95 transform hover:-translate-y-0.5">
+                                <ShoppingBasket className="w-4 h-4" />
                                 <span>Become a Seller</span>
-                            </button>
+                            </a>
                         </div>
                     </div>
 

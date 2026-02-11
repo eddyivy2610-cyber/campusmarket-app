@@ -14,11 +14,11 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
     const { theme, toggleTheme } = useTheme();
     const menuItems = [
         { icon: User, label: "My Profile", href: "/profile" },
-        { icon: List, label: "My Listings", href: "/listings" },
-        { icon: MessageSquare, label: "Messages", href: "/messages", badge: "2" },
-        { icon: Package, label: "Orders", href: "/orders" },
-        { icon: Wallet, label: "Wallet", href: "/wallet" },
-        { icon: Settings, label: "Settings", href: "/settings" },
+        { icon: List, label: "My Listings", href: "/coming-soon" },
+        { icon: MessageSquare, label: "Messages", href: "/coming-soon", badge: "2" },
+        { icon: Package, label: "Orders", href: "/coming-soon" },
+        { icon: Wallet, label: "Wallet", href: "/coming-soon" },
+        { icon: Settings, label: "Settings", href: "/coming-soon" },
     ];
 
     return (

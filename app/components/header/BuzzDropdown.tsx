@@ -11,12 +11,12 @@ interface BuzzDropdownProps {
 
 export function BuzzDropdown({ isOpen }: BuzzDropdownProps) {
     const buzzItems = [
-        { icon: Megaphone, label: "Announcements", href: "/announcements" },
-        { icon: TrendingUp, label: "Market update", href: "/market-update", badge: "Live" },
-        { icon: ShieldCheck, label: "Safety tips", href: "/safety-tips" },
-        { icon: Sparkles, label: "New releases", href: "/new-releases" },
-        { icon: Users, label: "Community highlights", href: "/community" },
-        { icon: Calendar, label: "Events", href: "/events" },
+        { icon: Megaphone, label: "Announcements", href: "/coming-soon" },
+        { icon: TrendingUp, label: "Market update", href: "/coming-soon", badge: "Live" },
+        { icon: ShieldCheck, label: "Safety tips", href: "/coming-soon" },
+        { icon: Sparkles, label: "New releases", href: "/coming-soon" },
+        { icon: Users, label: "Community highlights", href: "/coming-soon" },
+        { icon: Calendar, label: "Events", href: "/coming-soon" },
     ];
 
     return (

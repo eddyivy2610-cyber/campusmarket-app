@@ -23,27 +23,27 @@ export function ExploreDropdown({ isOpen }: ExploreDropdownProps) {
                 <div className="flex-1">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Top Tags</h3>
                     <div className="space-y-1.5">
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Flame className="w-3.5 h-3.5 text-primary" />
                             <span>Trending</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <DollarSign className="w-3.5 h-3.5 text-primary" />
                             <span>Budget Deals</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Clock className="w-3.5 h-3.5 text-primary" />
                             <span>Urgent Sale</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Sparkles className="w-3.5 h-3.5 text-primary" />
                             <span>Just Listed</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Star className="w-3.5 h-3.5 text-primary" />
                             <span>Highly Rated</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <GraduationCap className="w-3.5 h-3.5 text-primary" />
                             <span>Student Verified</span>
                         </a>
@@ -57,16 +57,16 @@ export function ExploreDropdown({ isOpen }: ExploreDropdownProps) {
                 <div className="flex-1">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">New & Recents</h3>
                     <div className="space-y-1.5">
-                        <a href="#" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             New Today
                         </a>
-                        <a href="#" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             This Week
                         </a>
-                        <a href="#" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             Recently Viewed
                         </a>
-                        <a href="#" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             Recently Saved
                         </a>
                     </div>
@@ -79,39 +79,39 @@ export function ExploreDropdown({ isOpen }: ExploreDropdownProps) {
                 <div className="flex-[2]">
                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">All Categories</h3>
                     <div className="grid grid-cols-3 gap-1.5">
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Smartphone className="w-3.5 h-3.5 text-primary" />
                             <span>Phones</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Laptop className="w-3.5 h-3.5 text-primary" />
                             <span>Laptops</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Headphones className="w-3.5 h-3.5 text-primary" />
                             <span>Accessories</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <BookOpen className="w-3.5 h-3.5 text-primary" />
                             <span>Books</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Home className="w-3.5 h-3.5 text-primary" />
                             <span>Hostel</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Shirt className="w-3.5 h-3.5 text-primary" />
                             <span>Fashion</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <UtensilsCrossed className="w-3.5 h-3.5 text-primary" />
                             <span>Food</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Wrench className="w-3.5 h-3.5 text-primary" />
                             <span>Services</span>
                         </a>
-                        <a href="#" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
+                        <a href="/coming-soon" className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-sm">
                             <Repeat className="w-3.5 h-3.5 text-primary" />
                             <span>Swap/Free</span>
                         </a>

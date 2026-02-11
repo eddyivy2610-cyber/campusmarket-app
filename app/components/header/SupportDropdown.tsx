@@ -11,11 +11,11 @@ interface SupportDropdownProps {
 
 export function SupportDropdown({ isOpen }: SupportDropdownProps) {
     const supportItems = [
-        { icon: HelpCircle, label: "Help Center", href: "/help" },
-        { icon: AlertTriangle, label: "Report an Issue", href: "/report" },
-        { icon: Shield, label: "Safety Guidelines", href: "/safety" },
-        { icon: Headset, label: "Contact Support", href: "/contact" },
-        { icon: BookOpen, label: "Community Standards", href: "/standards" },
+        { icon: HelpCircle, label: "Help Center", href: "/coming-soon" },
+        { icon: AlertTriangle, label: "Report an Issue", href: "/coming-soon" },
+        { icon: Shield, label: "Safety Guidelines", href: "/coming-soon" },
+        { icon: Headset, label: "Contact Support", href: "/coming-soon" },
+        { icon: BookOpen, label: "Community Standards", href: "/coming-soon" },
     ];
 
     return (

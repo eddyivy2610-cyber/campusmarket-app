@@ -11,11 +11,11 @@ interface QuickFindDropdownProps {
 
 export function QuickFindDropdown({ isOpen }: QuickFindDropdownProps) {
     const quickItems = [
-        { icon: Info, label: "About", href: "/about" },
-        { icon: Package, label: "Orders", href: "/orders" },
-        { icon: Users, label: "Engagements", href: "/engagements" },
-        { icon: HelpCircle, label: "FAQ", href: "/faq" },
-        { icon: LifeBuoy, label: "Help Center", href: "/help" },
+        { icon: Info, label: "About", href: "/coming-soon" },
+        { icon: Package, label: "Orders", href: "/coming-soon" },
+        { icon: Users, label: "Engagements", href: "/coming-soon" },
+        { icon: HelpCircle, label: "FAQ", href: "/coming-soon" },
+        { icon: LifeBuoy, label: "Help Center", href: "/coming-soon" },
     ];
 
     return (

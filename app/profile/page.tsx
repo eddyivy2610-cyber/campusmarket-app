@@ -21,7 +21,7 @@ export default function ProfilePage() {
 
                     {/* Profile Identity & Reputation Section */}
                     <div className="reveal">
-                        <ProfileHeader isOwner={true} />
+                        <ProfileHeader isOwner={false} />
                     </div>
 
                     {/* Profile Navigation & Content */}
@@ -30,7 +30,7 @@ export default function ProfilePage() {
                         <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-colors duration-1000"></div>
 
                         <div className="relative z-10">
-                            <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} isOwner={true} />
+                            <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} isOwner={false} />
 
                             <div className="mt-8 min-h-[400px]">
                                 {activeTab === "listings" && <ListingGrid />}
