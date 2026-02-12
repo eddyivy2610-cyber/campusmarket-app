@@ -78,7 +78,7 @@ export function NotificationItem({ type, message, timestamp, image, actionLabel,
                 </button>
             )}
 
-            {/* Mobile Arrow (Always visible on mobile if action exists) */}
+            {/* Mobile Arrow */}
             {actionLabel && (
                 <ArrowRight className="w-4 h-4 text-gray-400 sm:hidden" />
             )}

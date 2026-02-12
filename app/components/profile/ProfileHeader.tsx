@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, GraduationCap, Edit3, Share2, MoreHorizontal, Star, ShieldCheck, Mail, Check, Flag, MessageCircle, ShoppingBag } from "lucide-react";
+import { MapPin, GraduationCap, Edit3, Share2, MoreHorizontal, Star, ShieldCheck, Mail, Check, Flag, MessageCircle, ShoppingBag, Zap } from "lucide-react";
 import Image from "next/image";
 
 interface ProfileHeaderProps {
@@ -9,125 +9,101 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ isOwner = false }: ProfileHeaderProps) {
     return (
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="w-full max-w-5xl mx-auto mb-8">
 
-            {/* Left: Avatar & Identity Primary */}
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 flex-1">
-                <div className="relative group">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-secondary shadow-xl relative">
-                        <Image
-                            src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400"
-                            alt="Lucky John"
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
+            {/* Profile Bar */}
+            <div className="px-4 md:px-10 pt-10 flex flex-col md:flex-row items-start md:items-end gap-4 md:gap-6">
+                {/* Avatar */}
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full border-[5px] border-background bg-gray-100 shadow-md overflow-hidden relative shrink-0">
+                    <Image
+                        src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=400"
+                        alt="Lucky John"
+                        fill
+                        className="object-cover"
+                    />
                 </div>
 
-                <div className="flex-1 text-center md:text-left space-y-3">
-                    <div>
-                        <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                            <h1 className="text-2xl md:text-3xl font-sans font-black text-foreground uppercase tracking-tighter">
-                                Lucky John
-                            </h1>
-                            <div className="bg-blue-500 text-white p-0.5 rounded-full shadow-sm" title="Verified Student">
-                                <Check className="w-3 h-3" strokeWidth={4} />
+                {/* Identity Block */}
+                <div className="flex-1 pb-1 pt-2 md:pt-0 w-full">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Lucky John</h1>
+                                <span className="bg-blue-600 text-white p-0.5 rounded-full" title="Verified Member">
+                                    <Check className="w-3 h-3" strokeWidth={4} />
+                                </span>
                             </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-gray-500 font-sans font-black text-[9px] uppercase tracking-widest">
-                            <div className="flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-foreground/10">
-                                <GraduationCap className="w-3 h-3 text-primary" />
+                            <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
+                                <GraduationCap className="w-4 h-4 text-primary" />
                                 <span>Engineering Student</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-foreground/10">
-                                <MapPin className="w-3 h-3 text-primary" />
-                                <span>UniAbuja</span>
+                                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                <span>Dangote Hostel</span>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Trust Signals (Header Level) */}
-                    <div className="flex items-center justify-center md:justify-start gap-4">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-black text-foreground">4.9</span>
-                            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">(42 Reviews)</span>
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-3">
+                            {isOwner ? (
+                                <>
+                                    <button className="flex-1 md:flex-none bg-secondary hover:bg-secondary/80 text-foreground font-bold py-2 px-6 rounded-xl transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                                        <Edit3 className="w-3.5 h-3.5" />
+                                        <span>Edit</span>
+                                    </button>
+                                    <button className="bg-secondary hover:bg-secondary/80 text-foreground p-2 rounded-xl transition-all active:scale-95">
+                                        <Share2 className="w-4 h-4" />
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button className="flex-1 md:flex-none bg-primary hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                                        <MessageCircle className="w-3.5 h-3.5" />
+                                        <span>Message</span>
+                                    </button>
+                                    <button className="bg-secondary hover:bg-secondary/80 text-foreground p-2.5 rounded-xl transition-all active:scale-95 border border-black/5 dark:border-white/5">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                    </button>
+                                </>
+                            )}
                         </div>
-                        <div className="w-px h-3 bg-gray-300"></div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-black text-foreground">56</span>
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Sales</span>
-                        </div>
-                        <div className="w-px h-3 bg-gray-300"></div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-black text-foreground">12</span>
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Active Listings</span>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-center md:justify-start gap-2.5 pt-2">
-                        {isOwner ? (
-                            <>
-                                <button className="bg-primary hover:bg-orange-600 text-white font-black py-2.5 px-6 rounded-full shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                                    <Edit3 className="w-3.5 h-3.5" />
-                                    <span>Edit Profile</span>
-                                </button>
-                                <button className="bg-secondary hover:bg-secondary/80 text-foreground font-black py-2.5 px-4 rounded-full border border-foreground/10 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2.5 text-[10px] uppercase tracking-widest">
-                                    <Share2 className="w-3.5 h-3.5" />
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button className="bg-primary hover:bg-orange-600 text-white font-black py-2.5 px-8 rounded-full shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                                    <MessageCircle className="w-3.5 h-3.5" />
-                                    <span>Message</span>
-                                </button>
-                                <button className="bg-secondary hover:bg-secondary/80 text-foreground font-black py-2.5 px-6 rounded-full border border-foreground/10 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                                    <ShoppingBag className="w-3.5 h-3.5" />
-                                    <span>View Listings</span>
-                                </button>
-                                <button className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center border border-foreground/10 text-gray-400 hover:text-red-500 transition-all" title="Report User">
-                                    <Flag className="w-3.5 h-3.5" />
-                                </button>
-                            </>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Right: Clean Context Banner */}
-            <div className="w-full lg:w-[320px] bg-gradient-to-br from-secondary to-secondary/50 rounded-2xl p-6 border border-foreground/5 shadow-lg relative overflow-hidden group">
-                <div className="relative z-10 space-y-4">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <span className="bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest inline-block mb-2">
-                                Trusted Seller
-                            </span>
-                            <h3 className="text-base font-black text-foreground leading-tight">
-                                Tech & Gadget Specialist
-                            </h3>
+            {/* Bio & Reputation */}
+            <div className="px-4 md:px-10 mt-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-2 space-y-5">
+                    {/* Stats Row */}
+                    <div className="flex flex-wrap gap-2 md:gap-4">
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                            <Star className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+                            <span className="text-xs font-bold text-foreground">4.9/5.0</span>
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">(42 Reviews)</span>
                         </div>
-                        <ShieldCheck className="w-8 h-8 text-foreground/10" />
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                            <ShoppingBag className="w-3.5 h-3.5 text-blue-500" />
+                            <span className="text-xs font-bold text-foreground">56 Sales</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                            <Zap className="w-3.5 h-3.5 text-purple-500" />
+                            <span className="text-xs font-bold text-foreground">Replies in ~1hr</span>
+                        </div>
                     </div>
 
-                    <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
-                        "Known for high-quality electronics and quick responses. Usually replies within 1 hour."
+                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed max-w-2xl">
+                        Interface and Brand Designer focused on premium tech gadgets. I sell high-quality used electronics and always ensure description matches the condition.
                     </p>
+                </div>
 
-                    <div className="h-px bg-foreground/5 w-full"></div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="w-6 h-6 rounded-full border-2 border-secondary bg-gray-200"></div>
-                            ))}
-                        </div>
-                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">
-                            +42 Happy Buyers
-                        </span>
+                {/* Side Stats (Desktop Only) */}
+                <div className="hidden md:block py-1">
+                    <div className="flex items-center gap-2 text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Trust Score</span>
                     </div>
+                    <div className="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="h-full w-[94%] bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full"></div>
+                    </div>
+                    <p className="text-right text-[10px] text-gray-400 mt-1 font-mono">94/100</p>
                 </div>
             </div>
         </div>

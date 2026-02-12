@@ -22,32 +22,36 @@ export function NavBar() {
                         {/* Left Navigation */}
                         <div className="flex items-center">
                             {/* Explore trigger */}
-                            <a
-                                href="/explore"
-                                className="flex items-center gap-2 py-2 px-6 hover:text-primary transition-colors font-medium whitespace-nowrap"
+                            <button
+                                className="flex items-center gap-2 py-2 px-6 hover:text-primary transition-colors font-medium whitespace-nowrap bg-transparent border-none cursor-pointer"
                                 onMouseEnter={() => setIsExploreOpen(true)}
                                 onMouseLeave={() => setIsExploreOpen(false)}
+                                onClick={() => setIsExploreOpen(!isExploreOpen)}
                             >
                                 <LayoutGrid className="w-4 h-4" />
                                 <span>Explore</span>
-                            </a>
+                            </button>
 
                             <div className="h-6 w-px bg-white/10 mx-2"></div>
 
                             {/* Campus Buzz */}
-                            <a
-                                href="/coming-soon"
-                                className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap relative group"
+                            <div
+                                className="relative flex items-center"
                                 onMouseEnter={() => setBuzzVisible(true)}
                                 onMouseLeave={() => setBuzzVisible(false)}
                             >
-                                <Zap className="w-4 h-4 text-primary" />
-                                <span className="font-sans font-medium text-sm">Campus Buzz</span>
-                                <span className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold">HOT</span>
-                                <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-primary transition-colors" />
+                                <button
+                                    className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group bg-transparent border-none"
+                                    onClick={() => setBuzzVisible(!buzzVisible)}
+                                >
+                                    <Zap className="w-4 h-4 text-primary" />
+                                    <span className="font-sans font-medium text-sm">Campus Buzz</span>
+                                    <span className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold">HOT</span>
+                                    <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-primary transition-colors" />
+                                </button>
 
                                 <BuzzDropdown isOpen={buzzVisible} />
-                            </a>
+                            </div>
 
                             {/* Campus Deals */}
                             <a href="/coming-soon" className="flex items-center gap-2 py-2 px-4 hover:text-primary transition-colors cursor-pointer whitespace-nowrap group">

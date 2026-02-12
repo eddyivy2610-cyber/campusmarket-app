@@ -75,7 +75,6 @@ export default function CartPage() {
                         <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-secondary border border-white/5 flex items-center justify-center">
                             <ShoppingBasket className="w-16 h-16 md:w-20 md:h-20 text-gray-400" strokeWidth={1.5} />
                         </div>
-                        {/* Decorative element */}
                         <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary/20 rounded-full animate-pulse"></div>
                     </div>
 
@@ -90,7 +89,7 @@ export default function CartPage() {
                         href="/explore"
                         className="bg-primary text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-primary/20 hover:bg-orange-600 hover:scale-105 transition-all duration-300 flex items-center gap-2"
                     >
-                        Start Shopping
+                       Visit Market
                         <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>

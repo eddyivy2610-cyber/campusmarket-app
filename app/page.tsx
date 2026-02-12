@@ -1,6 +1,6 @@
 import { Header } from "./components/header/Header";
-import { Hero } from "./components/hero/Hero";
-import { Features } from "./components/hero/Features";
+import { HeroCarousel } from "./components/home/HeroCarousel";
+import { CuratedListings } from "./components/home/CuratedListings";
 import { HowItWorks } from "./components/sections/HowItWorks";
 import { NewsBlog } from "./components/sections/NewsBlog";
 import { FAQ } from "./components/sections/FAQ";
@@ -8,14 +8,14 @@ import { Footer } from "./components/sections/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-white overflow-x-hidden">
+    <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Header />
       <div className="flex flex-col items-center w-full">
         <div className="w-full">
-          <Hero />
+          <HeroCarousel />
         </div>
-        <div className="w-full reveal">
-          <Features />
+        <div className="w-full">
+          <CuratedListings />
         </div>
         <div className="w-full reveal">
           <HowItWorks />

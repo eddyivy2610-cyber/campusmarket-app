@@ -20,13 +20,13 @@ export function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProp
             setIsVisible(true);
             document.body.style.overflow = 'hidden';
         } else {
-            const timer = setTimeout(() => setIsVisible(false), 300); // match transition duration
+            const timer = setTimeout(() => setIsVisible(false), 300);
             document.body.style.overflow = 'unset';
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
-    // Mock Data (same as before)
+    // Mock Data 
     const notifications: {
         id: number;
         type: NotificationType;
@@ -89,7 +89,7 @@ export function NotificationSidebar({ isOpen, onClose }: NotificationSidebarProp
 
             {/* Sidebar */}
             <div
-                className={`relative w-full max-w-md bg-background border-l border-foreground/5 shadow-2xl h-full flex flex-col transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`relative w-full max-w-md bg-background border border-foreground/10 shadow-2xl flex flex-col transition-all duration-300 ease-out transform ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-[110%] opacity-0'} m-3 sm:m-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] rounded-[2rem] overflow-hidden`}
             >
                 {/* Header */}
                 <div className="p-4 border-b border-foreground/5 flex items-center justify-between bg-background/80 backdrop-blur-md z-10 sticky top-0">

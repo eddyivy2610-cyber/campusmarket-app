@@ -37,7 +37,7 @@ export default function WishlistPage() {
                         Your wishlist is currently empty
                     </h2>
                     <p className="text-gray-400 text-center mb-8 max-w-md mx-auto">
-                        You don't have any products in the list yet. You will find a lot of interesting products on our "Shop" page
+                        You don't have any products in the list yet. You will find a lot of interesting products when you explore our market.
                     </p>
 
                     <Link

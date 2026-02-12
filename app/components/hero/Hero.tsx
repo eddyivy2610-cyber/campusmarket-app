@@ -48,7 +48,7 @@ export function Hero() {
                                 <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                             </Link>
 
-                            <a href="/coming-soon" className="bg-white/5 border border-white/10 text-white font-black py-3 px-6 rounded-full flex items-center gap-2 hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 text-xs uppercase tracking-widest">
+                            <a href="/coming-soon" className="bg-secondary text-foreground font-black py-3 px-6 rounded-full flex items-center gap-2 hover:bg-secondary/80 transition-all duration-300 transform hover:-translate-y-1 text-xs uppercase tracking-widest shadow-md">
                                 <UserPlus className="w-4 h-4" />
                                 <span>Sign-up</span>
                             </a>
@@ -71,10 +71,9 @@ export function Hero() {
                     {/* Image Section */}
                     <div className="flex-1 relative w-full max-w-2xl animate-fade-in-right">
                         <div className="relative aspect-[4/3] rounded-3xl overflow-hidden">
-                            {/* Note: I will use the generated image path here once I have it */}
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <Image
-                                    src="https://campusmarketng.vercel.app/online-market-cuate.svg" // This matches the ImageName in generate_image
+                                    src="https://campusmarketng.vercel.app/online-market-cuate.svg"
                                     alt="Campus Market Students"
                                     fill
                                     className="object-cover"

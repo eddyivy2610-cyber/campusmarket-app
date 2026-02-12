@@ -18,7 +18,6 @@ export function CreateAlertModal({ isOpen, onClose }: CreateAlertModalProps) {
         setStep('success');
         setTimeout(() => {
             onClose();
-            // Reset after closing
             setTimeout(() => setStep('form'), 300);
         }, 1500);
     };

@@ -25,7 +25,7 @@ export function ProfileTabs({ activeTab, onTabChange, isOwner = false }: Profile
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth border-b border-foreground/5 pb-0">
+            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth pb-0 border-b border-black/5 dark:border-white/5">
                 {allTabs.map((tab) => (
                     <button
                         key={tab.id}

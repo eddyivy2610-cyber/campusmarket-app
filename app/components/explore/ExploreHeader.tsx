@@ -34,7 +34,7 @@ export function ExploreHeader() {
 
                 <div className="flex items-center gap-2">
                     {/* View Toggles */}
-                    <div className="flex items-center bg-secondary rounded-lg p-0.5 border border-foreground/10 shadow-inner">
+                    <div className="flex items-center bg-secondary rounded-lg p-0.5 shadow-sm">
                         <button className="p-1.5 rounded-md bg-primary text-white shadow-lg active:scale-95 transition-all">
                             <LayoutGrid className="w-3.5 h-3.5" />
                         </button>
@@ -45,11 +45,11 @@ export function ExploreHeader() {
 
                     {/* Dropdowns */}
                     <div className="flex gap-1.5">
-                        <button className="flex items-center gap-1.5 bg-secondary border border-foreground/10 rounded-lg px-3 py-1.5 shadow-sm hover:border-primary/50 transition-all group">
+                        <button className="flex items-center gap-1.5 bg-secondary rounded-lg px-3 py-1.5 shadow-sm hover:bg-gray-100 dark:hover:bg-white/5 transition-all group">
                             <span className="text-gray-500 font-black text-[9px] uppercase tracking-wide">Sort by Nearest</span>
                             <ChevronDown className="w-2.5 h-2.5 text-gray-600 group-hover:text-primary transition-colors" />
                         </button>
-                        <button className="flex items-center gap-1.5 bg-secondary border border-foreground/10 rounded-lg px-3 py-1.5 shadow-sm hover:border-primary/50 transition-all group">
+                        <button className="flex items-center gap-1.5 bg-secondary rounded-lg px-3 py-1.5 shadow-sm hover:bg-gray-100 dark:hover:bg-white/5 transition-all group">
                             <span className="text-gray-500 font-black text-[9px] uppercase tracking-wide">Default</span>
                             <ChevronDown className="w-2.5 h-2.5 text-gray-600 group-hover:text-primary transition-colors" />
                         </button>
@@ -66,7 +66,7 @@ export function ExploreHeader() {
                     {tabs.map((tab, i) => (
                         <button
                             key={i}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg transition-all whitespace-nowrap border snap-start shrink-0 ${tab.active ? 'bg-primary border-primary text-white scale-[1.01]' : 'bg-secondary border-foreground/10 text-gray-500 hover:border-primary/30'}`}
+                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-sm transition-all whitespace-nowrap snap-start shrink-0 ${tab.active ? 'bg-primary text-white scale-[1.01] shadow-lg shadow-primary/25' : 'bg-secondary text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5'}`}
                         >
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${tab.active ? 'bg-white/20' : 'bg-secondary'}`}>
                                 <tab.icon className={`w-3.5 h-3.5 ${tab.active ? 'text-white' : 'text-primary'}`} />

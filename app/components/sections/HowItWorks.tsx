@@ -76,35 +76,31 @@ export function HowItWorks() {
                     </p>
                 </div>
 
-                <div className="space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {steps.map((step, index) => (
                         <div
                             key={index}
-                            className={`flex flex-col ${index % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-8 lg:gap-16`}
+                            className="bg-secondary rounded-2xl p-6 border border-white/5 relative overflow-hidden group hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-xl"
                         >
-                            {/* Graphic Side */}
-                            <div className="flex-1 w-full">
-                                <div className={`relative aspect-[4/3] rounded-2xl overflow-hidden ${step.imageBg} border border-white/5 group`}>
-                                    <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
-                                        {step.graphic}
-                                    </div>
-                                </div>
+                            {/* Ambient Background */}
+                            <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity ${step.iconBg.replace('bg-', 'bg-')}`}></div>
+
+                            {/* Icon */}
+                            <div className={`${step.iconBg} ${step.iconColor} w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm border border-white/5 relative z-10`}>
+                                <step.icon className="w-5 h-5" />
                             </div>
 
-                            {/* Text Side */}
-                            <div className="flex-1 text-center md:text-left">
-                                <div className={`${step.iconBg} ${step.iconColor} w-14 h-14 rounded-2xl flex items-center justify-center mb-6 mx-auto md:mx-0 shadow-lg border border-white/5`}>
-                                    <step.icon className="w-6 h-6" />
-                                </div>
-                                <h3 className="text-2xl font-black text-foreground mb-4 font-sans uppercase tracking-tight">
+                            {/* Content */}
+                            <div className="relative z-10">
+                                <h3 className="text-lg font-black text-foreground mb-2 font-sans uppercase tracking-tight">
                                     {step.title}
                                 </h3>
-                                <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-md font-medium">
+                                <p className="text-gray-500 text-xs leading-relaxed mb-4 font-medium min-h-[48px]">
                                     {step.description}
                                 </p>
                                 <button className="flex items-center gap-1.5 text-primary font-black hover:gap-3 transition-all group underline-offset-8 hover:underline text-[10px] uppercase tracking-widest">
                                     <span>Learn more</span>
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRight className="w-3.5 h-3.5" />
                                 </button>
                             </div>
                         </div>

@@ -25,26 +25,21 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Profile Navigation & Content */}
-                    <div className="bg-secondary/30 rounded-[2rem] border border-white/5 p-5 md:p-8 shadow-2xl backdrop-blur-sm relative overflow-hidden group reveal">
-                        {/* Decorative Background Glow */}
-                        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-colors duration-1000"></div>
+                    <div className="mt-12">
+                        <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} isOwner={false} />
 
-                        <div className="relative z-10">
-                            <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} isOwner={false} />
-
-                            <div className="mt-8 min-h-[400px]">
-                                {activeTab === "listings" && <ListingGrid />}
-                                {activeTab === "reviews" && <ReviewsSection />}
-                                {activeTab === "about" && <AboutSection />}
-                                {activeTab === "wallet" && <AccountUtilities />}
-                                {activeTab === "orders" && (
-                                    <div className="flex flex-col items-center justify-center py-32 text-center bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-tighter">Your Orders Hub</h3>
-                                        <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">You haven't made any purchases or sales orders yet. Active transactions will appear here.</p>
-                                    </div>
-                                )}
-                                {activeTab === "settings" && <AccountUtilities />}
-                            </div>
+                        <div className="mt-8 min-h-[400px]">
+                            {activeTab === "listings" && <ListingGrid />}
+                            {activeTab === "reviews" && <ReviewsSection />}
+                            {activeTab === "about" && <AboutSection />}
+                            {activeTab === "wallet" && <AccountUtilities />}
+                            {activeTab === "orders" && (
+                                <div className="flex flex-col items-center justify-center py-32 text-center bg-secondary/30 rounded-[2.5rem] border border-dashed border-black/5 dark:border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-tighter">Your Orders Hub</h3>
+                                    <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">You haven't made any purchases or sales orders yet. Active transactions will appear here.</p>
+                                </div>
+                            )}
+                            {activeTab === "settings" && <AccountUtilities />}
                         </div>
                     </div>
 

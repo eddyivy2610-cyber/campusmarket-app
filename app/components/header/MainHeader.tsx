@@ -1,9 +1,10 @@
 "use client";
 
-import { Search, Phone, ShoppingBasket, Heart, User, Bell } from "lucide-react";
+import { Search, ShoppingBasket, Heart, User, Bell, LayoutGrid, ChevronDown, HelpCircle, PlusCircle } from "lucide-react";
 import { useState } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import { CartDropdown } from "./CartDropdown";
+import { ExploreDropdown } from "./ExploreDropdown";
 import Link from "next/link";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { NotificationSidebar } from "../notifications/NotificationSidebar";
@@ -13,110 +14,116 @@ export function MainHeader() {
     const [isAccountOpen, setIsAccountOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [cartCount, setCartCount] = useState(0);
 
     return (
         <>
-            <div className="bg-background text-foreground py-3 border-b border-secondary flex flex-col items-center sticky top-0 z-40">
-                <div className="w-full max-w-[1780px] px-4 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="bg-background text-foreground py-3 border-b border-black/5 dark:border-white/5 sticky top-0 z-40 transition-shadow duration-300">
+                <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
 
-                    {/* Left Section: Logo & Search */}
-                    <div className="flex flex-1 items-center gap-8 w-full md:w-auto">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 shrink-0 group">
-                            <div className="text-xl font-black flex items-center font-sans tracking-tighter uppercase">
-                                <span className="text-primary mr-1.5 transition-transform group-hover:scale-110">
-                                    <ShoppingBasket className="w-6 h-6" />
-                                </span>
-                                <span className="text-foreground transition-colors">Campus</span>
-                                <span className="text-primary ml-0.5">Market</span>
-                            </div>
-                        </Link>
+                    {/* Logo */}
+                    <Link href="/" className="flex items-center gap-2 shrink-0 group">
+                        <div className="text-2xl font-black flex items-center font-sans tracking-tighter uppercase relative">
+                            <span className="text-primary mr-1 transition-transform group-hover:scale-110">
+                                <ShoppingBasket className="w-7 h-7" />
+                            </span>
+                            <span className="text-foreground tracking-tighter">Campus</span>
+                            <span className="text-primary ml-0.5">Market</span>
+                        </div>
+                    </Link>
 
-                        {/* Search Bar (Compact) */}
-                        <div className="flex-1 max-w-md w-full relative group">
+                    {/* Center: Search & Explore */}
+                    <div className="flex-1 w-full max-w-3xl relative z-50">
+                        <div className="flex items-center w-full bg-gray-100/50 dark:bg-white/5 rounded-full overflow-hidden transition-all duration-300 shadow-sm group-focus-within:shadow-md ring-1 ring-transparent focus-within:ring-primary/20">
+
+                            {/* Explore Button */}
+                            <button
+                                onClick={() => setIsExploreOpen(!isExploreOpen)}
+                                className="hidden md:flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition-colors cursor-pointer whitespace-nowrap"
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                                <span>Categories</span>
+                                <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExploreOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Search Input */}
                             <input
                                 type="text"
-                                placeholder="What are you looking for?"
-                                className="w-full bg-secondary text-foreground rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 ease-in-out placeholder:text-gray-500 text-xs font-medium"
+                                placeholder="Search products, brands, and categories..."
+                                className="flex-1 bg-transparent px-4 py-3 outline-none text-sm placeholder:text-gray-400 text-foreground font-medium w-full"
                             />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors duration-200" title="Search">
+
+                            {/* Search Button */}
+                            <button className="px-6 py-3 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors uppercase text-[11px] tracking-widest flex items-center gap-2">
                                 <Search className="w-4 h-4" />
+                                <span className="hidden sm:inline">Search</span>
                             </button>
+                        </div>
+
+                        {/* Dropdown Container */}
+                        <div className="absolute top-full left-0 mt-2 w-full md:w-64">
+                            <ExploreDropdown isOpen={isExploreOpen} />
                         </div>
                     </div>
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-6 shrink-0">
-                        {/* Contact us */}
-                        <div className="hidden lg:flex items-center gap-3" title="Call us for enquiries">
-                            <div className="bg-secondary p-2.5 rounded-full">
-                                <Phone className="w-4 h-4 text-primary" />
-                            </div>
-                            <div className="flex flex-col text-sm">
-                                <span className="text-gray-400 text-xs">Contact us</span>
-                                <span className="font-bold font-sans">234 708 106 6985</span>
-                            </div>
+                    <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+
+                        {/* Help */}
+                        <Link href="/coming-soon" className="hidden lg:flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2">
+                            <HelpCircle className="w-5 h-5 mb-0.5" />
+                            <span className="text-[10px] font-bold">Help</span>
+                        </Link>
+
+                        {/* Account */}
+                        <div className="relative z-40">
+                            <button
+                                onClick={() => setIsAccountOpen(!isAccountOpen)}
+                                className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer"
+                            >
+                                <User className="w-5 h-5 mb-0.5" />
+                                <span className="text-[10px] font-bold">Account</span>
+                            </button>
+                            <AccountDropdown isOpen={isAccountOpen} />
                         </div>
 
-                        {/* Icons */}
-                        <div className="flex items-center gap-4">
-                            {/* Notifications */}
-                            <button
-                                onClick={() => setIsNotificationOpen(true)}
-                                className="relative cursor-pointer group"
-                                title="Notifications"
-                            >
-                                <div className="bg-secondary p-2 rounded-full group-hover:bg-primary transition-colors duration-300 border border-white/5">
-                                    <Bell className="w-4 h-4 group-hover:text-white transition-colors duration-300" />
-                                </div>
-                                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-pulse">
+                        {/* Notifications */}
+                        <button
+                            onClick={() => setIsNotificationOpen(true)}
+                            className="relative flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer"
+                        >
+                            <div className="relative">
+                                <Bell className="w-5 h-5 mb-0.5" />
+                                <span className="absolute -top-1 -right-1 bg-primary text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full animate-pulse ring-2 ring-background">
                                     3
                                 </span>
-                            </button>
-
-                            <div
-                                className="relative cursor-pointer group"
-                                title="Shopping Cart"
-                                onMouseEnter={() => setIsCartOpen(true)}
-                                onMouseLeave={() => setIsCartOpen(false)}
-                            >
-                                <Link href="/cart">
-                                    <div className="bg-secondary p-2.5 rounded-full group-hover:bg-primary transition-colors duration-300">
-                                        <ShoppingBasket className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                                    </div>
-                                </Link>
-                                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                                    {cartCount}
-                                </span>
-
-                                <CartDropdown isOpen={isCartOpen} itemCount={cartCount} />
                             </div>
+                            <span className="text-[10px] font-bold">Alerts</span>
+                        </button>
 
-                            <Link href="/wishlist">
-                                <div className="relative cursor-pointer group" title="Wishlist">
-                                    <div className="bg-secondary p-2.5 rounded-full group-hover:bg-primary transition-colors duration-300">
-                                        <Heart className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                                    </div>
-                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                                        0
+                        {/* Cart */}
+                        <div className="relative z-40">
+                            <button
+                                onClick={() => setIsCartOpen(!isCartOpen)}
+                                className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer"
+                            >
+                                <div className="relative">
+                                    <ShoppingBasket className="w-5 h-5 mb-0.5" />
+                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full ring-2 ring-background">
+                                        {cartCount}
                                     </span>
                                 </div>
-                            </Link>
-
-                            <div
-                                className="relative cursor-pointer group"
-                                onMouseEnter={() => setIsAccountOpen(true)}
-                                onMouseLeave={() => setIsAccountOpen(false)}
-                                title="Account"
-                            >
-                                <div className="bg-secondary p-2.5 rounded-full group-hover:bg-primary transition-colors duration-300">
-                                    <User className="w-5 h-5 group-hover:text-white transition-colors duration-300" />
-                                </div>
-
-                                <AccountDropdown isOpen={isAccountOpen} />
-                            </div>
+                                <span className="text-[10px] font-bold">Cart</span>
+                            </button>
+                            <CartDropdown isOpen={isCartOpen} itemCount={cartCount} />
                         </div>
+
+                        {/* Sell Button */}
+                        <Link href="/sell" className="hidden sm:flex items-center gap-2 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary transition-all duration-300 px-5 py-2.5 rounded-full group ml-2">
+                            <PlusCircle className="w-4 h-4" />
+                            <span className="text-xs font-black uppercase tracking-wider">Sell</span>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -128,3 +135,4 @@ export function MainHeader() {
         </>
     );
 }
+

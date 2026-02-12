@@ -103,7 +103,7 @@ export function AboutSection() {
                         Bio
                     </h3>
                     <p className="text-sm text-gray-500 leading-relaxed">
-                        Final year Engineering student at UniAbuja. I love gadgets and tech. Always upgrading my gear so you can find my slightly used items here for great prices! Safe campus meetups only.
+                        Final year Engineering student. I love gadgets and tech. Always upgrading my gear so you can find my slightly used items here for great prices! Safe campus meetups only.
                     </p>
                 </section>
 
