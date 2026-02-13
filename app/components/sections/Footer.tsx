@@ -1,148 +1,133 @@
 "use client";
 
-import { Send, Facebook, Twitter, Instagram, Phone, Mail, FileText, Shield, HelpCircle, RefreshCcw, ShoppingBag } from "lucide-react";
-import { ShoppingBasket } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, MapPin, Mail, Phone, Clock, ShoppingBasket } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
     return (
-        <footer className="w-full bg-secondary text-foreground pt-16 pb-8 mt-12 relative flex flex-col items-center">
-            {/* Newsletter Section - Overlapping */}
-            <div className="w-full max-w-[1780px] px-4 md:px-12 absolute -top-10 left-1/2 -translate-x-1/2 z-20">
-                <div className="bg-background rounded-2xl p-6 md:p-8 border border-white/5 shadow-2xl overflow-hidden relative group">
-                    {/* SVG Pattern Background */}
-                    <div className="absolute inset-0 opacity-10 pointer-events-none rounded-2xl overflow-hidden">
-                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path d="M0 10 L100 90 M20 0 L100 80 M0 20 L80 100" stroke="white" strokeWidth="0.5" fill="none" />
-                            <circle cx="10" cy="10" r="2" fill="white" />
-                            <circle cx="90" cy="90" r="2" fill="white" />
-                        </svg>
-                    </div>
-
-                    <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-                        <h2 className="text-2xl md:text-3xl font-sans font-black text-foreground uppercase tracking-tighter">
-                            Subscribe to <span className="text-primary italic">Newsletter</span>
-                        </h2>
-
-                        <div className="w-full max-w-lg relative group/input">
-                            <input
-                                type="email"
-                                placeholder="Enter your email..."
-                                className="w-full bg-secondary border border-white/10 rounded-full py-3 pl-6 pr-32 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans text-sm text-foreground"
-                            />
-                            <button className="absolute right-1.5 top-1.5 bottom-1.5 bg-primary hover:bg-orange-600 text-white px-5 rounded-full font-black text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg active:scale-95">
-                                <Send className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Subscribe</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="w-full max-w-[1780px] px-4 md:px-12 mt-12">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 py-12 border-b border-white/5">
+        <footer className="w-full bg-secondary text-foreground pt-16 pb-8 mt-12 border-t border-border">
+            <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr] gap-6 pb-12 border-b border-border/50">
 
                     {/* Brand Section */}
-                    <div className="space-y-8">
+                    <div className="space-y-6">
                         <div className="flex items-center gap-2">
-                            <ShoppingBasket className="w-8 h-8 text-primary" />
-                            <span className="text-2xl font-bold font-sans tracking-tight text-foreground">
-                                Campus<span className="text-primary italic">Market</span>
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+                                <ShoppingBasket className="w-5 h-5" />
+                            </div>
+                            <span className="text-xl font-black font-sans tracking-tight text-foreground">
+                                CampusMarket
                             </span>
                         </div>
-                        <p className="text-gray-400 italic font-sans leading-relaxed max-w-xs">
-                            "Be who you are and say what you feel, because those who mind don’t matter, and those who matter don’t mind."
+                        <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+                            The premier marketplace and community hub for university students.
                         </p>
                         <div className="flex gap-4">
-                            <button className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all border border-white/5">
-                                <Facebook className="w-5 h-5 fill-current" />
-                            </button>
-                            <button className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all border border-white/5">
-                                <Twitter className="w-5 h-5 fill-current" />
-                            </button>
-                            <button className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary hover:scale-110 transition-all border border-white/5">
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                                <Facebook className="w-5 h-5" />
+                            </Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                                <Twitter className="w-5 h-5" />
+                            </Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
                                 <Instagram className="w-5 h-5" />
-                            </button>
+                            </Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                                <Linkedin className="w-5 h-5" />
+                            </Link>
                         </div>
                     </div>
 
-                    {/* Useful Links Section */}
+                    {/* Quick Links */}
                     <div>
-                        <h3 className="text-xl font-bold mb-8 font-sans border-b border-white/5 pb-4 inline-block text-foreground">Useful Links</h3>
-                        <ul className="space-y-4">
-                            <li>
-                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
-                                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                                        <HelpCircle className="w-3.5 h-3.5 text-primary group-hover:text-white" />
-                                    </div>
-                                    <span>Help Center</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
-                                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                                        <FileText className="w-3.5 h-3.5 text-primary group-hover:text-white" />
-                                    </div>
-                                    <span>Terms & Conditions</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
-                                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                                        <Shield className="w-3.5 h-3.5 text-primary group-hover:text-white" />
-                                    </div>
-                                    <span>Privacy Policy</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/coming-soon" className="flex items-center gap-3 text-gray-400 hover:text-primary transition-colors group">
-                                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                                        <RefreshCcw className="w-3.5 h-3.5 text-primary group-hover:text-white" />
-                                    </div>
-                                    <span>Refund Policy</span>
-                                </a>
-                            </li>
-                            <li className="flex items-center gap-3 text-gray-400 pt-2">
-                                <Phone className="w-4 h-4 text-primary" />
-                                <span>+234 70 8106 6985</span>
-                            </li>
-                            <li className="flex items-center gap-3 text-gray-400">
-                                <Mail className="w-4 h-4 text-primary" />
-                                <span>campusmarket@gmail.com</span>
-                            </li>
+                        <h3 className="text-lg font-bold mb-6 text-foreground">Quick Links</h3>
+                        <ul className="space-y-3 text-sm text-muted-foreground">
+                            <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+                            <li><Link href="/community/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                            <li><Link href="/community" className="hover:text-primary transition-colors">Marketplace</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Events</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
                         </ul>
                     </div>
 
-                    {/* Seller CTA Section */}
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col items-center text-center space-y-4">
-                        <h3 className="text-lg font-black font-sans uppercase tracking-tight leading-tight text-foreground">
-                            Interested in selling? <br />
-                            <span className="text-primary italic">Join the Community</span>
-                        </h3>
-                        <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
-                            Join a trusted student marketplace where buying and selling happens safely, locally, and on your terms.
-                        </p>
-                        <a href="/coming-soon" className="bg-primary hover:bg-orange-600 text-white font-black py-3 px-8 rounded-full shadow-xl shadow-primary/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center gap-2 text-[10px] uppercase tracking-widest">
-                            <ShoppingBag className="w-4 h-4" />
-                            <span>Become a Seller</span>
-                        </a>
+                    {/* Resources */}
+                    <div>
+                        <h3 className="text-lg font-bold mb-6 text-foreground">Resources</h3>
+                        <ul className="space-y-3 text-sm text-muted-foreground">
+                            <li><Link href="#" className="hover:text-primary transition-colors">Help Center</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Safety Guidelines</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Seller Resources</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Buyer Resources</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">Community Rules</Link></li>
+                            <li><Link href="#" className="hover:text-primary transition-colors">FAQs</Link></li>
+                        </ul>
                     </div>
 
+                    {/* Contact Us */}
+                    <div>
+                        <h3 className="text-lg font-bold mb-6 text-foreground">Contact Us</h3>
+                        <ul className="space-y-4 text-sm text-muted-foreground">
+                            <li className="flex items-start gap-3">
+                                <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                                <span>123 University Ave, Campus Center, Building 4</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <Mail className="w-5 h-5 text-primary shrink-0" />
+                                <span>support@campusmarket.com</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <Phone className="w-5 h-5 text-primary shrink-0" />
+                                <span>(123) 456-7890</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <Clock className="w-5 h-5 text-primary shrink-0" />
+                                <span>Mon-Fri: 9am-5pm</span>
+                            </li>
+                        </ul>
+                    </div>
+                    {/* Newsletter Section */}
+                    <div className="bg-primary rounded-2xl p-5 text-primary-foreground shadow-lg flex flex-col h-fit">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Mail className="w-5 h-5" />
+                            <h3 className="text-lg font-black font-sans">Newsletter</h3>
+                        </div>
+                        <p className="text-sm opacity-90 mb-3 leading-relaxed">
+                            Get the latest campus news, marketplace tips, and exclusive content delivered to your inbox.
+                        </p>
+                        <form className="space-y-2.5">
+                            <input
+                                type="text"
+                                placeholder="Your Name"
+                                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/60 text-sm focus:outline-none focus:bg-white/20 text-white transition-colors"
+                            />
+                            <input
+                                type="email"
+                                placeholder="Your Email"
+                                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/60 text-sm focus:outline-none focus:bg-white/20 text-white transition-colors"
+                            />
+                            <button className="w-full bg-white text-primary font-bold py-2 rounded-lg hover:bg-white/90 transition-colors text-sm shadow-sm mt-1">
+                                Subscribe Now
+                            </button>
+                        </form>
+                        <p className="text-[10px] mt-3 opacity-70 text-center leading-tight">
+                            By subscribing, you agree to our Privacy Policy.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="py-8 flex flex-col md:flex-row items-center justify-between gap-6 opacity-60">
-                    <p className="text-sm">
-                        Copyright © 2026 CampusMarket.
+                <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+                    <p>
+                        © 2023 CampusMarket. All rights reserved.
                     </p>
-                    <div className="flex gap-4">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4 w-auto grayscale brightness-200" />
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6 w-auto grayscale brightness-200" />
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4 w-auto grayscale brightness-200" />
+                    <div className="flex gap-6">
+                        <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
+                        <Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link>
+                        <Link href="#" className="hover:text-primary transition-colors">Cookie Policy</Link>
                     </div>
                 </div>
             </div>
-
-
         </footer>
     );
 }

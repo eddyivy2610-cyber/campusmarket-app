@@ -10,7 +10,7 @@ interface CartDropdownProps {
 export function CartDropdown({ isOpen, itemCount }: CartDropdownProps) {
     return (
         <div
-            className={`absolute top-full right-[-100px] md:right-0 mt-3 w-80 bg-secondary text-foreground rounded-2xl shadow-2xl border border-white/5 overflow-hidden transition-all duration-300 ease-in-out z-50 ${isOpen
+            className={`absolute top-full right-[-100px] md:right-0 mt-3 w-80 bg-secondary text-foreground rounded-2xl shadow-2xl border border-border overflow-hidden transition-all duration-300 ease-in-out z-50 ${isOpen
                 ? 'opacity-100 translate-y-0 visible'
                 : 'opacity-0 -translate-y-4 invisible'
                 }`}

@@ -14,7 +14,7 @@ export function HowItWorks() {
             graphic: (
                 <div className="relative w-full h-full flex items-center justify-center">
                     <div className="absolute w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
-                    <div className="relative bg-secondary p-8 rounded-[2.5rem] border border-white/10 shadow-2xl scale-110">
+                    <div className="relative bg-secondary p-8 rounded-[2.5rem] border border-border shadow-2xl scale-110">
                         <Search className="w-16 h-16 text-primary" />
                     </div>
                     <div className="absolute top-1/4 right-1/4 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-xl animate-bounce-slow">
@@ -35,7 +35,7 @@ export function HowItWorks() {
                 <div className="relative w-full h-full flex items-center justify-center">
                     <div className="absolute w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
                     <div className="relative space-y-4 w-full max-w-[240px]">
-                        <div className="bg-secondary p-4 rounded-2xl rounded-bl-none border border-white/10 shadow-xl self-start ml-4 transform -rotate-2">
+                        <div className="bg-secondary p-4 rounded-2xl rounded-bl-none border border-border shadow-xl self-start ml-4 transform -rotate-2">
                             <div className="w-24 h-2 bg-white/20 rounded-full"></div>
                         </div>
                         <div className="bg-primary p-4 rounded-2xl rounded-br-none shadow-xl self-end mr-4 transform rotate-2">
@@ -69,7 +69,7 @@ export function HowItWorks() {
             <div className="max-w-[1780px] mx-auto px-4 md:px-12 relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-4xl font-sans font-black text-foreground mb-4 uppercase tracking-tighter">
-                        How <span className="text-primary italic">CampusMarket</span> Works
+                        How <span className="text-primary italic">CampusMarket </span> Works
                     </h2>
                     <p className="text-gray-500 text-sm font-medium">
                         Buy and sell within your campus in just three simple steps.
@@ -80,13 +80,13 @@ export function HowItWorks() {
                     {steps.map((step, index) => (
                         <div
                             key={index}
-                            className="bg-secondary rounded-2xl p-6 border border-white/5 relative overflow-hidden group hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-xl"
+                            className="bg-secondary rounded-2xl p-6 border border-border relative overflow-hidden group hover:-translate-y-1 transition-all duration-500 shadow-lg hover:shadow-xl"
                         >
                             {/* Ambient Background */}
                             <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition-opacity ${step.iconBg.replace('bg-', 'bg-')}`}></div>
 
                             {/* Icon */}
-                            <div className={`${step.iconBg} ${step.iconColor} w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm border border-white/5 relative z-10`}>
+                            <div className={`${step.iconBg} ${step.iconColor} w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm border border-border relative z-10`}>
                                 <step.icon className="w-5 h-5" />
                             </div>
 

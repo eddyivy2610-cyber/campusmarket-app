@@ -34,7 +34,7 @@ export default function ProfilePage() {
                             {activeTab === "about" && <AboutSection />}
                             {activeTab === "wallet" && <AccountUtilities />}
                             {activeTab === "orders" && (
-                                <div className="flex flex-col items-center justify-center py-32 text-center bg-secondary/30 rounded-[2.5rem] border border-dashed border-black/5 dark:border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <div className="flex flex-col items-center justify-center py-32 text-center bg-secondary/30 rounded-[2.5rem] border border-dashed border-border animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <h3 className="text-xl font-bold text-foreground mb-2 uppercase tracking-tighter">Your Orders Hub</h3>
                                     <p className="text-gray-500 text-sm max-w-xs mx-auto font-medium">You haven't made any purchases or sales orders yet. Active transactions will appear here.</p>
                                 </div>

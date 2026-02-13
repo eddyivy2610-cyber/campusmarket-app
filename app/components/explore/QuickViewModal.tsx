@@ -89,7 +89,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                     {/* Header Info */}
                     <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
-                            <span className="px-2.5 py-1 rounded-full bg-secondary text-[10px] font-bold uppercase tracking-wider text-gray-500 border border-black/5">
+                            <span className="px-2.5 py-1 rounded-full bg-secondary text-[10px] font-bold uppercase tracking-wider text-gray-500 border border-border">
                                 {product.category}
                             </span>
                             {product.status && (
@@ -149,11 +149,11 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                             Message Seller
                         </button>
                         <div className="flex gap-3">
-                            <button className="flex-1 py-3.5 rounded-xl bg-secondary text-foreground font-bold flex items-center justify-center gap-2 hover:bg-secondary/80 active:scale-[0.98] transition-all border border-black/5 dark:border-white/5">
+                            <button className="flex-1 py-3.5 rounded-xl bg-secondary text-foreground font-bold flex items-center justify-center gap-2 hover:bg-secondary/80 active:scale-[0.98] transition-all border border-border">
                                 <Heart className="w-4 h-4" />
                                 Save
                             </button>
-                            <button className="py-3.5 px-4 rounded-xl bg-secondary text-foreground font-bold flex items-center justify-center hover:bg-secondary/80 active:scale-[0.98] transition-all border border-black/5 dark:border-white/5">
+                            <button className="py-3.5 px-4 rounded-xl bg-secondary text-foreground font-bold flex items-center justify-center hover:bg-secondary/80 active:scale-[0.98] transition-all border border-border">
                                 <Share2 className="w-4 h-4" />
                             </button>
                         </div>

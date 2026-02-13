@@ -55,7 +55,7 @@ export function FAQ() {
                     {faqs.map((faq, index) => (
                         <div
                             key={index}
-                            className={`group bg-secondary border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'ring-2 ring-primary/20 bg-secondary/80' : 'hover:border-white/10'}`}
+                            className={`group bg-secondary border border-border rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'ring-2 ring-primary/20 bg-secondary/80' : 'hover:border-white/10'}`}
                         >
                             <button
                                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
@@ -75,7 +75,7 @@ export function FAQ() {
                             <div
                                 className={`transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                             >
-                                <div className="p-4 pt-0 ml-14 text-gray-500 leading-relaxed text-[13px] font-medium border-t border-white/5 mx-4">
+                                <div className="p-4 pt-0 ml-14 text-gray-500 leading-relaxed text-[13px] font-medium border-t border-border mx-4">
                                     {faq.answer}
                                 </div>
                             </div>

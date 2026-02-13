@@ -2,6 +2,7 @@
 
 import { MapPin, GraduationCap, Edit3, Share2, MoreHorizontal, Star, ShieldCheck, Mail, Check, Flag, MessageCircle, ShoppingBag, Zap } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface ProfileHeaderProps {
     isOwner?: boolean;
@@ -55,11 +56,13 @@ export function ProfileHeader({ isOwner = false }: ProfileHeaderProps) {
                                 </>
                             ) : (
                                 <>
-                                    <button className="flex-1 md:flex-none bg-primary hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
-                                        <MessageCircle className="w-3.5 h-3.5" />
-                                        <span>Message</span>
-                                    </button>
-                                    <button className="bg-secondary hover:bg-secondary/80 text-foreground p-2.5 rounded-xl transition-all active:scale-95 border border-black/5 dark:border-white/5">
+                                    <Link href="/inbox/1">
+                                        <button className="flex-1 md:flex-none bg-primary hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                                            <MessageCircle className="w-3.5 h-3.5" />
+                                            <span>Message</span>
+                                        </button>
+                                    </Link>
+                                    <button className="bg-secondary hover:bg-secondary/80 text-foreground p-2.5 rounded-xl transition-all active:scale-95 border border-border">
                                         <MoreHorizontal className="w-4 h-4" />
                                     </button>
                                 </>
@@ -74,16 +77,16 @@ export function ProfileHeader({ isOwner = false }: ProfileHeaderProps) {
                 <div className="md:col-span-2 space-y-5">
                     {/* Stats Row */}
                     <div className="flex flex-wrap gap-2 md:gap-4">
-                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-border">
                             <Star className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
                             <span className="text-xs font-bold text-foreground">4.9/5.0</span>
                             <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">(42 Reviews)</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-border">
                             <ShoppingBag className="w-3.5 h-3.5 text-blue-500" />
                             <span className="text-xs font-bold text-foreground">56 Sales</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/5">
+                        <div className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-lg border border-border">
                             <Zap className="w-3.5 h-3.5 text-purple-500" />
                             <span className="text-xs font-bold text-foreground">Replies in ~1hr</span>
                         </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import { Send, Image as ImageIcon, Plus } from "lucide-react";
+import { Plus, Image as ImageIcon, Send } from "lucide-react";
 import { useState } from "react";
 
 interface ChatInputProps {
-    onSendMessage: (text: string) => void;
+    onSendMessage: (message: string) => void;
 }
 
 export function ChatInput({ onSendMessage }: ChatInputProps) {
@@ -17,8 +17,8 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         "I'm interested"
     ];
 
-    const handleSubmit = (e?: React.FormEvent) => {
-        e?.preventDefault();
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
         if (message.trim()) {
             onSendMessage(message);
             setMessage("");
@@ -30,16 +30,15 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-black/5 dark:border-white/5 pb-safe z-30">
-            <div className="max-w-7xl mx-auto">
-
-                {/* Quick Actions Row */}
-                <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 no-scrollbar mask-gradient-right">
+        <div className="p-4 bg-card border-t border-gray-200 dark:border-white/10">
+            <div className="max-w-4xl mx-auto space-y-4">
+                {/* Quick Actions */}
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
                     {quickActions.map((action, index) => (
                         <button
                             key={index}
                             onClick={() => handleQuickAction(action)}
-                            className="shrink-0 px-3 py-1.5 bg-secondary hover:bg-primary/10 hover:text-primary rounded-full text-xs font-bold text-gray-600 transition-colors border border-black/5 whitespace-nowrap active:scale-95"
+                            className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-full text-xs font-medium text-foreground whitespace-nowrap transition-colors border border-transparent hover:border-border"
                         >
                             {action}
                         </button>
@@ -47,30 +46,33 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
                 </div>
 
                 {/* Input Area */}
-                <form onSubmit={handleSubmit} className="px-4 pb-4 pt-1 flex items-center gap-3">
-                    <button type="button" className="p-2.5 rounded-full bg-secondary text-gray-500 hover:text-foreground hover:bg-secondary/80 transition-colors">
+                <form onSubmit={handleSubmit} className="flex items-end gap-3">
+                    {/* Add Button */}
+                    <button type="button" className="shrink-0 w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
                         <Plus className="w-5 h-5" />
                     </button>
 
+                    {/* Input Field */}
                     <div className="flex-1 relative">
                         <input
                             type="text"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="Type a message..."
-                            className="w-full bg-secondary rounded-2xl py-3 pl-4 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-gray-400"
+                            className="w-full bg-secondary border-none rounded-full py-3 pl-5 pr-12 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground"
                         />
-                        <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-foreground">
-                            <ImageIcon className="w-4 h-4" />
+                        <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1">
+                            <ImageIcon className="w-5 h-5" />
                         </button>
                     </div>
 
+                    {/* Send Button */}
                     <button
                         type="submit"
                         disabled={!message.trim()}
-                        className="p-3 bg-primary text-white rounded-full shadow-lg shadow-primary/25 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center"
+                        className="shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-orange-600 flex items-center justify-center text-white shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Send className="w-4 h-4 ml-0.5" />
+                        <Send className="w-5 h-5 ml-0.5" />
                     </button>
                 </form>
             </div>

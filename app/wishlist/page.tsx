@@ -26,7 +26,7 @@ export default function WishlistPage() {
                 {/* Empty Wishlist State */}
                 <div className="flex flex-col items-center justify-center py-16 md:py-24">
                     <div className="relative mb-8">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-secondary border border-white/5 flex items-center justify-center">
+                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-secondary border border-border flex items-center justify-center">
                             <Heart className="w-16 h-16 md:w-20 md:h-20 text-gray-400" strokeWidth={1.5} />
                         </div>
                         {/* Decorative element */}

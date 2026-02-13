@@ -55,7 +55,7 @@ export function Hero() {
                         </div>
 
                         {/* Stats/Social Proof */}
-                        <div className="mt-12 flex items-center justify-center md:justify-start gap-8 border-t border-white/5 pt-8">
+                        <div className="mt-12 flex items-center justify-center md:justify-start gap-8 border-t border-border pt-8">
                             <div className="flex flex-col">
                                 <span className="text-2xl font-bold text-foreground font-sans tracking-tight">2.5k+</span>
                                 <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">Students</span>

@@ -11,7 +11,7 @@ interface AccountDropdownProps {
 }
 
 export function AccountDropdown({ isOpen }: AccountDropdownProps) {
-    const { theme, toggleTheme } = useTheme();
+    const { theme, setTheme } = useTheme();
 
     return (
         <div
@@ -21,13 +21,13 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                 }`}
         >
             {/* Header */}
-            <div className="px-4 py-3 bg-secondary/50">
+            <div className="px-4 py-3 bg-secondary/50 border-b border-border/10">
                 <p className="text-sm font-bold text-foreground truncate">Hi, Lucky</p>
-                <p className="text-[10px] text-gray-500 truncate">lucky@example.com</p>
+                <p className="text-xs text-muted-foreground truncate">lucky@example.com</p>
             </div>
 
             {/* Menu Links */}
-            <div className="py-1.5">
+            <div className="py-1.5 border-b border-border/10">
                 <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <User className="w-4 h-4" />
                     <span>My Account</span>
@@ -36,7 +36,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <Package className="w-4 h-4" />
                     <span>Orders</span>
                 </Link>
-                <Link href="/coming-soon" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                <Link href="/inbox" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <MessageSquare className="w-4 h-4" />
                     <span>Inbox</span>
                 </Link>
@@ -49,7 +49,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
             {/* Actions */}
             <div className="pt-1.5 pb-1">
                 <button
-                    onClick={toggleTheme}
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80 text-left"
                 >
                     <div className="flex items-center gap-3">

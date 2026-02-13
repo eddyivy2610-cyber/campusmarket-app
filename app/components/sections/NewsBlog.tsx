@@ -42,7 +42,7 @@ export function NewsBlog() {
                         <button className="p-2 rounded-lg bg-secondary text-gray-500 hover:text-white border border-white/5 hover:border-white/10 transition-all shadow-lg active:scale-95">
                             <ArrowLeft className="w-4 h-4" />
                         </button>
-                        <button className="p-2 rounded-lg bg-secondary text-gray-500 hover:text-white border border-white/5 hover:border-white/10 transition-all shadow-lg active:scale-95">
+                        <button className="p-2 rounded-lg bg-secondary text-gray-500 hover:text-white border border-border hover:border-white/10 transition-all shadow-lg active:scale-95">
                             <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -51,7 +51,7 @@ export function NewsBlog() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {posts.map((post, index) => (
                         <div key={index} className="group cursor-pointer">
-                            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-white/5 shadow-2xl transition-all duration-500 group-hover:scale-[1.02]">
+                            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4 border border-border shadow-2xl transition-all duration-500 group-hover:scale-[1.02]">
                                 <Image
                                     src={post.image}
                                     alt={post.title}

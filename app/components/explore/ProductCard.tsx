@@ -1,10 +1,9 @@
-"use client";
-
-import { Heart, Repeat, Search, ShoppingCart, Star } from "lucide-react";
+import { Heart, Repeat, Search, ShoppingCart, Star, MapPin, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { Tooltip } from "../shared/Tooltip";
 import { useState } from "react";
 import { QuickViewModal } from "./QuickViewModal";
+import Link from "next/link";
 
 interface ProductCardProps {
     title: string;
@@ -15,90 +14,95 @@ interface ProductCardProps {
     status?: string;
     seller?: string;
     isUrgent?: boolean;
+    location?: string;
 }
 
-export function ProductCard({ title, price, category, rating, image, status, seller, isUrgent }: ProductCardProps) {
+export function ProductCard({ title, price, category, rating, image, status, seller, isUrgent, location = "Campus" }: ProductCardProps) {
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
     return (
         <>
-            <div className="group bg-secondary rounded-xl p-1.5 transition-all duration-500 relative flex flex-col h-full shadow-md hover:shadow-xl hover:-translate-y-1">
+            <div className="group bg-background border border-border rounded-2xl p-3 hover:shadow-lg transition-all duration-300 flex flex-col h-full relative">
                 {/* Image Container */}
-                <div className="relative aspect-square rounded-lg overflow-hidden bg-white/5 mb-2">
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary mb-3">
                     <Image
                         src={image}
                         alt={title}
                         fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
 
                     {/* Status Tags */}
-                    <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
                         {isUrgent && (
-                            <span className="bg-red-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-lg animate-pulse">
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-sm animate-pulse">
                                 URGENT
-                            </span>
-                        )}
-                        {status && (
-                            <span className="bg-primary text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-lg">
-                                {status.toUpperCase()}
                             </span>
                         )}
                     </div>
 
-                    {/* Quick Actions Overlay */}
-                    <div className="absolute top-1.5 -right-10 group-hover:right-1.5 transition-all duration-300 flex flex-col gap-1">
-                        <Tooltip content="Add to wishlist" position="left" bgClass="bg-primary">
-                            <button className="w-6 h-6 rounded-full bg-secondary/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-500 hover:text-primary transition-all">
-                                <Heart className="w-3 h-3" />
-                            </button>
-                        </Tooltip>
-                        <Tooltip content="Compare" position="left" bgClass="bg-primary">
-                            <button className="w-6 h-6 rounded-full bg-secondary/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-500 hover:text-primary transition-all">
-                                <Repeat className="w-3 h-3" />
-                            </button>
-                        </Tooltip>
-                        <Tooltip content="Quick view" position="left" bgClass="bg-primary">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setIsQuickViewOpen(true);
-                                }}
-                                className="w-6 h-6 rounded-full bg-secondary/80 backdrop-blur-md border border-white/10 flex items-center justify-center text-gray-500 hover:text-primary transition-all"
-                            >
-                                <Search className="w-3 h-3" />
-                            </button>
-                        </Tooltip>
+                    {/* Quick Actions Overlay (Cart, Wishlist, QuickView) */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button className="w-8 h-8 rounded-full bg-white/90 text-gray-600 hover:text-primary flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors">
+                            <ShoppingCart className="w-4 h-4" />
+                        </button>
+                        <button className="w-8 h-8 rounded-full bg-white/90 text-gray-600 hover:text-red-500 flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors">
+                            <Heart className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setIsQuickViewOpen(true);
+                            }}
+                            className="w-8 h-8 rounded-full bg-white/90 text-gray-600 hover:text-primary flex items-center justify-center shadow-sm backdrop-blur-sm transition-colors"
+                        >
+                            <Search className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col px-1">
-                    <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-primary text-[8px] font-black uppercase tracking-widest truncate max-w-[60%]">{category}</span>
-                        <div className="flex items-center gap-0.5">
-                            <Star className="w-2 h-2 fill-yellow-500 text-yellow-500" />
-                            <span className="text-[9px] font-black text-gray-500">{rating}</span>
-                        </div>
-                    </div>
-
-                    <h3 className="text-foreground font-black text-[10px] mb-1 leading-tight line-clamp-2 group-hover:text-primary transition-colors uppercase tracking-tight h-6">
+                <div className="flex-1 flex flex-col gap-1">
+                    {/* Title */}
+                    <h3 className="text-sm font-bold text-foreground line-clamp-2 leading-tight" title={title}>
                         {title}
                     </h3>
 
+                    {/* Price & Condition */}
+                    <div className="flex items-center flex-wrap gap-2 mt-0.5">
+                        <span className="text-lg font-black text-primary">₦{price}</span>
+                        {status && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary text-gray-600 border border-border">
+                                {status}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs mt-1">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{location}</span>
+                    </div>
+
+                    {/* Seller */}
                     {seller && (
-                        <p className="text-gray-600 text-[8px] mb-2 font-bold uppercase tracking-wide truncate">By <span className="text-gray-500">{seller}</span></p>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1 mb-2">
+                            <div className="w-4 h-4 rounded-full bg-secondary border border-border flex items-center justify-center text-[8px] font-bold">
+                                {seller.charAt(0)}
+                            </div>
+                            <span className="truncate">{seller}</span>
+                        </div>
                     )}
 
-                    <div className="mt-auto pt-1 flex items-center justify-between border-t border-black/5 dark:border-white/5">
-                        <span className="text-xs font-black text-foreground">
-                            ₦{price}
-                        </span>
-                        <button className="w-6 h-6 rounded-md bg-primary text-white flex items-center justify-center hover:bg-orange-600 transition-all shadow-md active:scale-95">
-                            <ShoppingCart className="w-3 h-3" />
-                        </button>
-                    </div>
+                    {/* Primary Action */}
+                    <Link
+                        href="/inbox/1"
+                        className="mt-auto w-full py-2.5 bg-foreground text-background rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                    >
+                        <MessageCircle className="w-4 h-4" />
+                        Message Seller
+                    </Link>
                 </div>
             </div>
 

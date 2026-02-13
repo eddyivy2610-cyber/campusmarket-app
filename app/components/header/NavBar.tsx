@@ -17,7 +17,7 @@ export function NavBar() {
         <div className="bg-transparent pt-0 pb-4">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12 leading-none">
                 <div className="relative">
-                    <div className="bg-secondary text-foreground rounded-full px-1.5 py-1 flex items-center justify-between shadow-lg border border-white/5">
+                    <div className="bg-secondary text-foreground rounded-full px-1.5 py-1 flex items-center justify-between shadow-lg border border-border">
 
                         {/* Left Navigation */}
                         <div className="flex items-center">

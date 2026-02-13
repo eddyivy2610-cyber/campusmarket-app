@@ -1,13 +1,14 @@
 "use client";
 
-import { Search, ShoppingBasket, Heart, User, Bell, LayoutGrid, ChevronDown, HelpCircle, PlusCircle } from "lucide-react";
-import { useState } from "react";
+import { Search, ShoppingBasket, Heart, User, Bell, LayoutGrid, ChevronDown, HelpCircle, PlusCircle, Users } from "lucide-react";
+import { useState, useRef } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import { CartDropdown } from "./CartDropdown";
 import { ExploreDropdown } from "./ExploreDropdown";
 import Link from "next/link";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { NotificationSidebar } from "../notifications/NotificationSidebar";
+import { useClickOutside } from "../../hooks/useClickOutside";
 
 export function MainHeader() {
     useScrollReveal();
@@ -17,9 +18,17 @@ export function MainHeader() {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
     const [cartCount, setCartCount] = useState(0);
 
+    const exploreRef = useRef<HTMLDivElement>(null);
+    const accountRef = useRef<HTMLDivElement>(null);
+    const cartRef = useRef<HTMLDivElement>(null);
+
+    useClickOutside(exploreRef, () => setIsExploreOpen(false));
+    useClickOutside(accountRef, () => setIsAccountOpen(false));
+    useClickOutside(cartRef, () => setIsCartOpen(false));
+
     return (
         <>
-            <div className="bg-background text-foreground py-3 border-b border-black/5 dark:border-white/5 sticky top-0 z-40 transition-shadow duration-300">
+            <div className="bg-background text-foreground py-3 border-b border-border sticky top-0 z-40 transition-shadow duration-300">
                 <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
 
                     {/* Logo */}
@@ -34,16 +43,16 @@ export function MainHeader() {
                     </Link>
 
                     {/* Center: Search & Explore */}
-                    <div className="flex-1 w-full max-w-3xl relative z-50">
-                        <div className="flex items-center w-full bg-gray-100/50 dark:bg-white/5 rounded-full overflow-hidden transition-all duration-300 shadow-sm group-focus-within:shadow-md ring-1 ring-transparent focus-within:ring-primary/20">
+                    <div ref={exploreRef} className="flex-1 w-full max-w-3xl relative z-50">
+                        <div className="flex items-center w-full h-12 bg-gray-100/50 dark:bg-white/5 rounded-full overflow-hidden transition-all duration-300 shadow-sm group-focus-within:shadow-md ring-1 ring-transparent focus-within:ring-primary/20">
 
                             {/* Explore Button */}
                             <button
                                 onClick={() => setIsExploreOpen(!isExploreOpen)}
-                                className="hidden md:flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition-colors cursor-pointer whitespace-nowrap"
+                                className="flex items-center gap-2 h-full px-3 md:px-5 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0"
                             >
                                 <LayoutGrid className="w-4 h-4" />
-                                <span>Categories</span>
+                                <span className="hidden md:inline">Categories</span>
                                 <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExploreOpen ? 'rotate-180' : ''}`} />
                             </button>
 
@@ -51,11 +60,11 @@ export function MainHeader() {
                             <input
                                 type="text"
                                 placeholder="Search products, brands, and categories..."
-                                className="flex-1 bg-transparent px-4 py-3 outline-none text-sm placeholder:text-gray-400 text-foreground font-medium w-full"
+                                className="flex-1 h-full bg-transparent px-4 outline-none text-sm placeholder:text-gray-400 text-foreground font-medium w-full"
                             />
 
                             {/* Search Button */}
-                            <button className="px-6 py-3 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors uppercase text-[11px] tracking-widest flex items-center gap-2">
+                            <button className="h-full px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors uppercase text-[11px] tracking-widest flex items-center gap-2">
                                 <Search className="w-4 h-4" />
                                 <span className="hidden sm:inline">Search</span>
                             </button>
@@ -77,7 +86,7 @@ export function MainHeader() {
                         </Link>
 
                         {/* Account */}
-                        <div className="relative z-40">
+                        <div ref={accountRef} className="relative z-40">
                             <button
                                 onClick={() => setIsAccountOpen(!isAccountOpen)}
                                 className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer"
@@ -87,6 +96,12 @@ export function MainHeader() {
                             </button>
                             <AccountDropdown isOpen={isAccountOpen} />
                         </div>
+
+                        {/* Community */}
+                        <Link href="/community" className="relative flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer">
+                            <Users className="w-5 h-5 mb-0.5" />
+                            <span className="text-[10px] font-bold">Community</span>
+                        </Link>
 
                         {/* Notifications */}
                         <button
@@ -103,7 +118,7 @@ export function MainHeader() {
                         </button>
 
                         {/* Cart */}
-                        <div className="relative z-40">
+                        <div ref={cartRef} className="relative z-40">
                             <button
                                 onClick={() => setIsCartOpen(!isCartOpen)}
                                 className="flex flex-col items-center gap-0.5 text-gray-500 hover:text-primary transition-colors group p-2 bg-transparent border-none cursor-pointer"

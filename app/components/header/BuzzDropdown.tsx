@@ -21,12 +21,12 @@ export function BuzzDropdown({ isOpen }: BuzzDropdownProps) {
 
     return (
         <div
-            className={`absolute top-full left-0 mt-3 w-72 bg-secondary text-foreground rounded-2xl shadow-2xl border border-white/5 overflow-hidden transition-all duration-300 ease-in-out z-50 ${isOpen
+            className={`absolute top-full left-0 mt-3 w-72 bg-secondary text-foreground rounded-2xl shadow-2xl border border-border overflow-hidden transition-all duration-300 ease-in-out z-50 ${isOpen
                 ? 'opacity-100 translate-y-0 visible'
                 : 'opacity-0 -translate-y-4 invisible'
                 }`}
         >
-            <div className="p-4 bg-white/5 border-b border-white/10 uppercase tracking-widest text-[10px] font-bold text-gray-400">
+            <div className="p-4 bg-white/5 border-b border-border uppercase tracking-widest text-[10px] font-bold text-gray-400">
                 Campus Buzz
             </div>
 

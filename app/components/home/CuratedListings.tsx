@@ -9,7 +9,7 @@ const featuredProducts = [
     {
         id: "1",
         title: "MacBook Air M1 - Silver",
-        price: "₦450,000",
+        price: "450,000",
         image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&q=80&w=500",
         condition: "Like New",
         location: "Engineering Faculty",
@@ -21,7 +21,7 @@ const featuredProducts = [
     {
         id: "2",
         title: "Ikea Desk Lamp",
-        price: "₦12,000",
+        price: "12,000",
         image: "https://images.unsplash.com/photo-1534349762913-96c871302410?auto=format&fit=crop&q=80&w=500",
         condition: "Used",
         location: "Male Hostel",
@@ -33,7 +33,7 @@ const featuredProducts = [
     {
         id: "3",
         title: "Sony WH-1000XM4",
-        price: "₦180,000",
+        price: "180,000",
         image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=500",
         condition: "New",
         location: "Main Gate",
@@ -45,7 +45,7 @@ const featuredProducts = [
     {
         id: "4",
         title: "Calculus Early Transcendentals",
-        price: "₦8,000",
+        price: "8,000",
         image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=500",
         condition: "Used",
         location: "Library",

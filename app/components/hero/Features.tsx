@@ -37,7 +37,7 @@ export function Features() {
     return (
         <section className="relative z-20 -mt-10 pb-8">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12">
-                <div className="bg-secondary text-foreground rounded-2xl shadow-2xl p-3 md:p-5 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-2 border border-white/5">
+                <div className="bg-secondary text-foreground rounded-2xl shadow-2xl p-3 md:p-5 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-2 border border-border">
                     {features.map((feature, index) => (
                         <div
                             key={index}
