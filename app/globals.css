@@ -18,7 +18,7 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #e2e8f0;
+  --border: #212d3c;
   --input: #e2e8f0;
   --ring: #f97316;
   --radius: 0.5rem;
@@ -43,7 +43,7 @@
   --accent-foreground: #ffffff;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
-  --border: #334155;
+  --border: #1e293b;
   --input: #1e293b;
   --ring: #f97316;
 }

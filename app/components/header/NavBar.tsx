@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ShoppingBasket, ShoppingBag, LayoutGrid, Zap, Heart, Search, HelpCircle, Users2 } from "lucide-react";
+import Link from "next/link";
 import { ExploreDropdown } from "./ExploreDropdown";
 import { BuzzDropdown } from "./BuzzDropdown";
 import { QuickFindDropdown } from "./QuickFindDropdown";
@@ -14,10 +15,10 @@ export function NavBar() {
     const [supportVisible, setSupportVisible] = useState(false);
 
     return (
-        <div className="bg-transparent pt-0 pb-4">
+        <div className="hidden md:block bg-transparent pt-0 pb-4">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12 leading-none">
                 <div className="relative">
-                    <div className="bg-secondary text-foreground rounded-full px-1.5 py-1 flex items-center justify-between shadow-lg border border-border">
+                    <div className="bg-secondary text-foreground rounded-full px-1.5 py-1 flex items-center justify-between shadow-lg border border-white/5">
 
                         {/* Left Navigation */}
                         <div className="flex items-center">
@@ -95,10 +96,10 @@ export function NavBar() {
 
                         {/* Right CTA */}
                         <div className="hidden md:block pl-2">
-                            <a href="/coming-soon" className="bg-primary text-primary-foreground font-black py-2.5 px-6 rounded-full flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-orange-600 transition-all text-[11px] uppercase tracking-widest active:scale-95 transform hover:-translate-y-0.5">
+                            <Link href="/create" className="bg-primary text-primary-foreground font-black py-2.5 px-6 rounded-full flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-orange-600 transition-all text-[11px] uppercase tracking-widest active:scale-95 transform hover:-translate-y-0.5">
                                 <ShoppingBasket className="w-4 h-4" />
                                 <span>Become a Seller</span>
-                            </a>
+                            </Link>
                         </div>
                     </div>
 

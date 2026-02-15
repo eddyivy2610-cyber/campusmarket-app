@@ -28,7 +28,7 @@ export function CartDropdown({ isOpen, itemCount }: CartDropdownProps) {
                         <p className="text-sm text-gray-400">— start shopping</p>
                     </div>
                     <button className="mt-4 bg-primary text-white text-sm font-bold py-2.5 px-8 rounded-full hover:bg-orange-600 transition-all duration-300 shadow-lg shadow-primary/20 hover:scale-105">
-                        Start Shopping
+                        Explore Market
                     </button>
                 </div>
             ) : (

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface AccountDropdownProps {
     isOpen: boolean;
@@ -12,6 +13,14 @@ interface AccountDropdownProps {
 
 export function AccountDropdown({ isOpen }: AccountDropdownProps) {
     const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Prevent hydration mismatch by not rendering theme toggle content until mounted
+    // Or simpler: just don't render the icon logic until mounted
 
     return (
         <div
@@ -53,8 +62,11 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80 text-left"
                 >
                     <div className="flex items-center gap-3">
-                        {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                        <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                        {mounted && (
+                            theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />
+                        )}
+                        {!mounted && <span className="w-4 h-4" />}
+                        <span>{mounted ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : 'Theme'}</span>
                     </div>
                 </button>
 

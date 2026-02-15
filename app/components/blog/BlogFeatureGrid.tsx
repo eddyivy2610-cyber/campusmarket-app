@@ -20,11 +20,11 @@ interface Article {
 const ARTICLES: Article[] = [
     {
         id: "1",
-        title: "5 Ways to Transform Your Dorm Room on a Budget",
-        description: "Turn your standard-issue dorm room into a personalized haven without breaking the bank. Our top tips for maximizing space and style.",
+        title: "5 Ways to Transform Your Hostel Room on a Budget",
+        description: "Turn your standard-issue hostel room into a personalized haven without breaking the bank. Our top tips for maximizing space and style.",
         category: "Dorm Life",
         categoryColor: "bg-blue-100 text-blue-600",
-        author: "Sarah Chen",
+        author: "Blessing John",
         date: "Oct 12, 2023",
         reads: 423,
         comments: 18,

@@ -4,10 +4,15 @@ import { useState } from "react";
 import { Search, Filter, Plus, PackageOpen, CheckCircle, Archive, LayoutGrid, List } from "lucide-react";
 import { ProductCard } from "../explore/ProductCard";
 
+
+import { EmptyListingCard } from "./EmptyListingCard";
+import { AddListingCard } from "./AddListingCard";
+
 export function ListingGrid() {
     const [filter, setFilter] = useState<"active" | "sold">("active");
+    const [viewMode, setViewMode] = useState<"owner" | "visitor">("owner");
 
-    // Mock data for profiles
+    // Mock data for profiles - 
     const listings = [
         {
             id: 1,
@@ -41,48 +46,102 @@ export function ListingGrid() {
         }
     ];
 
+    // For demo purposes, you can toggle this by emptying the mock data above
+    if (listings.length === 0) {
+        if (viewMode === 'owner') {
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-end px-4">
+                        <ViewModeToggle mode={viewMode} setMode={setViewMode} />
+                    </div>
+                    <EmptyListingCard />
+                </div>
+            );
+        } else {
+            return (
+                <div className="space-y-4">
+                    <div className="flex justify-end px-4">
+                        <ViewModeToggle mode={viewMode} setMode={setViewMode} />
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-24 text-center bg-secondary/30 rounded-2xl border border-dashed border-foreground/10">
+                        <PackageOpen className="w-12 h-12 text-gray-300 mb-3" />
+                        <p className="text-gray-400 font-medium text-sm">This user hasn't posted any items yet.</p>
+                    </div>
+                </div>
+            );
+        }
+    }
+
     const filteredListings = listings.filter(l => l.status === filter);
+    const isOwner = viewMode === "owner";
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* simple filter bar */}
-            <div className="flex items-center gap-4 border-b border-foreground/5 pb-4">
-                <button
-                    onClick={() => setFilter("active")}
-                    className={`text-xs font-bold uppercase tracking-tight transition-colors ${filter === 'active' ? 'text-foreground' : 'text-gray-400 hover:text-gray-300'}`}
-                >
-                    Active Listings <span className="text-[10px] ml-1 opacity-60">({listings.filter(l => l.status === "active").length})</span>
-                </button>
-                <div className="w-px h-3 bg-foreground/10"></div>
-                <button
-                    onClick={() => setFilter("sold")}
-                    className={`text-xs font-bold uppercase tracking-tight transition-colors ${filter === 'sold' ? 'text-foreground' : 'text-gray-400 hover:text-gray-300'}`}
-                >
-                    Sold History <span className="text-[10px] ml-1 opacity-60">({listings.filter(l => l.status === "sold").length})</span>
-                </button>
+            <div className="flex items-center justify-between border-b border-foreground/5 pb-4">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => setFilter("active")}
+                        className={`text-xs font-bold uppercase tracking-tight transition-colors ${filter === 'active' ? 'text-foreground' : 'text-gray-400 hover:text-gray-300'}`}
+                    >
+                        Active Listings <span className="text-[10px] ml-1 opacity-60">({listings.filter(l => l.status === "active").length})</span>
+                    </button>
+                    <div className="w-px h-3 bg-foreground/10"></div>
+                    <button
+                        onClick={() => setFilter("sold")}
+                        className={`text-xs font-bold uppercase tracking-tight transition-colors ${filter === 'sold' ? 'text-foreground' : 'text-gray-400 hover:text-gray-300'}`}
+                    >
+                        Sold History <span className="text-[10px] ml-1 opacity-60">({listings.filter(l => l.status === "sold").length})</span>
+                    </button>
+                </div>
+
+                <ViewModeToggle mode={viewMode} setMode={setViewMode} />
             </div>
 
             {/* Grid */}
-            {filteredListings.length > 0 ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {filteredListings.map((item) => (
-                        <div key={item.id} className="relative group">
-                            <ProductCard {...item} />
-                            {item.status === 'sold' && (
-                                <div className="absolute inset-x-0 bottom-0 top-0 bg-background/60 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center p-6 text-center pointer-events-none">
-                                    <div className="bg-emerald-500 text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-tighter transform -rotate-6 shadow-xl border-2 border-white/20">
-                                        Sold
-                                    </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {/* Always show 'Add New' card first when in 'Active' tab AND Owner Mode */}
+                {filter === 'active' && isOwner && <AddListingCard />}
+
+                {filteredListings.map((item) => (
+                    <div key={item.id} className="relative group">
+                        <ProductCard {...item} isOwner={isOwner} />
+                        {item.status === 'sold' && (
+                            <div className="absolute inset-x-0 bottom-0 top-0 bg-background/60 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center p-6 text-center pointer-events-none">
+                                <div className="bg-emerald-500 text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-tighter transform -rotate-6 shadow-xl border-2 border-white/20">
+                                    Sold
                                 </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center py-24 text-center bg-secondary/30 rounded-2xl border border-dashed border-foreground/10">
-                    <p className="text-gray-400 font-medium text-sm">No items found in this category.</p>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Empty state specifically for filters (e.g. no sold items) */}
+            {filteredListings.length === 0 && filter === 'sold' && (
+                <div className="flex flex-col items-center justify-center py-24 text-center bg-secondary/30 rounded-2xl border border-dashed border-foreground/10 col-span-full">
+                    <p className="text-gray-400 font-medium text-sm">No sold items defined.</p>
                 </div>
             )}
+        </div>
+    );
+}
+
+function ViewModeToggle({ mode, setMode }: { mode: "owner" | "visitor", setMode: (m: "owner" | "visitor") => void }) {
+    return (
+        <div className="flex items-center gap-2 bg-secondary/50 p-1 rounded-lg border border-white/5">
+            <button
+                onClick={() => setMode("owner")}
+                className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${mode === "owner" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"}`}
+            >
+                Owner
+            </button>
+            <button
+                onClick={() => setMode("visitor")}
+                className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${mode === "visitor" ? "bg-primary text-white shadow-sm" : "text-gray-400 hover:text-white"}`}
+            >
+                Visitor
+            </button>
         </div>
     );
 }
