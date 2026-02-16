@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Tag } from "lucide-react";
+import { CATEGORIES } from "../../data/products";
 
 interface TrendingPost {
     id: string;
@@ -19,9 +20,6 @@ const TRENDING_POSTS: TrendingPost[] = [
     { id: "5", rank: 5, title: "Dorm Room Essentials You Can Find Used", reads: "589 reads", time: "3 weeks ago" },
 ];
 
-const CATEGORIES = [
-    "Campus Life", "Marketplace", "Dorm Living", "Study Tips", "Events", "Safety", "Interviews", "Buying Tips", "Selling Tips", "Announcements"
-];
 
 export function SidebarWidgets() {
     return (
@@ -62,8 +60,8 @@ export function SidebarWidgets() {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                     {CATEGORIES.map((cat) => (
-                        <Link key={cat} href="#" className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-semibold rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors">
-                            {cat}
+                        <Link key={cat.name} href="#" className="px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-semibold rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors">
+                            {cat.name}
                         </Link>
                     ))}
                 </div>

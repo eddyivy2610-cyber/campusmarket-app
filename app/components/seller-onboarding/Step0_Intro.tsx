@@ -11,24 +11,24 @@ export function Step0_Intro({ onNext }: StepProps) {
     return (
         <div className="flex flex-col md:flex-row h-full">
             {/* Left Col: Info */}
-            <div className="flex-1 p-8 flex flex-col justify-center animate-in fade-in slide-in-from-left-4 duration-500">
-                <div className="mb-6">
+            <div className="flex-1 p-6 flex flex-col justify-center animate-in fade-in slide-in-from-left-4 duration-500">
+                <div className="mb-4">
                     <div className="flex gap-1.5 mb-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/20" />
                         <span className="w-1.5 h-1.5 rounded-full bg-primary/10" />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-black text-foreground mb-2 leading-tight">
+                    <h1 className="text-3xl md:text-3xl font-black font-heading text-foreground mb-2 leading-tight">
                         Start Selling on <br />
                         <span className="text-foreground tracking-tighter">Campus</span>
                         <span className="text-primary ml-0.5">Market</span>
                     </h1>
-                    <p className="text-muted-foreground text-base">
+                    <p className="text-muted-foreground text-sm">
                         Sell directly to students. No business required.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 mb-3">
                     {[
                         { icon: ShieldCheck, text: "Credibility Badge", color: "bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400" },
                         { icon: TrendingUp, text: "More Visibility", color: "bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400" },
@@ -45,7 +45,7 @@ export function Step0_Intro({ onNext }: StepProps) {
                 </div>
 
                 {/* Mini Timeline */}
-                <div className="bg-zinc-50 dark:bg-zinc-900 rounded-xl p-3 mb-4 border border-border">
+                <div className="bg-secondary/50 rounded-xl p-3 mb-3 border border-border/50">
                     <div className="flex justify-between items-center relative">
                         {/* Line */}
                         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-zinc-200 dark:bg-zinc-800 -z-10" />

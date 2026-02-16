@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Step0_Intro } from "./Step0_Intro";
 import { Step1_Status } from "./Step1_Status";
 import { Step2_Verification } from "./Step2_Verification";
@@ -33,8 +35,15 @@ export function OnboardingContainer() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300">
-            <div className="w-full max-w-6xl bg-card rounded-3xl shadow-xl shadow-black/10 dark:shadow-white/5 overflow-hidden border-2 border-border min-h-[600px] flex flex-col md:flex-row relative transition-all duration-300">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 font-sans transition-colors duration-300 relative">
+
+            {/* Back to Home */}
+            <Link href="/" className="absolute top-6 left-6 md:top-8 md:left-8 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-bold text-sm z-50 group">
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                Back to Home
+            </Link>
+
+            <div className="w-full max-w-6xl bg-card rounded-3xl shadow-xl shadow-black/10 dark:shadow-white/5 overflow-hidden border-2 border-border min-h-[500px] flex flex-col md:flex-row relative transition-all duration-300">
 
                 {/* Progress Indicators (Only for steps 1-3) */}
                 {step > 0 && step < 4 && (

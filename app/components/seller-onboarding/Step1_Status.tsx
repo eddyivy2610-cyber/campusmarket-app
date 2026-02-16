@@ -20,24 +20,24 @@ export function Step1_Status({ data, updateData, onNext }: StepProps) {
                     <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-2">
                         <GraduationCap className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl font-black text-foreground">Quick Seller Registration</h2>
-                    <p className="text-muted-foreground text-xs">
+                    <h2 className="text-xl font-black font-heading text-foreground">Quick Seller Registration</h2>
+                    <p className="text-muted-foreground text-xs font-medium">
                         To keep the marketplace student-only, we need a few basic details.
                     </p>
                 </div>
 
                 <div className="space-y-4">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Student Status <span className="text-red-500">*</span></label>
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-wider">Student Status <span className="text-red-500">*</span></label>
                     <div className="space-y-2">
                         {options.map((option) => (
                             <div
                                 key={option}
                                 onClick={() => updateData({ studentStatus: option })}
                                 className={`
-                                    relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center gap-3 group
+                                    relative p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-3 group
                                     ${data.studentStatus === option
-                                        ? "border-primary bg-primary/5 dark:bg-primary/10 shadow-md"
-                                        : "border-gray-100 dark:border-zinc-800 hover:border-gray-200 dark:hover:border-zinc-700 hover:bg-secondary/50 dark:hover:bg-zinc-800/50"}
+                                        ? "border-primary bg-primary/5 dark:bg-primary/10 shadow-sm ring-1 ring-primary/20"
+                                        : "border-border/40 hover:border-border hover:bg-secondary/50"}
                                 `}
                             >
                                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${data.studentStatus === option ? "border-primary" : "border-gray-300"}`}>

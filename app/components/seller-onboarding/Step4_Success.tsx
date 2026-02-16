@@ -14,7 +14,7 @@ export function Step4_Success() {
                     </div>
                     <div className="flex justify-center items-center gap-2">
                         <PartyPopper className="w-5 h-5 text-orange-500 animate-pulse" />
-                        <h2 className="text-2xl font-black text-foreground">Application Received</h2>
+                        <h2 className="text-2xl font-black font-heading text-foreground">Application Received</h2>
                         <PartyPopper className="w-5 h-5 text-orange-500 scale-x-[-1] animate-pulse" />
                     </div>
                     <p className="text-muted-foreground text-sm">

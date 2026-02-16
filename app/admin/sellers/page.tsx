@@ -15,15 +15,15 @@ export default function SellerApprovalsPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Seller Approvals</h1>
-                    <p className="text-gray-400 text-sm">Review student verification requests for seller accounts.</p>
+                    <h1 className="text-2xl font-bold text-foreground">Seller Approvals</h1>
+                    <p className="text-muted-foreground text-sm">Review student verification requests for seller accounts.</p>
                 </div>
             </div>
 
-            <div className="bg-[#121212] rounded-xl border border-white/5 overflow-hidden">
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-400 uppercase bg-white/5">
+                        <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                             <tr>
                                 <th className="px-6 py-4">Applicant Name</th>
                                 <th className="px-6 py-4">Student Status</th>
@@ -35,30 +35,30 @@ export default function SellerApprovalsPage() {
                         </thead>
                         <tbody>
                             {applicants.map((applicant) => (
-                                <tr key={applicant.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-white">{applicant.name}</td>
-                                    <td className="px-6 py-4 text-gray-400">
+                                <tr key={applicant.id} className="border-b border-border hover:bg-accent/50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-foreground">{applicant.name}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">
                                         <div className="flex items-center gap-2">
-                                            <FileText size={14} className="text-blue-400" />
+                                            <FileText size={14} className="text-blue-500" />
                                             Verified ID
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-400">{applicant.department}</td>
-                                    <td className="px-6 py-4 text-gray-400">{applicant.date}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">{applicant.department}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">{applicant.date}</td>
                                     <td className="px-6 py-4">
                                         <StatusBadge status={applicant.status} />
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors" title="Review">
+                                            <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors" title="Review">
                                                 <Eye size={16} />
                                             </button>
                                             {applicant.status === 'Pending' && (
                                                 <>
-                                                    <button className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-500/10 rounded transition-colors" title="Approve">
+                                                    <button className="p-1.5 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded transition-colors" title="Approve">
                                                         <Check size={16} />
                                                     </button>
-                                                    <button className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Reject">
+                                                    <button className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Reject">
                                                         <X size={16} />
                                                     </button>
                                                 </>
@@ -73,4 +73,4 @@ export default function SellerApprovalsPage() {
             </div>
         </div>
     );
-}
+};

@@ -21,32 +21,32 @@ export function Step3_Contact({ data, updateData, onNext, onBack }: StepProps) {
                     <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-2">
                         <BellRing className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl font-black text-foreground">Approval Updates</h2>
-                    <p className="text-muted-foreground text-xs">
+                    <h2 className="text-xl font-black font-heading text-foreground">Approval Updates</h2>
+                    <p className="text-muted-foreground text-xs font-medium">
                         How should we notify you once your seller account is approved?
                     </p>
                 </div>
 
-                <div className="space-y-3">
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Phone Number <span className="text-red-500">*</span></label>
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-wider">Phone Number <span className="text-red-500">*</span></label>
                         <input
                             type="tel"
                             placeholder="+234..."
                             value={data.phone}
                             onChange={(e) => updateData({ phone: e.target.value })}
-                            className="w-full p-2.5 rounded-lg border-2 border-gray-100 dark:border-zinc-800 bg-transparent focus:border-primary focus:outline-none transition-colors font-medium placeholder:text-muted-foreground/50 text-sm text-foreground"
+                            className="w-full h-11 px-4 rounded-xl border border-transparent bg-secondary/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium placeholder:text-muted-foreground/50 text-sm text-foreground shadow-sm"
                         />
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Email Address <span className="text-red-500">*</span></label>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-wider">Email Address <span className="text-red-500">*</span></label>
                         <input
                             type="email"
                             placeholder="your.email@university.edu"
                             value={data.email}
                             onChange={(e) => updateData({ email: e.target.value })}
-                            className="w-full p-2.5 rounded-lg border-2 border-gray-100 dark:border-zinc-800 bg-transparent focus:border-primary focus:outline-none transition-colors font-medium placeholder:text-muted-foreground/50 text-sm text-foreground"
+                            className="w-full h-11 px-4 rounded-xl border border-transparent bg-secondary/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium placeholder:text-muted-foreground/50 text-sm text-foreground shadow-sm"
                         />
                     </div>
                 </div>

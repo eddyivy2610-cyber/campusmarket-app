@@ -21,32 +21,32 @@ export function Step2_Verification({ data, updateData, onNext, onBack }: StepPro
                     <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
                         <ScanFace className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl font-black text-foreground">Student Verification</h2>
-                    <p className="text-muted-foreground text-xs">
+                    <h2 className="text-xl font-black font-heading text-foreground">Student Verification</h2>
+                    <p className="text-muted-foreground text-xs font-medium">
                         We use this only to verify campus affiliation.
                     </p>
                 </div>
 
-                <div className="space-y-3">
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Department / Faculty <span className="text-red-500">*</span></label>
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-wider">Department / Faculty <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             placeholder="e.g., Computer Science"
                             value={data.department}
                             onChange={(e) => updateData({ department: e.target.value })}
-                            className="w-full p-2.5 rounded-lg border-2 border-gray-100 dark:border-zinc-800 bg-transparent focus:border-primary focus:outline-none transition-colors font-medium placeholder:text-muted-foreground/50 text-sm text-foreground"
+                            className="w-full h-11 px-4 rounded-xl border border-transparent bg-secondary/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium placeholder:text-muted-foreground/50 text-sm text-foreground shadow-sm"
                         />
                     </div>
 
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Registration Number <span className="text-red-500">*</span></label>
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1 tracking-wider">Registration Number <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             placeholder="e.g., 2024CS001"
                             value={data.regNumber}
                             onChange={(e) => updateData({ regNumber: e.target.value })}
-                            className="w-full p-2.5 rounded-lg border-2 border-gray-100 dark:border-zinc-800 bg-transparent focus:border-primary focus:outline-none transition-colors font-medium placeholder:text-muted-foreground/50 text-sm text-foreground"
+                            className="w-full h-11 px-4 rounded-xl border border-transparent bg-secondary/50 focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium placeholder:text-muted-foreground/50 text-sm text-foreground shadow-sm"
                         />
                     </div>
 

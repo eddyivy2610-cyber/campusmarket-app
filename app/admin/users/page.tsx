@@ -15,15 +15,15 @@ export default function UsersPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">User Management</h1>
-                    <p className="text-gray-400 text-sm">Manage all platform users and their account status.</p>
+                    <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+                    <p className="text-muted-foreground text-sm">Manage all platform users and their account status.</p>
                 </div>
             </div>
 
-            <div className="bg-[#121212] rounded-xl border border-white/5 overflow-hidden">
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-400 uppercase bg-white/5">
+                        <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                             <tr>
                                 <th className="px-6 py-4">User</th>
                                 <th className="px-6 py-4">Email</th>
@@ -35,27 +35,27 @@ export default function UsersPage() {
                         </thead>
                         <tbody>
                             {startUsers.map((user) => (
-                                <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                    <td className="px-6 py-4 font-medium text-white">
+                                <tr key={user.id} className="border-b border-border hover:bg-accent/50 transition-colors">
+                                    <td className="px-6 py-4 font-medium text-foreground">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">
+                                            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
                                                 {user.name.charAt(0)}
                                             </div>
                                             {user.name}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-400">{user.email}</td>
-                                    <td className="px-6 py-4 text-gray-400">{user.role}</td>
-                                    <td className="px-6 py-4 text-gray-400">{user.date}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">{user.role}</td>
+                                    <td className="px-6 py-4 text-muted-foreground">{user.date}</td>
                                     <td className="px-6 py-4">
                                         <StatusBadge status={user.status} />
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors" title="View Profile">
+                                            <button className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors" title="View Profile">
                                                 <User size={16} />
                                             </button>
-                                            <button className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors" title="Suspend User">
+                                            <button className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors" title="Suspend User">
                                                 <ShieldOff size={16} />
                                             </button>
                                         </div>
@@ -68,4 +68,4 @@ export default function UsersPage() {
             </div>
         </div>
     );
-}
+};

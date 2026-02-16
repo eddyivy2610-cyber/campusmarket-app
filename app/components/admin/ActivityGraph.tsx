@@ -22,68 +22,70 @@ const data = [
 
 const ActivityGraph = () => {
     return (
-        <div className="bg-[#121212] p-6 rounded-xl border border-white/5 h-[400px]">
+        <div className="bg-card p-6 rounded-xl border border-border h-[400px]">
             <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white">Platform Activity</h3>
-                <p className="text-sm text-gray-400">Listings vs Reports trend over the last 7 days</p>
+                <h3 className="text-lg font-semibold text-foreground">Platform Activity</h3>
+                <p className="text-sm text-muted-foreground">Listings vs Reports trend over the last 7 days</p>
             </div>
 
-            <ResponsiveContainer width="100%" height="85%">
-                <AreaChart
-                    data={data}
-                    margin={{
-                        top: 10,
-                        right: 30,
-                        left: 0,
-                        bottom: 0,
-                    }}
-                >
-                    <defs>
-                        <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorReports" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                    <XAxis
-                        dataKey="name"
-                        stroke="#666"
-                        tick={{ fill: '#9ca3af', fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                    />
-                    <YAxis
-                        stroke="#666"
-                        tick={{ fill: '#9ca3af', fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                    />
-                    <Tooltip
-                        contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }}
-                        itemStyle={{ color: '#fff' }}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="listings"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorListings)"
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="reports"
-                        stroke="#ef4444"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorReports)"
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+            <div className="w-full h-[85%] text-muted-foreground">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                        data={data}
+                        margin={{
+                            top: 10,
+                            right: 30,
+                            left: 0,
+                            bottom: 0,
+                        }}
+                    >
+                        <defs>
+                            <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="colorReports" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" vertical={false} className="opacity-20" />
+                        <XAxis
+                            dataKey="name"
+                            stroke="currentColor"
+                            tick={{ fill: 'currentColor', fontSize: 12 }}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis
+                            stroke="currentColor"
+                            tick={{ fill: 'currentColor', fontSize: 12 }}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--popover-foreground))' }}
+                            itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="listings"
+                            stroke="#3b82f6"
+                            strokeWidth={2}
+                            fillOpacity={1}
+                            fill="url(#colorListings)"
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="reports"
+                            stroke="#ef4444"
+                            strokeWidth={2}
+                            fillOpacity={1}
+                            fill="url(#colorReports)"
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };

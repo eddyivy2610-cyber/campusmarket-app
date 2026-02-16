@@ -18,8 +18,8 @@
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #212d3c;
-  --input: #e2e8f0;
+  --border: #fed7aa;
+  --input: #fed7aa;
   --ring: #f97316;
   --radius: 0.5rem;
   --font-bricolage: var(--font-bricolage);
@@ -43,8 +43,9 @@
   --accent-foreground: #ffffff;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
-  --border: #1e293b;
-  --input: #1e293b;
+  --border: #ea580c40;
+  /* Orange-600 with opacity */
+  --input: #ea580c40;
   --ring: #f97316;
 }
 
@@ -58,7 +59,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
-  --font-sans: var(--font-bricolage), var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-inter), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 }
 

@@ -18,7 +18,7 @@ export function Step3_Identity({ onNext }: StepProps) {
                     <input
                         type="text"
                         placeholder="e.g. Daniel A. / Tech Deals Store"
-                        className="flex h-12 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex h-12 w-full rounded-xl bg-muted/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     />
                 </div>
                 <div className="space-y-2">
@@ -26,7 +26,7 @@ export function Step3_Identity({ onNext }: StepProps) {
                     <input
                         type="text"
                         placeholder="e.g. Computer Science / Hall 3"
-                        className="flex h-12 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex h-12 w-full rounded-xl bg-muted/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     />
                     <p className="text-[10px] text-muted-foreground">Helps build trust with buyers on campus.</p>
                 </div>

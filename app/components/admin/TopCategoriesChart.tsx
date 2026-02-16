@@ -13,8 +13,8 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 const TopCategoriesChart = () => {
     return (
-        <div className="bg-[#121212] p-6 rounded-xl border border-white/5 h-[400px]">
-            <h3 className="text-lg font-bold text-white mb-4">Top Categories</h3>
+        <div className="bg-card p-6 rounded-xl border border-border h-[400px]">
+            <h3 className="text-lg font-bold text-foreground mb-4">Top Categories</h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -33,8 +33,8 @@ const TopCategoriesChart = () => {
                             ))}
                         </Pie>
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '0.5rem', color: '#fff' }}
-                            itemStyle={{ color: '#fff' }}
+                            contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '0.5rem', color: 'hsl(var(--popover-foreground))' }}
+                            itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
                         />
                         <Legend verticalAlign="bottom" height={36} iconType="circle" />
                     </PieChart>

@@ -58,7 +58,7 @@ export function ChatHeader({ otherUser }: ChatHeaderProps) {
             {/* Right: Actions */}
             <div className="flex items-center gap-3">
                 <Link
-                    href="/explore"
+                    href="/listings"
                     className="hidden sm:flex items-center gap-2 px-4 py-2 bg-card border-gray-200 dark:border-white/10 border rounded-lg text-sm font-bold text-foreground hover:bg-secondary transition-colors"
                 >
                     <span>View Listing</span>
@@ -74,7 +74,7 @@ export function ChatHeader({ otherUser }: ChatHeaderProps) {
 
                     {isMenuOpen && (
                         <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-                            <Link href="/explore" className="block sm:hidden w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-foreground">
+                            <Link href="/listings" className="block sm:hidden w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-foreground">
                                 View Listing
                             </Link>
                             <button className="block w-full text-left px-4 py-3 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-foreground">

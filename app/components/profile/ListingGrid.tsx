@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, Filter, Plus, PackageOpen, CheckCircle, Archive, LayoutGrid, List } from "lucide-react";
-import { ProductCard } from "../explore/ProductCard";
+import { ProductCard } from "../shop/ProductCard";
 
 
 import { EmptyListingCard } from "./EmptyListingCard";
@@ -105,7 +105,7 @@ export function ListingGrid() {
 
                 {filteredListings.map((item) => (
                     <div key={item.id} className="relative group">
-                        <ProductCard {...item} isOwner={isOwner} />
+                        <ProductCard product={item} isOwner={isOwner} />
                         {item.status === 'sold' && (
                             <div className="absolute inset-x-0 bottom-0 top-0 bg-background/60 backdrop-blur-[1px] rounded-xl z-10 flex items-center justify-center p-6 text-center pointer-events-none">
                                 <div className="bg-emerald-500 text-white px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-tighter transform -rotate-6 shadow-xl border-2 border-white/20">

@@ -1,27 +1,35 @@
 "use client";
 
-import { X } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 
 export function TopBar() {
-    const [isVisible, setIsVisible] = useState(true);
-
-    if (!isVisible) return null;
-
     return (
-        <div className="bg-primary text-primary-foreground text-xs font-bold py-1.5 px-4 flex items-center justify-between relative z-50">
-            <div className="flex-1 text-center">
-                <span className="opacity-90">🚀 Valentine's Special: </span>
-                <span className="underline decoration-white/50 hover:decoration-white cursor-pointer ml-1">
-                    Get 50% off select listings today!
-                </span>
+        <div className="bg-secondary/50 text-muted-foreground text-[11px] font-medium py-1.5 px-4 border-b border-border/40 hidden md:block">
+            <div className="max-w-[1780px] mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <Link href="/sell" className="text-primary font-bold hover:text-primary/90 transition-colors flex items-center gap-1">
+                        Sell on Campus Market
+                    </Link>
+                    <div className="hidden lg:flex items-center gap-5 text-muted-foreground/80">
+                        <Link href="/community" className="hover:text-primary transition-colors">Community</Link>
+                        <Link href="/teams" className="hover:text-primary transition-colors">Teams</Link>
+                        <Link href="/help" className="hover:text-primary transition-colors">Help</Link>
+                        <Link href="/support" className="hover:text-primary transition-colors">Support</Link>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                        <span>English</span>
+                        <ChevronDown className="w-3 h-3" />
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                        <span>USD</span>
+                        <ChevronDown className="w-3 h-3" />
+                    </button>
+                </div>
             </div>
-            <button
-                onClick={() => setIsVisible(false)}
-                className="opacity-70 hover:opacity-100 transition-opacity absolute right-4"
-            >
-                <X className="w-3.5 h-3.5" />
-            </button>
         </div>
     );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Zap, Sparkles } from "lucide-react";
-import { ProductCard } from "../explore/ProductCard";
+import { ProductCard } from "../shop/ProductCard";
 import Link from "next/link";
 
 // Mock Data (reusing similar structure to ProductCard props)
@@ -72,7 +72,7 @@ export function CuratedListings() {
                 </div>
 
                 <Link
-                    href="/explore"
+                    href="/listings"
                     className="flex items-center gap-1 text-sm font-bold text-primary hover:underline group"
                 >
                     View All
@@ -83,7 +83,20 @@ export function CuratedListings() {
             {/* Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredProducts.map(product => (
-                    <ProductCard key={product.id} {...product} />
+                    <ProductCard
+                        key={product.id}
+                        product={{
+                            id: parseInt(product.id),
+                            title: product.title,
+                            price: product.price,
+                            image: product.image,
+                            category: product.category,
+                            rating: product.rating,
+                            location: product.location,
+                            status: product.condition,
+                            seller: product.sellerName
+                        }}
+                    />
                 ))}
             </div>
 
