@@ -82,7 +82,7 @@ export function CartDropdown({ isOpen }: CartDropdownProps) {
                             <span className="text-base font-bold text-foreground font-price">₦{formatPrice(subtotal)}</span>
                         </div>
                         <Link href="/cart" className="w-full bg-primary text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-orange-600 transition-all duration-300 shadow-md shadow-primary/20">
-                            <span>Checkout Now</span>
+                            <span>Sumbit Order</span>
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>

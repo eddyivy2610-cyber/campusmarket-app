@@ -7,7 +7,7 @@ export function FeatureHighlights() {
         {
             icon: <Truck className="w-6 h-6" />,
             title: "Free Delivery",
-            desc: "On campus orders > $50"
+            desc: "On campus orders"
         },
         {
             icon: <ShieldCheck className="w-6 h-6" />,

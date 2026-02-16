@@ -12,7 +12,7 @@ export interface Notification {
     timestamp: string;
     exactTime: string;
     isRead: boolean;
-    image?: string; // Product image or Icon
+    image?: string; 
     category: "orders" | "messages" | "updates" | "wishlist" | "security";
     actions?: string[];
     priority?: "high" | "normal";

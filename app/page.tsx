@@ -21,9 +21,6 @@ export default function Home() {
         <PromoBanner />
 
         {/* Retaining these sections but ensuring they have spacing */}
-        <div className="py-12 bg-secondary/10">
-          <NewsBlog />
-        </div>
         <div className="py-12">
           <FAQ />
         </div>

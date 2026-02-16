@@ -19,8 +19,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
         setMounted(true);
     }, []);
 
-    // Prevent hydration mismatch by not rendering theme toggle content until mounted
-    // Or simpler: just don't render the icon logic until mounted
+   
 
     return (
         <div
@@ -39,7 +38,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
             <div className="py-1.5 border-b border-border/10">
                 <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <User className="w-4 h-4" />
-                    <span>My Account</span>
+                    <span>My Profile</span>
                 </Link>
                 <Link href="/inbox" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <MessageSquare className="w-4 h-4" />

@@ -11,7 +11,7 @@ const slides = [
         title: "Valentine's Special",
         subtitle: "Gifts for your campus crush",
         description: "Up to 50% off styling services, chocolates, and unique campus finds.",
-        image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=1200", // Placeholder: Celebration/Gifts
+        image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=1200", 
         primaryColor: "bg-pink-500",
         link: "/coming-soon"
     },
@@ -20,7 +20,7 @@ const slides = [
         title: "Sell Your Old Books",
         subtitle: "Turn clutter into cash",
         description: "Post your used textbooks and gadgets in seconds to thousands of students.",
-        image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&q=80&w=1200", // Placeholder: Library/Books/Student
+        image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&q=80&w=1200", 
         primaryColor: "bg-primary",
         link: "/sell"
     },
@@ -29,7 +29,7 @@ const slides = [
         title: "Campus Buzz is Live",
         subtitle: "What's happening around you?",
         description: "Join the conversation, find events, and connect with your community.",
-        image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200", // Placeholder: Students gathering
+        image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200", 
         primaryColor: "bg-purple-600",
         link: "/community"
     }
