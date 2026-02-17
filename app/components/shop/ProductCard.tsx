@@ -98,7 +98,8 @@ export function ProductCard({ product, isOwner = false }: { product: ProductProp
                                     image: product.image,
                                     category: product.category,
                                     rating: product.rating,
-                                    location: product.location
+                                    location: product.location,
+                                    sellerId: product.sellerId
                                 });
                             }}
                             className={`h-9 w-9 rounded-full flex items-center justify-center shadow-lg transition-colors ${isInWishlist(product.id)

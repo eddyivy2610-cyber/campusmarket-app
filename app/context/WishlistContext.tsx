@@ -11,6 +11,7 @@ export interface WishlistItem {
     rating?: number;
     status?: string;
     location?: string;
+    sellerId: string;
 }
 
 interface WishlistContextType {

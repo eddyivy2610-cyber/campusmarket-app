@@ -59,7 +59,8 @@ export default function WishlistPage() {
                                     image: item.image,
                                     category: item.category,
                                     rating: item.rating || 5, // Default if missing
-                                    location: item.location
+                                    location: item.location,
+                                    sellerId: item.sellerId
                                 }} />
                             </div>
                         ))}
