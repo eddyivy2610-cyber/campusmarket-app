@@ -22,7 +22,8 @@ export function ListingGrid() {
             image: "https://images.unsplash.com/photo-1569183091671-696402586b9c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8cGhvbmVzfGVufDB8fDB8fHww",
             status: "active",
             rating: 4.9,
-            location: "Kilimanjaro Hall"
+            location: "Kilimanjaro Hall",
+            sellerId: "S1"
         },
         {
             id: 2,
@@ -32,7 +33,8 @@ export function ListingGrid() {
             image: "https://images.unsplash.com/photo-1569770218135-bea267ed7e84?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fG1hY2Jvb2slMjBwcm98ZW58MHx8MHx8fDA%3D",
             status: "active",
             rating: 4.8,
-            location: "Faculty of Engineering"
+            location: "Faculty of Engineering",
+            sellerId: "S1"
         },
         {
             id: 3,
@@ -42,7 +44,8 @@ export function ListingGrid() {
             image: "https://images.unsplash.com/photo-1611269154421-4e27233ac5c7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHN0dWR5JTIwZGVza3xlbnwwfHwwfHx8MA%3D%3D",
             status: "sold",
             rating: 4.5,
-            location: "Abuja Hostel"
+            location: "Abuja Hostel",
+            sellerId: "S1"
         }
     ];
 

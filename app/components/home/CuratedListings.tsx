@@ -14,6 +14,7 @@ const featuredProducts = [
         condition: "Like New",
         location: "Engineering Faculty",
         sellerName: "Sarah J",
+        sellerId: "S1",
         isVerified: true,
         category: "Electronics",
         rating: 4.8
@@ -26,6 +27,7 @@ const featuredProducts = [
         condition: "Used",
         location: "Male Hostel",
         sellerName: "David K",
+        sellerId: "S2",
         isVerified: false,
         category: "Home",
         rating: 4.5
@@ -38,6 +40,7 @@ const featuredProducts = [
         condition: "New",
         location: "Main Gate",
         sellerName: "Tech Hub",
+        sellerId: "S3",
         isVerified: true,
         category: "Electronics",
         rating: 4.9
@@ -50,6 +53,7 @@ const featuredProducts = [
         condition: "Used",
         location: "Library",
         sellerName: "James O",
+        sellerId: "S4",
         isVerified: true,
         category: "Books",
         rating: 4.2
@@ -94,7 +98,8 @@ export function CuratedListings() {
                             rating: product.rating,
                             location: product.location,
                             status: product.condition,
-                            seller: product.sellerName
+                            seller: product.sellerName,
+                            sellerId: product.sellerId
                         }}
                     />
                 ))}
