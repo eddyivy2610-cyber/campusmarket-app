@@ -4,7 +4,6 @@ import { FeatureHighlights } from "./components/home/FeatureHighlights";
 import { CategoryPreview } from "./components/home/CategoryPreview";
 import { ProductGrid } from "./components/home/ProductGrid";
 import { PromoBanner } from "./components/home/PromoBanner";
-import { NewsBlog } from "./components/sections/NewsBlog";
 import { FAQ } from "./components/sections/FAQ";
 import { Footer } from "./components/sections/Footer";
 
