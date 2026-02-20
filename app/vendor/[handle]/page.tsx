@@ -85,7 +85,7 @@ export default function VendorDashboardPage() {
                 ) : (
                     /* Vendor Active Content */
                     <div className="space-y-12">
-                        <VendorListingsArea />
+                        <VendorListingsArea viewAs="host" />
                         <VendorPerformanceArea vendor={vendorData} />
                     </div>
                 )}
