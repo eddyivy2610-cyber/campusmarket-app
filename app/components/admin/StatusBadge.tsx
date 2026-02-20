@@ -18,7 +18,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
             case 'hidden':
                 return 'bg-red-500/10 text-red-400 border-red-500/20';
             default:
-                return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+                return 'bg-accent/10 text-accent border-accent/30';
         }
     };
 

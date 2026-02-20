@@ -58,34 +58,34 @@ export function Hero() {
     return (
         <div className="bg-secondary/20 border-b border-border/40">
             <div className="max-w-[1780px] mx-auto px-4 md:px-8">
-                <div className="flex gap-6 py-6 h-[450px]">
+                <div className="flex gap-6 py-4 md:py-6 h-[200px] md:h-[450px]">
 
                     {/* Sidebar Menu - Desktop Only */}
-                    <div className="hidden lg:flex flex-col w-64 bg-card rounded-lg border border-border/50 shadow-sm shrink-0 overflow-hidden h-full">
-                        <div className="p-4 border-b border-border/50 bg-secondary/30">
-                            <h3 className="font-bold font-heading text-sm uppercase tracking-wider">Top Categories</h3>
+                    <div className="hidden lg:flex flex-col w-64 bg-secondary/20 backdrop-blur-md rounded-lg border border-border/50 shadow-xl shrink-0 overflow-hidden h-full">
+                        <div className="p-4 border-b border-border/50 bg-primary/5">
+                            <h3 className="font-bold font-heading text-sm uppercase tracking-wider text-foreground">Top Categories</h3>
                         </div>
-                        <div className="flex-1 overflow-y-auto py-2">
+                        <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
                             {CATEGORIES.slice(0, 8).map((cat, idx) => {
                                 const Icon = IconMap[cat.lucideIcon || "Package"];
                                 return (
                                     <Link
                                         key={idx}
                                         href={`/listings?category=${cat.name}`}
-                                        className="flex items-center justify-between px-4 py-2.5 hover:bg-primary/5 hover:text-primary transition-colors group"
+                                        className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300 group"
                                     >
                                         <div className="flex items-center gap-3 text-sm font-medium text-foreground/80 group-hover:text-primary">
-                                            <Icon className="w-4 h-4" />
+                                            <Icon className="w-4 h-4 transition-transform group-hover:scale-110" />
                                             <span>{cat.name}</span>
                                         </div>
-                                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary" />
+                                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-transform group-hover:translate-x-1" />
                                     </Link>
                                 );
                             })}
                         </div>
-                        <div className="p-3 bg-secondary/30 border-t border-border/50 text-center">
-                            <Link href="/listings" className="text-xs font-bold text-primary hover:underline">
-                                View All Categories
+                        <div className="p-3 bg-primary/5 border-t border-border/50 text-center">
+                            <Link href="/listings" className="text-xs font-black uppercase tracking-widest text-primary hover:opacity-80 transition-opacity">
+                                View All
                             </Link>
                         </div>
                     </div>
@@ -116,12 +116,12 @@ export function Hero() {
                                     </div>
 
                                     {/* Content */}
-                                    <div className="relative w-full md:w-1/2 pl-12 md:pl-20 pr-8 z-20 text-white">
+                                    <div className="relative w-full pl-5 md:w-1/2 md:pl-20 pr-4 md:pr-8 z-20 text-white">
                                         <motion.span
                                             initial={{ y: 20, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
                                             transition={{ delay: 0.2 }}
-                                            className="inline-block px-3 py-1 bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest rounded-full mb-4 backdrop-blur-sm border border-white/10"
+                                            className="inline-block px-3 py-1 bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest rounded-full mb-4 backdrop-blur-sm border border-accent/20"
                                         >
                                             {HERO_SLIDES[currentSlide].subtitle}
                                         </motion.span>
@@ -129,7 +129,7 @@ export function Hero() {
                                             initial={{ y: 20, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
                                             transition={{ delay: 0.3 }}
-                                            className="text-5xl md:text-6xl font-bold font-heading mb-4 leading-tight"
+                                            className="text-2xl md:text-6xl font-bold font-heading mb-2 md:mb-4 leading-tight"
                                         >
                                             {HERO_SLIDES[currentSlide].title}
                                         </motion.h2>
@@ -137,7 +137,7 @@ export function Hero() {
                                             initial={{ y: 20, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
                                             transition={{ delay: 0.4 }}
-                                            className="text-lg md:text-xl text-white/90 mb-8 font-medium max-w-lg leading-relaxed"
+                                            className="text-sm md:text-xl text-white/90 mb-4 md:mb-8 font-medium max-w-lg leading-relaxed line-clamp-2 md:line-clamp-none"
                                         >
                                             {HERO_SLIDES[currentSlide].desc}
                                         </motion.p>
@@ -148,7 +148,7 @@ export function Hero() {
                                         >
                                             <Link
                                                 href="/listings"
-                                                className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-3.5 rounded-full font-bold text-sm uppercase tracking-wide hover:bg-gray-100 transition-colors shadow-xl"
+                                                className="inline-flex items-center gap-2 bg-white text-gray-900 px-4 md:px-8 py-2 md:py-3.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wide hover:bg-gray-100 transition-colors shadow-xl"
                                             >
                                                 {HERO_SLIDES[currentSlide].cta}
                                                 <ArrowRight className="w-4 h-4" />

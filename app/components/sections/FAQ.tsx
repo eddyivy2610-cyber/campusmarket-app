@@ -40,7 +40,7 @@ export function FAQ() {
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     return (
-        <section className="py-10 bg-background">
+        <section className="hidden md:block py-10 bg-background">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12">
                 <div className="text-center mb-12 flex flex-col items-center">
                     <h2 className="text-3xl md:text-4xl font-sans font-black text-foreground mb-4 uppercase tracking-tighter">
@@ -55,7 +55,7 @@ export function FAQ() {
                     {faqs.map((faq, index) => (
                         <div
                             key={index}
-                            className={`group bg-secondary border border-border rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'ring-2 ring-primary/20 bg-secondary/80' : 'hover:border-white/10'}`}
+                            className={`group bg-secondary border border-border rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'ring-2 ring-primary/20 bg-secondary/80' : 'hover:border-accent/20'}`}
                         >
                             <button
                                 onClick={() => setOpenIndex(openIndex === index ? null : index)}

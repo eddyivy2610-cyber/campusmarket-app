@@ -31,11 +31,11 @@ export function CommunityHero() {
                         Trending This Month
                     </h1>
 
-                    <p className="text-lg text-gray-300 mb-8 max-w-xl leading-relaxed">
+                    <p className="text-lg text-white/70 mb-8 max-w-xl leading-relaxed">
                         Discover the most popular products and sellers that are making waves in our community marketplace.
                     </p>
 
-                    <button className="bg-white text-black hover:bg-gray-100 transition-colors px-8 py-3.5 rounded-full font-bold flex items-center gap-2 w-fit group">
+                    <button className="bg-primary-foreground text-foreground hover:bg-primary-foreground/90 transition-colors px-8 py-3.5 rounded-full font-bold flex items-center gap-2 w-fit group">
                         <span>Explore Trends</span>
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>

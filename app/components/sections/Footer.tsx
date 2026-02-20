@@ -5,122 +5,98 @@ import Link from "next/link";
 
 export function Footer() {
     return (
-        <footer className="w-full bg-secondary text-foreground pt-16 pb-8 mt-12 border-t border-border">
-            <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.5fr] gap-6 pb-12 border-b border-border/50">
+        <footer className="w-full bg-secondary text-foreground pt-14 pb-8 mt-12 border-t border-border">
+            <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12 space-y-10">
 
-                    {/* Brand Section */}
-                    <div className="space-y-6">
+                {/* ── Main grid: Brand + Link groups ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-10 pb-10 border-b border-border/50">
+
+                    {/* Brand */}
+                    <div className="space-y-4 max-w-xs">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
                                 <ShoppingBasket className="w-5 h-5" />
                             </div>
-                            <span className="text-xl font-black font-sans tracking-tight text-foreground">
-                                CampusMarket
-                            </span>
+                            <span className="text-xl font-black font-sans tracking-tight text-foreground">CampusMarket</span>
                         </div>
-                        <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+                        <p className="text-muted-foreground text-sm leading-relaxed">
                             The premier marketplace and community hub for university students.
                         </p>
                         <div className="flex gap-4">
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Facebook className="w-5 h-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Twitter className="w-5 h-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Instagram className="w-5 h-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Linkedin className="w-5 h-5" />
-                            </Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="w-5 h-5" /></Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter className="w-5 h-5" /></Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></Link>
+                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></Link>
                         </div>
                     </div>
 
-                    {/* Quick Links */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-foreground">Quick Links</h3>
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-                            <li><Link href="/community/blog" className="hover:text-primary transition-colors">Blog</Link></li>
-                            <li><Link href="/community" className="hover:text-primary transition-colors">Marketplace</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Events</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
-                        </ul>
-                    </div>
+                    {/* Link groups — 3 columns side by side, wrapping on very small screens */}
+                    <div className="flex flex-row flex-wrap gap-x-10 gap-y-6">
 
-                    {/* Resources */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-foreground">Resources</h3>
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li><Link href="#" className="hover:text-primary transition-colors">Help Center</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Safety Guidelines</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Seller Resources</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Buyer Resources</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">Community Rules</Link></li>
-                            <li><Link href="#" className="hover:text-primary transition-colors">FAQs</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Contact Us */}
-                    <div>
-                        <h3 className="text-lg font-bold mb-6 text-foreground">Contact Us</h3>
-                        <ul className="space-y-4 text-sm text-muted-foreground">
-                            <li className="flex items-start gap-3">
-                                <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                                <span>123 University Ave, Campus Center, Building 4</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <Mail className="w-5 h-5 text-primary shrink-0" />
-                                <span>support@campusmarket.com</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <Phone className="w-5 h-5 text-primary shrink-0" />
-                                <span>(123) 456-7890</span>
-                            </li>
-                            <li className="flex items-center gap-3">
-                                <Clock className="w-5 h-5 text-primary shrink-0" />
-                                <span>Mon-Fri: 9am-5pm</span>
-                            </li>
-                        </ul>
-                    </div>
-                    {/* Newsletter Section */}
-                    <div className="bg-primary rounded-2xl p-5 text-primary-foreground shadow-lg flex flex-col h-fit">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Mail className="w-5 h-5" />
-                            <h3 className="text-lg font-black font-sans">Newsletter</h3>
+                        {/* Quick Links */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Quick Links</h3>
+                            <div className="flex flex-col gap-2">
+                                {[
+                                    { label: "Home", href: "/" },
+                                    { label: "Marketplace", href: "/community" },
+                                    { label: "Events", href: "#" },
+                                    { label: "About Us", href: "#" },
+                                    { label: "Contact", href: "#" },
+                                ].map(l => (
+                                    <Link key={l.label} href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
+                                ))}
+                            </div>
                         </div>
-                        <p className="text-sm opacity-90 mb-3 leading-relaxed">
-                            Get the latest campus news, marketplace tips, and exclusive content delivered to your inbox.
-                        </p>
-                        <form className="space-y-2.5">
-                            <input
-                                type="text"
-                                placeholder="Your Name"
-                                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/60 text-sm focus:outline-none focus:bg-white/20 text-white transition-colors"
-                            />
-                            <input
-                                type="email"
-                                placeholder="Your Email"
-                                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/60 text-sm focus:outline-none focus:bg-white/20 text-white transition-colors"
-                            />
-                            <button className="w-full bg-white text-primary font-bold py-2 rounded-lg hover:bg-white/90 transition-colors text-sm shadow-sm mt-1">
-                                Subscribe Now
-                            </button>
-                        </form>
-                        <p className="text-[10px] mt-3 opacity-70 text-center leading-tight">
-                            By subscribing, you agree to our Privacy Policy.
-                        </p>
+
+                        {/* Resources */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Resources</h3>
+                            <div className="flex flex-col gap-2">
+                                {["Help Center", "Safety Guidelines", "Seller Resources", "Buyer Resources", "Community Rules", "FAQs"].map(l => (
+                                    <Link key={l} href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{l}</Link>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Contact */}
+                        <div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Contact Us</h3>
+                            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+                                <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" /><span>123 University Ave, Campus Center</span></li>
+                                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary shrink-0" /><span>support@campusmarket.com</span></li>
+                                <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-primary shrink-0" /><span>(123) 456-7890</span></li>
+                                <li className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary shrink-0" /><span>Mon–Fri: 9am–5pm</span></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                {/* Bottom Bar */}
-                <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-                    <p>
-                        © 2023 CampusMarket. All rights reserved.
-                    </p>
+                {/* ── Newsletter — full-width horizontal strip ── */}
+                <div className="bg-primary rounded-2xl px-6 py-5 text-primary-foreground shadow-lg flex flex-col sm:flex-row sm:items-center gap-5">
+                    {/* Left: copy */}
+                    <div className="sm:flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Mail className="w-4 h-4" />
+                            <h3 className="text-base font-black font-sans">Stay in the loop</h3>
+                        </div>
+                        <p className="text-sm opacity-80 leading-snug">
+                            Campus news, marketplace tips, and exclusive deals — straight to your inbox.
+                        </p>
+                    </div>
+                    {/* Right: form */}
+                    <form className="flex flex-col sm:flex-row gap-2 sm:items-center sm:shrink-0">
+                        <input type="text" placeholder="Your name" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-36" />
+                        <input type="email" placeholder="Your email" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-44" />
+                        <button className="bg-white text-primary font-bold px-5 py-2 rounded-lg hover:bg-white/90 transition-colors text-sm shadow-sm whitespace-nowrap">
+                            Subscribe
+                        </button>
+                    </form>
+                </div>
+
+                {/* ── Bottom bar ── */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+                    <p>© 2025 CampusMarket. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
                         <Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link>

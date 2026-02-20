@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Bricolage_Grotesque, Quicksand, Inter, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono, Bricolage_Grotesque, Quicksand, Inter, Montserrat, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
-import { WishlistProvider } from "./context/WishlistContext";
-import { CartProvider } from "./context/CartContext";
+import { SavedProvider } from "./context/SavedContext";
 import { ScrollToTop } from "./components/locations/ScrollToTop";
 import { CustomerCareButton } from "./components/locations/CustomerCareButton";
 import { SmoothScroll } from "./components/common/SmoothScroll";
@@ -37,6 +36,11 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
 });
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+});
 
 export const metadata: Metadata = {
   title: "Campus Market",
@@ -50,17 +54,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${quicksand.variable} ${inter.variable} ${montserrat.variable} antialiased transition-colors duration-300 font-sans`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${quicksand.variable} ${inter.variable} ${montserrat.variable} ${poppins.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}>
         <ThemeProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <SmoothScroll>
-                {children}
-                <ScrollToTop />
-                <CustomerCareButton />
-              </SmoothScroll>
-            </CartProvider>
-          </WishlistProvider>
+          <SavedProvider>
+            <SmoothScroll>
+              {children}
+              <ScrollToTop />
+              <CustomerCareButton />
+            </SmoothScroll>
+          </SavedProvider>
         </ThemeProvider>
       </body>
     </html>

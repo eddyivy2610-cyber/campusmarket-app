@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    User, Package, MessageSquare, Heart, LogOut, Sun, Moon, Settings
+    Heart, Sun, Moon, Settings, User
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import Link from "next/link";
@@ -19,8 +19,6 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
         setMounted(true);
     }, []);
 
-   
-
     return (
         <div
             className={`absolute top-full right-0 mt-1 w-56 bg-secondary text-foreground rounded-xl shadow-lg overflow-hidden transition-all duration-200 ease-in-out z-50 origin-top-right ${isOpen
@@ -28,25 +26,36 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                 : 'opacity-0 scale-95 invisible'
                 }`}
         >
-            {/* Header */}
-            <div className="px-4 py-3 bg-secondary/50 border-b border-border/10">
-                <p className="text-sm font-bold text-foreground truncate">Hi, Lucky</p>
-                <p className="text-xs text-muted-foreground truncate">lucky@example.com</p>
+            {/* Header / Guest Actions */}
+            <div className="px-4 py-4 bg-secondary/50 border-b border-border/10 text-center">
+                <div className="flex flex-col gap-2">
+                    <Link
+                        href="/login"
+                        className="w-full py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
+                    >
+                        Login
+                    </Link>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                        New here? <Link href="/register" className="text-primary font-bold hover:underline">Create account</Link>
+                    </p>
+                </div>
+            </div>
+
+            {/* Mock Logged In Info (Optional, can be hidden if we had auth state) */}
+            <div className="px-4 py-3 bg-secondary/50 border-b border-border/10 opacity-50 grayscale pointer-events-none">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Account Info</p>
+                <p className="text-sm font-bold text-foreground truncate">Guest User</p>
             </div>
 
             {/* Menu Links */}
             <div className="py-1.5 border-b border-border/10">
-                <Link href="/profile" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                <Link href="/profile/tech-hub" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <User className="w-4 h-4" />
                     <span>My Profile</span>
                 </Link>
-                <Link href="/inbox" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Inbox</span>
-                </Link>
-                <Link href="/wishlist" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                <Link href="/saved" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <Heart className="w-4 h-4" />
-                    <span>Wishlist</span>
+                    <span>Saved Items</span>
                 </Link>
                 <Link href="/settings" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <Settings className="w-4 h-4" />
@@ -67,11 +76,6 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                         {!mounted && <span className="w-4 h-4" />}
                         <span>{mounted ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : 'Theme'}</span>
                     </div>
-                </button>
-
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-red-50 text-red-500 transition-colors text-left">
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
                 </button>
             </div>
         </div>

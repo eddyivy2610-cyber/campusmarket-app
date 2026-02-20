@@ -5,9 +5,6 @@ import { usePathname } from "next/navigation";
 import { ShoppingBag, BookOpen, User, Search } from "lucide-react";
 
 export function CommunityNav() {
-    const pathname = usePathname();
-    const isBlog = pathname?.includes("/blog");
-
     return (
         <div className="w-full bg-background border-b border-border sticky top-[73px] z-30">
             <div className="max-w-[1780px] mx-auto px-4 md:px-8">
@@ -16,26 +13,11 @@ export function CommunityNav() {
                     <div className="flex items-center gap-4 md:gap-8 h-full">
                         <Link
                             href="/community"
-                            className={`relative h-full flex items-center gap-2 text-sm font-bold transition-colors ${!isBlog ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                                }`}
+                            className="relative h-full flex items-center gap-2 text-sm font-bold transition-colors text-primary"
                         >
                             <ShoppingBag className="w-4 h-4" />
-                            <span>Marketplace</span>
-                            {!isBlog && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
-                            )}
-                        </Link>
-
-                        <Link
-                            href="/community/blog"
-                            className={`relative h-full flex items-center gap-2 text-sm font-bold transition-colors ${isBlog ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                                }`}
-                        >
-                            <BookOpen className="w-4 h-4" />
-                            <span>Campus Life</span>
-                            {isBlog && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
-                            )}
+                            <span>Community</span>
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
                         </Link>
                     </div>
 

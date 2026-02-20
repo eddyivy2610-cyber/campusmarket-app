@@ -1,7 +1,7 @@
 
 import { Package, MessageSquare, Sparkles, Heart, CreditCard, Truck, RefreshCw, AlertTriangle, ShieldCheck } from "lucide-react";
 
-export type NotificationType = "order" | "message" | "update" | "wishlist" | "security" | "payment" | "promo";
+export type NotificationType = "order" | "message" | "update" | "saved" | "security" | "payment" | "promo";
 
 export interface Notification {
     id: number;
@@ -12,8 +12,8 @@ export interface Notification {
     timestamp: string;
     exactTime: string;
     isRead: boolean;
-    image?: string; 
-    category: "orders" | "messages" | "updates" | "wishlist" | "security";
+    image?: string;
+    category: "orders" | "messages" | "updates" | "saved" | "security";
     actions?: string[];
     priority?: "high" | "normal";
 }
@@ -63,18 +63,18 @@ export const mockNotifications: Notification[] = [
         actions: ["Reply"]
     },
 
-    // 3. Wishlist (Conversion)
+    // 3. Saved Items (Conversion)
     {
         id: 4,
-        type: "wishlist",
+        type: "saved",
         title: "Price Drop",
-        message: "An item in your wishlist 'Canon EOS M50' is now cheaper.",
+        message: "An item in your saved list 'Canon EOS M50' is now cheaper.",
         alt: "Good news! Price reduced on a saved item.",
         timestamp: "3 hours ago",
         exactTime: "Today 11:00am",
         isRead: true,
         image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=150",
-        category: "wishlist",
+        category: "saved",
         actions: ["View Listing"]
     },
 

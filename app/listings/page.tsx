@@ -7,19 +7,19 @@ import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
 import { PRODUCTS } from "../data/products";
+import { Eye, Store, User } from "lucide-react";
+
+type ViewAs = "host" | "visitor";
 
 export default function ShopPage() {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
+    const [viewAs, setViewAs] = useState<ViewAs>("visitor");
 
     const filteredProducts = useMemo(() => {
         return PRODUCTS.filter(product => {
-            // Category Filter
             const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-
-            // Price Filter
             const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-
             return matchesCategory && matchesPrice;
         });
     }, [selectedCategories, priceRange]);
@@ -29,13 +29,43 @@ export default function ShopPage() {
             <Header />
 
             <div className="bg-secondary/10 border-b border-border/50">
-                <div className="max-w-[1780px] mx-auto px-4 md:px-8">
+                <div className="max-w-[1780px] mx-auto px-4 md:px-8 flex items-center justify-between">
                     <Breadcrumb
                         items={[
                             { label: "Listings", href: "/listings" },
                             { label: "All Products" }
                         ]}
                     />
+
+                    {/* View As Toggle */}
+                    <div className="flex items-center gap-2 py-2">
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground/60" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hidden sm:block">
+                            View as
+                        </span>
+                        <div className="flex items-center bg-secondary/40 border border-border/40 rounded-full p-0.5 gap-0.5">
+                            <button
+                                onClick={() => setViewAs("host")}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewAs === "host"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                            >
+                                <Store className="w-3 h-3" />
+                                Host
+                            </button>
+                            <button
+                                onClick={() => setViewAs("visitor")}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewAs === "visitor"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                            >
+                                <User className="w-3 h-3" />
+                                Visitor
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -46,7 +76,13 @@ export default function ShopPage() {
                         setSelectedCategories={setSelectedCategories}
                         setPriceRange={setPriceRange}
                     />
-                    <ShopGrid products={filteredProducts} />
+                    <ShopGrid
+                        products={filteredProducts}
+                        viewAs={viewAs}
+                        selectedCategories={selectedCategories}
+                        setSelectedCategories={setSelectedCategories}
+                        setPriceRange={setPriceRange}
+                    />
                 </div>
             </div>
 

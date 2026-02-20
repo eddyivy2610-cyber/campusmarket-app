@@ -17,7 +17,7 @@ export function HowItWorks() {
                     <div className="relative bg-secondary p-8 rounded-[2.5rem] border border-border shadow-2xl scale-110">
                         <Search className="w-16 h-16 text-primary" />
                     </div>
-                    <div className="absolute top-1/4 right-1/4 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-xl animate-bounce-slow">
+                    <div className="absolute top-1/4 right-1/4 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-accent/20 shadow-xl animate-bounce-slow">
                         <div className="w-12 h-2 bg-primary/40 rounded-full mb-2"></div>
                         <div className="w-8 h-2 bg-white/20 rounded-full"></div>
                     </div>
@@ -58,7 +58,7 @@ export function HowItWorks() {
                     <div className="relative bg-secondary p-10 rounded-full border-4 border-blue-500/30 shadow-2xl">
                         <ShieldCheck className="w-20 h-20 text-blue-500" />
                     </div>
-                    <div className="absolute inset-0 border-2 border-dashed border-white/10 rounded-[3rem] m-8 rotate-12"></div>
+                    <div className="absolute inset-0 border-2 border-dashed border-accent/20 rounded-[3rem] m-8 rotate-12"></div>
                 </div>
             )
         }

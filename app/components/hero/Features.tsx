@@ -41,7 +41,7 @@ export function Features() {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className={`flex flex-1 items-center gap-3 p-3 rounded-2xl transition-all duration-300 group ${index !== features.length - 1 ? 'md:border-r border-gray-100' : ''
+                            className={`flex flex-1 items-center gap-3 p-3 rounded-2xl transition-all duration-300 group ${index !== features.length - 1 ? 'md:border-r border-accent/20' : ''
                                 }`}
                         >
                             <div className={`${feature.bgColor} ${feature.color} p-3 rounded-xl transition-transform`}>

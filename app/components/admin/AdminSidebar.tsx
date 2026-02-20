@@ -120,7 +120,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
 
                                 {/* Hover Tooltip for Collapsed State */}
                                 {isCollapsed && (
-                                    <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-slate-200 dark:border-slate-800">
+                                    <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-border">
                                         {item.name}
                                     </div>
                                 )}
@@ -143,7 +143,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
 
                         {/* Tooltip */}
                         {isCollapsed && (
-                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-slate-200 dark:border-slate-800">
+                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-border">
                                 {mounted && theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                             </div>
                         )}
@@ -161,7 +161,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
 
                         {/* Tooltip */}
                         {isCollapsed && (
-                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-slate-200 dark:border-slate-800">
+                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-border">
                                 Expand
                             </div>
                         )}
@@ -175,7 +175,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
 
                         {/* Tooltip */}
                         {isCollapsed && (
-                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-white dark:bg-zinc-950 text-slate-900 dark:text-zinc-50 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-slate-200 dark:border-slate-800">
+                            <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-border">
                                 Log Out
                             </div>
                         )}

@@ -76,7 +76,7 @@ export function IntelligentSearch() {
     };
 
     return (
-        <div ref={wrapperRef} className="relative w-full max-w-2xl hidden md:block group z-50">
+        <div ref={wrapperRef} className="relative w-full hidden md:block group z-50">
             {/* Search Input */}
             <div className={`
                 flex items-center w-full h-12 bg-secondary/50 rounded-2xl overflow-hidden transition-all duration-300 

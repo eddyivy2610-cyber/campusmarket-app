@@ -14,14 +14,15 @@ const IconMap: { [key: string]: any } = {
 
 export function CategoryPreview() {
     return (
-        <section className="py-12 bg-secondary/20">
+        // Hidden on mobile — shown only on md+ screens
+        <section className="hidden md:block py-12 bg-secondary/20">
             <div className="max-w-[1780px] mx-auto px-4 md:px-8">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-heading text-foreground">Browse Categories</h2>
-                    <p className="text-muted-foreground mt-2 font-body">Find exactly what you're looking for</p>
+                    <p className="text-muted-foreground mt-2 font-body">Find exactly what you&apos;re looking for</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-4 lg:grid-cols-6 gap-4">
                     {CATEGORIES.map((cat, idx) => {
                         const Icon = IconMap[cat.lucideIcon || "Package"];
                         return (
