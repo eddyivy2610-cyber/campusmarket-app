@@ -31,13 +31,13 @@ export function AuthLayout({
     isWide,
 }: AuthLayoutProps) {
     return (
-        <div className="min-h-screen w-full flex flex-col md:flex-row bg-background overflow-hidden relative">
+        <div className="w-full flex flex-col md:flex-row bg-background overflow-hidden relative">
             {/* Decorative Blur Blobs */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
             {/* Left Panel: Illustration & Branding (Hidden on Small Mobile) */}
-            <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 lg:p-16 relative overflow-hidden bg-secondary/20 border-r border-border/50">
+            <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 lg:p-16 relative overflow-hidden bg-secondary/20 border-r border-border/50 min-h-screen">
                 <div className="relative z-10 w-full max-w-sm">
                     {/* Logo Section */}
                     <Link href="/" className="flex items-center gap-2 mb-8 group">
@@ -54,7 +54,7 @@ export function AuthLayout({
                         {illustration ? (
                             illustration
                         ) : illustrationUrl ? (
-                            <div className="w-full h-full rounded-[32px] overflow-hidden  bg-secondary/20">
+                            <div className="w-full h-full rounded-[32px] overflow-hidden bg-secondary/20">
                                 <img
                                     src={"https://plus.unsplash.com/premium_vector-1727516525558-61f528f7cf66?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b25saW5lJTIwc2hvcHBpbmclMjBtb25leSUyMGlsbHVzdHJhdGlvbnN8ZW58MHx8MHx8fDA%3D"}
                                     alt="Auth Illustration"
@@ -73,86 +73,91 @@ export function AuthLayout({
                             </div>
                         )}
                     </div>
-
-
                 </div>
             </div>
 
-            {/* Right Panel: Form Area */}
-            <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-8 lg:p-16 bg-background relative z-10 overflow-y-auto">
-                <div className={`w-full transition-all duration-500 ${isWide ? 'max-w-xl' : 'max-w-sm'}`}>
-                    {/* Back Button & Progress */}
-                    <div className="mb-8 flex items-center justify-between min-h-[32px]">
-                        <div className="flex items-center gap-4">
-                            {showBack && (
-                                <button
-                                    onClick={onBack}
-                                    className="md:hidden flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
-                                >
-                                    <div className="p-2 rounded-full border border-border group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
-                                        <ArrowLeft className="w-4 h-4" />
-                                    </div>
-                                    Back
-                                </button>
-                            )}
+            {/* Right Panel: Form Area
+                Mobile  → fills exact viewport height so top-bar & bottom-brand are pinned
+                Desktop → reverts to normal min-h-screen centered flex behaviour
+            */}
+            <div className="flex-1 flex flex-col h-[100dvh] md:h-auto md:min-h-screen bg-background relative z-10">
 
-                            {/* Back to Home */}
-                            <Link
-                                href="/"
-                                className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
+                {/* ── TOP BAR — pinned on mobile ── */}
+                <div className="flex-shrink-0 flex items-center justify-between px-6 pt-6 pb-2 md:px-8 md:pt-8">
+                    <div className="flex items-center gap-4">
+                        {showBack && (
+                            <button
+                                onClick={onBack}
+                                className="md:hidden flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
                             >
                                 <div className="p-2 rounded-full border border-border group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
-                                    <Home className="w-4 h-4" />
+                                    <ArrowLeft className="w-4 h-4" />
                                 </div>
-                                <span className="hidden sm:inline">Home</span>
-                            </Link>
-                        </div>
-
-                        {currentStep && totalSteps && (
-                            <div className="flex-1 flex flex-col items-end gap-2 ml-auto">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-                                    Step {currentStep} of {totalSteps}
-                                </span>
-                                <div className="flex gap-1">
-                                    {Array.from({ length: totalSteps }).map((_, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`h-1.5 rounded-full transition-all duration-500 ${idx + 1 === currentStep
-                                                ? "w-8 bg-primary shadow-sm shadow-primary/20"
-                                                : idx + 1 < currentStep
-                                                    ? "w-4 bg-primary/40"
-                                                    : "w-4 bg-secondary"
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                                Back
+                            </button>
                         )}
+
+                        {/* Back to Home */}
+                        <Link
+                            href="/"
+                            className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
+                        >
+                            <div className="p-2 rounded-full border border-border group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
+                                <Home className="w-4 h-4" />
+                            </div>
+                            <span className="hidden sm:inline">Home</span>
+                        </Link>
                     </div>
 
-                    {/* Form Header */}
-                    {(title || subtitle) && (
-                        <div className="mb-6 text-center md:text-left">
-                            {title && (
-                                <h1 className="text-3xl font-black font-heading tracking-tight mb-2 leading-tight">
-                                    {title}
-                                </h1>
-                            )}
-                            {subtitle && <p className="text-muted-foreground text-sm leading-relaxed">{subtitle}</p>}
+                    {currentStep && totalSteps && (
+                        <div className="flex flex-col items-end gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                                Step {currentStep} of {totalSteps}
+                            </span>
+                            <div className="flex gap-1">
+                                {Array.from({ length: totalSteps }).map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`h-1.5 rounded-full transition-all duration-500 ${idx + 1 === currentStep
+                                            ? "w-8 bg-primary shadow-sm shadow-primary/20"
+                                            : idx + 1 < currentStep
+                                                ? "w-4 bg-primary/40"
+                                                : "w-4 bg-secondary"
+                                            }`}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     )}
+                </div>
 
-                    {/* Form Content */}
-                    <div className="relative">
-                        {children}
-                    </div>
+                {/* ── SCROLLABLE FORM AREA ── */}
+                <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center px-6 py-6 md:px-8 md:py-8 lg:px-16">
+                    <div className={`w-full transition-all duration-500 ${isWide ? 'max-w-xl' : 'max-w-sm'}`}>
+                        {/* Form Header */}
+                        {(title || subtitle) && (
+                            <div className="mb-6 text-center md:text-left">
+                                {title && (
+                                    <h1 className="text-3xl font-black font-heading tracking-tight mb-2 leading-tight">
+                                        {title}
+                                    </h1>
+                                )}
+                                {subtitle && <p className="text-muted-foreground text-sm leading-relaxed">{subtitle}</p>}
+                            </div>
+                        )}
 
-                    {/* Footer Branding (Mobile Only) */}
-                    <div className="mt-12 pt-12 border-t border-border/50 flex items-center justify-center md:hidden">
-                        <div className="flex items-center gap-2 grayscale brightness-200 opacity-30">
-                            <ShoppingBasket className="w-5 h-5" />
-                            <span className="text-sm font-bold font-heading uppercase tracking-tighter">CampusMarket</span>
+                        {/* Form Content */}
+                        <div className="relative">
+                            {children}
                         </div>
+                    </div>
+                </div>
+
+                {/* ── BOTTOM BRANDING — pinned on mobile ── */}
+                <div className="flex-shrink-0 pb-6 pt-4 border-t border-border/50 flex items-center justify-center md:hidden">
+                    <div className="flex items-center gap-2 grayscale brightness-200 opacity-30">
+                        <ShoppingBasket className="w-5 h-5" />
+                        <span className="text-sm font-bold font-heading uppercase tracking-tighter">CampusMarket</span>
                     </div>
                 </div>
             </div>
