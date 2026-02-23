@@ -153,7 +153,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
             <div className="flex gap-4 mt-8 pt-4 border-t border-border/30">
                 <button
                     onClick={onBack}
-                    className="hidden md:flex flex-1 bg-secondary text-foreground font-black uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
+                    className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -161,7 +161,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                 <button
                     onClick={handleNext}
                     disabled={isLoading}
-                    className="flex-[2] bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                    className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                 >
                     {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />

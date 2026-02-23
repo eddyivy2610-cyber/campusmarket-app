@@ -41,13 +41,13 @@ export function SellerDetails({ formData, updateFormData, onSubmit, onBack }: Se
                 <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
                     Step 3: Final Details
                 </label>
-                <h3 className="text-lg font-black font-heading">Complete your seller profile</h3>
+                <h3 className="text-lg font-bold font-heading">Complete your seller profile</h3>
             </div>
 
             <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* Left: Category Selection */}
                 <div className="flex-1 space-y-4 w-full">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 block">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 block">
                         What kind of business do you offer?
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -73,7 +73,7 @@ export function SellerDetails({ formData, updateFormData, onSubmit, onBack }: Se
                 <div className="flex-1 space-y-4 w-full">
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 block">
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 block">
                                 Business Description
                             </label>
                         </div>
@@ -108,7 +108,7 @@ export function SellerDetails({ formData, updateFormData, onSubmit, onBack }: Se
                                 {agreed && <CheckCircle2 className="w-3 h-3" />}
                             </div>
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-[0.05em] text-foreground/70 leading-relaxed text-left flex-1">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.05em] text-foreground/70 leading-relaxed text-left flex-1">
                             I confirm accuracy and agree to the <span className="text-primary hover:underline italic">Seller Terms</span>.
                         </span>
                     </label>
@@ -120,7 +120,7 @@ export function SellerDetails({ formData, updateFormData, onSubmit, onBack }: Se
             <div className="flex gap-4 pt-4 border-t border-border/30 mt-6">
                 <button
                     onClick={onBack}
-                    className="hidden md:flex flex-1 bg-secondary text-foreground font-black uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
+                    className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -128,12 +128,12 @@ export function SellerDetails({ formData, updateFormData, onSubmit, onBack }: Se
                 <button
                     onClick={handleFinish}
                     disabled={isLoading}
-                    className="flex-[2] bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
+                    className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
                 >
                     {isLoading ? (
                         <div className="flex items-center gap-3">
                             <Loader2 className="w-6 h-6 animate-spin" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Submitting for review...</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse">Submitting for review...</span>
                         </div>
                     ) : (
                         <>

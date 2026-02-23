@@ -7,7 +7,7 @@ export function ComingSoon() {
                 <ChefHat className="w-16 h-16 text-primary" strokeWidth={1.5} />
             </div>
 
-            <h1 className="text-3xl md:text-5xl font-black font-heading tracking-tighter mb-4 flex items-center justify-center gap-3">
+            <h1 className="text-3xl md:text-5xl font-bold font-heading tracking-tighter mb-4 flex items-center justify-center gap-3">
                 Coming Soon
                 <Rocket className="w-8 h-8 md:w-12 md:h-12 text-primary animate-bounce-slow" />
             </h1>

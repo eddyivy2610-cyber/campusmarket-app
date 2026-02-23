@@ -20,7 +20,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
     if (!isOpen) return null;
 
     return (
-        <div ref={modalRef} className="absolute top-full right-0 mt-2 w-[300px] z-50 animate-in fade-in zoom-in-95 duration-150 origin-top-right bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
+        <div ref={modalRef} className="absolute top-full right-0 mt-2 w-[300px] z-50 animate-in fade-in zoom-in-95 duration-150 origin-top-right bg-background rounded-2xl shadow-2xl border border-border overflow-hidden" onWheel={(e) => e.stopPropagation()}>
 
             {/* Header */}
             <div className="px-3.5 py-2.5 border-b border-border/50 flex items-center justify-between">
@@ -32,7 +32,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
             </div>
 
             {/* List */}
-            <div className="max-h-[320px] overflow-y-auto divide-y divide-border/30">
+            <div className="max-h-[320px] overflow-y-auto divide-y divide-border/30" data-lenis-prevent>
                 {displayed.length > 0 ? displayed.map((notif) => (
                     <div
                         key={notif.id}

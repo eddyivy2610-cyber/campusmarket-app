@@ -11,7 +11,24 @@ export function HomeSkeleton() {
             <main>
                 <SkeletonHero />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+                {/* Feature Highlights skeleton — 4 icon+text cards, hidden on mobile */}
+                <div className="hidden md:block py-12 border-b border-border/40">
+                    <div className="max-w-[1780px] mx-auto px-8">
+                        <div className="grid grid-cols-4 gap-8">
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} className="flex items-center gap-4">
+                                    <Skeleton width={48} height={48} className="rounded-full shrink-0" />
+                                    <div className="flex flex-col gap-2">
+                                        <Skeleton height={12} width={100} className="rounded-sm" />
+                                        <Skeleton height={10} width={80} className="rounded-sm" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="max-w-[1780px] mx-auto px-4 md:px-8 py-8 space-y-12">
                     {/* Recent Listings Section Skeleton */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
@@ -26,11 +43,11 @@ export function HomeSkeleton() {
                         </div>
                     </div>
 
-                    {/* Another Section (e.g., Shop by Category) Skeleton */}
+                    {/* Categories section — 6×2 grid to match 12 categories */}
                     <div className="space-y-6">
                         <Skeleton height={32} width={250} className="rounded-lg" />
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            {[...Array(6)].map((_, i) => (
+                        <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
+                            {[...Array(12)].map((_, i) => (
                                 <div key={i} className="flex flex-col items-center gap-3 p-4 bg-secondary/20 rounded-xl">
                                     <Skeleton width={64} height={64} className="rounded-full" />
                                     <Skeleton height={14} width={80} className="rounded-sm" />

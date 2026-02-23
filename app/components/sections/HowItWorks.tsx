@@ -68,7 +68,7 @@ export function HowItWorks() {
         <section className="py-10 bg-background relative overflow-hidden">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12 relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-3xl md:text-4xl font-sans font-black text-foreground mb-4 uppercase tracking-tighter">
+                    <h2 className="text-3xl md:text-4xl font-sans font-bold text-foreground mb-4 uppercase tracking-tighter">
                         How <span className="text-primary italic">CampusMarket </span> Works
                     </h2>
                     <p className="text-gray-500 text-sm font-medium">
@@ -92,13 +92,13 @@ export function HowItWorks() {
 
                             {/* Content */}
                             <div className="relative z-10">
-                                <h3 className="text-lg font-black text-foreground mb-2 font-sans uppercase tracking-tight">
+                                <h3 className="text-lg font-bold text-foreground mb-2 font-sans uppercase tracking-tight">
                                     {step.title}
                                 </h3>
                                 <p className="text-gray-500 text-xs leading-relaxed mb-4 font-medium min-h-[48px]">
                                     {step.description}
                                 </p>
-                                <button className="flex items-center gap-1.5 text-primary font-black hover:gap-3 transition-all group underline-offset-8 hover:underline text-[10px] uppercase tracking-widest">
+                                <button className="flex items-center gap-1.5 text-primary font-bold hover:gap-3 transition-all group underline-offset-8 hover:underline text-[10px] uppercase tracking-widest">
                                     <span>Learn more</span>
                                     <ArrowRight className="w-3.5 h-3.5" />
                                 </button>

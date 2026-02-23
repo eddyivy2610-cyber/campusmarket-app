@@ -175,8 +175,8 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                             <X className="w-5 h-5" />
                         </button>
                         <div>
-                            <h2 className="text-xl font-black font-heading tracking-tight">Add New Listing</h2>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
+                            <h2 className="text-xl font-bold font-heading tracking-tight">Add New Listing</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">
                                 {isSuccess ? "Success" : `Step ${step} of 5`}
                             </p>
                         </div>
@@ -209,14 +209,14 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                     <ShieldCheck className="w-12 h-12" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-3xl font-black font-heading tracking-tight">Sent for Review!</h3>
+                                    <h3 className="text-3xl font-bold font-heading tracking-tight">Sent for Review!</h3>
                                     <p className="text-muted-foreground max-w-sm mx-auto">
                                         Your listing has been submitted. Our admins will review it within 24 hours to ensure campus safety guidelines.
                                     </p>
                                 </div>
                                 <button
                                     onClick={resetModal}
-                                    className="px-10 py-4 bg-primary text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                    className="px-10 py-4 bg-primary text-white font-bold uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                 >
                                     Done
                                 </button>
@@ -226,7 +226,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                 {step === 1 && (
                                     <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                                         <div className="text-center md:text-left space-y-1">
-                                            <h3 className="text-xl font-black tracking-tight font-heading">Category</h3>
+                                            <h3 className="text-xl font-bold tracking-tight font-heading">Category</h3>
                                             <p className="text-muted-foreground text-xs font-medium">Where does your item belong?</p>
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -244,7 +244,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                                         <cat.icon className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <span className="block text-[10px] font-black uppercase tracking-widest leading-none">{cat.name}</span>
+                                                        <span className="block text-[10px] font-bold uppercase tracking-widest leading-none">{cat.name}</span>
                                                     </div>
                                                     {formData.category === cat.id && (
                                                         <div className="absolute top-2 right-2 w-4 h-4 bg-primary rounded-full flex items-center justify-center text-white shadow-sm">
@@ -260,13 +260,13 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                 {step === 2 && (
                                     <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
                                         <div className="text-center md:text-left space-y-1">
-                                            <h3 className="text-xl font-black tracking-tight font-heading">Title & Photos</h3>
+                                            <h3 className="text-xl font-bold tracking-tight font-heading">Title & Photos</h3>
                                             <p className="text-muted-foreground text-xs font-medium">Use high-quality photos for better reach.</p>
                                         </div>
                                         <div className="space-y-6">
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-end">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Title</label>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Title</label>
                                                     <span className={`text-[9px] font-bold ${formData.title.length > 50 ? 'text-red-500' : 'text-muted-foreground'}`}>{formData.title.length}/60</span>
                                                 </div>
                                                 <input
@@ -278,7 +278,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                                 />
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Photos</label>
+                                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Photos</label>
                                                 <div className="grid grid-cols-5 gap-3">
                                                     {formData.images.map((img, idx) => (
                                                         <motion.div key={img.id} layout className="aspect-square rounded-2xl bg-secondary/30 relative overflow-hidden group border border-border/50 shadow-sm">
@@ -292,7 +292,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                                                     {idx < formData.images.length - 1 && <button onClick={() => reorderImages(idx, idx + 1)} className="p-1.5 bg-white/20 text-white rounded-lg hover:bg-white/30 backdrop-blur-md"><ChevronRight className="w-3.5 h-3.5" /></button>}
                                                                 </div>
                                                             </div>
-                                                            {idx === 0 && <div className="absolute top-2 left-2 px-2 py-0.5 bg-primary text-white text-[8px] font-black uppercase tracking-widest rounded-md">Cover</div>}
+                                                            {idx === 0 && <div className="absolute top-2 left-2 px-2 py-0.5 bg-primary text-white text-[8px] font-bold uppercase tracking-widest rounded-md">Cover</div>}
                                                             <div className="absolute top-2 right-2 p-1 bg-black/20 backdrop-blur-md rounded-md cursor-grab active:cursor-grabbing text-white opacity-0 group-hover:opacity-100 transition-opacity"><GripVertical className="w-3.5 h-3.5" /></div>
                                                         </motion.div>
                                                     ))}
@@ -300,7 +300,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                                         <label className="aspect-square rounded-2xl border-2 border-dashed border-border/50 bg-secondary/10 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all group">
                                                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                                                             <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shadow-sm"><Plus className="w-5 h-5" /></div>
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Upload</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Upload</span>
                                                         </label>
                                                     )}
                                                 </div>
@@ -313,12 +313,12 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                 {step === 3 && (
                                     <motion.div key="step3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
                                         <div className="text-center md:text-left space-y-1">
-                                            <h3 className="text-xl font-black tracking-tight font-heading">Description</h3>
+                                            <h3 className="text-xl font-bold tracking-tight font-heading">Description</h3>
                                             <p className="text-muted-foreground text-xs font-medium">Be honest about the condition.</p>
                                         </div>
                                         <div className="space-y-6">
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Condition</label>
+                                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Condition</label>
                                                 <div className="flex flex-wrap gap-2">
                                                     {CONDITIONS.map((cond) => (
                                                         <button
@@ -334,7 +334,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                             </div>
                                             <div className="space-y-2">
                                                 <div className="flex justify-between items-end">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Description</label>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Description</label>
                                                     <span className={`text-[9px] font-bold ${formData.description.length > 400 ? 'text-amber-500' : 'text-muted-foreground'}`}>{formData.description.length}/1000</span>
                                                 </div>
                                                 <textarea
@@ -352,25 +352,25 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                 {step === 4 && (
                                     <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8">
                                         <div className="text-center md:text-left space-y-1">
-                                            <h3 className="text-xl font-black tracking-tight font-heading">Price</h3>
+                                            <h3 className="text-xl font-bold tracking-tight font-heading">Price</h3>
                                             <p className="text-muted-foreground text-xs font-medium">Fair pricing leads to faster sales.</p>
                                         </div>
                                         <div className="space-y-6">
                                             <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Listing Price</label>
+                                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Listing Price</label>
                                                 <div className="relative group max-w-xs">
-                                                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-xl font-black text-foreground/40 group-focus-within:text-primary transition-colors">₦</div>
+                                                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-xl font-bold text-foreground/40 group-focus-within:text-primary transition-colors">₦</div>
                                                     <input
                                                         type="text"
                                                         value={formData.price}
                                                         onChange={(e) => setFormData({ ...formData, price: formatPrice(e.target.value) })}
                                                         placeholder="0.00"
-                                                        className="w-full bg-secondary/10 border-2 border-border/40 rounded-xl p-4 pl-12 text-2xl font-black placeholder:text-muted-foreground/30 focus:border-primary focus:bg-background transition-all outline-none"
+                                                        className="w-full bg-secondary/10 border-2 border-border/40 rounded-xl p-4 pl-12 text-2xl font-bold placeholder:text-muted-foreground/30 focus:border-primary focus:bg-background transition-all outline-none"
                                                     />
                                                 </div>
                                             </div>
                                             <div className="space-y-3">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Negotiable?</label>
+                                                <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Negotiable?</label>
                                                 <div className="grid grid-cols-2 gap-3 max-w-sm">
                                                     {[{ id: true, label: "Negotiable" }, { id: false, label: "Fixed" }].map((opt) => (
                                                         <button
@@ -379,16 +379,16 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                                             className={`p-4 rounded-2xl border-2 transition-all text-left ${formData.negotiable === opt.id ? "border-primary bg-primary/5 shadow-md shadow-primary/5 text-primary" : "border-border/40 bg-secondary/10 hover:border-primary/20 text-foreground"
                                                                 }`}
                                                         >
-                                                            <span className="block text-[10px] font-black uppercase tracking-widest leading-none">{opt.label}</span>
+                                                            <span className="block text-[10px] font-bold uppercase tracking-widest leading-none">{opt.label}</span>
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
                                             {formData.negotiable && (
                                                 <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 p-5 bg-secondary/10 rounded-2xl border border-border/40 max-w-xs">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Hidden Minimum</label>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Hidden Minimum</label>
                                                     <div className="relative group">
-                                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-base font-black text-foreground/40 group-focus-within:text-primary transition-colors">₦</div>
+                                                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-base font-bold text-foreground/40 group-focus-within:text-primary transition-colors">₦</div>
                                                         <input
                                                             type="text"
                                                             value={formData.minPrice}
@@ -409,22 +409,22 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                                             <div className="aspect-[4/5] bg-secondary/10 rounded-2xl overflow-hidden border border-border/50 relative group">
                                                 {formData.images[0] && <img src={formData.images[0].url} className="w-full h-full object-cover" alt="" />}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent p-4 flex flex-col justify-end">
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/60 mb-1">{formData.category}</span>
-                                                    <h4 className="text-lg font-black text-white leading-tight mb-1">{formData.title}</h4>
-                                                    <p className="text-xl font-black text-primary">₦ {formData.price}</p>
+                                                    <span className="text-[8px] font-bold uppercase tracking-widest text-white/60 mb-1">{formData.category}</span>
+                                                    <h4 className="text-lg font-bold text-white leading-tight mb-1">{formData.title}</h4>
+                                                    <p className="text-xl font-bold text-primary">₦ {formData.price}</p>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="md:col-span-3 space-y-6">
                                             <div className="space-y-3">
-                                                <h3 className="text-xl font-black tracking-tight font-heading">Final Review</h3>
+                                                <h3 className="text-xl font-bold tracking-tight font-heading">Final Review</h3>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div className="p-3 bg-secondary/10 rounded-xl border border-border/40">
-                                                        <span className="block text-[7px] font-black uppercase tracking-widest text-muted-foreground">Condition</span>
+                                                        <span className="block text-[7px] font-bold uppercase tracking-widest text-muted-foreground">Condition</span>
                                                         <span className="text-xs font-bold">{formData.condition}</span>
                                                     </div>
                                                     <div className="p-3 bg-secondary/10 rounded-xl border border-border/40">
-                                                        <span className="block text-[7px] font-black uppercase tracking-widest text-muted-foreground">Status</span>
+                                                        <span className="block text-[7px] font-bold uppercase tracking-widest text-muted-foreground">Status</span>
                                                         <span className="text-xs font-bold">Admin Review</span>
                                                     </div>
                                                 </div>
@@ -467,7 +467,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                         <button
                             onClick={step === 5 ? handleSubmit : handleNext}
                             disabled={isStepDisabled() || isSubmitting}
-                            className={`group flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest text-xs transition-all ${isStepDisabled() || isSubmitting
+                            className={`group flex items-center gap-2 px-8 py-3.5 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${isStepDisabled() || isSubmitting
                                 ? "bg-secondary text-muted-foreground cursor-not-allowed"
                                 : "bg-primary text-white shadow-xl shadow-primary/20 hover:scale-105 active:scale-95"
                                 }`}

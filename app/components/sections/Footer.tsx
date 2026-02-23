@@ -12,12 +12,12 @@ export function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-10 pb-10 border-b border-border/50">
 
                     {/* Brand */}
-                    <div className="space-y-4 max-w-xs">
+                    <div className="space-y-4">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
                                 <ShoppingBasket className="w-5 h-5" />
                             </div>
-                            <span className="text-xl font-black font-sans tracking-tight text-foreground">CampusMarket</span>
+                            <span className="text-xl font-bold font-sans tracking-tight text-foreground">CampusMarket</span>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                             The premier marketplace and community hub for university students.
@@ -30,12 +30,12 @@ export function Footer() {
                         </div>
                     </div>
 
-                    {/* Link groups — 3 columns side by side, wrapping on very small screens */}
-                    <div className="flex flex-row flex-wrap gap-x-10 gap-y-6">
+                    {/* Link groups — hidden on mobile (accessible via hamburger), shown on sm+ */}
+                    <div className="hidden sm:flex flex-row flex-wrap gap-x-10 gap-y-6">
 
                         {/* Quick Links */}
                         <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Quick Links</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Quick Links</h3>
                             <div className="flex flex-col gap-2">
                                 {[
                                     { label: "Home", href: "/" },
@@ -51,7 +51,7 @@ export function Footer() {
 
                         {/* Resources */}
                         <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Resources</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Resources</h3>
                             <div className="flex flex-col gap-2">
                                 {["Help Center", "Safety Guidelines", "Seller Resources", "Buyer Resources", "Community Rules", "FAQs"].map(l => (
                                     <Link key={l} href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{l}</Link>
@@ -61,7 +61,7 @@ export function Footer() {
 
                         {/* Contact */}
                         <div>
-                            <h3 className="text-xs font-black uppercase tracking-widest text-foreground mb-3">Contact Us</h3>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Contact Us</h3>
                             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
                                 <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" /><span>123 University Ave, Campus Center</span></li>
                                 <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary shrink-0" /><span>support@campusmarket.com</span></li>
@@ -78,7 +78,7 @@ export function Footer() {
                     <div className="sm:flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <Mail className="w-4 h-4" />
-                            <h3 className="text-base font-black font-sans">Stay in the loop</h3>
+                            <h3 className="text-base font-bold font-sans">Stay in the loop</h3>
                         </div>
                         <p className="text-sm opacity-80 leading-snug">
                             Campus news, marketplace tips, and exclusive deals — straight to your inbox.

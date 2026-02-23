@@ -14,12 +14,21 @@ import {
     LogOut,
     X,
     ChevronLeft,
-    ChevronRight,
     PanelLeftClose,
     PanelLeftOpen,
     Sun,
-    Moon
+    Moon,
+    ChevronDown,
+    ChevronRight
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface MenuItem {
+    name: string;
+    href: string;
+    icon: any;
+    subItems?: { name: string; href: string }[];
+}
 
 interface AdminSidebarProps {
     isOpen: boolean;
@@ -37,13 +46,77 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
         setMounted(true);
     }, []);
 
-    const navItems = [
-        { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-        { name: 'Listings', href: '/admin/listings', icon: List },
-        { name: 'Seller Approvals', href: '/admin/sellers', icon: CheckCircle },
-        { name: 'Reports', href: '/admin/reports', icon: Flag },
-        { name: 'Users', href: '/admin/users', icon: Users },
-        { name: 'Settings', href: '/admin/settings', icon: Settings },
+    const menuGroups = [
+        {
+            label: "Main",
+            items: [
+                { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+            ]
+        },
+        {
+            label: "Management",
+            items: [
+                {
+                    name: 'Users',
+                    href: '/admin/users',
+                    icon: Users,
+                    subItems: [
+                        { name: 'All Users', href: '/admin/users' },
+                        { name: 'Pending', href: '/admin/users/pending' },
+                        { name: 'Vendors', href: '/admin/users/vendors' },
+                        { name: 'Suspended', href: '/admin/users/suspended' },
+                    ]
+                },
+                {
+                    name: 'Listings',
+                    href: '/admin/listings',
+                    icon: List,
+                    subItems: [
+                        { name: 'All Listings', href: '/admin/listings' },
+                        { name: 'Pending', href: '/admin/listings?status=pending' },
+                        { name: 'Active', href: '/admin/listings?status=active' },
+                        { name: 'Flagged', href: '/admin/listings?status=flagged' },
+                        { name: 'Removed', href: '/admin/listings?status=removed' },
+                    ]
+                },
+                {
+                    name: 'Reports',
+                    href: '/admin/reports',
+                    icon: Flag,
+                    subItems: [
+                        { name: 'All Reports', href: '/admin/reports' },
+                        { name: 'Pending', href: '/admin/reports?status=pending' },
+                        { name: 'In Review', href: '/admin/reports?status=in-review' },
+                        { name: 'Resolved', href: '/admin/reports?status=resolved' },
+                    ]
+                },
+            ]
+        },
+        {
+            label: "Systems",
+            items: [
+                {
+                    name: 'Badges',
+                    href: '/admin/badges',
+                    icon: CheckCircle,
+                    subItems: [
+                        { name: 'Award Badges', href: '/admin/badges/award' },
+                        { name: 'Review Badges', href: '/admin/badges/review' },
+                        { name: 'Badge Settings', href: '/admin/badges/settings' },
+                    ]
+                },
+                {
+                    name: 'Settings',
+                    href: '/admin/settings',
+                    icon: Settings,
+                    subItems: [
+                        { name: 'General', href: '/admin/settings/general' },
+                        { name: 'Moderation', href: '/admin/settings/moderation' },
+                        { name: 'Admin Users', href: '/admin/settings/admins' },
+                    ]
+                },
+            ]
+        }
     ];
 
     // Smooth transition class for text elements
@@ -98,35 +171,82 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }
                 </div>
 
                 {/* Navigation Menu */}
-                <nav className="flex-1 px-3 py-4 space-y-1">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        const Icon = item.icon;
+                <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto scrollbar-hide" data-lenis-prevent>
+                    {menuGroups.map((group, idx) => (
+                        <div key={idx} className="space-y-1">
+                            {!isCollapsed && (
+                                <h3 className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-2">
+                                    {group.label}
+                                </h3>
+                            )}
+                            <div className="space-y-1">
+                                {group.items.map((item: MenuItem) => {
+                                    const isActive = pathname === item.href || (item.subItems?.some(sub => pathname === sub.href));
+                                    const Icon = item.icon;
 
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                onClick={() => onClose()}
-                                className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative ${isActive
-                                    ? 'bg-blue-600/10 text-blue-500'
-                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                    } ${isCollapsed ? 'justify-center' : ''}`}
-                            >
-                                <Icon size={18} className={`shrink-0 transition-colors duration-200 ${isActive ? 'text-blue-500' : 'text-muted-foreground group-hover:text-foreground'}`} />
-                                <span className={textClass.replace('ml-3', 'ml-3')}>
-                                    {item.name}
-                                </span>
+                                    return (
+                                        <div key={item.name} className="space-y-1">
+                                            <Link
+                                                href={item.href}
+                                                onClick={() => !item.subItems && onClose()}
+                                                className={cn(
+                                                    "flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative",
+                                                    isActive
+                                                        ? "bg-primary/10 text-primary shadow-sm"
+                                                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                                    isCollapsed ? "justify-center" : ""
+                                                )}
+                                            >
+                                                <Icon size={18} className={cn(
+                                                    "shrink-0 transition-transform duration-200",
+                                                    isActive ? "scale-110" : "group-hover:scale-110"
+                                                )} />
+                                                <span className={cn(
+                                                    "ml-3 transition-opacity duration-300",
+                                                    isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+                                                )}>
+                                                    {item.name}
+                                                </span>
 
-                                {/* Hover Tooltip for Collapsed State */}
-                                {isCollapsed && (
-                                    <div className="absolute left-14 top-1.5 ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-md border border-border">
-                                        {item.name}
-                                    </div>
-                                )}
-                            </Link>
-                        );
-                    })}
+                                                {!isCollapsed && item.subItems && (
+                                                    <ChevronRight size={14} className={cn(
+                                                        "ml-auto transition-transform",
+                                                        isActive ? "rotate-90" : ""
+                                                    )} />
+                                                )}
+
+                                                {isCollapsed && (
+                                                    <div className="absolute left-full ml-4 px-3 py-2 bg-popover text-popover-foreground text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-[100] transition-opacity duration-200 shadow-xl border border-border font-bold">
+                                                        {item.name}
+                                                    </div>
+                                                )}
+                                            </Link>
+
+                                            {!isCollapsed && item.subItems && isActive && (
+                                                <div className="ml-9 border-l-2 border-border/50 space-y-1 py-1">
+                                                    {item.subItems.map((sub) => (
+                                                        <Link
+                                                            key={sub.name}
+                                                            href={sub.href}
+                                                            onClick={onClose}
+                                                            className={cn(
+                                                                "block px-4 py-1.5 text-xs font-medium transition-colors",
+                                                                pathname === sub.href
+                                                                    ? "text-primary border-l-2 border-primary -ml-[2px]"
+                                                                    : "text-muted-foreground hover:text-foreground"
+                                                            )}
+                                                        >
+                                                            {sub.name}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </nav>
 
                 {/* Footer / Toggle Section */}

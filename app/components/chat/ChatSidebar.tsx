@@ -1,113 +1,128 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { ExternalLink, Ban, Flag, Image as ImageIcon } from "lucide-react";
-import { ChatParticipant, Conversation, CHAT_LISTINGS } from "../../data/chat";
+import { Handshake, CheckCircle2, XCircle, Clock, ShoppingBag } from "lucide-react";
+import { NegotiationRecord, NegotiationStatus, ChatParticipant } from "../../data/chat";
 
-interface ChatSidebarProps {
-    conversation: Conversation;
+interface NegotiationHistoryProps {
+    negotiations: NegotiationRecord[];
+    participant: ChatParticipant | null;
 }
 
-const SHARED_MEDIA = [
-    "https://images.unsplash.com/photo-1517336712461-18d6e987c653?auto=format&fit=crop&w=200&q=80",
-    "https://images.unsplash.com/photo-1519451241324-20a66d03f56e?auto=format&fit=crop&w=200&q=80",
-    "https://images.unsplash.com/photo-1525547718571-039c6563636c?auto=format&fit=crop&w=200&q=80",
-];
+const STATUS_CONFIG: Record<NegotiationStatus, {
+    label: string;
+    bg: string;
+    text: string;
+    icon: React.ReactNode;
+}> = {
+    active: {
+        label: "Active",
+        bg: "bg-emerald-100 dark:bg-emerald-950/40",
+        text: "text-emerald-700 dark:text-emerald-400",
+        icon: <Clock className="w-2.5 h-2.5" />,
+    },
+    completed: {
+        label: "Completed",
+        bg: "bg-blue-100 dark:bg-blue-950/40",
+        text: "text-blue-700 dark:text-blue-400",
+        icon: <CheckCircle2 className="w-2.5 h-2.5" />,
+    },
+    ended: {
+        label: "Ended",
+        bg: "bg-zinc-100 dark:bg-zinc-800",
+        text: "text-zinc-500 dark:text-zinc-400",
+        icon: <XCircle className="w-2.5 h-2.5" />,
+    },
+};
 
-export function ChatSidebar({ conversation }: ChatSidebarProps) {
-    const { participant } = conversation;
-
-    // Collect listing-card messages to show as shared listings
-    const sharedListings = conversation.messages
-        .filter(m => m.type === "listing-card" && m.listing)
-        .map(m => m.listing!);
+export function NegotiationHistory({ negotiations, participant }: NegotiationHistoryProps) {
+    const active = negotiations.filter(n => n.status === "active").length;
+    const completed = negotiations.filter(n => n.status === "completed").length;
 
     return (
-        <div className="flex flex-col h-full bg-card border-l border-border/40 overflow-y-auto">
+        <div className="flex flex-col min-h-0 h-full bg-secondary/10 border-l border-border/40">
 
-            {/* Seller profile header */}
-            <div className="p-5 border-b border-border/40 flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-secondary overflow-hidden relative mb-3 ring-2 ring-border/40">
-                    {participant.avatar
-                        ? <Image src={participant.avatar} alt={participant.name} fill className="object-cover" />
-                        : <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-primary">{participant.name.charAt(0)}</span>
-                    }
-                </div>
-                <p className="text-sm font-black text-foreground">{participant.name}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">Campus Seller</p>
-
-                {/* Actions */}
-                <div className="flex flex-col gap-2 mt-4 w-full">
-                    <Link
-                        href={`/profile/${participant.id}`}
-                        className="w-full py-2 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-primary transition-colors text-center flex items-center justify-center gap-1.5"
-                    >
-                        <ExternalLink className="w-3 h-3" />
-                        View Profile
-                    </Link>
-                    <button className="w-full py-2 bg-secondary text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5">
-                        <Ban className="w-3 h-3" />
-                        Block User
-                    </button>
-                    <button className="w-full py-2 bg-secondary text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5">
-                        <Flag className="w-3 h-3" />
-                        Report
-                    </button>
-                </div>
-            </div>
-
-            {/* About stats */}
-            <div className="p-4 border-b border-border/40 space-y-2.5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">About</p>
-                {[
-                    { label: "Member since", value: participant.memberSince },
-                    { label: "Response time", value: participant.responseTime },
-                    { label: "Active listings", value: participant.activeListings },
-                    { label: "Completed sales", value: participant.completedSales },
-                ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{label}</span>
-                        <span className="text-xs font-bold text-foreground">{value}</span>
+            {/* Platform branding — pinned at top */}
+            <div className="shrink-0 px-4 pt-5 pb-4 border-b border-border/30 bg-card">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+                        <ShoppingBag className="w-4 h-4 text-white" />
                     </div>
-                ))}
+                    <div>
+                        <p className="text-sm font-bold text-foreground leading-none tracking-tight">Campus Market</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Campus. Connect. Trade.</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Shared media */}
-            <div className="p-4 border-b border-border/40">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Shared Media</p>
-                <div className="grid grid-cols-3 gap-1.5">
-                    {SHARED_MEDIA.map((src, i) => (
-                        <div key={i} className="aspect-square rounded-lg overflow-hidden relative bg-secondary">
-                            <Image src={src} alt="" fill className="object-cover" />
+            {/* Negotiations header — pinned below branding */}
+            <div className="shrink-0 px-4 py-3 border-b border-border/30 bg-card">
+                <div className="flex items-center gap-2">
+                    <Handshake className="w-4 h-4 text-primary" />
+                    <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Negotiations</h2>
+                </div>
+                {participant ? (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                        with <span className="font-semibold">{participant.name}</span> · {active} active · {completed} completed
+                    </p>
+                ) : (
+                    <p className="text-[10px] text-muted-foreground mt-1">Select a conversation</p>
+                )}
+            </div>
+
+            {/* Records list — only this scrolls */}
+            <div className="flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
+                {!participant || negotiations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
+                        <div className="w-12 h-12 rounded-2xl bg-secondary/60 flex items-center justify-center">
+                            <Handshake className="w-5 h-5 text-muted-foreground" />
                         </div>
-                    ))}
-                </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                            {participant
+                                ? "No negotiations in this chat yet."
+                                : "Open a conversation to see its negotiations."}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="p-3 space-y-2">
+                        {negotiations.map((record) => {
+                            const cfg = STATUS_CONFIG[record.status];
+                            return (
+                                <div
+                                    key={record.id}
+                                    className="w-full text-left p-3 rounded-2xl border bg-card border-border/40 shadow-sm"
+                                >
+                                    {/* Listing title + price */}
+                                    <p className="text-xs font-bold text-foreground truncate">{record.listing.title}</p>
+                                    <div className="flex items-center justify-between mt-1">
+                                        <span className="text-[11px] font-bold text-primary">
+                                            {record.agreedPrice
+                                                ? `₦${record.agreedPrice.toLocaleString()} agreed`
+                                                : `₦${record.listing.price.toLocaleString()}`}
+                                        </span>
+                                        {/* Status badge */}
+                                        <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
+                                            {cfg.icon}
+                                            {cfg.label}
+                                        </span>
+                                    </div>
+
+                                    {/* Date */}
+                                    <p className="text-[9px] text-muted-foreground mt-1.5">
+                                        {record.endedAt ? `Ended ${record.endedAt}` : `Started ${record.startedAt}`}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
-            {/* Shared listings */}
-            {sharedListings.length > 0 && (
-                <div className="p-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Shared Listings</p>
-                    <div className="space-y-2">
-                        {sharedListings.map((listing) => (
-                            <Link
-                                key={listing.id}
-                                href={`/listings/${listing.id}`}
-                                className="flex items-center gap-3 p-2.5 bg-secondary/30 rounded-xl border border-border/40 hover:border-primary/30 transition-colors group"
-                            >
-                                <div className="w-10 h-10 rounded-lg overflow-hidden relative bg-secondary shrink-0">
-                                    <Image src={listing.image} alt={listing.title} fill className="object-cover" />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{listing.title}</p>
-                                    <p className="text-[10px] font-black text-primary">₦{listing.price.toLocaleString()}</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {/* Footer — pinned */}
+            <div className="shrink-0 px-4 py-3 border-t border-border/30 bg-card">
+                <p className="text-[9px] text-muted-foreground text-center leading-relaxed">
+                    Ending a negotiation requires both parties to confirm.
+                </p>
+            </div>
         </div>
     );
 }

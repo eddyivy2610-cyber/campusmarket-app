@@ -20,11 +20,11 @@ export function ChatInbox({ conversations, activeId, onSelect }: ChatInboxProps)
     );
 
     return (
-        <div className="flex flex-col h-full bg-card border-r border-border/40">
+        <div className="flex flex-col min-h-0 h-full bg-card border-r border-border/40">
             {/* Header */}
             <div className="px-4 pt-5 pb-3 border-b border-border/40">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-base font-black font-heading text-foreground">Messages</h1>
+                    <h1 className="text-base font-bold font-heading text-foreground">Messages</h1>
                     <div className="flex items-center gap-1">
                         <button className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground">
                             <Bell className="w-4 h-4" />
@@ -47,8 +47,8 @@ export function ChatInbox({ conversations, activeId, onSelect }: ChatInboxProps)
                 </div>
             </div>
 
-            {/* Conversation list */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Conversation list — only this scrolls */}
+            <div className="flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
                 {filtered.map(conv => (
                     <ConversationRow
                         key={conv.id}
@@ -79,7 +79,7 @@ function ConversationRow({ conv, active, onSelect }: { conv: Conversation; activ
                     }
                 </div>
                 {conv.unread > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-white text-[8px] font-bold rounded-full flex items-center justify-center">
                         {conv.unread}
                     </span>
                 )}

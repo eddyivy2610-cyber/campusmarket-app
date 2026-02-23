@@ -44,7 +44,7 @@ export function AuthLayout({
                         <div className="p-2.5 bg-primary rounded-xl shadow-lg shadow-primary/20 transition-transform group-hover:scale-110 group-hover:rotate-6">
                             <ShoppingBasket className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-2xl font-black tracking-tight font-heading bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                        <span className="text-2xl font-bold tracking-tight font-heading bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
                             CampusMarket
                         </span>
                     </Link>
@@ -111,7 +111,7 @@ export function AuthLayout({
 
                     {currentStep && totalSteps && (
                         <div className="flex flex-col items-end gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
                                 Step {currentStep} of {totalSteps}
                             </span>
                             <div className="flex gap-1">
@@ -138,7 +138,7 @@ export function AuthLayout({
                         {(title || subtitle) && (
                             <div className="mb-6 text-center md:text-left">
                                 {title && (
-                                    <h1 className="text-3xl font-black font-heading tracking-tight mb-2 leading-tight">
+                                    <h1 className="text-3xl font-bold font-heading tracking-tight mb-2 leading-tight">
                                         {title}
                                     </h1>
                                 )}

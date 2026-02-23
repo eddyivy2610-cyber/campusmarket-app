@@ -54,7 +54,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                     <div className="p-2 bg-primary/10 rounded-lg text-primary">
                         <ShoppingBag className="w-4 h-4" />
                     </div>
-                    <h2 className="text-xl font-black font-heading tracking-tight">
+                    <h2 className="text-xl font-bold font-heading tracking-tight">
                         {isHost ? "My Listings" : "Their Listings"}
                     </h2>
                 </div>
@@ -66,9 +66,9 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                             <button
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === filter
-                                        ? "bg-background text-foreground shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${activeFilter === filter
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 {filter}
@@ -80,7 +80,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                 {/* Visitor: static "Active" badge */}
                 {!isHost && (
                     <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
                             Active Listings Only
                         </span>
                     </div>
@@ -98,7 +98,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                         <PackageOpen className="w-8 h-8" />
                     </div>
                     <div className="text-center space-y-1">
-                        <p className="text-sm font-black text-foreground/60 uppercase tracking-widest">No Active Listings</p>
+                        <p className="text-sm font-bold text-foreground/60 uppercase tracking-widest">No Active Listings</p>
                         <p className="text-xs text-muted-foreground font-medium">This seller hasn&apos;t posted anything yet.</p>
                     </div>
                 </motion.div>
@@ -118,7 +118,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                                     <Plus className="w-6 h-6" />
                                 </div>
                                 <div className="text-center">
-                                    <span className="block text-[11px] font-black uppercase tracking-widest text-foreground">Add New</span>
+                                    <span className="block text-[11px] font-bold uppercase tracking-widest text-foreground">Add New</span>
                                 </div>
                             </motion.button>
                         )}
@@ -141,7 +141,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                                         <span className="text-[10px] font-bold text-muted-foreground/40 lowercase tracking-widest text-center px-2">{listing.title}</span>
                                     )}
                                     <div className="absolute top-2 left-2 px-2 py-0.5 bg-background/90 backdrop-blur-md rounded-md border border-border/40 shadow-sm">
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-foreground/70">
+                                        <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/70">
                                             {listing.status}
                                         </span>
                                     </div>
@@ -151,7 +151,7 @@ export function VendorListingsArea({ viewAs }: VendorListingsAreaProps) {
                                 <div className="p-3 space-y-1">
                                     <h3 className="font-bold text-[11px] leading-tight text-foreground/90 truncate">{listing.title}</h3>
                                     <div className="flex items-center justify-between">
-                                        <p className="text-sm font-black text-primary">{listing.price}</p>
+                                        <p className="text-sm font-bold text-primary">{listing.price}</p>
                                         {/* Host only: more options; visitor: no management controls */}
                                         {isHost && (
                                             <button className="p-1 hover:bg-secondary rounded-md transition-colors text-muted-foreground">

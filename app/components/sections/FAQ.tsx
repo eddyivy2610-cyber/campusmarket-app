@@ -43,7 +43,7 @@ export function FAQ() {
         <section className="hidden md:block py-10 bg-background">
             <div className="max-w-[1780px] mx-auto px-4 md:px-12">
                 <div className="text-center mb-12 flex flex-col items-center">
-                    <h2 className="text-3xl md:text-4xl font-sans font-black text-foreground mb-4 uppercase tracking-tighter">
+                    <h2 className="text-3xl md:text-4xl font-sans font-bold text-foreground mb-4 uppercase tracking-tighter">
                         Frequently Asked <span className="text-primary italic">Questions</span>
                     </h2>
                     <p className="text-gray-500 text-sm font-medium max-w-2xl">
@@ -64,7 +64,7 @@ export function FAQ() {
                                 <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border-l-4 ${faq.color} shrink-0 group-hover:bg-white/10 transition-colors`}>
                                     <faq.icon className="w-4 h-4 text-primary" />
                                 </div>
-                                <span className="flex-1 font-black text-sm text-foreground font-sans tracking-tight uppercase">
+                                <span className="flex-1 font-bold text-sm text-foreground font-sans tracking-tight uppercase">
                                     {faq.question}
                                 </span>
                                 <div className={`transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}>

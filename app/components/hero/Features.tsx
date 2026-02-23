@@ -48,7 +48,7 @@ export function Features() {
                                 <feature.icon className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">
-                                <h3 className="font-black text-xs tracking-tight font-sans text-foreground uppercase">{feature.title}</h3>
+                                <h3 className="font-bold text-xs tracking-tight font-sans text-foreground uppercase">{feature.title}</h3>
                                 <p className="text-[10px] leading-relaxed text-gray-500 font-medium max-w-[130px]">{feature.description}</p>
                             </div>
                         </div>

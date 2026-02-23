@@ -1,13 +1,13 @@
 "use client";
 
-import { Truck, ShieldCheck, Headphones, RefreshCw } from "lucide-react";
+import { ShoppingBag, MessageSquare, Zap, Users } from "lucide-react";
 
 export function FeatureHighlights() {
     const features = [
-        { icon: <Truck className="w-6 h-6" />, title: "Free Delivery", desc: "On campus orders" },
-        { icon: <ShieldCheck className="w-6 h-6" />, title: "Secure Payment", desc: "100% secure payment" },
-        { icon: <Headphones className="w-6 h-6" />, title: "24/7 Support", desc: "Dedicated support" },
-        { icon: <RefreshCw className="w-6 h-6" />, title: "Easy Returns", desc: "Simple return policy" },
+        { icon: <ShoppingBag className="w-6 h-6" />, title: "Listings", desc: "Buy & sell anything" },
+        { icon: <MessageSquare className="w-6 h-6" />, title: "Chat", desc: "Negotiate in real-time" },
+        { icon: <Zap className="w-6 h-6" />, title: "Real-time Updates", desc: "Instant notifications" },
+        { icon: <Users className="w-6 h-6" />, title: "Community", desc: "Trusted campus network" },
     ];
 
     return (

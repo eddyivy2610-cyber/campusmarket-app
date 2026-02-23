@@ -35,7 +35,7 @@ export function ExploreDropdown({ isOpen }: ExploreDropdownProps) {
                         >
                             <div className="flex items-center gap-3">
                                 <Icon className="w-4 h-4 text-gray-500 group-hover:text-primary transition-colors" />
-                                <span className="text-sm font-medium">{category.name}</span>
+                                <span className="text-sm font-bold">{category.name}</span>
                             </div>
                             <ChevronRight className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0" />
                         </a>

@@ -5,56 +5,71 @@ import {
     Info,
     Star,
     User,
-    CheckCircle2,
     Clock,
-    BadgeCheck
+    BadgeCheck,
+    X,
+    MessageSquare,
+    Activity,
+    Store,
+    BarChart3,
+    ShieldCheck,
+    Briefcase,
+    CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "../../lib/utils";
+import { Profile } from "../../data/profiles";
+import { BadgeSystem } from "./BadgeSystem";
+import { VendorListingsArea } from "./VendorListingsArea";
+import { VendorPerformanceArea } from "./VendorPerformanceArea";
 
 interface VendorProfileTabsProps {
-    vendor: {
-        name: string;
-        category: string;
-        department: string;
-        joinedDateRelative: string;
-        activeListings: number;
-        soldItems: number;
-        rating: number;
-        responseRate: string;
-        responseTime: string;
-    };
+    profile: Profile;
+    viewAs: "host" | "visitor";
 }
 
-export function VendorProfileTabs({ vendor }: VendorProfileTabsProps) {
-    const [activeTab, setActiveTab] = useState("About");
+export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
+    const [activeTab, setActiveTab] = useState(profile.type === 'vendor' ? "Listings" : "About");
+    const [isRecommended, setIsRecommended] = useState<boolean | null>(null);
+    const [comment, setComment] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const tabs = [
-        { name: "About", icon: Info },
+    const buyerTabs = [
+        { name: "About", icon: User },
+        { name: "Activity", icon: Activity },
         { name: "Reviews", icon: Star },
-        { name: "About the Seller", icon: User },
     ];
 
+    const vendorTabs = [
+        { name: "Listings", icon: Store },
+        { name: "Performance", icon: BarChart3 },
+        { name: "Reviews", icon: Star },
+        { name: "About Business", icon: Briefcase },
+    ];
+
+    const tabs = profile.type === 'vendor' ? vendorTabs : buyerTabs;
+
     return (
-        <div className="w-full space-y-6">
+        <div className="w-full space-y-8">
             {/* Tab Navigation */}
             <div className="flex border-b border-border/40 overflow-x-auto no-scrollbar scroll-contain">
                 {tabs.map((tab) => (
                     <button
                         key={tab.name}
                         onClick={() => setActiveTab(tab.name)}
-                        className={`px-6 py-3 text-[13px] font-bold tracking-tight transition-all relative whitespace-nowrap ${activeTab === tab.name
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-foreground"
+                        className={`px-8 py-4 text-[13px] font-bold tracking-tight transition-all relative whitespace-nowrap ${activeTab === tab.name
+                            ? "text-primary opacity-100"
+                            : "text-muted-foreground/60 hover:text-foreground opacity-60 hover:opacity-100"
                             }`}
                     >
-                        <div className="flex items-center gap-2">
-                            <tab.icon className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-2.5">
+                            <tab.icon className="w-4 h-4" />
                             {tab.name}
                         </div>
                         {activeTab === tab.name && (
                             <motion.div
-                                layoutId="activeTab"
-                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"
+                                layoutId="activeTabUnderline"
+                                className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(var(--primary-rgb),0.3)]"
                             />
                         )}
                     </button>
@@ -65,100 +80,166 @@ export function VendorProfileTabs({ vendor }: VendorProfileTabsProps) {
             <AnimatePresence mode="wait">
                 <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.15 }}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="min-h-[400px]"
                 >
+                    {/* Common About Section */}
                     {activeTab === "About" && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-                            {/* Business Information */}
-                            <div className="space-y-4">
-                                <h3 className="text-xs font-black font-heading uppercase tracking-widest text-muted-foreground/50">
-                                    Business Information
-                                </h3>
-                                <div className="space-y-3">
-                                    {[
-                                        { label: "Business Name", value: vendor.name },
-                                        { label: "Category", value: vendor.category },
-                                        { label: "Department", value: vendor.department },
-                                        { label: "Joined", value: vendor.joinedDateRelative },
-                                    ].map((item) => (
-                                        <div key={item.label} className="flex flex-col border-b border-border/20 pb-2.5">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">{item.label}</span>
-                                            <span className="font-bold text-sm text-foreground/90">{item.value}</span>
-                                        </div>
-                                    ))}
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Account Status</span>
-                                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                                            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-primary/5 text-primary rounded-full border border-primary/10">
-                                                <BadgeCheck className="w-3 h-3" />
-                                                <span className="text-[8px] font-black uppercase tracking-widest">Vendor</span>
+                        <div className="max-w-3xl space-y-12">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                        <User className="w-3 h-3" /> Profile Stats
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {[
+                                            { label: "Department", value: profile.department || "General Store" },
+                                            { label: "Joined Campus", value: profile.joinedDateFull },
+                                            { label: "Identity Verified", value: profile.isVerified ? "Yes, Student ID" : "Pending" },
+                                        ].map((item) => (
+                                            <div key={item.label} className="border-l-2 border-primary/10 pl-4 py-1">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
+                                                <span className="font-bold text-sm text-foreground/90">{item.value}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-green-500/5 text-green-500 rounded-full border border-green-500/10">
-                                                <CheckCircle2 className="w-3 h-3" />
-                                                <span className="text-[8px] font-black uppercase tracking-widest">Student</span>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Performance Overview */}
-                            <div className="space-y-4">
-                                <h3 className="text-xs font-black font-heading uppercase tracking-widest text-muted-foreground/50">
-                                    Performance
-                                </h3>
-                                <div className="space-y-3">
-                                    <div className="flex flex-col border-b border-border/20 pb-2.5">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Active Listings</span>
-                                        <span className="font-bold text-sm">{vendor.activeListings} items</span>
-                                    </div>
-                                    <div className="flex flex-col border-b border-border/20 pb-2.5">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Sold Items</span>
-                                        <span className="font-bold text-sm">{vendor.soldItems} items</span>
-                                    </div>
-                                    <div className="flex flex-col border-b border-border/20 pb-2.5">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Rating</span>
-                                        <div className="flex items-center gap-1 text-amber-500">
-                                            <span className="font-bold text-sm text-foreground mr-1">{vendor.rating}</span>
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <Star key={s} className={`w-3 h-3 ${s <= Math.floor(vendor.rating) ? "fill-current" : "text-gray-200"}`} />
-                                            ))}
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                        <BadgeCheck className="w-3 h-3" /> Quick Stats
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
+                                            <span className="text-2xl font-bold block">{profile.transactions}</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Transactions</span>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Response</span>
-                                        <span className="font-bold text-sm">{vendor.responseRate} <span className="text-[10px] opacity-40 font-medium">({vendor.responseTime})</span></span>
+                                        <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
+                                            <span className="text-2xl font-bold block">100%</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Reliability</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
+                    {/* Activity Section (Private for Host) */}
+                    {activeTab === "Activity" && (
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-4 p-8 bg-secondary/10 border-2 border-dashed border-border/20 rounded-[32px] text-center flex-col">
+                                <Clock className="w-12 h-12 text-muted-foreground/20" />
+                                <div className="max-w-sm">
+                                    <h4 className="font-bold uppercase tracking-tight text-foreground/80 mb-2">Private Activity</h4>
+                                    <p className="text-xs font-medium text-muted-foreground leading-relaxed">Recently viewed items and saved listings are only visible to you.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Vendor Specific Sections */}
+                    {activeTab === "Listings" && (
+                        <VendorListingsArea viewAs={viewAs} />
+                    )}
+
+                    {activeTab === "Performance" && (
+                        <div className="space-y-8">
+                            {viewAs === "host" ? (
+                                <VendorPerformanceArea
+                                    vendor={{
+                                        activeListings: profile.transactions, // Placeholder mapping
+                                        soldItems: profile.transactions,
+                                        rating: 4.8,
+                                        responseRate: "98%",
+                                        responseTime: "2 hrs"
+                                    }}
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 space-y-6 bg-secondary/10 rounded-[40px] border-2 border-dashed border-border/20">
+                                    <BadgeSystem type="transaction" value={profile.transactions} className="scale-150" />
+                                    <div className="text-center space-y-1">
+                                        <h4 className="font-bold text-2xl uppercase tracking-tight">Verified Achievement</h4>
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+                                            {profile.transactions} Total Successful Sales
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "About Business" && profile.businessInfo && (
+                        <div className="max-w-3xl space-y-10">
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-primary underline underline-offset-8 decoration-2 mb-6">Extended Bio & Mission</h3>
+                                <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+                                    {profile.businessInfo.extendedBio}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Return Policies</h3>
+                                    <p className="text-xs font-semibold leading-relaxed p-4 bg-orange-500/5 border border-orange-500/10 rounded-2xl text-orange-700/80">
+                                        {profile.businessInfo.policies}
+                                    </p>
+                                </div>
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Business Hours</h3>
+                                    <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/10 rounded-2xl">
+                                        <Clock className="w-5 h-5 text-primary" />
+                                        <span className="text-xs font-bold text-primary">{profile.businessInfo.hours}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {activeTab === "Reviews" && (
-                        <div className="text-center py-10 bg-secondary/5 rounded-2xl border-2 border-dashed border-border/30">
-                            <Star className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No reviews yet</p>
-                        </div>
-                    )}
-
-                    {activeTab === "About the Seller" && (
-                        <div className="max-w-xl space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-                                    <User className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h4 className="font-black text-lg leading-none">Member since 2024</h4>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mt-1">Verified Student Vendor</p>
+                        <div className="space-y-6">
+                            {/* Condensed Single Textbox Review Input */}
+                            <div className="relative group">
+                                <input
+                                    type="text"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Leave a review..."
+                                    className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
+                                />
+                                <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1.5 bg-background rounded-xl px-2 border border-border/40">
+                                    <button
+                                        onClick={() => setIsRecommended(true)}
+                                        className={cn(
+                                            "p-2 rounded-lg transition-all",
+                                            isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
+                                        )}
+                                    >
+                                        <CheckCircle2 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => setIsRecommended(false)}
+                                        className={cn(
+                                            "p-2 rounded-lg transition-all",
+                                            isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
+                                        )}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        disabled={isRecommended === null || !comment.trim()}
+                                        className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
+                                    >
+                                        Go
+                                    </button>
                                 </div>
                             </div>
-                            <p className="text-muted-foreground text-xs leading-relaxed font-medium">
-                                Verified student vendor with a high reputation for fast delivery and quality communication within the campus community.
-                            </p>
+
+                            <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
+                                <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
+                                <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
+                            </div>
                         </div>
                     )}
                 </motion.div>

@@ -10,12 +10,15 @@ import { useClickOutside } from "../../hooks/useClickOutside";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { IntelligentSearch } from "../search/IntelligentSearch";
 import { MobileSearch } from "../search/MobileSearch";
+import { usePathname } from "next/navigation";
 
 export function MainHeader() {
     useScrollReveal();
     const [isAccountOpen, setIsAccountOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const pathname = usePathname();
+    const isSettingsPage = pathname === "/settings";
 
     const accountRef = useRef<HTMLDivElement>(null);
     useClickOutside(accountRef, () => setIsAccountOpen(false));
@@ -23,7 +26,7 @@ export function MainHeader() {
     return (
         <>
             {/* ── Main header row ── */}
-            <div className="bg-background text-foreground py-3 md:py-5 sticky top-0 z-40 border-b border-border/30 shadow-sm">
+            <div className="bg-background text-foreground py-2 md:py-3.5 sticky top-0 z-40 border-b border-border/30 shadow-sm">
                 <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex items-center gap-3 md:gap-6">
 
                     {/* Hamburger (mobile) */}
@@ -86,20 +89,22 @@ export function MainHeader() {
 
                         {/* Vendor button — desktop only */}
                         <Link
-                            href="/vendor/tech-hub"
+                            href="/profile/tech-hub"
                             className="hidden sm:flex items-center gap-2 px-4 py-2 ml-2 bg-secondary/15 backdrop-blur-md text-foreground rounded-full hover:bg-primary/20 hover:text-primary transition-all duration-500 shadow-sm active:scale-95 group border border-foreground/10 hover:border-primary/30 relative overflow-hidden"
                         >
                             <Store className="w-4 h-4" />
-                            <span className="text-xs font-black uppercase tracking-widest font-heading">Vendor</span>
+                            <span className="text-xs font-bold uppercase tracking-widest font-heading">Vendor</span>
                         </Link>
                     </div>
                 </div>
             </div>
 
             {/* ── Mobile search bar (below header) ── */}
-            <div className="block md:hidden bg-background border-b border-border/30 px-3 py-2">
-                <MobileSearch />
-            </div>
+            {!isSettingsPage && (
+                <div className="block md:hidden bg-background border-b border-border/30 px-3 py-2">
+                    <MobileSearch />
+                </div>
+            )}
 
             <HamburgerMenu
                 isOpen={isMenuOpen}

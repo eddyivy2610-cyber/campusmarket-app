@@ -75,7 +75,7 @@ export function CreateAlertModal({ isOpen, onClose }: CreateAlertModalProps) {
 
                             {/* Keyword */}
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
                                     What are you looking for?
                                 </label>
                                 <div className="relative">
@@ -92,7 +92,7 @@ export function CreateAlertModal({ isOpen, onClose }: CreateAlertModalProps) {
                             {/* Filters */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">Category</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Category</label>
                                     <div className="relative">
                                         <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                                         <select className="w-full bg-secondary/30 border border-border/60 rounded-xl py-2 pl-8 pr-6 text-xs font-medium focus:outline-none focus:border-primary/50 appearance-none cursor-pointer">
@@ -105,7 +105,7 @@ export function CreateAlertModal({ isOpen, onClose }: CreateAlertModalProps) {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">Max Price</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Max Price</label>
                                     <div className="relative">
                                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
                                         <input

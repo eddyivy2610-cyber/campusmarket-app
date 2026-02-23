@@ -137,7 +137,7 @@ export function ShopGrid({
 
                     {/* Category pill */}
                     <FilterPill label={selectedCategories.length > 0 ? `Category (${selectedCategories.length})` : "Category"}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Category</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Category</p>
                         <div className="space-y-1.5 max-h-48 overflow-y-auto">
                             {CATEGORIES.map((cat) => (
                                 <label key={cat.name} className="flex items-center gap-2 cursor-pointer group">
@@ -155,7 +155,7 @@ export function ShopGrid({
 
                     {/* Price pill */}
                     <FilterPill label="Price">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Price (₦)</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Price (₦)</p>
                         <div className="flex items-center gap-1.5">
                             <input
                                 type="number"
@@ -183,7 +183,7 @@ export function ShopGrid({
 
                     {/* Condition pill */}
                     <FilterPill label="Condition">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Condition</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Condition</p>
                         <div className="space-y-1.5">
                             {CONDITIONS.map((cond) => (
                                 <label key={cond} className="flex items-center gap-2 cursor-pointer group">
@@ -198,13 +198,13 @@ export function ShopGrid({
                 {/* ── Sort (always visible) ── */}
                 <div className="flex items-center gap-2 order-2 ml-auto">
                     {isHost && (
-                        <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 border border-primary/10 px-2 py-1 rounded-lg hidden sm:block">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/5 border border-primary/10 px-2 py-1 rounded-lg hidden sm:block">
                             Owner View
                         </span>
                     )}
                     <span className="text-xs text-muted-foreground hidden sm:block">Sort:</span>
                     <FilterPill label={sortLabel}>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Sort by</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Sort by</p>
                         {SORT_OPTIONS.map((opt) => (
                             <button
                                 key={opt}

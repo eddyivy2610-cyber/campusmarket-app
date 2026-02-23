@@ -22,7 +22,7 @@ export function SellerRules({ onContinue }: SellerRulesProps) {
                 <div className="p-3 bg-primary/10 rounded-[24px] text-primary">
                     <ShieldCheck className="w-10 h-10" />
                 </div>
-                <h2 className="text-xl font-black font-heading">Seller Rules & Guidelines</h2>
+                <h2 className="text-xl font-bold font-heading">Seller Rules & Guidelines</h2>
                 <p className="text-muted-foreground max-w-sm">
                     To maintain a safe community, all sellers must adhere to these basic principles.
                 </p>
@@ -50,7 +50,7 @@ export function SellerRules({ onContinue }: SellerRulesProps) {
 
             <button
                 onClick={onContinue}
-                className="w-full bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                className="w-full bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
             >
                 I Understand, Continue
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

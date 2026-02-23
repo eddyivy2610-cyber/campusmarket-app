@@ -92,7 +92,7 @@ export function searchProfiles(query: string, profiles: Profile[]): Profile[] {
         const searchableText = [
             profile.name,
             profile.handle,
-            profile.description,
+            profile.bio,
             ...profile.tags
         ].join(" ").toLowerCase();
 

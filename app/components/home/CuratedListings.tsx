@@ -17,7 +17,8 @@ const featuredProducts = [
         sellerId: "S1",
         isVerified: true,
         category: "Electronics",
-        rating: 4.8
+        recommendedCount: 30,
+        notRecommendedCount: 2
     },
     {
         id: "2",
@@ -30,7 +31,8 @@ const featuredProducts = [
         sellerId: "S2",
         isVerified: false,
         category: "Home",
-        rating: 4.5
+        recommendedCount: 25,
+        notRecommendedCount: 5
     },
     {
         id: "3",
@@ -43,7 +45,8 @@ const featuredProducts = [
         sellerId: "S3",
         isVerified: true,
         category: "Electronics",
-        rating: 4.9
+        recommendedCount: 32,
+        notRecommendedCount: 1
     },
     {
         id: "4",
@@ -56,7 +59,8 @@ const featuredProducts = [
         sellerId: "S4",
         isVerified: true,
         category: "Books",
-        rating: 4.2
+        recommendedCount: 20,
+        notRecommendedCount: 10
     }
 ];
 
@@ -95,7 +99,8 @@ export function CuratedListings() {
                             price: product.price,
                             image: product.image,
                             category: product.category,
-                            rating: product.rating,
+                            recommendedCount: product.recommendedCount,
+                            notRecommendedCount: product.notRecommendedCount,
                             location: product.location,
                             status: product.condition,
                             seller: product.sellerName,

@@ -8,7 +8,8 @@ export interface SavedItem {
     price: string | number;
     image: string;
     category: string;
-    rating?: number;
+    recommendedCount?: number;
+    notRecommendedCount?: number;
     status?: string;
     location?: string;
     sellerId: string;

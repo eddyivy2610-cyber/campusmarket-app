@@ -26,7 +26,12 @@ import {
     Calendar,
     AlertCircle,
     Wrench,
-    Tag
+    Tag,
+    UtensilsCrossed,
+    Globe,
+    ShieldCheck,
+    BookMarked,
+    Info
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -41,7 +46,7 @@ interface HamburgerMenuProps {
 
 const IconMap: { [key: string]: any } = {
     MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench
+    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench, UtensilsCrossed
 };
 
 export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: HamburgerMenuProps) {
@@ -105,7 +110,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                             <div className="flex items-center gap-3">
                                 <User className="w-5 h-5" />
                                 <div className="text-left">
-                                    <p className="font-black uppercase tracking-widest text-[11px]">Join Campus Market</p>
+                                    <p className="font-bold uppercase tracking-widest text-[11px]">Join Campus Market</p>
                                     <p className="text-[10px] text-white/70 font-medium">Log in or Sign up</p>
                                 </div>
                             </div>
@@ -161,6 +166,15 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         )}
                     </Section>
 
+                    {/* ── Quick Links (mirrors footer, shown on mobile) ── */}
+                    <Section label="Quick Links">
+                        <NavRow icon={Globe} label="Marketplace" onClick={() => nav("/community")} />
+                        <NavRow icon={Info} label="About Us" onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={ShieldCheck} label="Safety Guidelines" onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={BookMarked} label="Seller Resources" onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={HelpCircle} label="FAQs" onClick={() => nav("/coming-soon")} />
+                    </Section>
+
                     {/* ── Community ── */}
                     <Section label="Community">
                         <NavRow icon={MessageSquare} label="Community Hub" onClick={() => nav("/community")} />
@@ -195,7 +209,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div className="px-2 py-3 border-b border-border/40 last:border-0">
-            <p className="px-3 pb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{label}</p>
+            <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
             <nav className="space-y-0.5">{children}</nav>
         </div>
     );
@@ -218,8 +232,8 @@ function NavRow({
         <button
             onClick={onClick}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors group ${accent
-                    ? "bg-primary/10 text-primary hover:bg-primary/15"
-                    : "hover:bg-secondary text-foreground"
+                ? "bg-primary/10 text-primary hover:bg-primary/15"
+                : "hover:bg-secondary text-foreground"
                 }`}
         >
             <div className="flex items-center gap-3">

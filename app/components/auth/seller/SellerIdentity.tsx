@@ -112,7 +112,7 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                                     <Upload className="w-8 h-8" />
                                 </div>
                                 <div>
-                                    <p className="font-black uppercase tracking-widest text-xs text-foreground">Click to upload</p>
+                                    <p className="font-bold uppercase tracking-widest text-xs text-foreground">Click to upload</p>
                                     <p className="text-[9px] font-bold text-muted-foreground mt-1">PNG, JPG or PDF up to 5MB</p>
                                 </div>
                             </div>
@@ -124,7 +124,7 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
             <div className="flex gap-4 pt-2 border-t border-border/30 mt-6">
                 <button
                     onClick={onBack}
-                    className="hidden md:flex flex-1 bg-secondary text-foreground font-black uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
+                    className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -132,7 +132,7 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                 <button
                     onClick={handleNext}
                     disabled={isLoading}
-                    className="flex-[2] bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                    className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                 >
                     {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />

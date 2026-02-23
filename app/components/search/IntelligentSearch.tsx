@@ -208,7 +208,7 @@ export function IntelligentSearch() {
                                                                         <span className="text-xs text-muted-foreground bg-secondary px-1.5 rounded-sm">{profile.handle}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                                                                        <span className="truncate max-w-[200px]">{profile.description}</span>
+                                                                        <span className="truncate max-w-[200px]">{profile.bio}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-border" />
                                                                         <div className="flex items-center gap-0.5">
                                                                             <span className="text-yellow-500">★</span>

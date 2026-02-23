@@ -27,7 +27,7 @@ export function CommunityHero() {
                         <span>News</span>
                     </span>
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 tracking-tight leading-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
                         Trending This Month
                     </h1>
 

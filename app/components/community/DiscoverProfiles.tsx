@@ -7,27 +7,28 @@ interface DiscoverProfile {
     id: string;
     name: string;
     category: string;
-    rating: number;
+    recommendedCount: number;
+    notRecommendedCount: number;
     color: string;
 }
 
 const DISCOVER_PROFILES: DiscoverProfile[] = [
-    { id: "1", name: "Michael's Workshop", category: "Custom furniture & woodworking", rating: 4.7, color: "bg-blue-500" },
-    { id: "2", name: "Gems & Jewelry", category: "Handcrafted fine jewelry designs", rating: 5.0, color: "bg-fuchsia-500" },
-    { id: "3", name: "Organic Delights", category: "Homemade organic food products", rating: 4.2, color: "bg-emerald-500" },
-    { id: "4", name: "Tech Accessories Pro", category: "Innovative tech products & gadgets", rating: 4.6, color: "bg-amber-500" },
-    { id: "5", name: "Campus Prints", category: "Custom T-shirts & merch printing", rating: 4.4, color: "bg-rose-500" },
-    { id: "6", name: "Study Buddy", category: "Tutoring & academic help services", rating: 4.9, color: "bg-indigo-500" },
-    { id: "7", name: "Fresh Eats", category: "Homemade meals & snacks on campus", rating: 4.3, color: "bg-orange-500" },
-    { id: "8", name: "Laundry Champs", category: "Pickup & drop laundry services", rating: 4.5, color: "bg-teal-500" },
-    { id: "9", name: "Photo & Film Co.", category: "Photography for events & portraits", rating: 4.8, color: "bg-violet-500" },
+    { id: "1", name: "Michael's Workshop", category: "Custom furniture & woodworking", recommendedCount: 47, notRecommendedCount: 3, color: "bg-blue-500" },
+    { id: "2", name: "Gems & Jewelry", category: "Handcrafted fine jewelry designs", recommendedCount: 50, notRecommendedCount: 0, color: "bg-fuchsia-500" },
+    { id: "3", name: "Organic Delights", category: "Homemade organic food products", recommendedCount: 42, notRecommendedCount: 8, color: "bg-emerald-500" },
+    { id: "4", name: "Tech Accessories Pro", category: "Innovative tech products & gadgets", recommendedCount: 46, notRecommendedCount: 4, color: "bg-amber-500" },
+    { id: "5", name: "Campus Prints", category: "Custom T-shirts & merch printing", recommendedCount: 44, notRecommendedCount: 6, color: "bg-rose-500" },
+    { id: "6", name: "Study Buddy", category: "Tutoring & academic help services", recommendedCount: 49, notRecommendedCount: 1, color: "bg-indigo-500" },
+    { id: "7", name: "Fresh Eats", category: "Homemade meals & snacks on campus", recommendedCount: 43, notRecommendedCount: 7, color: "bg-orange-500" },
+    { id: "8", name: "Laundry Champs", category: "Pickup & drop laundry services", recommendedCount: 45, notRecommendedCount: 5, color: "bg-teal-500" },
+    { id: "9", name: "Photo & Film Co.", category: "Photography for events & portraits", recommendedCount: 48, notRecommendedCount: 2, color: "bg-violet-500" },
 ];
 
 export function DiscoverProfiles() {
     return (
         <section className="py-8">
             <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black">Discover More Profiles</h2>
+                <h2 className="text-2xl font-bold">Discover More Profiles</h2>
                 <button className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
                     <RefreshCw className="w-4 h-4" />
                     <span className="hidden sm:inline">Refresh</span>
@@ -59,15 +60,14 @@ export function DiscoverProfiles() {
                                 {profile.category}
                             </p>
 
-                            {/* Stars */}
-                            <div className="flex items-center gap-1 mb-6 text-amber-500">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        className={`w-3.5 h-3.5 ${star <= Math.round(profile.rating) ? "fill-current" : "text-gray-300 fill-gray-300"}`}
-                                    />
-                                ))}
-                                <span className="text-xs font-bold text-foreground ml-1">{profile.rating}</span>
+                            {/* Recommendation Rate */}
+                            <div className="flex items-center gap-1.5 mb-6 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">
+                                    {Math.round((profile.recommendedCount / (profile.recommendedCount + profile.notRecommendedCount || 1)) * 100)}% Match
+                                </span>
                             </div>
 
                             <Link

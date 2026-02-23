@@ -125,7 +125,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             />
                         ))}
                     </div>
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-tighter">
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tighter">
                         <span className={strength <= 25 ? "text-red-500" : strength <= 50 ? "text-orange-500" : strength <= 75 ? "text-yellow-500" : "text-green-500"}>
                             {strength <= 25 ? "Weak" : strength <= 50 ? "Fair" : strength <= 75 ? "Strong" : "Very Strong"}
                         </span>
@@ -163,7 +163,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
             <button
                 onClick={handleNext}
                 disabled={isLoading}
-                className="w-full bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
+                className="w-full bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
             >
                 {isLoading ? (
                     <Loader2 className="w-6 h-6 animate-spin" />

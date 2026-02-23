@@ -31,7 +31,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                 <div className="flex flex-col gap-2">
                     <Link
                         href="/login"
-                        className="w-full py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
+                        className="w-full py-2 bg-primary text-white text-xs font-bold uppercase tracking-widest rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95"
                     >
                         Login
                     </Link>
@@ -43,7 +43,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
             {/* Mock Logged In Info (Optional, can be hidden if we had auth state) */}
             <div className="px-4 py-3 bg-secondary/50 border-b border-border/10 opacity-50 grayscale pointer-events-none">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">Account Info</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1">Account Info</p>
                 <p className="text-sm font-bold text-foreground truncate">Guest User</p>
             </div>
 

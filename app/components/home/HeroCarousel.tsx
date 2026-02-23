@@ -11,7 +11,7 @@ const slides = [
         title: "Valentine's Special",
         subtitle: "Gifts for your campus crush",
         description: "Up to 50% off styling services, chocolates, and unique campus finds.",
-        image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=1200", 
+        image: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=1200",
         primaryColor: "bg-pink-500",
         link: "/coming-soon"
     },
@@ -20,7 +20,7 @@ const slides = [
         title: "Sell Your Old Books",
         subtitle: "Turn clutter into cash",
         description: "Post your used textbooks and gadgets in seconds to thousands of students.",
-        image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&q=80&w=1200", 
+        image: "https://images.unsplash.com/photo-1524578271613-d550eacf6090?auto=format&fit=crop&q=80&w=1200",
         primaryColor: "bg-primary",
         link: "/sell"
     },
@@ -29,7 +29,7 @@ const slides = [
         title: "Campus Buzz is Live",
         subtitle: "What's happening around you?",
         description: "Join the conversation, find events, and connect with your community.",
-        image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200", 
+        image: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=1200",
         primaryColor: "bg-purple-600",
         link: "/community"
     }
@@ -80,10 +80,10 @@ export function HeroCarousel() {
                         {/* Content */}
                         <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-16 lg:px-24">
                             <div className="max-w-xl text-white transform transition-all duration-700 translate-y-0 animate-fade-in-up">
-                                <span className={`inline-block px-3 py-1 mb-4 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-full ${slide.primaryColor} text-white`}>
+                                <span className={`inline-block px-3 py-1 mb-4 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full ${slide.primaryColor} text-white`}>
                                     {slide.subtitle}
                                 </span>
-                                <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight font-sans">
+                                <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight font-sans">
                                     {slide.title}
                                 </h2>
                                 <p className="text-base md:text-lg text-gray-200 mb-8 font-medium line-clamp-2 md:line-clamp-none">

@@ -16,7 +16,7 @@ function DropdownSection({ title, children }: DropdownSectionProps) {
         <div className="border-b border-border/40 last:border-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full py-2.5 px-1 text-[11px] font-black uppercase tracking-widest text-foreground hover:text-primary transition-colors"
+                className="flex items-center justify-between w-full py-2.5 px-1 text-[11px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors"
             >
                 {title}
                 <ChevronDown
@@ -61,7 +61,7 @@ export function ShopSidebar({ selectedCategories, setSelectedCategories, setPric
             {/* Sidebar label */}
             <div className="flex items-center gap-1.5 mb-3">
                 <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Filters</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Filters</span>
             </div>
 
             <div className="bg-card border border-border/40 rounded-xl overflow-hidden divide-y divide-border/40">

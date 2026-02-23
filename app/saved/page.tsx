@@ -58,7 +58,8 @@ export default function SavedPage() {
                                     price: typeof item.price === 'string' ? parseFloat(item.price.replace(/[^0-9.]/g, '')) : item.price,
                                     image: item.image,
                                     category: item.category,
-                                    rating: item.rating || 5, // Default if missing
+                                    recommendedCount: item.recommendedCount || 0,
+                                    notRecommendedCount: item.notRecommendedCount || 0,
                                     location: item.location,
                                     sellerId: item.sellerId
                                 }} />

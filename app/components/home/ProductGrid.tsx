@@ -26,9 +26,7 @@ export function ProductGrid() {
                 {/* Grid — 2 cols on mobile, 3 on md, 4 on lg */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
                     {PRODUCTS.map((product) => (
-                        <Link key={product.id} href={`/listings/${product.id}`}>
-                            <ProductCard product={product} />
-                        </Link>
+                        <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
             </div>

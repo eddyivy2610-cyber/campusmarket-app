@@ -45,7 +45,7 @@ export function ListingShareDrawer({ isOpen, onClose, onSelect }: ListingShareDr
 
                         {/* Header */}
                         <div className="flex items-center justify-between px-5 py-3 border-b border-border/40">
-                            <p className="text-sm font-black text-foreground">Share a Listing</p>
+                            <p className="text-sm font-bold text-foreground">Share a Listing</p>
                             <button onClick={onClose} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground">
                                 <X className="w-4 h-4" />
                             </button>
@@ -66,7 +66,7 @@ export function ListingShareDrawer({ isOpen, onClose, onSelect }: ListingShareDr
                         </div>
 
                         {/* Listings */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2" data-lenis-prevent>
                             {filtered.length === 0
                                 ? <p className="text-center text-sm text-muted-foreground py-8 italic">No listings found.</p>
                                 : filtered.map(listing => (
@@ -80,8 +80,8 @@ export function ListingShareDrawer({ isOpen, onClose, onSelect }: ListingShareDr
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{listing.title}</p>
-                                            <p className="text-sm font-black text-primary mt-0.5">₦{listing.price.toLocaleString()}</p>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${listing.status === "available" ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
+                                            <p className="text-sm font-bold text-primary mt-0.5">₦{listing.price.toLocaleString()}</p>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${listing.status === "available" ? "bg-emerald-100 text-emerald-700" : "bg-zinc-100 text-zinc-500"}`}>
                                                 {listing.status}
                                             </span>
                                         </div>

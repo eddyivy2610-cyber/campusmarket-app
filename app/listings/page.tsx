@@ -1,23 +1,48 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useMemo, useEffect } from "react";
 import { Header } from "../components/header/Header";
 import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
-import { PRODUCTS } from "../data/products";
+import { PRODUCTS, Product } from "../data/products";
 import { Eye, Store, User } from "lucide-react";
 
 type ViewAs = "host" | "visitor";
 
 export default function ShopPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+        }>
+            <ShopPageInner />
+        </Suspense>
+    );
+}
+
+function ShopPageInner() {
+    const searchParams = useSearchParams();
+    const categoryParam = searchParams.get("category");
+
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
     const [viewAs, setViewAs] = useState<ViewAs>("visitor");
 
+    useEffect(() => {
+        if (categoryParam) {
+            setSelectedCategories([categoryParam]);
+        } else {
+            setSelectedCategories([]);
+            setPriceRange({ min: 0, max: Infinity });
+        }
+    }, [categoryParam]);
+
     const filteredProducts = useMemo(() => {
-        return PRODUCTS.filter(product => {
+        return PRODUCTS.filter((product: Product) => {
             const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
             const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
             return matchesCategory && matchesPrice;
@@ -32,21 +57,21 @@ export default function ShopPage() {
                 <div className="max-w-[1780px] mx-auto px-4 md:px-8 flex items-center justify-between">
                     <Breadcrumb
                         items={[
-                            { label: "Listings", href: "/listings" },
-                            { label: "All Products" }
+                            { label: "Listings", href: selectedCategories.length === 1 ? "/listings" : undefined },
+                            ...(selectedCategories.length === 1 ? [{ label: selectedCategories[0] }] : [])
                         ]}
                     />
 
                     {/* View As Toggle */}
                     <div className="flex items-center gap-2 py-2">
                         <Eye className="w-3.5 h-3.5 text-muted-foreground/60" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hidden sm:block">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 hidden sm:block">
                             View as
                         </span>
                         <div className="flex items-center bg-secondary/40 border border-border/40 rounded-full p-0.5 gap-0.5">
                             <button
                                 onClick={() => setViewAs("host")}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewAs === "host"
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "host"
                                     ? "bg-background text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
@@ -56,7 +81,7 @@ export default function ShopPage() {
                             </button>
                             <button
                                 onClick={() => setViewAs("visitor")}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewAs === "visitor"
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "visitor"
                                     ? "bg-background text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}

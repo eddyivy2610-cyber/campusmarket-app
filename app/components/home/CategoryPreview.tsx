@@ -2,14 +2,14 @@
 
 import {
     MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench
+    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench, UtensilsCrossed
 } from "lucide-react";
 import Link from "next/link";
 import { CATEGORIES } from "../../data/products";
 
 const IconMap: { [key: string]: any } = {
     MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench
+    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench, UtensilsCrossed
 };
 
 export function CategoryPreview() {

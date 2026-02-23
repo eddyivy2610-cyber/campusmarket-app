@@ -50,7 +50,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         <ShoppingCart className="w-8 h-8" />
                     </div>
                     <div>
-                        <p className={`font-black uppercase tracking-widest text-sm ${formData.platformIntent === 'buy' ? 'text-primary' : 'text-foreground'}`}>Buy</p>
+                        <p className={`font-bold uppercase tracking-widest text-sm ${formData.platformIntent === 'buy' ? 'text-primary' : 'text-foreground'}`}>Buy</p>
                         <p className="text-[10px] text-muted-foreground font-medium">Find great deals</p>
                     </div>
                 </button>
@@ -68,7 +68,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         <Store className="w-8 h-8" />
                     </div>
                     <div>
-                        <p className={`font-black uppercase tracking-widest text-sm ${formData.platformIntent === 'sell' ? 'text-primary' : 'text-foreground'}`}>Sell</p>
+                        <p className={`font-bold uppercase tracking-widest text-sm ${formData.platformIntent === 'sell' ? 'text-primary' : 'text-foreground'}`}>Sell</p>
                         <p className="text-[10px] text-muted-foreground font-medium">Start selling</p>
                     </div>
                 </button>

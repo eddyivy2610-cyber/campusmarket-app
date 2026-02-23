@@ -67,14 +67,14 @@ export default function SellerRegisterPage() {
                         <div className="flex gap-4">
                             <button
                                 onClick={prevStep}
-                                className="hidden md:flex flex-1 bg-secondary text-foreground font-black uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all text-xs items-center justify-center gap-2"
+                                className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all text-xs items-center justify-center gap-2"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 Back
                             </button>
                             <button
                                 onClick={nextStep}
-                                className="flex-[2] bg-primary text-white font-black uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group text-xs font-bold"
+                                className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group text-xs font-bold"
                             >
                                 Next Step
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -107,7 +107,7 @@ export default function SellerRegisterPage() {
                             <Sparkles className="w-12 h-12 animate-bounce" />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-3xl font-black font-heading">Application Submitted!</h2>
+                            <h2 className="text-3xl font-bold font-heading">Application Submitted!</h2>
                             <p className="text-muted-foreground max-w-sm mx-auto">
                                 Your seller application is under review. You'll be notified within 24 hours once approved.
                             </p>
