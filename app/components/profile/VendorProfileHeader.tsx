@@ -8,11 +8,15 @@ import {
     Settings,
     ShieldAlert,
     Clock,
+    CheckCircle2,
+    X,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ReportDropdown } from "../common/ReportDropdown";
 import { Profile } from "../../data/profiles";
 import { BadgeSystem, StudentCapOverlay } from "./BadgeSystem";
+import { Tooltip } from "../shared/Tooltip";
+import Link from "next/link";
 
 interface VendorProfileHeaderProps {
     profile: Profile;
@@ -21,9 +25,27 @@ interface VendorProfileHeaderProps {
 
 export function VendorProfileHeader({ profile, viewAs }: VendorProfileHeaderProps) {
     const isHost = viewAs === "host";
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [previewImage, setPreviewImage] = React.useState<string | null>(null);
+
+    const handleImageUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setPreviewImage(url);
+        }
+    };
 
     return (
         <div className="w-full space-y-6">
+            {/* Hidden File Input */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpdate}
+                accept="image/*"
+                className="hidden"
+            />
             {/* Header Card */}
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
@@ -39,9 +61,9 @@ export function VendorProfileHeader({ profile, viewAs }: VendorProfileHeaderProp
                     {/* Profile Photo */}
                     <div className="relative shrink-0 group/avatar">
                         <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-background shadow-lg bg-secondary/30 relative">
-                            {profile.avatar ? (
+                            {previewImage || profile.avatar ? (
                                 <img
-                                    src={profile.avatar}
+                                    src={previewImage || profile.avatar}
                                     alt={profile.name}
                                     className="w-full h-full object-cover"
                                 />
@@ -57,7 +79,10 @@ export function VendorProfileHeader({ profile, viewAs }: VendorProfileHeaderProp
 
                         {/* Edit avatar — host only */}
                         {isHost && (
-                            <button className="absolute bottom-0 right-0 w-8 h-8 bg-background border border-border/50 rounded-full flex items-center justify-center text-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 shadow-lg active:scale-95 transition-all duration-300 z-20 group-hover/avatar:scale-110">
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="absolute bottom-0 right-0 w-8 h-8 bg-background border border-border/50 rounded-full flex items-center justify-center text-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5 shadow-lg active:scale-95 transition-all duration-300 z-20 group-hover/avatar:scale-110"
+                            >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
                         )}
@@ -73,7 +98,21 @@ export function VendorProfileHeader({ profile, viewAs }: VendorProfileHeaderProp
                                 {/* Achievements / Badges Row */}
                                 <div className="flex items-center gap-1.5">
                                     {profile.isVerified && (
-                                        <BadgeSystem type="verified" tier={profile.verifiedTier} />
+                                        <>
+                                            <BadgeSystem type="verified" tier={profile.verifiedTier} />
+
+                                            {/* Recommendation Percentage */}
+                                            <div className="flex items-center gap-2 ml-1 border-l border-border/40 pl-2">
+                                                <Tooltip content={`${profile.recommendedCount} Recommended out of ${profile.recommendedCount + profile.notRecommendedCount} reviews`}>
+                                                    <div className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-500/5 px-2 py-0.5 rounded-full border border-emerald-500/10">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        <span className="text-[10px] lowercase tracking-tight">
+                                                            {Math.round((profile.recommendedCount / (profile.recommendedCount + profile.notRecommendedCount || 1)) * 100)}% Match
+                                                        </span>
+                                                    </div>
+                                                </Tooltip>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -104,9 +143,11 @@ export function VendorProfileHeader({ profile, viewAs }: VendorProfileHeaderProp
                                     <Pencil className="w-3.5 h-3.5" />
                                     Edit Profile
                                 </button>
-                                <button className="p-2.5 bg-secondary/80 text-muted-foreground rounded-xl border border-border/30 hover:text-foreground hover:bg-secondary active:scale-95 transition-all" title="Settings">
-                                    <Settings className="w-4 h-4" />
-                                </button>
+                                <Link href="/settings">
+                                    <button className="p-2.5 bg-secondary/80 text-muted-foreground rounded-xl border border-border/30 hover:text-foreground hover:bg-secondary active:scale-95 transition-all" title="Settings">
+                                        <Settings className="w-4 h-4" />
+                                    </button>
+                                </Link>
                             </>
                         ) : (
                             <>

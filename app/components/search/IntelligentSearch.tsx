@@ -66,7 +66,7 @@ export function IntelligentSearch() {
         setQuery(term);
         addToRecent(term);
         setIsOpen(false);
-        // In a real app, this would route to a search results page
+        //this should route to a search results page
         console.log("Searching for:", term);
     };
 

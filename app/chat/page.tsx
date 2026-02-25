@@ -117,7 +117,7 @@ function ChatPageInner() {
 
         setActiveId(conv.id);
         setMobileView("thread");
-    }, [userParam, listingParam]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [userParam, listingParam]); 
 
     // Auto-scroll to bottom when messages change — operates on scrollRef directly
     useEffect(() => {

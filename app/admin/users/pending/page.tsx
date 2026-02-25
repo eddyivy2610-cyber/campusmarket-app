@@ -13,7 +13,7 @@ const pendingUsers = [
         date: '2024-02-23',
         type: 'Student',
         avatar: 'M',
-        school: 'Engineering Dept',
+        school: 'Engineering',
         idPreview: 'https://images.unsplash.com/photo-1621243804936-775306a86c99?w=300&h=200&fit=crop'
     },
     {
@@ -23,7 +23,7 @@ const pendingUsers = [
         date: '2024-02-22',
         type: 'Vendor Candidate',
         avatar: 'S',
-        school: 'Arts & Design',
+        school: 'Arts',
         idPreview: 'https://images.unsplash.com/photo-1632333526746-618e9508273d?w=300&h=200&fit=crop'
     }
 ];

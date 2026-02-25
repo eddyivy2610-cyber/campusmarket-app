@@ -122,7 +122,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     <Section label="My Account">
                         <NavRow icon={Bell} label="Notifications" badge={notificationCount} onClick={() => nav("/coming-soon")} />
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
-                        <NavRow icon={Store} label="Vendor / Seller Profile" accent onClick={() => nav("/profile/tech-hub")} />
+                        <NavRow icon={Store} label="Vendor / Seller Profile" accent onClick={() => nav("/profile/campus-market")} />
                     </Section>
 
                     {/* ── Shop: Full Categories ── */}

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, ShoppingBag, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export function AccountSettings() {
     return (
@@ -17,7 +18,7 @@ export function AccountSettings() {
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
                             <img
-                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Praveen"
+                                src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80"
                                 alt="Profile"
                                 className="w-full h-full object-cover"
                             />
@@ -33,7 +34,7 @@ export function AccountSettings() {
                             <label className="text-xs font-medium text-muted-foreground">Name</label>
                             <input
                                 type="text"
-                                defaultValue="Praveen Juge"
+                                defaultValue="Lucky John"
                                 className="w-full bg-muted/30 border-none rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                             />
                         </div>
@@ -42,13 +43,38 @@ export function AccountSettings() {
                             <div className="relative">
                                 <input
                                     type="email"
-                                    defaultValue="hello@praveenjuge.com"
+                                    defaultValue="lucky@john.com"
                                     className="w-full bg-muted/30 border-none rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                                 />
                                 <ShieldCheck className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Account Type / Upgrade Section */}
+            <div className="space-y-6">
+                <div className="pb-4 border-b border-border/40">
+                    <h2 className="text-base font-semibold">Account Type</h2>
+                </div>
+
+                <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                            <ShoppingBag className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-sm">Become a Seller</h3>
+                            <p className="text-xs text-muted-foreground font-medium">Start selling your items to the campus community today.</p>
+                        </div>
+                    </div>
+                    <Link href="/register">
+                        <button className="w-full py-3 bg-primary text-white rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            Get Started
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </Link>
                 </div>
             </div>
 

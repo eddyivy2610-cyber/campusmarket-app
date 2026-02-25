@@ -90,12 +90,12 @@ export function SecuritySettings() {
                     <div className="divide-y divide-border/20">
                         <ConnectionRow
                             name="Google"
-                            description="Connected as praveen@gmail.com"
+                            description="Connected as lucky@john.com"
                             icon="https://www.google.com/favicon.ico"
                         />
                         <ConnectionRow
                             name="GitHub"
-                            description="Connected as praveenjuge"
+                            description="Connected as luckyjohn"
                             icon="https://github.com/favicon.ico"
                         />
                     </div>

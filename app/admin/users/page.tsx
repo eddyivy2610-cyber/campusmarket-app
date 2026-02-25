@@ -6,12 +6,10 @@ import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 
 const startUsers = [
-    { id: 1, name: 'Alice Wonderland', email: 'alice@example.com', date: '2023-09-15', status: 'Active', role: 'Buyer', avatar: 'A' },
-    { id: 2, name: 'Bob Builder', email: 'bob@example.com', date: '2023-08-20', status: 'Suspended', role: 'Seller', avatar: 'B' },
-    { id: 3, name: 'Charlie Chocolate', email: 'charlie@example.com', date: '2023-10-01', status: 'Active', role: 'Seller', avatar: 'C' },
-    { id: 4, name: 'Dave Diver', email: 'dave@example.com', date: '2023-01-10', status: 'Active', role: 'Buyer', avatar: 'D' },
-    { id: 5, name: 'Eve Echo', email: 'eve@example.com', date: '2023-11-12', status: 'Banned', role: 'Buyer', avatar: 'E' },
-    { id: 6, name: 'Frank Foster', email: 'frank@example.com', date: '2023-12-05', status: 'Pending', role: 'Seller', avatar: 'F' },
+    { id: 1, name: 'Active User', email: 'active@email.com', date: '2023-09-15', status: 'Active', role: 'Regular', avatar: 'A' },
+    { id: 2, name: 'Suspended User', email: 'suspended@email.com', date: '2023-08-20', status: 'Suspended', role: 'Vendor', avatar: 'S' },
+    { id: 3, name: 'Banned User', email: 'banned@email.com', date: '2023-11-12', status: 'Banned', role: 'Regular', avatar: 'B' },
+    { id: 4, name: 'Pending User', email: 'pending@email.com', date: '2023-12-05', status: 'Pending', role: 'Vendor', avatar: 'S' },
 ];
 
 export default function UsersPage() {
@@ -54,8 +52,8 @@ export default function UsersPage() {
                     <div className="relative">
                         <select className="appearance-none pl-4 pr-10 py-3 bg-secondary/5 border-none rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-secondary/10 transition-all focus:ring-2 focus:ring-primary/20">
                             <option>All Roles</option>
-                            <option>Buyers</option>
-                            <option>Sellers</option>
+                            <option>Regular</option>
+                            <option>Vendors</option>
                             <option>Admins</option>
                         </select>
                         <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 pointer-events-none" size={12} />

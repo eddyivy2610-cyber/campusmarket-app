@@ -36,27 +36,6 @@ export interface Profile {
 
 export const PROFILES: Profile[] = [
     {
-        id: "buyer-1",
-        name: "Praveen Juge",
-        handle: "praveen",
-        bio: "Architecture student at Unilag. Lover of clean design and tech gadgets.",
-        rating: 4.8,
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-        type: 'buyer',
-        isStudent: true,
-        isVerified: true,
-        transactions: 25,
-        recommendedCount: 12,
-        notRecommendedCount: 0,
-        totalSales: 25,
-        joinedDate: "Jan 2024",
-        joinedDateFull: "January 15, 2024",
-        location: "University of Lagos",
-        department: "Architecture",
-        tags: ["tech", "design", "campus life"],
-        savedListings: ["L1", "L2", "L5"]
-    },
-    {
         id: "vendor-1",
         name: "Campus Market Official",
         handle: "campus-market",
@@ -85,5 +64,26 @@ export const PROFILES: Profile[] = [
             policies: "7-day return policy for faulty electronics. Meetups only in public campus areas.",
             hours: "Mon - Sat: 9:00 AM - 6:00 PM"
         }
+    },
+    {
+        id: "lucky-john-1",
+        name: "Lucky John",
+        handle: "luckyjohn",
+        bio: "Just a regular student making the most out of campus life. Lover of books, tech, and good music.",
+        rating: 4.5,
+        avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80",
+        type: 'buyer',
+        isStudent: true,
+        isVerified: false,
+        transactions: 12,
+        recommendedCount: 8,
+        notRecommendedCount: 0,
+        totalSales: 0,
+        joinedDate: "Feb 2025",
+        joinedDateFull: "February 5, 2025",
+        location: "University of Lagos",
+        department: "Computer Science",
+        tags: ["student", "books", "tech"],
+        savedListings: []
     }
 ];

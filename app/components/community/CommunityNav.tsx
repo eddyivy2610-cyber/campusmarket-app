@@ -20,17 +20,6 @@ export function CommunityNav() {
                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
                         </Link>
                     </div>
-
-                    {/* Quick Actions (Optional) */}
-                    <div className="hidden md:flex items-center gap-4">
-                        <button className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-                            Saved Items
-                        </button>
-                        <div className="w-px h-4 bg-border" />
-                        <button className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors">
-                            My Posts
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

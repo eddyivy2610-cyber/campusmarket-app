@@ -15,18 +15,11 @@ interface DiscoverProfile {
 const DISCOVER_PROFILES: DiscoverProfile[] = [
     { id: "1", name: "Michael's Workshop", category: "Custom furniture & woodworking", recommendedCount: 47, notRecommendedCount: 3, color: "bg-blue-500" },
     { id: "2", name: "Gems & Jewelry", category: "Handcrafted fine jewelry designs", recommendedCount: 50, notRecommendedCount: 0, color: "bg-fuchsia-500" },
-    { id: "3", name: "Organic Delights", category: "Homemade organic food products", recommendedCount: 42, notRecommendedCount: 8, color: "bg-emerald-500" },
-    { id: "4", name: "Tech Accessories Pro", category: "Innovative tech products & gadgets", recommendedCount: 46, notRecommendedCount: 4, color: "bg-amber-500" },
-    { id: "5", name: "Campus Prints", category: "Custom T-shirts & merch printing", recommendedCount: 44, notRecommendedCount: 6, color: "bg-rose-500" },
-    { id: "6", name: "Study Buddy", category: "Tutoring & academic help services", recommendedCount: 49, notRecommendedCount: 1, color: "bg-indigo-500" },
-    { id: "7", name: "Fresh Eats", category: "Homemade meals & snacks on campus", recommendedCount: 43, notRecommendedCount: 7, color: "bg-orange-500" },
-    { id: "8", name: "Laundry Champs", category: "Pickup & drop laundry services", recommendedCount: 45, notRecommendedCount: 5, color: "bg-teal-500" },
-    { id: "9", name: "Photo & Film Co.", category: "Photography for events & portraits", recommendedCount: 48, notRecommendedCount: 2, color: "bg-violet-500" },
 ];
 
 export function DiscoverProfiles() {
     return (
-        <section className="py-8">
+        <section id="discover" className="py-8">
             <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-bold">Discover More Profiles</h2>
                 <button className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, ShoppingBasket, User, Bell, LayoutGrid, Store } from "lucide-react";
+import { Search, ShoppingBasket, User, Bell, LayoutGrid, Heart } from "lucide-react";
 import { useState, useRef } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import Link from "next/link";
@@ -87,13 +87,13 @@ export function MainHeader() {
                             <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
                         </div>
 
-                        {/* Vendor button — desktop only */}
+                        {/* Saved Items button — desktop only */}
                         <Link
-                            href="/profile/tech-hub"
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 ml-2 bg-secondary/15 backdrop-blur-md text-foreground rounded-full hover:bg-primary/20 hover:text-primary transition-all duration-500 shadow-sm active:scale-95 group border border-foreground/10 hover:border-primary/30 relative overflow-hidden"
+                            href="/saved"
+                            className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors group p-2 rounded-lg hover:bg-secondary/50"
                         >
-                            <Store className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-widest font-heading">Vendor</span>
+                            <Heart className="w-5 h-5" />
+                            <span className="text-[9px] font-bold font-heading hidden sm:block">Saved</span>
                         </Link>
                     </div>
                 </div>

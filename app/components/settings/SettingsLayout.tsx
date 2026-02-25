@@ -173,8 +173,8 @@ export function SettingsLayout() {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div>
-                                                <h3 className="text-2xl font-bold">Charlotte King</h3>
-                                                <p className="text-sm text-muted-foreground font-medium">hello@praveenjuge.com</p>
+                                                <h3 className="text-2xl font-bold">Lucky John</h3>
+                                                <p className="text-sm text-muted-foreground font-medium">lucky@john.com</p>
                                             </div>
                                             <button
                                                 onClick={() => setActiveSection("profile")}

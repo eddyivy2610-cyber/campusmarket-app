@@ -7,12 +7,8 @@ import { cn } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 
 const listingsData = [
-    { id: 1, title: 'Vintage Leather Jacket', seller: 'AlexRider', date: '2023-10-26', reports: 5, status: 'Active', category: 'Fashion', price: '$85.00' },
-    { id: 2, title: 'Rare Pokémon Card', seller: 'JennyP', date: '2023-10-26', reports: 12, status: 'Flagged', category: 'Collectibles', price: '$450.00' },
-    { id: 3, title: 'Handmade Pottery Vase', seller: 'ArtisanClay', date: '2023-10-25', reports: 0, status: 'Active', category: 'Home', price: '$120.00' },
-    { id: 4, title: 'Designer Sunglasses', seller: 'FashionFinds', date: '2023-10-25', reports: 21, status: 'Removed', category: 'Fashion', price: '$210.00' },
-    { id: 5, title: 'Retro Gaming Console', seller: 'GamerGeek', date: '2023-10-24', reports: 2, status: 'Active', category: 'Electronics', price: '$190.00' },
-    { id: 6, title: 'Calculus Textbook', seller: 'StudyBuddy', date: '2023-10-23', reports: 1, status: 'Pending', category: 'Education', price: '$65.00' },
+    { id: 1, title: 'Vintage Leather Jacket', seller: 'CampusMarket', date: '2023-10-26', reports: 5, status: 'Active', category: 'Fashion', price: '1000' },
+    
 ];
 
 export default function ListingsPage() {

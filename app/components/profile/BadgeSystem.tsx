@@ -26,8 +26,7 @@ export function BadgeSystem({ type, value, tier, className }: BadgeProps) {
     }
 
     if (type === 'verified') {
-        // Facebook style: Just the icon, no circular container outline
-        const fillMain = tier === 'gold' ? "#9333ea" : "#10B981"; // Purple for gold
+        const fillMain = tier === 'gold' ? "#9333ea" : "#10B981"; 
 
         return (
             <div className={cn(
@@ -47,7 +46,7 @@ export function BadgeSystem({ type, value, tier, className }: BadgeProps) {
 
         if (count >= 100) {
             label = "100+";
-            tierColor = "text-purple-700 border-purple-500 shadow-purple-500/10"; // Moved to purple theme
+            tierColor = "text-purple-700 border-purple-500 shadow-purple-500/10"; 
             ribbonColor = "bg-purple-500";
         } else if (count >= 50) {
             label = "50+";

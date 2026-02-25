@@ -14,46 +14,16 @@ interface VendorPerformanceAreaProps {
         activeListings: number;
         soldItems: number;
         rating: number;
-        responseRate: string;
-        responseTime: string;
+        recommended: string;
+        notRecommended: string;
     };
 }
 
 export function VendorPerformanceArea({ vendor }: VendorPerformanceAreaProps) {
-    const stats = [
-        { label: "Growth", value: "+24%", icon: TrendingUp, color: "text-green-500" },
-        { label: "Repeat", value: "15%", icon: ShoppingBag, color: "text-blue-500" },
-        { label: "Trust Score", value: "98/100", icon: Award, color: "text-purple-500" },
-    ];
 
     return (
         <div className="w-full space-y-6 bg-secondary/5 rounded-[20px] p-4 md:p-6 border border-border/40">
-            <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <BarChart3 className="w-4 h-4" />
-                </div>
-                <h2 className="text-xl font-bold font-heading tracking-tight">Business Performance</h2>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {stats.map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="p-5 bg-background rounded-2xl border border-border/30 text-center space-y-2 shadow-sm"
-                    >
-                        <div className={`w-10 h-10 ${stat.color} bg-secondary flex items-center justify-center mx-auto rounded-xl`}>
-                            <stat.icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <p className="text-xl font-bold">{stat.value}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{stat.label}</p>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
                 <div className="p-4 bg-background/50 rounded-xl border border-border/20">
@@ -65,12 +35,12 @@ export function VendorPerformanceArea({ vendor }: VendorPerformanceAreaProps) {
                     <p className="text-lg font-bold">{vendor.soldItems}</p>
                 </div>
                 <div className="p-4 bg-background/50 rounded-xl border border-border/20">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Response Rate</p>
-                    <p className="text-lg font-bold">{vendor.responseRate}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Recommended</p>
+                    <p className="text-lg font-bold text-emerald-600">{vendor.recommended}</p>
                 </div>
                 <div className="p-4 bg-background/50 rounded-xl border border-border/20">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Avg Time</p>
-                    <p className="text-lg font-bold">{vendor.responseTime}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Not Recommended</p>
+                    <p className="text-lg font-bold text-red-500">{vendor.notRecommended}</p>
                 </div>
             </div>
         </div>

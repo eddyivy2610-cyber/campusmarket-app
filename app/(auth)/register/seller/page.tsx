@@ -47,7 +47,7 @@ export default function SellerRegisterPage() {
                                 Step 1: Business Name
                             </label>
                             <p className="text-muted-foreground text-sm">
-                                Choose a name for your campus storefront. This will be visible on all your listings.
+                                What is the name of your brand?. This will be visible on all your listings.
                             </p>
                         </div>
                         <div className="space-y-2">
@@ -109,7 +109,7 @@ export default function SellerRegisterPage() {
                         <div className="space-y-2">
                             <h2 className="text-3xl font-bold font-heading">Application Submitted!</h2>
                             <p className="text-muted-foreground max-w-sm mx-auto">
-                                Your seller application is under review. You'll be notified within 24 hours once approved.
+                                Your application is under review. You'll be notified within 24 hours once approved.
                             </p>
                         </div>
                         <div className="flex items-center justify-center gap-2 text-primary font-bold animate-pulse uppercase tracking-[0.2em] text-xs pt-4">

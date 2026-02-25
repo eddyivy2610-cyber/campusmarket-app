@@ -37,7 +37,7 @@ export function NavBar() {
                         {['Home', 'Listings', 'Vendors', 'Blog', 'Contact'].map((item) => (
                             <Link
                                 key={item}
-                                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                                href={item === 'Home' ? '/' : (item === 'Vendors' ? '/profile/campus-market' : `/${item.toLowerCase()}`)}
                                 className="text-sm font-bold font-heading text-gray-300 hover:text-white transition-colors uppercase tracking-wider text-[11px]"
                             >
                                 {item}

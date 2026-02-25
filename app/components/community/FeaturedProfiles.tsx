@@ -16,20 +16,14 @@ interface ProfileItem {
 
 const POPULAR_PROFILES: ProfileItem[] = [
     { id: "1", name: "Emma's Ceramics", bio: "Handmade pottery & home decor", avatar: "/placeholder-avatar-1.jpg" },
-    { id: "2", name: "Vintage Treasures", bio: "Curated antiques & collectibles", avatar: "/placeholder-avatar-2.jpg" },
-    { id: "3", name: "Digital Art Studio", bio: "Modern digital prints & designs", avatar: "/placeholder-avatar-3.jpg" },
 ];
 
 const NEW_PROFILES: ProfileItem[] = [
     { id: "4", name: "Woodwork Wonders", bio: "Custom wooden furniture & decor", avatar: "/placeholder-avatar-4.jpg" },
-    { id: "5", name: "Silver & Stone", bio: "Handcrafted jewelry & accessories", avatar: "/placeholder-avatar-5.jpg" },
-    { id: "6", name: "Organic Essentials", bio: "Natural skincare & wellness products", avatar: "/placeholder-avatar-6.jpg" },
 ];
 
 const NOTEWORTHY_PROFILES: ProfileItem[] = [
     { id: "7", name: "Sweet Creations", bio: "Artisanal baked goods & treats", avatar: "/placeholder-avatar-7.jpg" },
-    { id: "8", name: "Tech Innovations", bio: "Unique tech gadgets & accessories", avatar: "/placeholder-avatar-8.jpg" },
-    { id: "9", name: "Sustainable Living", bio: "Eco-friendly products & zero waste", avatar: "/placeholder-avatar-9.jpg" },
 ];
 
 function ProfileList({ title, profiles }: { title: string; profiles: ProfileItem[] }) {

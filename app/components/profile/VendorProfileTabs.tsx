@@ -47,7 +47,8 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
         { name: "About Business", icon: Briefcase },
     ];
 
-    const tabs = profile.type === 'vendor' ? vendorTabs : buyerTabs;
+    const isLuckyJohn = profile.handle === 'luckyjohn';
+    const tabs = isLuckyJohn ? [{ name: "About", icon: User }] : (profile.type === 'vendor' ? vendorTabs : buyerTabs);
 
     return (
         <div className="w-full space-y-8">
@@ -89,56 +90,56 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                     {/* Common About Section */}
                     {activeTab === "About" && (
                         <div className="max-w-3xl space-y-12">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div className="space-y-4">
+                            {isLuckyJohn ? (
+                                <div className="space-y-6">
                                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                        <User className="w-3 h-3" /> Profile Stats
+                                        <Info className="w-3 h-3" /> About {profile.name}
                                     </h3>
+                                    <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+                                        {profile.bio}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                     <div className="space-y-4">
-                                        {[
-                                            { label: "Department", value: profile.department || "General Store" },
-                                            { label: "Joined Campus", value: profile.joinedDateFull },
-                                            { label: "Identity Verified", value: profile.isVerified ? "Yes, Student ID" : "Pending" },
-                                        ].map((item) => (
-                                            <div key={item.label} className="border-l-2 border-primary/10 pl-4 py-1">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
-                                                <span className="font-bold text-sm text-foreground/90">{item.value}</span>
+                                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                            <User className="w-3 h-3" /> Profile Stats
+                                        </h3>
+                                        <div className="space-y-4">
+                                            {[
+                                                { label: "Department", value: profile.department || "General Store" },
+                                                { label: "Joined Campus", value: profile.joinedDateFull },
+                                                { label: "Identity Verified", value: profile.isVerified ? "Yes, Student ID" : "Pending" },
+                                            ].map((item) => (
+                                                <div key={item.label} className="border-l-2 border-primary/10 pl-4 py-1">
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
+                                                    <span className="font-bold text-sm text-foreground/90">{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
+                                            <BadgeCheck className="w-3 h-3" /> Quick Stats
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
+                                                <span className="text-2xl font-bold block">{profile.transactions}</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Transactions</span>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                        <BadgeCheck className="w-3 h-3" /> Quick Stats
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
-                                            <span className="text-2xl font-bold block">{profile.transactions}</span>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Transactions</span>
-                                        </div>
-                                        <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
-                                            <span className="text-2xl font-bold block">100%</span>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Reliability</span>
+                                            <div className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
+                                                <span className="text-2xl font-bold block">100%</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Reliability</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Activity Section (Private for Host) */}
-                    {activeTab === "Activity" && (
-                        <div className="space-y-8">
-                            <div className="flex items-center gap-4 p-8 bg-secondary/10 border-2 border-dashed border-border/20 rounded-[32px] text-center flex-col">
-                                <Clock className="w-12 h-12 text-muted-foreground/20" />
-                                <div className="max-w-sm">
-                                    <h4 className="font-bold uppercase tracking-tight text-foreground/80 mb-2">Private Activity</h4>
-                                    <p className="text-xs font-medium text-muted-foreground leading-relaxed">Recently viewed items and saved listings are only visible to you.</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
 
                     {/* Vendor Specific Sections */}
                     {activeTab === "Listings" && (
@@ -152,9 +153,9 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                                     vendor={{
                                         activeListings: profile.transactions, // Placeholder mapping
                                         soldItems: profile.transactions,
-                                        rating: 4.8,
-                                        responseRate: "98%",
-                                        responseTime: "2 hrs"
+                                        rating: profile.rating,
+                                        recommended: String(profile.recommendedCount),
+                                        notRecommended: String(profile.notRecommendedCount)
                                     }}
                                 />
                             ) : (
@@ -174,7 +175,7 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                     {activeTab === "About Business" && profile.businessInfo && (
                         <div className="max-w-3xl space-y-10">
                             <div className="space-y-4">
-                                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-primary underline underline-offset-8 decoration-2 mb-6">Extended Bio & Mission</h3>
+                                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-primary underline underline-offset-8 decoration-2 mb-6">Extended Bio</h3>
                                 <p className="text-sm font-medium leading-relaxed text-muted-foreground">
                                     {profile.businessInfo.extendedBio}
                                 </p>

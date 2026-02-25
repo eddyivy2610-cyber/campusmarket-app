@@ -49,7 +49,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
             {/* Menu Links */}
             <div className="py-1.5 border-b border-border/10">
-                <Link href="/profile/tech-hub" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                <Link href="/profile/campus-market" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <User className="w-4 h-4" />
                     <span>My Profile</span>
                 </Link>
