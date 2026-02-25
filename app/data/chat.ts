@@ -98,14 +98,14 @@ export const PARTICIPANTS: Record<string, ChatParticipant> = {
         activeListings: 3,
         completedSales: 17,
     },
-    S1: {
-        id: "S1",
-        name: "John Doe",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-        memberSince: "Jan 2024",
+    "vendor-1": {
+        id: "vendor-1",
+        name: "Campus Market Official",
+        avatar: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=200&q=80",
+        memberSince: "Jan 2025",
         responseTime: "Within 1 hour",
-        activeListings: 12,
-        completedSales: 50,
+        activeListings: 24,
+        completedSales: 156,
     },
     S2: {
         id: "S2",

@@ -76,7 +76,7 @@ export const PRODUCTS: Product[] = [
             "Battery": "45 cycles",
             "Includes": "Charger, Box"
         },
-        sellerId: "S1",
+        sellerId: "vendor-1",
         postedDate: "2 days ago",
         views: 124,
         offer: {
@@ -121,9 +121,32 @@ export const PRODUCTS: Product[] = [
             "Subject": "Mathematics",
             "Level": "100/200 Level"
         },
-        sellerId: "S1",
+        sellerId: "vendor-1",
         postedDate: "5 days ago",
         views: 45,
+        reviews: []
+    },
+    {
+        id: 3,
+        title: "iPhone 13 Pro - 256GB",
+        price: 350000,
+        image: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=800&q=80",
+        images: ["https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&w=800&q=80"],
+        category: "Electronics",
+        recommendedCount: 15,
+        notRecommendedCount: 0,
+        location: "University of Lagos",
+        condition: "Used - Like New",
+        tags: ["iphone", "apple", "phone"],
+        description: "iPhone 13 Pro in Graphite. 256GB storage. 92% Battery health. Screen protector and case included.",
+        specs: {
+            "Condition": "Like New",
+            "Storage": "256GB",
+            "Battery": "92%"
+        },
+        sellerId: "lucky-john-1",
+        postedDate: "1 day ago",
+        views: 89,
         reviews: []
     }
 ];
