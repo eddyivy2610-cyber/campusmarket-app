@@ -71,15 +71,27 @@ export default function ListingPage() {
 
                 <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 space-y-12">
 
-                    {/* Top Section: Gallery & Primary Context */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
-                        {/* Left: Gallery */}
-                        <div className="lg:col-span-7">
+                    {/* Content Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+                        {/* Left Column: Media, Details, Reviews */}
+                        <div className="lg:col-span-7 xl:col-span-8 space-y-12">
                             <ProductGallery images={product.images} />
+
+                            <ProductDetails
+                                description={product.description}
+                                specs={product.specs}
+                            />
+
+                            <ProductReviews
+                                recommendedCount={product.recommendedCount}
+                                notRecommendedCount={product.notRecommendedCount}
+                                reviews={product.reviews}
+                                onWriteReview={() => setIsReviewModalOpen(true)}
+                            />
                         </div>
 
-                        {/* Right: Actions & Vendor Hub */}
-                        <div className="lg:col-span-5 space-y-6">
+                        {/* Right Column: Actions, Offer, Vendor, Safety */}
+                        <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit">
                             <ProductHeader
                                 product={product}
                                 onOfferOpen={() => router.push(`/chat?user=${vendor.id}&listing=${product.id}`)}
@@ -88,41 +100,14 @@ export default function ListingPage() {
                             <VendorOffer offer={product.offer} />
 
                             <VendorMiniProfile vendor={vendor} />
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-12 border-t border-border/40">
-                        <div className="lg:col-span-8 space-y-16">
-                            {/* Details Grid & Description */}
-                            <ProductDetails
-                                description={product.description}
-                                specs={product.specs}
-                            />
-
-                            {/* Reviews */}
-                            <ProductReviews
-                                recommendedCount={product.recommendedCount}
-                                notRecommendedCount={product.notRecommendedCount}
-                                reviews={product.reviews}
-                                onWriteReview={() => setIsReviewModalOpen(true)}
-                            />
-
-                            {/* Related Products */}
-                            <RelatedProducts
-                                vendorName={vendor.name}
-                                vendorListings={vendorListings}
-                                similarItems={similarItems}
-                            />
-                        </div>
-
-                        {/* Sidebar: Safety & Context */}
-                        <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
+                            {/* Sidebar: Safety & Context */}
                             <div className="bg-secondary/15 border border-border/40 rounded-2xl p-6 space-y-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600">
+                                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
                                         <ShieldAlert className="w-4 h-4" />
                                     </div>
-                                    <h3 className="font-bold text-xs tracking-wider uppercase">Buyer Safety Guarantee</h3>
+                                    <h3 className="font-bold text-xs tracking-wider uppercase text-red-500">Important Safety Notice</h3>
                                 </div>
 
                                 <ul className="space-y-3.5">
@@ -133,8 +118,8 @@ export default function ListingPage() {
                                         "Report suspicious listing behavior"
                                     ].map((tip, i) => (
                                         <li key={i} className="flex gap-3 group">
-                                            <span className="text-primary font-bold mt-0.5 opacity-40">•</span>
-                                            <p className="text-[11px] font-bold text-muted-foreground/70 leading-relaxed group-hover:text-foreground transition-colors">
+                                            <span className="text-red-500 font-bold mt-0.5 opacity-60">•</span>
+                                            <p className="text-[11px] font-bold text-muted-foreground/80 leading-relaxed group-hover:text-foreground transition-colors">
                                                 {tip}
                                             </p>
                                         </li>
@@ -147,7 +132,7 @@ export default function ListingPage() {
                                         targetId={product.id}
                                         triggerClassName="w-full h-11"
                                     >
-                                        <div className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-red-500/10 text-red-500/60 font-bold rounded-xl hover:bg-red-500/5 hover:text-red-500 transition-all text-[9px] uppercase tracking-widest">
+                                        <div className="w-full flex items-center justify-center gap-2 py-3 border border-border/40 bg-background text-muted-foreground font-bold rounded-xl hover:bg-secondary transition-all text-[9px] uppercase tracking-widest">
                                             <Flag className="w-3.5 h-3.5" />
                                             Report Suspicious Item
                                         </div>
@@ -155,6 +140,15 @@ export default function ListingPage() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Related Products */}
+                    <div className="pt-12 border-t border-border/40">
+                        <RelatedProducts
+                            vendorName={vendor.name}
+                            vendorListings={vendorListings}
+                            similarItems={similarItems}
+                        />
                     </div>
                 </div>
             </main>

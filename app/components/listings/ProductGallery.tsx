@@ -11,44 +11,78 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images }: ProductGalleryProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [direction, setDirection] = useState(0);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
     if (!images || images.length === 0) return null;
 
     const nextImage = () => {
+        setDirection(1);
         setCurrentIndex((prev) => (prev + 1) % images.length);
     };
 
     const prevImage = () => {
+        setDirection(-1);
         setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     };
 
     return (
         <div className="space-y-4">
-            {/* Main Stage */}
-            <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-secondary/30 group border border-border/40">
-                <AnimatePresence mode="wait">
+            {/* Main Stage - Peeking Carousel */}
+            <div className="relative w-full h-[250px] sm:h-[320px] rounded-3xl overflow-hidden group flex items-center justify-center bg-secondary/10 border border-border/40">
+
+                {/* Background Side Images */}
+                {images.length > 1 && (
+                    <>
+                        <div
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[20%] w-[50%] h-[75%] opacity-40 blur-[2px] rounded-3xl overflow-hidden transition-all duration-500 cursor-pointer hover:opacity-60"
+                            onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                        >
+                            <Image
+                                src={images[(currentIndex - 1 + images.length) % images.length]}
+                                alt="Previous Image"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                        <div
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[20%] w-[50%] h-[75%] opacity-40 blur-[2px] rounded-3xl overflow-hidden transition-all duration-500 cursor-pointer hover:opacity-60"
+                            onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                        >
+                            <Image
+                                src={images[(currentIndex + 1) % images.length]}
+                                alt="Next Image"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                    </>
+                )}
+
+                {/* Center Image */}
+                <AnimatePresence mode="popLayout" custom={direction}>
                     <motion.div
                         key={currentIndex}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="w-full h-full cursor-zoom-in"
+                        custom={direction}
+                        initial={{ opacity: 0, x: direction > 0 ? 100 : -100, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: direction > 0 ? -100 : 100, scale: 0.95 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="relative z-10 w-[75%] sm:w-[65%] h-[90%] bg-background rounded-3xl border border-border/40 shadow-2xl overflow-hidden cursor-zoom-in"
                         onClick={() => setIsLightboxOpen(true)}
                     >
                         <Image
                             src={images[currentIndex]}
                             alt="Product Image"
                             fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            className="object-cover"
                             priority
                         />
                     </motion.div>
                 </AnimatePresence>
 
                 {/* Photo Counter */}
-                <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <div className="absolute top-4 right-4 z-20 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-1.5 shadow-lg group-hover:scale-105 transition-transform duration-300">
                     <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
                     <span className="text-[10px] font-bold text-white uppercase tracking-widest leading-none">
                         {currentIndex + 1} / {images.length}
@@ -57,7 +91,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
 
                 {/* Navigation Arrows */}
                 {images.length > 1 && (
-                    <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-between px-4 sm:px-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
                         <button
                             onClick={(e) => { e.stopPropagation(); prevImage(); }}
                             className="w-10 h-10 rounded-full bg-white/90 shadow-xl flex items-center justify-center text-foreground hover:bg-white active:scale-95 transition-all pointer-events-auto"
@@ -76,27 +110,11 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                 {/* Fullscreen Trigger */}
                 <button
                     onClick={() => setIsLightboxOpen(true)}
-                    className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 shadow-xl flex items-center justify-center text-foreground opacity-0 group-hover:opacity-100 transition-all hover:bg-white active:scale-95"
+                    className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-white/90 shadow-xl flex items-center justify-center text-foreground opacity-0 group-hover:opacity-100 transition-all hover:bg-white active:scale-95"
                 >
                     <Maximize2 className="w-4 h-4" />
                 </button>
             </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                    {images.map((img, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => setCurrentIndex(idx)}
-                            className={`relative w-16 aspect-square rounded-xl overflow-hidden border-2 transition-all shrink-0 ${currentIndex === idx ? "border-primary shadow-sm scale-95" : "border-transparent opacity-60 hover:opacity-100"
-                                }`}
-                        >
-                            <Image src={img} alt={`Thumb ${idx}`} fill className="object-cover" />
-                        </button>
-                    ))}
-                </div>
-            )}
 
             {/* Lightbox / Fullscreen Overlay (Simplified for now) */}
             <AnimatePresence>

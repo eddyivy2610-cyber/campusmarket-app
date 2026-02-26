@@ -41,6 +41,12 @@ export interface Profile {
         type: string;
         description: string;
     }>;
+    socialLinks?: {
+        whatsapp?: string;
+        instagram?: string;
+        twitter?: string;
+        linkedin?: string;
+    };
 }
 
 export const PROFILES: Profile[] = [
@@ -80,7 +86,13 @@ export const PROFILES: Profile[] = [
             { name: 'Verified Student', icon: 'Shield', color: 'text-blue-600 bg-blue-500/10', description: 'verified with id', type: 'System' },
             { name: 'Early Adopter', icon: 'Zap', color: 'text-purple-600 bg-purple-500/10', description: 'joined during beta phase', type: 'Legacy' },
             { name: 'Trusted Buyer', icon: 'Star', color: 'text-green-600 bg-green-500/10', description: '50+ positive feedback', type: 'Achievement' },
-        ]
+        ],
+        socialLinks: {
+            whatsapp: "https://wa.me/1234567890",
+            instagram: "https://instagram.com/campusmarket",
+            twitter: "https://twitter.com/campusmarket",
+            linkedin: "https://linkedin.com/company/campusmarket"
+        }
     },
     {
         id: "lucky-john-1",

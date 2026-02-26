@@ -14,7 +14,11 @@ import {
     BarChart3,
     ShieldCheck,
     Briefcase,
-    CheckCircle2
+    CheckCircle2,
+    Instagram,
+    Twitter,
+    Linkedin,
+    Phone
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
@@ -104,19 +108,47 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                                         <div className="space-y-4">
                                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                                <User className="w-3 h-3" /> Profile Stats
+                                                <User className="w-3 h-3" /> ~profile
                                             </h3>
                                             <div className="space-y-4">
                                                 {[
-                                                    { label: "Department", value: profile.department || "General Store" },
-                                                    { label: "Joined Campus", value: profile.joinedDateFull },
-                                                    { label: "Identity Verified", value: profile.isVerified ? "Yes, Student ID" : "Pending" },
+                                                    { label: "School Department", value: profile.department || "Computer Science" },
+                                                    { label: "Date Joined", value: profile.joinedDateFull }
                                                 ].map((item) => (
                                                     <div key={item.label} className="border-l-2 border-primary/10 pl-4 py-1">
                                                         <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
                                                         <span className="font-bold text-sm text-foreground/90">{item.value}</span>
                                                     </div>
                                                 ))}
+
+                                                {/* Social Links */}
+                                                {(profile.socialLinks?.whatsapp || profile.socialLinks?.instagram || profile.socialLinks?.twitter || profile.socialLinks?.linkedin) && (
+                                                    <div className="border-l-2 border-primary/10 pl-4 py-1">
+                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-2">Social Links</span>
+                                                        <div className="flex items-center gap-3">
+                                                            {profile.socialLinks.whatsapp && (
+                                                                <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500/10 text-green-600 rounded-xl hover:bg-green-500/20 transition-colors">
+                                                                    <Phone className="w-4 h-4" />
+                                                                </a>
+                                                            )}
+                                                            {profile.socialLinks.instagram && (
+                                                                <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-500/10 text-pink-600 rounded-xl hover:bg-pink-500/20 transition-colors">
+                                                                    <Instagram className="w-4 h-4" />
+                                                                </a>
+                                                            )}
+                                                            {profile.socialLinks.twitter && (
+                                                                <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-500/10 text-blue-600 rounded-xl hover:bg-blue-500/20 transition-colors">
+                                                                    <Twitter className="w-4 h-4" />
+                                                                </a>
+                                                            )}
+                                                            {profile.socialLinks.linkedin && (
+                                                                <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl hover:bg-indigo-500/20 transition-colors">
+                                                                    <Linkedin className="w-4 h-4" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 

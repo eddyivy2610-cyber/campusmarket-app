@@ -11,20 +11,16 @@ import {
     Share2
 } from "lucide-react";
 
+import { Product } from "../../data/products";
+import { ListingShareModal } from "../manage-listings/ListingShareModal";
+
 interface ProductHeaderProps {
-    product: {
-        title: string;
-        price: number;
-        recommendedCount: number;
-        notRecommendedCount: number;
-        location: string;
-        postedDate: string;
-        views: number;
-    };
+    product: Product;
     onOfferOpen: () => void;
 }
 
 export function ProductHeader({ product, onOfferOpen }: ProductHeaderProps) {
+    const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
     const formattedPrice = new Intl.NumberFormat("en-NG", {
         style: "currency",
         currency: "NGN",
@@ -46,7 +42,10 @@ export function ProductHeader({ product, onOfferOpen }: ProductHeaderProps) {
                         {product.title}
                     </h1>
                     <div className="flex items-center gap-1.5 shrink-0">
-                        <button className="w-9 h-9 rounded-xl bg-secondary/50 border border-border/40 flex items-center justify-center hover:bg-secondary transition-colors">
+                        <button
+                            onClick={() => setIsShareModalOpen(true)}
+                            className="w-9 h-9 rounded-xl bg-secondary/50 border border-border/40 flex items-center justify-center hover:bg-secondary transition-colors"
+                        >
                             <Share2 className="w-3.5 h-3.5 opacity-70" />
                         </button>
                         <button className="w-9 h-9 rounded-xl bg-secondary/50 border border-border/40 flex items-center justify-center hover:bg-secondary transition-colors group">
@@ -96,7 +95,23 @@ export function ProductHeader({ product, onOfferOpen }: ProductHeaderProps) {
                     Posted {product.postedDate}
                 </div>
 
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-tight">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Available (1Qty)
+                </div>
+
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-tight">
+                    Condition: {product.condition}
+                </div>
+
             </div>
+
+            {isShareModalOpen && (
+                <ListingShareModal
+                    listing={product}
+                    onClose={() => setIsShareModalOpen(false)}
+                />
+            )}
         </div>
     );
 }

@@ -152,33 +152,6 @@ export function ProductCard({ product, isOwner = false, viewAs = "visitor" }: { 
                     </div>
                 </div>
 
-                {/* Owner actions */}
-                {effectiveIsOwner && (
-                    <div className="mt-2 pt-2 flex items-center justify-between border-t border-border/40 pointer-events-auto relative z-10">
-                        <div className="flex items-center gap-0.5">
-                            <Tooltip content="Edit">
-                                <button onClick={handleEdit} className="p-1.5 hover:bg-secondary rounded-lg text-gray-400 hover:text-blue-500 transition-colors">
-                                    <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                            </Tooltip>
-                            <Tooltip content="Toggle Status">
-                                <button onClick={handleToggleStatus} className="p-1.5 hover:bg-secondary rounded-lg text-gray-400 hover:text-green-500 transition-colors">
-                                    <Tag className="w-3.5 h-3.5" />
-                                </button>
-                            </Tooltip>
-                            <Tooltip content="Delete">
-                                <button onClick={handleDelete} className="p-1.5 hover:bg-secondary rounded-lg text-gray-400 hover:text-red-500 transition-colors">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                            </Tooltip>
-                        </div>
-                        <Tooltip content="More">
-                            <button onClick={handleMoreActions} className="p-1.5 hover:bg-secondary rounded-lg text-gray-400 hover:text-foreground transition-colors">
-                                <MoreHorizontal className="w-3.5 h-3.5" />
-                            </button>
-                        </Tooltip>
-                    </div>
-                )}
             </div>
 
             <QuickViewModal

@@ -11,6 +11,7 @@ import { HamburgerMenu } from "./HamburgerMenu";
 import { IntelligentSearch } from "../search/IntelligentSearch";
 import { MobileSearch } from "../search/MobileSearch";
 import { usePathname } from "next/navigation";
+import { useSaved } from "../../context/SavedContext";
 
 export function MainHeader() {
     useScrollReveal();
@@ -19,6 +20,7 @@ export function MainHeader() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
     const isSettingsPage = pathname === "/settings";
+    const { savedItems } = useSaved();
 
     const accountRef = useRef<HTMLDivElement>(null);
     useClickOutside(accountRef, () => setIsAccountOpen(false));
@@ -90,9 +92,16 @@ export function MainHeader() {
                         {/* Saved Items button — desktop only */}
                         <Link
                             href="/saved"
-                            className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors group p-2 rounded-lg hover:bg-secondary/50"
+                            className="flex flex-col items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors group p-2 rounded-lg hover:bg-secondary/50 relative"
                         >
-                            <Heart className="w-5 h-5" />
+                            <div className="relative">
+                                <Heart className="w-5 h-5" />
+                                {savedItems.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-[9px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full ring-2 ring-background">
+                                        {savedItems.length}
+                                    </span>
+                                )}
+                            </div>
                             <span className="text-[9px] font-bold font-heading hidden sm:block">Saved</span>
                         </Link>
                     </div>

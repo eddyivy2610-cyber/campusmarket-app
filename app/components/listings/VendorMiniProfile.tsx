@@ -46,24 +46,7 @@ export function VendorMiniProfile({ vendor }: VendorMiniProfileProps) {
                                 <BadgeCheck className="w-4 h-4" fill="#1D9BF0" stroke="white" strokeWidth={1.5} />
                             )}
                         </div>
-                        <div className="flex items-center gap-2.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                            <div className="flex items-center gap-1">
-                                <ShoppingBag className="w-2.5 h-2.5 text-primary" />
-                                <span>{vendor.totalSales} Sales</span>
-                            </div>
-                            <span>•</span>
-                            <div className="flex items-center gap-1">
-                                <svg className="w-2.5 h-2.5 text-emerald-500 fill-current" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-foreground">{Math.round((vendor.recommendedCount / (vendor.recommendedCount + vendor.notRecommendedCount || 1)) * 100)}%</span>
-                            </div>
-                        </div>
                     </div>
-                </div>
-                <div className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 bg-secondary/50 rounded-lg text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                    <Calendar className="w-3 h-3 opacity-60" />
-                    {vendor.joinedDate}
                 </div>
             </div>
 
