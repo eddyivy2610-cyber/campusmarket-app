@@ -80,7 +80,7 @@ export function SettingsLayout() {
     const activeItem = NAV_ITEMS.find(item => item.id === activeSection);
 
     return (
-        <div className="max-w-[1240px] mx-auto lg:px-6 lg:py-12 min-h-screen lg:min-h-0 bg-background lg:bg-transparent">
+        <div className="max-w-[1240px] mx-auto lg:px-6 lg:py-12 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-heading">
             {/* Desktop Header Navigation */}
             <div className="hidden lg:flex mb-12 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">

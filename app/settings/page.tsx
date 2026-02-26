@@ -7,7 +7,7 @@ import { SettingsLayout } from "../components/settings/SettingsLayout";
 
 export default function SettingsHubPage() {
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-screen bg-background flex flex-col font-heading">
 
             <main className="flex-1 bg-secondary/15 relative overflow-hidden">
                 {/* Background decorative flairs */}

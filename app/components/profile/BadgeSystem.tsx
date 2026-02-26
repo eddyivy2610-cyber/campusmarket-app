@@ -4,6 +4,7 @@ import React from "react";
 import { GraduationCap, BadgeCheck, Trophy, Shield, Zap, Star } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { IconTooltip } from "../common/IconTooltip";
 
 interface BadgeProps {
     type: 'student' | 'verified' | 'transaction';
@@ -94,64 +95,21 @@ export function AchievementBadge({ achievement, className }: {
     className?: string
 }) {
     const IconComponent = AchievementIcons[achievement.icon as keyof typeof AchievementIcons] || Star;
-    const [isVisible, setIsVisible] = React.useState(false);
 
     // Extract base color name from tailwind class (e.g. "text-yellow-600" -> "yellow")
     const colorClass = achievement.color.split(' ').find(c => c.startsWith('text-')) || 'text-primary';
-    const colorBase = colorClass.split('-')[1]; // yellow, blue, purple, green, etc.
-
-    const tooltipColorClasses: Record<string, { bg: string, border: string, arrow: string }> = {
-        yellow: { bg: "bg-yellow-600/60", border: "border-yellow-500/30", arrow: "border-t-yellow-600/60" },
-        blue: { bg: "bg-blue-600/60", border: "border-blue-500/30", arrow: "border-t-blue-600/60" },
-        purple: { bg: "bg-purple-600/60", border: "border-purple-500/30", arrow: "border-t-purple-600/60" },
-        green: { bg: "bg-emerald-600/60", border: "border-emerald-500/30", arrow: "border-t-emerald-600/60" },
-        primary: { bg: "bg-slate-900/60", border: "border-white/10", arrow: "border-t-slate-900/60" }
-    };
-
-    const theme = tooltipColorClasses[colorBase] || tooltipColorClasses.primary;
 
     return (
-        <div
-            className={cn("relative flex-shrink-0 cursor-help", className)}
-            onMouseEnter={() => setIsVisible(true)}
-            onMouseLeave={() => setIsVisible(false)}
-            onTouchStart={() => setIsVisible(true)}
-            onBlur={() => setIsVisible(false)}
-        >
+        <IconTooltip content={achievement.description} position="top">
             <div className={cn(
                 "p-2.5 rounded-xl border border-border/30 backdrop-blur-md transition-all duration-300",
-                isVisible ? "scale-110 shadow-[0_0_15px_rgba(var(--primary-rgb),0.15)] border-primary/30" : "",
-                achievement.color.split(' ').find(c => c.startsWith('bg-')) || 'bg-primary/5'
+                "hover:scale-110 hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.15)] hover:border-primary/30",
+                achievement.color.split(' ').find(c => c.startsWith('bg-')) || 'bg-primary/5',
+                className
             )}>
                 <IconComponent className={cn("w-4 h-4 md:w-5 md:h-5", colorClass)} />
             </div>
-
-            <AnimatePresence>
-                {isVisible && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.95, x: "-50%" }}
-                        animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
-                        exit={{ opacity: 0, y: 8, scale: 0.95, x: "-50%" }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute bottom-full left-1/2 mb-3 z-[100] pointer-events-none"
-                    >
-                        <div className={cn(
-                            "backdrop-blur-xl border px-3 py-1.5 rounded-xl shadow-2xl min-w-[140px] text-center relative whitespace-nowrap",
-                            theme.bg,
-                            theme.border
-                        )}>
-                            <div className="text-[10px] font-bold text-white leading-tight">{achievement.description}</div>
-
-                            {/* Arrow */}
-                            <div className={cn(
-                                "absolute top-[100%] left-1/2 -translate-x-1/2 -mt-px border-8 border-transparent",
-                                theme.arrow
-                            )} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+        </IconTooltip>
     );
 }
 

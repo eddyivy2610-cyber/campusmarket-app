@@ -12,7 +12,7 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
     return (
-        <nav className="flex items-center space-x-2 text-sm text-muted-foreground py-4 overflow-x-auto whitespace-nowrap">
+        <nav className="flex items-center space-x-2 text-sm text-muted-foreground py-4 overflow-x-auto whitespace-nowrap font-heading text-[11px] font-bold uppercase tracking-widest">
             <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1">
                 <Home className="w-3.5 h-3.5" />
                 <span>Home</span>

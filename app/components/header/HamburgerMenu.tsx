@@ -82,7 +82,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
             {/* Sidebar Panel */}
             <div
-                className={`relative w-full max-w-[85vw] sm:max-w-[360px] bg-background border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "-translate-x-full"} h-full overflow-hidden`}
+                className={`relative w-full max-w-[85vw] sm:max-w-[360px] bg-background border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out font-heading ${isOpen ? "translate-x-0" : "-translate-x-full"} h-full overflow-hidden`}
             >
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-primary/5 shrink-0">
@@ -183,7 +183,8 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     {/* ── Support & Info ── */}
                     <Section label="Support">
-                        <NavRow icon={HelpCircle} label="Help Center" onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={HelpCircle} label="Help Center" onClick={() => nav("/help")} />
+                        <NavRow icon={MessageSquare} label="Feedback" onClick={() => nav("/feedback")} />
                         <NavRow icon={LifeBuoy} label="Contact Support" onClick={() => nav("/coming-soon")} />
                     </Section>
 

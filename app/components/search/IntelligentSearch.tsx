@@ -94,7 +94,7 @@ export function IntelligentSearch() {
                     onChange={handleSearch}
                     onFocus={() => setIsOpen(true)}
                     placeholder="Search for products, brands and more..."
-                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-muted-foreground/70 text-foreground font-body w-full"
+                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-muted-foreground/70 text-foreground font-heading w-full"
                 />
 
                 {query && (
@@ -106,8 +106,8 @@ export function IntelligentSearch() {
                     </button>
                 )}
 
-                <button className="h-full px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors text-sm font-heading rounded-r-xl">
-                    Search
+                <button className="h-8 w-8 mr-2 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98] shrink-0">
+                    <Search className="w-4 h-4 font-bold" />
                 </button>
             </div>
 

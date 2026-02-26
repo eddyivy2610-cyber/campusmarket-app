@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { Zap, Calendar } from "lucide-react";
 
-interface VendorOfferProps {
+interface ProfessionalOfferProps {
     offer?: {
         salesPeriod: string;
         promoPeriod: string;
     };
 }
 
-export function VendorOffer({ offer }: VendorOfferProps) {
+export function ProfessionalOffer({ offer }: ProfessionalOfferProps) {
     if (!offer) {
         return (
             <div className="bg-secondary/10 border border-border/40 rounded-2xl overflow-hidden shadow-sm p-4 text-center">

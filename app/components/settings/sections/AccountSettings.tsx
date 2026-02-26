@@ -65,7 +65,7 @@ export function AccountSettings() {
                             <ShoppingBag className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm">Become a Seller</h3>
+                            <h3 className="font-bold text-sm">Upgrade to Pro Account</h3>
                             <p className="text-xs text-muted-foreground font-medium">Start selling your items to the campus community today.</p>
                         </div>
                     </div>

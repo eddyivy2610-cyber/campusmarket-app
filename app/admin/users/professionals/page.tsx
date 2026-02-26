@@ -60,7 +60,7 @@ export default function VendorsPage() {
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="bg-secondary/5 border-b border-border/50">
-                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Vendor Profile</th>
+                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Professional Profile</th>
                                 <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Reputation</th>
                                 <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Inventory</th>
                                 <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Performance</th>

@@ -24,15 +24,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { Profile } from "../../data/profiles";
 import { BadgeSystem } from "./BadgeSystem";
-import { VendorListingsArea } from "./VendorListingsArea";
-import { VendorPerformanceArea } from "./VendorPerformanceArea";
+import { ProfessionalListingsArea } from "./ProfessionalListingsArea";
+import { ProfessionalPerformanceArea } from "./ProfessionalPerformanceArea";
+import { IconTooltip } from "../common/IconTooltip";
 
-interface VendorProfileTabsProps {
+interface ProfessionalProfileTabsProps {
     profile: Profile;
-    viewAs: "host" | "visitor";
+    viewAs: "private" | "public";
 }
 
-export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
+export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfileTabsProps) {
     const [activeTab, setActiveTab] = useState(profile.type === 'vendor' ? "Listings" : "About");
     const [isRecommended, setIsRecommended] = useState<boolean | null>(null);
     const [comment, setComment] = useState("");
@@ -55,7 +56,7 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
     const tabs = (profile.type === 'vendor' ? vendorTabs : buyerTabs);
 
     return (
-        <div className="w-full space-y-8">
+        <div className="w-full space-y-8 font-heading">
             {/* Tab Navigation */}
             <div className="flex overflow-x-hidden md:overflow-x-auto no-scrollbar md:border-b md:border-border/40 w-full md:justify-center">
                 {tabs.map((tab) => (
@@ -127,24 +128,32 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                                                         <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-2">Social Links</span>
                                                         <div className="flex items-center gap-3">
                                                             {profile.socialLinks.whatsapp && (
-                                                                <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500/10 text-green-600 rounded-xl hover:bg-green-500/20 transition-colors">
-                                                                    <Phone className="w-4 h-4" />
-                                                                </a>
+                                                                <IconTooltip content="WhatsApp" position="top">
+                                                                    <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500/10 text-green-600 rounded-xl hover:bg-green-500/20 transition-colors">
+                                                                        <Phone className="w-4 h-4" />
+                                                                    </a>
+                                                                </IconTooltip>
                                                             )}
                                                             {profile.socialLinks.instagram && (
-                                                                <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-500/10 text-pink-600 rounded-xl hover:bg-pink-500/20 transition-colors">
-                                                                    <Instagram className="w-4 h-4" />
-                                                                </a>
+                                                                <IconTooltip content="Instagram" position="top">
+                                                                    <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-500/10 text-pink-600 rounded-xl hover:bg-pink-500/20 transition-colors">
+                                                                        <Instagram className="w-4 h-4" />
+                                                                    </a>
+                                                                </IconTooltip>
                                                             )}
                                                             {profile.socialLinks.twitter && (
-                                                                <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-500/10 text-blue-600 rounded-xl hover:bg-blue-500/20 transition-colors">
-                                                                    <Twitter className="w-4 h-4" />
-                                                                </a>
+                                                                <IconTooltip content="Twitter" position="top">
+                                                                    <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-500/10 text-blue-600 rounded-xl hover:bg-blue-500/20 transition-colors">
+                                                                        <Twitter className="w-4 h-4" />
+                                                                    </a>
+                                                                </IconTooltip>
                                                             )}
                                                             {profile.socialLinks.linkedin && (
-                                                                <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl hover:bg-indigo-500/20 transition-colors">
-                                                                    <Linkedin className="w-4 h-4" />
-                                                                </a>
+                                                                <IconTooltip content="LinkedIn" position="top">
+                                                                    <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl hover:bg-indigo-500/20 transition-colors">
+                                                                        <Linkedin className="w-4 h-4" />
+                                                                    </a>
+                                                                </IconTooltip>
                                                             )}
                                                         </div>
                                                     </div>
@@ -179,13 +188,13 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                     )}
 
                     {activeTab === "Listings" && (
-                        <VendorListingsArea viewAs={viewAs} sellerId={profile.id} />
+                        <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />
                     )}
 
                     {activeTab === "Performance" && (
                         <div className="space-y-8">
-                            {viewAs === "host" ? (
-                                <VendorPerformanceArea
+                            {viewAs === "private" ? (
+                                <ProfessionalPerformanceArea
                                     vendor={{
                                         activeListings: profile.activeListingsCount || 0,
                                         soldItems: profile.soldItems || 0,
@@ -215,24 +224,28 @@ export function VendorProfileTabs({ profile, viewAs }: VendorProfileTabsProps) {
                                     className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
                                 />
                                 <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1.5 bg-background rounded-xl px-2 border border-border/40">
-                                    <button
-                                        onClick={() => setIsRecommended(true)}
-                                        className={cn(
-                                            "p-2 rounded-lg transition-all",
-                                            isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
-                                        )}
-                                    >
-                                        <CheckCircle2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setIsRecommended(false)}
-                                        className={cn(
-                                            "p-2 rounded-lg transition-all",
-                                            isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
-                                        )}
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                                    <IconTooltip content="Recommend" position="top">
+                                        <button
+                                            onClick={() => setIsRecommended(true)}
+                                            className={cn(
+                                                "p-2 rounded-lg transition-all",
+                                                isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
+                                            )}
+                                        >
+                                            <CheckCircle2 className="w-4 h-4" />
+                                        </button>
+                                    </IconTooltip>
+                                    <IconTooltip content="Do Not Recommend" position="top">
+                                        <button
+                                            onClick={() => setIsRecommended(false)}
+                                            className={cn(
+                                                "p-2 rounded-lg transition-all",
+                                                isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
+                                            )}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </IconTooltip>
                                     <button
                                         disabled={isRecommended === null || !comment.trim()}
                                         className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"

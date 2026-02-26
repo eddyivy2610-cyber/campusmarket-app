@@ -72,6 +72,8 @@
   --font-sans: var(--font-poppins), var(--font-inter), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
   --font-poppins: var(--font-poppins);
+  --font-heading: var(--font-poppins), sans-serif;
+  --font-display: var(--font-poppins), sans-serif;
 }
 
 html {

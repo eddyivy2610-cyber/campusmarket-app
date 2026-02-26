@@ -5,9 +5,9 @@ import { ArrowRight } from "lucide-react";
 
 export function PromoBanner() {
     return (
-        <section className="py-8 md:py-12">
+        <section className="py-0">
             <div className="max-w-[1780px] mx-auto px-4 md:px-8">
-                <div className="bg-primary rounded-2xl p-6 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 shadow-xl shadow-primary/20">
+                <div className="bg-primary rounded-2xl p-4 md:py-6 md:px-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-5 shadow-xl shadow-primary/20">
 
                     {/* Background accents */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />

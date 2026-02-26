@@ -25,8 +25,8 @@ interface ProductProps {
     isUrgent?: boolean;
 }
 
-export function ProductCard({ product, isOwner = false, viewAs = "visitor" }: { product: ProductProps; isOwner?: boolean; viewAs?: "host" | "visitor" }) {
-    const effectiveIsOwner = viewAs === "host" ? true : isOwner;
+export function ProductCard({ product, isOwner = false, viewAs = "public" }: { product: ProductProps; isOwner?: boolean; viewAs?: "private" | "public" }) {
+    const effectiveIsOwner = viewAs === "private" ? true : isOwner;
     const { toggleSaved, isSaved } = useSaved();
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 

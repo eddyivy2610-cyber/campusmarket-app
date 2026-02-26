@@ -11,13 +11,13 @@ import { PRODUCTS, Product } from "../../data/products";
 import { ProductCard } from "../shop/ProductCard";
 
 
-interface VendorListingsAreaProps {
-    viewAs: "host" | "visitor";
+interface ProfessionalListingsAreaProps {
+    viewAs: "private" | "public";
     sellerId: string;
 }
 
-export function VendorListingsArea({ viewAs, sellerId }: VendorListingsAreaProps) {
-    const isHost = viewAs === "host";
+export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListingsAreaProps) {
+    const isHost = viewAs === "private";
 
     // Derive displayed listings based on view
     const sellerListings = PRODUCTS.filter(p => p.sellerId === sellerId);

@@ -31,7 +31,7 @@ export function AuthLayout({
     isWide,
 }: AuthLayoutProps) {
     return (
-        <div className="w-full flex flex-col md:flex-row bg-background overflow-hidden relative">
+        <div className="w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-heading">
             {/* Decorative Blur Blobs */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />

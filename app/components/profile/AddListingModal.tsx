@@ -163,7 +163,7 @@ export function AddListingModal({ isOpen, onClose }: AddListingModalProps) {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="w-full max-w-4xl bg-card border border-border/50 rounded-[32px] shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden"
+                className="w-full max-w-4xl bg-card border border-border/50 font-heading rounded-[32px] shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden"
             >
                 {/* Modal Header */}
                 <div className="flex items-center justify-between p-6 border-b border-border/40 bg-secondary/5">

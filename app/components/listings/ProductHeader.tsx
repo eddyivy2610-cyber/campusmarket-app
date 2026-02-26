@@ -30,7 +30,7 @@ export function ProductHeader({ product, onOfferOpen }: ProductHeaderProps) {
     return (
         <div className="space-y-5">
             {/* Breadcrumbs (Simplified) */}
-            <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground tracking-[0.2em] uppercase">
+            <div className="flex items-center gap-2 text-[9px] font-heading font-bold text-muted-foreground tracking-[0.2em] uppercase">
                 <span>Electronics</span>
                 <span>/</span>
                 <span className="text-foreground">Laptops</span>

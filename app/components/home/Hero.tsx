@@ -71,7 +71,7 @@ export function Hero() {
                     {/* Sidebar Menu - Desktop Only */}
                     <div className="hidden lg:flex flex-col w-64 bg-secondary/20 backdrop-blur-md rounded-lg border border-border/50 shadow-xl shrink-0 overflow-hidden h-full">
                         <div className="p-4 border-b border-border/50 bg-primary/5">
-                            <h3 className="font-bold font-heading text-sm uppercase tracking-wider text-foreground">Top Categories</h3>
+                            <h3 className="font-bold text-xs font-heading uppercase tracking-widest text-muted-foreground/60">Top Categories</h3>
                         </div>
                         <div className="flex-1 flex flex-col justify-between py-2 px-2 overflow-hidden">
                             {CATEGORIES.slice(0, 9).map((cat, idx) => {
@@ -82,7 +82,7 @@ export function Hero() {
                                         href={`/listings?category=${cat.name}`}
                                         className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300 group"
                                     >
-                                        <div className="flex items-center gap-2.5 text-[13px] font-medium text-foreground/80 group-hover:text-primary">
+                                        <div className="flex items-center gap-2.5 text-[13px] font-heading font-medium text-foreground/80 group-hover:text-primary">
                                             <Icon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
                                             <span>{cat.name}</span>
                                         </div>

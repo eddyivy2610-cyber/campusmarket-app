@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export function Footer() {
     return (
-        <footer className="w-full bg-secondary text-foreground pt-14 pb-8 mt-12 border-t border-border">
+        <footer className="w-full bg-secondary text-foreground pt-14 pb-8 mt-12 border-t border-border font-heading">
             <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12 space-y-10">
 
                 {/* ── Main grid: Brand + Link groups ── */}
@@ -39,10 +39,10 @@ export function Footer() {
                             <div className="flex flex-col gap-2">
                                 {[
                                     { label: "Home", href: "/" },
-                                    { label: "Marketplace", href: "/community" },
+                                    { label: "Community", href: "/community" },
                                     { label: "Events", href: "#" },
                                     { label: "About Us", href: "#" },
-                                    { label: "Contact", href: "#" },
+                                    { label: "Contact Support", href: "#" },
                                 ].map(l => (
                                     <Link key={l.label} href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
                                 ))}
@@ -53,7 +53,9 @@ export function Footer() {
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Resources</h3>
                             <div className="flex flex-col gap-2">
-                                {["Help Center", "Safety Guidelines", "Seller Resources", "Buyer Resources", "Community Rules", "FAQs"].map(l => (
+                                <Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help Center</Link>
+                                <Link href="/feedback" className="text-sm text-muted-foreground hover:text-primary transition-colors">Feedback</Link>
+                                {["Safety Guidelines", "Community Rules", "FAQs"].map(l => (
                                     <Link key={l} href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{l}</Link>
                                 ))}
                             </div>
@@ -63,9 +65,9 @@ export function Footer() {
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Contact Us</h3>
                             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                                <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" /><span>123 University Ave, Campus Center</span></li>
-                                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary shrink-0" /><span>support@campusmarket.com</span></li>
-                                <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-primary shrink-0" /><span>(123) 456-7890</span></li>
+                                <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" /><span>Computer Science Department, Phase 2, ABU Zaria.</span></li>
+                                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-primary shrink-0" /><span>campusmarket@gmail.com</span></li>
+                                <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-primary shrink-0" /><span>(234)-815-524-6233</span></li>
                                 <li className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary shrink-0" /><span>Mon–Fri: 9am–5pm</span></li>
                             </ul>
                         </div>

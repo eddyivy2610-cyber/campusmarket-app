@@ -33,7 +33,7 @@ export default function LoginPage() {
             subtitle="Sign in to continue to your campus community"
             illustrationUrl="https://images.unsplash.com/photo-1541339907198-e08759dfc3ef?auto=format&fit=crop&q=80&w=800"
         >
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4 font-heading">
                 {/* Email Field */}
                 <div className="space-y-2">
                     <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">

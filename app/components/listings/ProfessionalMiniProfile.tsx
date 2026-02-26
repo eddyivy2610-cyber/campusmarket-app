@@ -11,7 +11,7 @@ import {
     BadgeCheck
 } from "lucide-react";
 
-interface VendorMiniProfileProps {
+interface ProfessionalMiniProfileProps {
     vendor: {
         id: string;
         name: string;
@@ -24,7 +24,7 @@ interface VendorMiniProfileProps {
     };
 }
 
-export function VendorMiniProfile({ vendor }: VendorMiniProfileProps) {
+export function ProfessionalMiniProfile({ vendor }: ProfessionalMiniProfileProps) {
     return (
         <div className="bg-card border border-border/40 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start justify-between mb-5">

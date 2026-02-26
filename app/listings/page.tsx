@@ -10,7 +10,7 @@ import { ShopGrid } from "../components/shop/ShopGrid";
 import { PRODUCTS, Product } from "../data/products";
 import { Eye, Store, User } from "lucide-react";
 
-type ViewAs = "host" | "visitor";
+type ViewAs = "private" | "public";
 
 export default function ShopPage() {
     return (
@@ -30,7 +30,7 @@ function ShopPageInner() {
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
-    const [viewAs, setViewAs] = useState<ViewAs>("visitor");
+    const [viewAs, setViewAs] = useState<ViewAs>("public");
 
     useEffect(() => {
         if (categoryParam) {
@@ -50,7 +50,7 @@ function ShopPageInner() {
     }, [selectedCategories, priceRange]);
 
     return (
-        <main className="min-h-screen bg-background text-foreground selection:bg-primary/20">
+        <main className="min-h-screen bg-background text-foreground font-heading selection:bg-primary/20">
             <Header />
 
             <div className="bg-secondary/10 border-b border-border/50">
@@ -70,24 +70,24 @@ function ShopPageInner() {
                         </span>
                         <div className="flex items-center bg-secondary/40 border border-border/40 rounded-full p-0.5 gap-0.5">
                             <button
-                                onClick={() => setViewAs("host")}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "host"
+                                onClick={() => setViewAs("private")}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "private"
                                     ? "bg-background text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 <Store className="w-3 h-3" />
-                                Host
+                                Private
                             </button>
                             <button
-                                onClick={() => setViewAs("visitor")}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "visitor"
+                                onClick={() => setViewAs("public")}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${viewAs === "public"
                                     ? "bg-background text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 <User className="w-3 h-3" />
-                                Visitor
+                                Public
                             </button>
                         </div>
                     </div>

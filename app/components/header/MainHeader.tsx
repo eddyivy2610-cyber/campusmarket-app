@@ -40,7 +40,7 @@ export function MainHeader() {
                         <LayoutGrid className="w-6 h-6" />
                     </button>
 
-                    {/* Logo — centered on mobile via flex-1 + justify-center trick */}
+                    {/* Logo */}
                     <div className="flex-1 md:flex-none flex md:block justify-center">
                         <Link href="/" className="flex items-center gap-2 group">
                             <span className="text-primary">

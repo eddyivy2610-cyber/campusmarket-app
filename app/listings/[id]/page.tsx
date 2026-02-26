@@ -6,8 +6,8 @@ import { PRODUCTS, Product } from "../../data/products";
 import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
-import { VendorOffer } from "../../components/listings/VendorOffer";
-import { VendorMiniProfile } from "../../components/listings/VendorMiniProfile";
+import { ProfessionalOffer } from "../../components/listings/ProfessionalOffer";
+import { ProfessionalMiniProfile } from "../../components/listings/ProfessionalMiniProfile";
 import { ProductDetails } from "../../components/listings/ProductDetails";
 import { ProductReviews } from "../../components/listings/ProductReviews";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
@@ -97,9 +97,9 @@ export default function ListingPage() {
                                 onOfferOpen={() => router.push(`/chat?user=${vendor.id}&listing=${product.id}`)}
                             />
 
-                            <VendorOffer offer={product.offer} />
+                            <ProfessionalOffer offer={product.offer} />
 
-                            <VendorMiniProfile vendor={vendor} />
+                            <ProfessionalMiniProfile vendor={vendor} />
 
                             {/* Sidebar: Safety & Context */}
                             <div className="bg-secondary/15 border border-border/40 rounded-2xl p-6 space-y-5">

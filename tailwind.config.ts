@@ -59,9 +59,9 @@ const config: Config = {
             fontFamily: {
                 sans: ["var(--font-poppins)", "var(--font-inter)", "var(--font-geist-sans)", "sans-serif"],
                 mono: ["var(--font-geist-mono)", "monospace"],
-                display: ["var(--font-quicksand)", "var(--font-bricolage)", "sans-serif"],
+                display: ["var(--font-poppins)", "sans-serif"],
                 body: ["var(--font-inter)", "sans-serif"],
-                heading: ["var(--font-poppins)", "var(--font-quicksand)", "sans-serif"],
+                heading: ["var(--font-poppins)", "sans-serif"],
                 price: ["var(--font-montserrat)", "sans-serif"],
                 poppins: ["var(--font-poppins)", "sans-serif"],
             },

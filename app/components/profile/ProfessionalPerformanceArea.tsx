@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-interface VendorPerformanceAreaProps {
+interface ProfessionalPerformanceAreaProps {
     vendor: {
         activeListings: number;
         soldItems: number;
@@ -19,7 +19,7 @@ interface VendorPerformanceAreaProps {
     };
 }
 
-export function VendorPerformanceArea({ vendor }: VendorPerformanceAreaProps) {
+export function ProfessionalPerformanceArea({ vendor }: ProfessionalPerformanceAreaProps) {
 
     return (
         <div className="w-full space-y-6 bg-secondary/5 rounded-[20px] p-4 md:p-6 border border-border/40">

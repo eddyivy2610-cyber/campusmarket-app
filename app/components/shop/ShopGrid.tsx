@@ -9,7 +9,7 @@ import { Product, CATEGORIES } from "../../data/products";
 /* ─── Types ─────────────────────────────────────── */
 interface ShopGridProps {
     products: Product[];
-    viewAs?: "host" | "visitor";
+    viewAs?: "private" | "public";
     selectedCategories?: string[];
     setSelectedCategories?: (cats: string[]) => void;
     setPriceRange?: (range: { min: number; max: number }) => void;
@@ -91,12 +91,12 @@ const SORT_OPTIONS = ["Newest", "Popular", "Rated", "Unrated"] as const;
 /* ─── ShopGrid ──────────────────────────────────── */
 export function ShopGrid({
     products,
-    viewAs = "visitor",
+    viewAs = "public",
     selectedCategories = [],
     setSelectedCategories,
     setPriceRange,
 }: ShopGridProps) {
-    const isHost = viewAs === "host";
+    const isHost = viewAs === "private";
 
     const [sortLabel, setSortLabel] = useState<string>("Newest");
     // Local price state for mobile pill
