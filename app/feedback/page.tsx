@@ -1,7 +1,6 @@
 import React from "react";
 import { Star, MessageSquare } from "lucide-react";
 import Image from "next/image";
-import { TopBar } from "../components/header/TopBar";
 import { MainHeader } from "../components/header/MainHeader";
 import { Footer } from "../components/sections/Footer";
 
@@ -50,7 +49,6 @@ const RATING_BREAKDOWN = [
 export default function FeedbackPage() {
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <TopBar />
             <MainHeader />
 
             <main className="flex-1 py-10 md:py-16 relative overflow-hidden">

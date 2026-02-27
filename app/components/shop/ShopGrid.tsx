@@ -255,16 +255,7 @@ export function ShopGrid({
                 )}
             </motion.div>
 
-            {/* ── Pagination ── */}
-            <div className="flex items-center justify-center gap-1.5 mt-10">
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors text-sm">&lt;</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-sm text-sm">1</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors text-sm">2</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors text-sm">3</button>
-                <span className="px-1 text-muted-foreground text-sm">…</span>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors text-sm">8</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-secondary transition-colors text-sm">&gt;</button>
-            </div>
+
         </div>
     );
 }

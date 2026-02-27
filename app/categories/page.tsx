@@ -12,21 +12,20 @@ import { Eye, Store, User } from "lucide-react";
 
 type ViewAs = "private" | "public";
 
-export default function ShopPage() {
+export default function CategoriesPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
             </div>
         }>
-            <ShopPageInner />
+            <CategoriesPageInner />
         </Suspense>
     );
 }
 
-function ShopPageInner() {
+function CategoriesPageInner() {
     const searchParams = useSearchParams();
-    const qParam = searchParams.get("q");
     const categoryParam = searchParams.get("category");
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -38,25 +37,17 @@ function ShopPageInner() {
             setSelectedCategories([categoryParam]);
         } else {
             setSelectedCategories([]);
+            setPriceRange({ min: 0, max: Infinity });
         }
     }, [categoryParam]);
 
     const filteredProducts = useMemo(() => {
         return PRODUCTS.filter((product: Product) => {
-            const matchesSearch = !qParam || product.title.toLowerCase().includes(qParam.toLowerCase()) || product.description.toLowerCase().includes(qParam.toLowerCase()) || product.tags.some(t => t.toLowerCase().includes(qParam.toLowerCase()));
             const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
             const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-            return matchesSearch && matchesCategory && matchesPrice;
+            return matchesCategory && matchesPrice;
         });
-    }, [qParam, selectedCategories, priceRange]);
-
-    // Infer category purely from search results
-    const inferredCategory = useMemo(() => {
-        if (filteredProducts.length > 0) {
-            return filteredProducts[0].category;
-        }
-        return null; // Don't show dynamic filters if no results
-    }, [filteredProducts]);
+    }, [selectedCategories, priceRange]);
 
     return (
         <main className="min-h-screen bg-background text-foreground font-heading selection:bg-primary/20">
@@ -66,8 +57,8 @@ function ShopPageInner() {
                 <div className="max-w-[1780px] mx-auto px-4 md:px-8 flex items-center justify-between">
                     <Breadcrumb
                         items={[
-                            { label: "Search Results", href: "/listings" },
-                            ...(qParam ? [{ label: `"${qParam}"` }] : [])
+                            { label: "Explore Categories", href: selectedCategories.length === 1 ? "/categories" : undefined },
+                            ...(selectedCategories.length === 1 ? [{ label: selectedCategories[0] }] : [])
                         ]}
                     />
 
@@ -106,10 +97,10 @@ function ShopPageInner() {
             <div className="max-w-[1780px] mx-auto px-4 md:px-8 py-6 md:py-10">
                 <div className="mb-6 flex flex-col gap-2">
                     <h1 className="text-2xl md:text-3xl font-bold font-heading text-foreground">
-                        {qParam ? `Results for "${qParam}"` : "All Search Results"}
+                        {selectedCategories.length === 1 ? `${selectedCategories[0]}` : "Explore Categories"}
                     </h1>
                     <p className="text-sm text-muted-foreground font-body">
-                        Showing {filteredProducts.length} items
+                        Showing {filteredProducts.length} items {selectedCategories.length === 1 ? `in ${selectedCategories[0]}` : ""}
                     </p>
                 </div>
 
@@ -118,8 +109,6 @@ function ShopPageInner() {
                         selectedCategories={selectedCategories}
                         setSelectedCategories={setSelectedCategories}
                         setPriceRange={setPriceRange}
-                        hideCategoriesList={true}
-                        forcedCategory={inferredCategory}
                     />
                     <ShopGrid
                         products={filteredProducts}

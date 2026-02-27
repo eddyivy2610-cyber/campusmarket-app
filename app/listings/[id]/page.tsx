@@ -7,24 +7,25 @@ import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
 import { ProfessionalOffer } from "../../components/listings/ProfessionalOffer";
-import { ProfessionalMiniProfile } from "../../components/listings/ProfessionalMiniProfile";
+import { ListingActionBox } from "../../components/listings/ListingActionBox";
 import { ProductDetails } from "../../components/listings/ProductDetails";
-import { ProductReviews } from "../../components/listings/ProductReviews";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
 import { OfferModal } from "../../components/modals/OfferModal";
-import { ReviewModal } from "../../components/modals/ReviewModal";
 import { Header } from "../../components/header/Header";
 import { Footer } from "../../components/sections/Footer";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
-import { ChevronLeft, ShieldAlert, Flag } from "lucide-react";
-import { ReportDropdown } from "../../components/common/ReportDropdown";
+import { ChevronLeft } from "lucide-react";
 
 export default function ListingPage() {
     const params = useParams();
     const router = useRouter();
-    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-    const product = PRODUCTS.find((p: Product) => p.id === Number(params.id));
+    let product = PRODUCTS.find((p: Product) => p.id === Number(params.id));
+
+    // Fallback for mocked grid items on the homepage (deal-1, best-2, explore-3)
+    if (!product && typeof params.id === 'string' && (params.id.startsWith('deal-') || params.id.startsWith('best-') || params.id.startsWith('explore-'))) {
+        product = PRODUCTS[0];
+    }
     const vendor = PROFILES.find((p: Profile) => p.id === product?.sellerId);
 
     if (!product || !vendor) {
@@ -72,9 +73,9 @@ export default function ListingPage() {
                 <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 space-y-12">
 
                     {/* Content Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-                        {/* Left Column: Media, Details, Reviews */}
-                        <div className="lg:col-span-7 xl:col-span-8 space-y-12">
+                    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-12">
+                        {/* Left Column: Media, Details, Related (Desktop) */}
+                        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-12 order-1 lg:order-none">
                             <ProductGallery images={product.images} />
 
                             <ProductDetails
@@ -82,85 +83,33 @@ export default function ListingPage() {
                                 specs={product.specs}
                             />
 
-                            <ProductReviews
-                                recommendedCount={product.recommendedCount}
-                                notRecommendedCount={product.notRecommendedCount}
-                                reviews={product.reviews}
-                                onWriteReview={() => setIsReviewModalOpen(true)}
-                            />
+                            {/* Related Products: Bottom on Mobile, Middle on Desktop */}
+                            <div className="pt-8 md:pt-12 mt-8 md:mt-12 border-t border-border/40 order-3 lg:order-none">
+                                <RelatedProducts
+                                    vendorName={vendor.name}
+                                    vendorListings={vendorListings}
+                                    similarItems={similarItems}
+                                />
+                            </div>
                         </div>
 
                         {/* Right Column: Actions, Offer, Vendor, Safety */}
-                        <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit">
-                            <ProductHeader
+                        <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit order-2 lg:order-none">
+                            <ProductHeader product={product} />
+
+                            <ListingActionBox
                                 product={product}
+                                vendor={vendor}
                                 onOfferOpen={() => router.push(`/chat?user=${vendor.id}&listing=${product.id}`)}
                             />
 
                             <ProfessionalOffer offer={product.offer} />
-
-                            <ProfessionalMiniProfile vendor={vendor} />
-
-                            {/* Sidebar: Safety & Context */}
-                            <div className="bg-secondary/15 border border-border/40 rounded-2xl p-6 space-y-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-                                        <ShieldAlert className="w-4 h-4" />
-                                    </div>
-                                    <h3 className="font-bold text-xs tracking-wider uppercase text-red-500">Important Safety Notice</h3>
-                                </div>
-
-                                <ul className="space-y-3.5">
-                                    {[
-                                        "Exchange items in public campus areas",
-                                        "Verify item condition before payment",
-                                        "Use the secure in-app messaging",
-                                        "Report suspicious listing behavior"
-                                    ].map((tip, i) => (
-                                        <li key={i} className="flex gap-3 group">
-                                            <span className="text-red-500 font-bold mt-0.5 opacity-60">•</span>
-                                            <p className="text-[11px] font-bold text-muted-foreground/80 leading-relaxed group-hover:text-foreground transition-colors">
-                                                {tip}
-                                            </p>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <div className="pt-2">
-                                    <ReportDropdown
-                                        reportType="listing"
-                                        targetId={product.id}
-                                        triggerClassName="w-full h-11"
-                                    >
-                                        <div className="w-full flex items-center justify-center gap-2 py-3 border border-border/40 bg-background text-muted-foreground font-bold rounded-xl hover:bg-secondary transition-all text-[9px] uppercase tracking-widest">
-                                            <Flag className="w-3.5 h-3.5" />
-                                            Report Suspicious Item
-                                        </div>
-                                    </ReportDropdown>
-                                </div>
-                            </div>
                         </div>
-                    </div>
-
-                    {/* Related Products */}
-                    <div className="pt-12 border-t border-border/40">
-                        <RelatedProducts
-                            vendorName={vendor.name}
-                            vendorListings={vendorListings}
-                            similarItems={similarItems}
-                        />
                     </div>
                 </div>
             </main>
 
             <Footer />
-
-            {/* Modals */}
-            <ReviewModal
-                isOpen={isReviewModalOpen}
-                onClose={() => setIsReviewModalOpen(false)}
-                product={{ title: product.title, vendorName: vendor.name }}
-            />
         </div>
     );
 }

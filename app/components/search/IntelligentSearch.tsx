@@ -8,6 +8,7 @@ import {
     MoreHorizontal
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { searchProducts, searchProfiles } from "../../lib/searchUtils";
 import { PRODUCTS, Product, CATEGORIES } from "../../data/products";
@@ -22,6 +23,7 @@ const IconMap: { [key: string]: any } = {
 };
 
 export function IntelligentSearch() {
+    const router = useRouter();
     const [query, setQuery] = useState("");
     const [productResults, setProductResults] = useState<Product[]>([]);
     const [profileResults, setProfileResults] = useState<Profile[]>([]);
@@ -66,8 +68,14 @@ export function IntelligentSearch() {
         setQuery(term);
         addToRecent(term);
         setIsOpen(false);
-        //this should route to a search results page
-        console.log("Searching for:", term);
+        router.push(`/listings?q=${encodeURIComponent(term)}`);
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            handleSelect(query);
+        }
     };
 
     const clearRecent = () => {
@@ -78,7 +86,9 @@ export function IntelligentSearch() {
     return (
         <div ref={wrapperRef} className="relative w-full hidden md:block group z-50">
             {/* Search Input */}
-            <div className={`
+            <form
+                onSubmit={handleSearchSubmit}
+                className={`
                 flex items-center w-full h-12 bg-secondary/50 rounded-2xl overflow-hidden transition-all duration-300 
                 border border-transparent
                 ${isOpen ? 'bg-background ring-2 ring-primary/10 border-primary/20 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-background focus-within:border-primary/20'}
@@ -99,6 +109,7 @@ export function IntelligentSearch() {
 
                 {query && (
                     <button
+                        type="button"
                         onClick={() => { setQuery(""); setProductResults([]); setProfileResults([]); inputRef.current?.focus(); }}
                         className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                     >
@@ -106,10 +117,10 @@ export function IntelligentSearch() {
                     </button>
                 )}
 
-                <button className="h-8 w-8 mr-2 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98] shrink-0">
+                <button type="submit" className="h-8 w-8 mr-2 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98] shrink-0">
                     <Search className="w-4 h-4 font-bold" />
                 </button>
-            </div>
+            </form>
 
             {/* Dropdown Results */}
             <AnimatePresence>
@@ -151,21 +162,23 @@ export function IntelligentSearch() {
                                         {CATEGORIES.filter(c => ["Fashion", "Electronics", "Personal Care", "Services"].includes(c.name)).map(cat => {
                                             const Icon = IconMap[cat.lucideIcon || "Package"];
                                             return (
-                                                <button
+                                                <Link
                                                     key={cat.name}
-                                                    onClick={() => handleSelect(cat.name)}
+                                                    href={`/categories?category=${encodeURIComponent(cat.name)}`}
+                                                    onClick={() => setIsOpen(false)}
                                                     className="flex flex-col items-center justify-center p-3 hover:bg-secondary/50 rounded-xl transition-colors text-center group border border-transparent hover:border-primary/20"
                                                 >
                                                     <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                                                         <Icon className="w-5 h-5" />
                                                     </div>
                                                     <span className="text-[10px] font-bold text-foreground truncate w-full">{cat.name}</span>
-                                                </button>
+                                                </Link>
                                             );
                                         })}
                                         {/* Others Category */}
                                         <Link
-                                            href="/listings"
+                                            href="/categories"
+                                            onClick={() => setIsOpen(false)}
                                             className="flex flex-col items-center justify-center p-3 hover:bg-secondary/50 rounded-xl transition-colors text-center group border border-transparent hover:border-primary/20"
                                         >
                                             <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">

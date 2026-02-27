@@ -23,6 +23,7 @@ interface ProductProps {
     seller?: string;
     sellerId: string;
     isUrgent?: boolean;
+    originalPrice?: number | string;
 }
 
 export function ProductCard({ product, isOwner = false, viewAs = "public" }: { product: ProductProps; isOwner?: boolean; viewAs?: "private" | "public" }) {
@@ -43,7 +44,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
     return (
         <motion.div
             whileHover={{ y: -3 }}
-            className={`group relative bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border h-full flex flex-col ${effectiveIsOwner ? "border-primary/20" : "border-border/50 hover:border-primary/20"}`}
+            className={`group relative bg-transparent overflow-hidden transition-all duration-300 h-full flex flex-col`}
         >
             {/* Overlay Link for the whole card */}
             <Link
@@ -53,7 +54,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
             />
 
             {/* Image */}
-            <div className="aspect-[4/3] bg-secondary/50 relative overflow-hidden pointer-events-none">
+            <div className="aspect-square bg-secondary/30 relative overflow-hidden pointer-events-none rounded-2xl w-full">
                 <Image
                     src={product.image}
                     alt={product.title}
@@ -75,7 +76,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
             {/* Interactive Overlays (QuickView & Save) - Must be above z-0 link */}
             {!effectiveIsOwner && (
                 <>
-                    <div className="absolute top-0 right-0 left-0 aspect-[4/3] pointer-events-none z-10">
+                    <div className="absolute top-0 right-0 left-0 aspect-square pointer-events-none z-10 rounded-2xl overflow-hidden">
                         {/* Quick view overlay */}
                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <motion.button
@@ -118,29 +119,28 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                 </>
             )}
 
-            {/* Content — tighter padding */}
-            <div className="p-3 flex-1 flex flex-col relative z-2 pointer-events-none mb-3">
-                <div className="flex items-center justify-between mb-1">
-                    <span className="text-[9px] font-bold text-primary uppercase tracking-wider bg-primary/5 px-1.5 py-0.5 rounded-sm truncate max-w-[70%]">
-                        {product.category}
-                    </span>
-                    {product.location && (
-                        <div className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
-                            <MapPin className="w-2.5 h-2.5" />
-                            <span className="truncate max-w-[60px]">{product.location}</span>
-                        </div>
-                    )}
-                </div>
-
-                <h3 className="font-heading font-bold text-sm text-foreground mb-1.5 line-clamp-2 group-hover:text-primary transition-colors flex-1" title={product.title}>
+            {/* Content — completely transparent, close-knit text */}
+            <div className="pt-2 pb-1 flex-1 flex flex-col relative z-2 pointer-events-none bg-transparent">
+                <h3 className="font-heading font-medium text-[13px] md:text-sm text-foreground/90 leading-snug line-clamp-2 group-hover:text-primary transition-colors flex-1" title={product.title}>
                     {product.title}
                 </h3>
 
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/40">
-                    <span className="font-price font-bold text-base text-foreground">
+                <div className="flex items-end gap-1.5 mt-1.5">
+                    <span className="font-price font-bold text-sm md:text-base text-foreground">
                         ₦{formatPrice(product.price)}
                     </span>
-                    <div className="flex items-center gap-1">
+                    {product.originalPrice && (
+                        <span className="text-[10px] md:text-xs text-muted-foreground line-through font-medium mb-0.5">
+                            ₦{formatPrice(product.originalPrice)}
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground font-medium bg-secondary/50 px-1 py-0.5 rounded-sm">
+                            {product.category}
+                        </span>
                         <Tooltip content={`${product.recommendedCount} Recommended`}>
                             <div className="flex items-center gap-0.5 text-emerald-600 font-bold">
                                 <span className="text-[10px]">{product.recommendedCount}</span>

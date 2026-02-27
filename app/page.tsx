@@ -1,10 +1,6 @@
 import { Header } from "./components/header/Header";
 import { Hero } from "./components/home/Hero";
-import { FeatureHighlights } from "./components/home/FeatureHighlights";
-import { CategoryPreview } from "./components/home/CategoryPreview";
 import { ProductGrid } from "./components/home/ProductGrid";
-import { PromoBanner } from "./components/home/PromoBanner";
-import { FAQ } from "./components/sections/FAQ";
 import { Footer } from "./components/sections/Footer";
 
 export default function Home() {
@@ -14,15 +10,7 @@ export default function Home() {
 
       <div className="flex flex-col w-full">
         <Hero />
-        <FeatureHighlights />
-        <CategoryPreview />
         <ProductGrid />
-        <PromoBanner />
-
-        {/* Retaining these sections but ensuring they have spacing */}
-        <div className="py-12">
-          <FAQ />
-        </div>
       </div>
 
       <Footer />
