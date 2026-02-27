@@ -57,7 +57,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
         <div className="space-y-4">
             {/* Email Field */}
             <div className="space-y-2">
-                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
                     Email Address
                 </label>
                 <div className="relative group">
@@ -72,11 +72,11 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             if (errors.email) setErrors({ ...errors, email: "" });
                         }}
                         placeholder="jane.smith@gmail.com"
-                        className={`w-full bg-secondary/30 border-2 ${errors.email ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
+                        className={`w-full bg-secondary/30 border-2 ${errors.email ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
                     />
                 </div>
                 {errors.email ? (
-                    <p className="text-xs font-bold text-red-500 ml-2">{errors.email}</p>
+                    <p className="text-[10px] font-bold text-red-500 ml-2">{errors.email}</p>
                 ) : (
                     <p className="text-[10px] font-medium text-muted-foreground/60 ml-2 italic">
                         * Use your Gmail for verification
@@ -86,7 +86,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
 
             {/* Password Field */}
             <div className="space-y-2">
-                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
                     Create Password
                 </label>
                 <div className="relative group">
@@ -101,7 +101,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             if (errors.password) setErrors({ ...errors, password: "" });
                         }}
                         placeholder="Min. 8 characters"
-                        className={`w-full bg-secondary/30 border-2 ${errors.password ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-12 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
+                        className={`w-full bg-secondary/30 border-2 ${errors.password ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-12 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
                     />
                     <button
                         type="button"
@@ -125,20 +125,20 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             />
                         ))}
                     </div>
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tighter">
+                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-tighter">
                         <span className={strength <= 25 ? "text-red-500" : strength <= 50 ? "text-orange-500" : strength <= 75 ? "text-yellow-500" : "text-green-500"}>
                             {strength <= 25 ? "Weak" : strength <= 50 ? "Fair" : strength <= 75 ? "Strong" : "Very Strong"}
                         </span>
                         <span className="text-muted-foreground/40 italic">Strength indicator</span>
                     </div>
                 </div>
-                {errors.password && <p className="text-xs font-bold text-red-500 ml-2">{errors.password}</p>}
+                {errors.password && <p className="text-[10px] font-bold text-red-500 ml-2">{errors.password}</p>}
             </div>
 
             {/* Confirm Password Field */}
             <div className="space-y-4 pt-2">
                 <div className="space-y-2">
-                    <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
+                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
                         Confirm Password
                     </label>
                     <div className="relative group">
@@ -153,17 +153,17 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                                 if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
                             }}
                             placeholder="Repeat password"
-                            className={`w-full bg-secondary/30 border-2 ${errors.confirmPassword ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
+                            className={`w-full bg-secondary/30 border-2 ${errors.confirmPassword ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
                         />
                     </div>
-                    {errors.confirmPassword && <p className="text-xs font-bold text-red-500 ml-2">{errors.confirmPassword}</p>}
+                    {errors.confirmPassword && <p className="text-[10px] font-bold text-red-500 ml-2">{errors.confirmPassword}</p>}
                 </div>
             </div>
 
             <button
                 onClick={handleNext}
                 disabled={isLoading}
-                className="w-full bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
+                className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
             >
                 {isLoading ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
@@ -177,7 +177,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                 )}
             </button>
 
-            <p className="text-center text-sm font-medium text-muted-foreground">
+            <p className="text-center text-xs font-medium text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary font-bold hover:underline">
                     Log in

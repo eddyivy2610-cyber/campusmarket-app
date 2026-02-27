@@ -71,7 +71,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
             {/* Main Header Card - Approved Split Layout */}
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
                 className="bg-card border border-border/50 rounded-[24px] shadow-sm relative overflow-hidden flex flex-col"
             >
                 {/* TOP AREA: Profile Section with Cover Photo Background */}
@@ -273,9 +275,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                         {viewAs === 'private' ? (
                             <>
-                                <Link href="/manage-listings" className="flex-1 md:flex-none w-full md:w-auto">
+                                <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
                                     <button className="w-full flex items-center justify-center gap-2 bg-foreground text-background font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:opacity-90 active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
-                                        Manage Listings
+                                        Dashboard
                                     </button>
                                 </Link>
                             </>

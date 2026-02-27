@@ -23,10 +23,10 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { Profile } from "../../data/profiles";
-import { BadgeSystem } from "./BadgeSystem";
 import { ProfessionalListingsArea } from "./ProfessionalListingsArea";
 import { ProfessionalPerformanceArea } from "./ProfessionalPerformanceArea";
 import { IconTooltip } from "../common/IconTooltip";
+import { ProUpgradePrompt } from "../shared/ProUpgradePrompt";
 
 interface ProfessionalProfileTabsProps {
     profile: Profile;
@@ -188,12 +188,26 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     )}
 
                     {activeTab === "Listings" && (
-                        <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />
+                        !profile.verified ? (
+                            <ProUpgradePrompt
+                                title="Unlock Seller Listings"
+                                featureName="your seller listings"
+                                description="Upgrade to a Pro account to display your items to the Campus Market community."
+                            />
+                        ) : (
+                            <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />
+                        )
                     )}
 
                     {activeTab === "Performance" && (
                         <div className="space-y-8">
-                            {viewAs === "private" ? (
+                            {!profile.verified ? (
+                                <ProUpgradePrompt
+                                    title="Unlock Performance Data"
+                                    featureName="performance analytics"
+                                    description="Upgrade to a Pro account to view analytics and track your sales."
+                                />
+                            ) : viewAs === "private" ? (
                                 <ProfessionalPerformanceArea
                                     vendor={{
                                         activeListings: profile.activeListingsCount || 0,
@@ -213,53 +227,61 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     )}
 
                     {activeTab === "Reviews" && (
-                        <div className="space-y-6">
-                            {/* Condensed Single Textbox Review Input */}
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    placeholder="Leave a review..."
-                                    className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
-                                />
-                                <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1.5 bg-background rounded-xl px-2 border border-border/40">
-                                    <IconTooltip content="Recommend" position="top">
+                        !profile.verified ? (
+                            <ProUpgradePrompt
+                                title="Unlock Customer Reviews"
+                                featureName="customer reviews"
+                                description="Upgrade to a Pro account to receive and manage feedback."
+                            />
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Condensed Single Textbox Review Input */}
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Leave a review..."
+                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
+                                    />
+                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1.5 bg-background rounded-xl px-2 border border-border/40">
+                                        <IconTooltip content="Recommend" position="top">
+                                            <button
+                                                onClick={() => setIsRecommended(true)}
+                                                className={cn(
+                                                    "p-2 rounded-lg transition-all",
+                                                    isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
+                                                )}
+                                            >
+                                                <CheckCircle2 className="w-4 h-4" />
+                                            </button>
+                                        </IconTooltip>
+                                        <IconTooltip content="Do Not Recommend" position="top">
+                                            <button
+                                                onClick={() => setIsRecommended(false)}
+                                                className={cn(
+                                                    "p-2 rounded-lg transition-all",
+                                                    isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
+                                                )}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </IconTooltip>
                                         <button
-                                            onClick={() => setIsRecommended(true)}
-                                            className={cn(
-                                                "p-2 rounded-lg transition-all",
-                                                isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
-                                            )}
+                                            disabled={isRecommended === null || !comment.trim()}
+                                            className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
                                         >
-                                            <CheckCircle2 className="w-4 h-4" />
+                                            Go
                                         </button>
-                                    </IconTooltip>
-                                    <IconTooltip content="Do Not Recommend" position="top">
-                                        <button
-                                            onClick={() => setIsRecommended(false)}
-                                            className={cn(
-                                                "p-2 rounded-lg transition-all",
-                                                isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
-                                            )}
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </IconTooltip>
-                                    <button
-                                        disabled={isRecommended === null || !comment.trim()}
-                                        className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
-                                    >
-                                        Go
-                                    </button>
+                                    </div>
+                                </div>
+
+                                <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
+                                    <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
+                                    <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
                                 </div>
                             </div>
-
-                            <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
-                                <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
-                                <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
-                            </div>
-                        </div>
+                        )
                     )}
                 </motion.div>
             </AnimatePresence>

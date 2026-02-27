@@ -48,10 +48,11 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                             <motion.div
                                 key={listing.id}
                                 layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.2, delay: idx * 0.05 }}
+                                transition={{ duration: 0.4, delay: (idx % 8) * 0.05, ease: "easeOut" }}
                             >
                                 <ProductCard
                                     product={{

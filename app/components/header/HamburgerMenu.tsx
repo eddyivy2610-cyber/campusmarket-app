@@ -120,7 +120,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     {/* ── My Account ── */}
                     <Section label="My Account">
-                        <NavRow icon={Bell} label="Notifications" badge={notificationCount} onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={Bell} label="Alerts" badge={notificationCount} onClick={() => nav("/dashboard/alerts")} />
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
                         <NavRow icon={Store} label="Vendor / Seller Profile" accent onClick={() => nav("/profile/campus-market")} />
                     </Section>
@@ -169,10 +169,10 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     {/* ── Quick Links (mirrors footer, shown on mobile) ── */}
                     <Section label="Quick Links">
                         <NavRow icon={Globe} label="Marketplace" onClick={() => nav("/community")} />
-                        <NavRow icon={Info} label="About Us" onClick={() => nav("/coming-soon")} />
-                        <NavRow icon={ShieldCheck} label="Safety Guidelines" onClick={() => nav("/coming-soon")} />
-                        <NavRow icon={BookMarked} label="Seller Resources" onClick={() => nav("/coming-soon")} />
-                        <NavRow icon={HelpCircle} label="FAQs" onClick={() => nav("/coming-soon")} />
+                        <NavRow icon={Info} label="About Us" onClick={() => nav("/about-us")} />
+                        <NavRow icon={ShieldCheck} label="Safety Guidelines" onClick={() => nav("/safety-guidelines")} />
+                        <NavRow icon={BookMarked} label="Usage Policy" onClick={() => nav("/usage-policy")} />
+                        <NavRow icon={HelpCircle} label="Terms of Service" onClick={() => nav("/terms-of-service")} />
                     </Section>
 
                     {/* ── Community ── */}
@@ -193,11 +193,11 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 {/* ── Sticky Footer ── */}
                 <div className="shrink-0 p-3 border-t border-border bg-secondary/20">
                     <button
-                        onClick={() => nav("/coming-soon")}
+                        onClick={() => nav("/dashboard/info")}
                         className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        <Settings className="w-5 h-5" />
-                        <span className="font-medium text-sm">Settings</span>
+                        <Info className="w-5 h-5" />
+                        <span className="font-medium text-sm">Info</span>
                     </button>
                 </div>
             </div>

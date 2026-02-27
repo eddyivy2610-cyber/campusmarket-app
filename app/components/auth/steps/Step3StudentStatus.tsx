@@ -38,7 +38,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
         <div className="space-y-6">
             {/* Student Question */}
             <div className="space-y-4">
-                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
                     Are you a student?
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -57,8 +57,8 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                                 <GraduationCap className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className={`font-bold ${isStudent ? 'text-primary' : 'text-foreground'}`}>Yes, I'm a student</p>
-                                <p className="text-xs text-muted-foreground">Display student badge on profile</p>
+                                <p className={`font-bold text-sm ${isStudent ? 'text-primary' : 'text-foreground'}`}>Yes, I'm a student</p>
+                                <p className="text-[10px] text-muted-foreground">Display student badge on profile</p>
                             </div>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isStudent ? 'border-primary bg-primary' : 'border-border'}`}>
@@ -81,8 +81,8 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                                 <Briefcase className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className={`font-bold ${isNotStudent ? 'text-primary' : 'text-foreground'}`}>No, I'm not</p>
-                                <p className="text-xs text-muted-foreground">Register as an external user</p>
+                                <p className={`font-bold text-sm ${isNotStudent ? 'text-primary' : 'text-foreground'}`}>No, I'm not</p>
+                                <p className="text-[10px] text-muted-foreground">Register as an external user</p>
                             </div>
                         </div>
                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isNotStudent ? 'border-primary bg-primary' : 'border-border'}`}>
@@ -104,7 +104,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                     >
                         {isStudent && (
                             <div className="space-y-2">
-                                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
+                                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
                                     Department / Faculty
                                 </label>
                                 <div className="relative group">
@@ -119,15 +119,15 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                                             if (errors.department) setErrors({ ...errors, department: "" });
                                         }}
                                         placeholder="e.g. Computer Science"
-                                        className={`w-full bg-secondary/30 border-2 ${errors.department ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-4 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40`}
+                                        className={`w-full bg-secondary/30 border-2 ${errors.department ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-4 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
                                     />
                                 </div>
-                                {errors.department && <p className="text-xs font-bold text-red-500 ml-2">{errors.department}</p>}
+                                {errors.department && <p className="text-[10px] font-bold text-red-500 ml-2">{errors.department}</p>}
                             </div>
                         )}
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
+                            <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
                                 Short Bio <span className="text-muted-foreground/40 font-medium">(Optional)</span>
                             </label>
                             <div className="relative group">
@@ -139,7 +139,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                                     onChange={(e) => updateFormData({ bio: e.target.value })}
                                     placeholder="Tell us a bit about yourself..."
                                     rows={4}
-                                    className={`w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 resize-none text-sm`}
+                                    className={`w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 resize-none text-xs`}
                                 />
                             </div>
                             <p className="text-right text-[10px] font-medium text-muted-foreground/40 italic">
@@ -153,7 +153,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
             <div className="flex gap-4 mt-8 pt-4 border-t border-border/30">
                 <button
                     onClick={onBack}
-                    className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
+                    className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all items-center justify-center gap-2"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -161,7 +161,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                 <button
                     onClick={handleNext}
                     disabled={isLoading}
-                    className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                    className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                 >
                     {isLoading ? (
                         <Loader2 className="w-6 h-6 animate-spin" />

@@ -32,8 +32,8 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
     return (
         <div className="space-y-6 text-center">
             <div className="space-y-2">
-                <h2 className="text-2xl font-bold font-heading">Almost there!</h2>
-                <p className="text-muted-foreground">What do you want to use Campus Market for?</p>
+                <h2 className="text-xl font-bold font-heading">Almost there!</h2>
+                <p className="text-sm text-muted-foreground">What do you want to use Campus Market for?</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -50,7 +50,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         <ShoppingCart className="w-8 h-8" />
                     </div>
                     <div>
-                        <p className={`font-bold uppercase tracking-widest text-sm ${formData.platformIntent === 'buy' ? 'text-primary' : 'text-foreground'}`}>Buy</p>
+                        <p className={`font-bold uppercase tracking-widest text-xs ${formData.platformIntent === 'buy' ? 'text-primary' : 'text-foreground'}`}>Buy</p>
                         <p className="text-[10px] text-muted-foreground font-medium">Find great deals</p>
                     </div>
                 </button>
@@ -68,7 +68,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         <Store className="w-8 h-8" />
                     </div>
                     <div>
-                        <p className={`font-bold uppercase tracking-widest text-sm ${formData.platformIntent === 'sell' ? 'text-primary' : 'text-foreground'}`}>Sell</p>
+                        <p className={`font-bold uppercase tracking-widest text-xs ${formData.platformIntent === 'sell' ? 'text-primary' : 'text-foreground'}`}>Sell</p>
                         <p className="text-[10px] text-muted-foreground font-medium">Start selling</p>
                     </div>
                 </button>
@@ -92,17 +92,17 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                             {agreed && <CheckCircle2 className="w-3.5 h-3.5" />}
                         </div>
                     </div>
-                    <span className="text-xs text-muted-foreground text-left leading-relaxed">
+                    <span className="text-[10px] text-muted-foreground text-left leading-relaxed">
                         I agree to the <span className="text-primary font-bold hover:underline">Privacy Policy</span> and <span className="text-primary font-bold hover:underline">Terms of Service</span>.
                     </span>
                 </label>
-                {error && <p className="text-xs font-bold text-red-500 animate-pulse">{error}</p>}
+                {error && <p className="text-[10px] font-bold text-red-500 animate-pulse">{error}</p>}
             </div>
 
             {isLoading && (
                 <div className="flex flex-col items-center gap-2 py-4">
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-xs font-bold text-primary animate-pulse italic uppercase tracking-widest">
+                    <p className="text-[10px] font-bold text-primary animate-pulse italic uppercase tracking-widest">
                         {formData.platformIntent === 'sell' ? "Redirecting to Seller verification..." : "Creating your buyer profile..."}
                     </p>
                 </div>
@@ -112,7 +112,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                 <button
                     onClick={onBack}
                     disabled={isLoading}
-                    className="hidden md:flex text-sm font-bold text-muted-foreground hover:text-primary transition-colors items-center gap-2 mx-auto py-2"
+                    className="hidden md:flex text-xs font-bold text-muted-foreground hover:text-primary transition-colors items-center gap-2 mx-auto py-2"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to step 3

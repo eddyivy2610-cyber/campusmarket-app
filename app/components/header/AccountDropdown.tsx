@@ -57,10 +57,6 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <Heart className="w-4 h-4" />
                     <span>Saved Items</span>
                 </Link>
-                <Link href="/settings" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
-                    <Settings className="w-4 h-4" />
-                    <span>Settings</span>
-                </Link>
             </div>
 
             {/* Actions */}

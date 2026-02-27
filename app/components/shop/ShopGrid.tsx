@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ProductCard } from "./ProductCard";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Product, CATEGORIES } from "../../data/products";
+import { motion, Variants } from "framer-motion";
 
 /* ─── Types ─────────────────────────────────────── */
 interface ShopGridProps {
@@ -102,6 +103,19 @@ export function ShopGrid({
     // Local price state for mobile pill
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
+
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+        }
+    };
+
+    const itemVariants: Variants = {
+        hidden: { opacity: 0, scale: 0.95, y: 20 },
+        visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+    };
 
 
     const toggleCategory = (cat: string) => {
@@ -222,16 +236,24 @@ export function ShopGrid({
             </div>
 
             {/* ── Products Grid ── */}
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
+                className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
+            >
                 {products.map((product) => (
-                    <ProductCard key={product.id} product={product} viewAs={viewAs} />
+                    <motion.div variants={itemVariants} key={product.id}>
+                        <ProductCard product={product} viewAs={viewAs} />
+                    </motion.div>
                 ))}
                 {products.length === 0 && (
                     <div className="col-span-full py-16 text-center">
                         <p className="text-muted-foreground italic">No products found matching your filters.</p>
                     </div>
                 )}
-            </div>
+            </motion.div>
 
             {/* ── Pagination ── */}
             <div className="flex items-center justify-center gap-1.5 mt-10">

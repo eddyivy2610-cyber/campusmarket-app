@@ -21,7 +21,7 @@ export function DiscoverProfiles() {
     return (
         <section id="discover" className="py-8">
             <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold">Discover More Profiles</h2>
+                <h2 className="text-2xl font-extrabold font-heading">Discover More Profiles</h2>
                 <button className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
                     <RefreshCw className="w-4 h-4" />
                     <span className="hidden sm:inline">Refresh</span>
@@ -29,43 +29,39 @@ export function DiscoverProfiles() {
             </div>
 
             {/* 3×3 grid — 1 col on mobile, 2 on sm, 3 on md+ */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {DISCOVER_PROFILES.map((profile) => (
                     <div
                         key={profile.id}
-                        className="bg-card border border-border/40 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col"
+                        className="bg-card border border-border/40 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex gap-3 p-3 relative"
                     >
-                        {/* Colour header */}
-                        <div className={`h-24 ${profile.color} w-full`} />
+                        {/* Avatar */}
+                        <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border/50 bg-secondary flex items-center justify-center text-lg font-bold">
+                            {profile.name.charAt(0)}
+                        </div>
 
-                        {/* Body */}
-                        <div className="px-6 pb-6 pt-0 flex-1 flex flex-col items-center -mt-10">
-                            {/* Avatar */}
-                            <div className="w-20 h-20 rounded-full border-4 border-card bg-secondary flex items-center justify-center text-xl font-bold mb-3 shadow-sm z-10">
-                                {profile.name.charAt(0)}
-                            </div>
-
-                            <h3 className="font-bold text-center text-lg leading-tight mb-1">
+                        {/* Info */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                            <h3 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors pr-6">
                                 {profile.name}
                             </h3>
-
-                            <p className="text-xs text-muted-foreground text-center mb-3 line-clamp-2 h-8">
+                            <p className="text-xs text-muted-foreground truncate mb-1">
                                 {profile.category}
                             </p>
 
-                            {/* Recommendation Rate */}
-                            <div className="flex items-center gap-1.5 mb-6 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                                <span className="text-[10px] font-bold uppercase tracking-widest">
-                                    {Math.round((profile.recommendedCount / (profile.recommendedCount + profile.notRecommendedCount || 1)) * 100)}% Match
+                            <div className="flex items-center gap-1 mt-auto">
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                <span className="text-[10px] font-bold text-muted-foreground">
+                                    {(profile.recommendedCount / (profile.recommendedCount + profile.notRecommendedCount || 1) * 100).toFixed(0)}% Recommended
                                 </span>
                             </div>
+                        </div>
 
+                        {/* View Action overlay (hidden until hover) */}
+                        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                             <Link
                                 href={`/profile/${profile.id}`}
-                                className="mt-auto w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2.5 rounded-full transition-colors text-sm text-center"
+                                className="bg-primary text-primary-foreground font-bold px-4 py-1.5 rounded-full text-xs pointer-events-auto transform translate-y-2 group-hover:translate-y-0 transition-all shadow-sm"
                             >
                                 View Profile
                             </Link>
@@ -74,8 +70,8 @@ export function DiscoverProfiles() {
                 ))}
             </div>
 
-            <div className="mt-12 flex justify-center">
-                <button className="px-8 py-3 rounded-full border border-border/40 font-bold text-sm hover:bg-secondary transition-colors">
+            <div className="mt-8 flex justify-center">
+                <button className="px-6 py-2.5 rounded-full border border-border/40 font-bold text-xs hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
                     Load More Profiles
                 </button>
             </div>

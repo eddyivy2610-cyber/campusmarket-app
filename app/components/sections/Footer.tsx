@@ -28,6 +28,37 @@ export function Footer() {
                             <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></Link>
                             <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></Link>
                         </div>
+
+                        {/* Team Avatars */}
+                        <div className="pt-6 mt-4 border-t border-border/50">
+                            <p className="text-xs font-bold uppercase tracking-widest text-foreground/80 mb-3">Our Core Team</p>
+                            <div className="flex items-center">
+                                {[
+                                    { id: 1, name: "Sarah J.", role: "Lead Developer", initials: "SJ", color: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400" },
+                                    { id: 2, name: "David M.", role: "UI/UX Designer", initials: "DM", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400" },
+                                    { id: 3, name: "Alex K.", role: "System Admin", initials: "AK", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" },
+                                ].map((member) => (
+                                    <button
+                                        key={member.id}
+                                        className="group relative w-10 h-10 rounded-full ring-2 ring-secondary bg-background shadow-sm hover:z-10 hover:scale-110 focus:z-10 focus:scale-110 transition-all duration-300 -ml-3 flex items-center justify-center cursor-pointer first:ml-0"
+                                    >
+                                        <div className={`w-full h-full rounded-full flex items-center justify-center font-bold text-xs ${member.color}`}>
+                                            {member.initials}
+                                        </div>
+
+                                        {/* Tooltip */}
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-200 pointer-events-none w-max z-20 translate-y-2 group-hover:translate-y-0 group-focus:translate-y-0">
+                                            <div className="bg-foreground text-background text-xs px-3 py-2 rounded-lg shadow-xl flex flex-col items-center">
+                                                <span className="font-bold whitespace-nowrap">{member.name}</span>
+                                                <span className="text-[10px] text-background/80 whitespace-nowrap mt-0.5">{member.role}</span>
+                                                {/* Tooltip arrow */}
+                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-foreground"></div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Link groups — hidden on mobile (accessible via hamburger), shown on sm+ */}
@@ -41,7 +72,7 @@ export function Footer() {
                                     { label: "Home", href: "/" },
                                     { label: "Community", href: "/community" },
                                     { label: "Events", href: "#" },
-                                    { label: "About Us", href: "#" },
+                                    { label: "About Us", href: "/about-us" },
                                     { label: "Contact Support", href: "#" },
                                 ].map(l => (
                                     <Link key={l.label} href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
@@ -55,8 +86,11 @@ export function Footer() {
                             <div className="flex flex-col gap-2">
                                 <Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help Center</Link>
                                 <Link href="/feedback" className="text-sm text-muted-foreground hover:text-primary transition-colors">Feedback</Link>
-                                {["Safety Guidelines", "Community Rules", "FAQs"].map(l => (
-                                    <Link key={l} href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">{l}</Link>
+                                {[
+                                    { label: "Safety Guidelines", href: "/safety-guidelines" },
+                                    { label: "Community Rules", href: "/community-rules" },
+                                ].map(link => (
+                                    <Link key={link.label} href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{link.label}</Link>
                                 ))}
                             </div>
                         </div>
@@ -100,9 +134,8 @@ export function Footer() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
                     <p>© 2025 CampusMarket. All rights reserved.</p>
                     <div className="flex gap-6">
-                        <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
-                        <Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link>
-                        <Link href="#" className="hover:text-primary transition-colors">Cookie Policy</Link>
+                        <Link href="/usage-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+                        <Link href="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
                     </div>
                 </div>
             </div>

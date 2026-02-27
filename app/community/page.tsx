@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function CommunityPage() {
     return (
-        <div className="space-y-8 pb-12">
+        <div className="space-y-8 pb-12 w-full">
             {/* Back to Home */}
             <div>
                 <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-bold text-sm w-fit group">

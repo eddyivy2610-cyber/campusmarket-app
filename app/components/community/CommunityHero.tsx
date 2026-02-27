@@ -3,31 +3,36 @@
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export function CommunityHero() {
     return (
-        <section className="relative w-full h-[290px] md:h-[400px] rounded-3xl overflow-hidden bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border border-border shadow-2xl">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-20">
-                <div className="absolute inset-0" style={{
-                    backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                    backgroundSize: '40px 40px',
-                }}></div>
-            </div>
+        <section className="relative w-full h-[200px] md:h-[260px] rounded-3xl overflow-hidden bg-gray-900 border border-border flex items-center shadow-lg">
+            {/* Background Image */}
+            <Image
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000"
+                alt="Community Background"
+                fill
+                priority
+                className="object-cover opacity-50"
+            />
+
+            {/* Dark Overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-900/60 to-transparent"></div>
 
             {/* Content */}
-            <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-16 max-w-4xl">
+            <div className="relative z-10 w-full flex flex-col justify-center px-6 md:px-12 max-w-4xl">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
 
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
+                    <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold font-heading text-white mb-3 tracking-tight leading-tight">
                         Campus Market Community
                     </h1>
 
-                    <p className="text-lg text-white/70 mb-8 max-w-xl leading-relaxed">
+                    <p className="text-sm md:text-base text-white/80 max-w-xl leading-relaxed font-medium">
                         Discover the most popular products and sellers that are making waves in our community marketplace.
                     </p>
                 </motion.div>

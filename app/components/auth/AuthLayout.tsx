@@ -138,11 +138,11 @@ export function AuthLayout({
                         {(title || subtitle) && (
                             <div className="mb-6 text-center md:text-left">
                                 {title && (
-                                    <h1 className="text-3xl font-bold font-heading tracking-tight mb-2 leading-tight">
+                                    <h1 className="text-2xl font-bold font-heading tracking-tight mb-2 leading-tight">
                                         {title}
                                     </h1>
                                 )}
-                                {subtitle && <p className="text-muted-foreground text-sm leading-relaxed">{subtitle}</p>}
+                                {subtitle && <p className="text-muted-foreground text-xs leading-relaxed">{subtitle}</p>}
                             </div>
                         )}
 

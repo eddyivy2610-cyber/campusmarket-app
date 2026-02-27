@@ -30,7 +30,7 @@ function ProfileList({ title, profiles }: { title: string; profiles: ProfileItem
     return (
         <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-lg">{title}</h3>
+                <h3 className="font-bold font-heading text-lg">{title}</h3>
                 <Link href="#" className="text-xs font-semibold text-primary hover:underline">
                     View All
                 </Link>
@@ -63,7 +63,7 @@ function ProfileList({ title, profiles }: { title: string; profiles: ProfileItem
 export function FeaturedProfiles() {
     return (
         <section className="py-8">
-            <h2 className="text-2xl font-bold mb-8">Featured Marketplace Profiles</h2>
+            <h2 className="text-2xl font-extrabold font-heading mb-8">Featured Marketplace Profiles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <ProfileList title="Popular Profiles" profiles={POPULAR_PROFILES} />
                 <ProfileList title="New Profiles" profiles={NEW_PROFILES} />
