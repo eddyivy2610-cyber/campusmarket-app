@@ -188,7 +188,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     )}
 
                     {activeTab === "Listings" && (
-                        !profile.verified ? (
+                        !profile.isVerified ? (
                             <ProUpgradePrompt
                                 title="Unlock Seller Listings"
                                 featureName="your seller listings"
@@ -201,7 +201,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
                     {activeTab === "Performance" && (
                         <div className="space-y-8">
-                            {!profile.verified ? (
+                            {!profile.isVerified ? (
                                 <ProUpgradePrompt
                                     title="Unlock Performance Data"
                                     featureName="performance analytics"
@@ -227,7 +227,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     )}
 
                     {activeTab === "Reviews" && (
-                        !profile.verified ? (
+                        !profile.isVerified ? (
                             <ProUpgradePrompt
                                 title="Unlock Customer Reviews"
                                 featureName="customer reviews"
