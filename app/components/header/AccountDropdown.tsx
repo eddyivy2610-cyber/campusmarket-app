@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    Heart, Sun, Moon, Settings, User
+    Heart, Sun, Moon, Settings, User, MessageSquare
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import Link from "next/link";
@@ -53,9 +53,13 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <User className="w-4 h-4" />
                     <span>My Profile</span>
                 </Link>
-                <Link href="/saved" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
-                    <Heart className="w-4 h-4" />
-                    <span>Saved Items</span>
+                <Link href="/messages" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Messages</span>
+                </Link>
+                <Link href="/settings" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                    <Settings className="w-4 h-4" />
+                    <span>Settings</span>
                 </Link>
             </div>
 

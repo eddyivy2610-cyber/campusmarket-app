@@ -70,7 +70,7 @@ export function Footer() {
                             <div className="flex flex-col gap-2">
                                 {[
                                     { label: "Home", href: "/" },
-                                    { label: "Community", href: "/community" },
+                                    { label: "Marketplace", href: "/listings" },
                                     { label: "Events", href: "#" },
                                     { label: "About Us", href: "/about-us" },
                                     { label: "Contact Support", href: "#" },

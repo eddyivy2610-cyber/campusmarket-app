@@ -1,3 +1,15 @@
+/**
+ * @BACKEND: MOCK DATA — Hardcoded notifications for UI prototyping.
+ *
+ * Replace with:
+ *   - GET /api/notifications         → fetch user's notifications (paginated)
+ *   - PUT /api/notifications/:id/read → mark a notification as read
+ *   - PUT /api/notifications/read-all → mark all as read
+ *   - WebSocket / SSE channel         → real-time push notifications
+ *
+ * The Notification interface below can be reused as the API response type.
+ * Timestamps should come from the server (ISO 8601) and be formatted client-side.
+ */
 
 import { Package, MessageSquare, Sparkles, Heart, CreditCard, Truck, RefreshCw, AlertTriangle, ShieldCheck } from "lucide-react";
 

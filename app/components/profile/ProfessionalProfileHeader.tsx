@@ -1,3 +1,12 @@
+/**
+ * @BACKEND: PROFILE HEADER — Avatar and cover photo uploads are client-side only (preview via URL.createObjectURL).
+ *
+ * Replace with:
+ *   - POST /api/users/me/avatar  → upload avatar image to file storage, update user record
+ *   - POST /api/users/me/cover   → upload cover photo to file storage, update user record
+ *   - Profile data (name, rating, stats) should come from GET /api/users/:id
+ */
+
 "use client";
 
 import React from "react";
@@ -111,39 +120,19 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                         {/* Column 1: Trust Signals (Hidden on mobile as they merge into Column 3) */}
                         <div className="hidden md:flex flex-col items-center md:items-start gap-4">
-                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-4 flex items-center gap-8 shadow-2xl transition-all hover:bg-white/10">
-                                <div className="text-center group cursor-help">
-                                    <IconTooltip content="Positive Feedback">
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-400/10 border border-emerald-400/20 mb-1.5 transition-colors group-hover:bg-emerald-400/20">
-                                            <ThumbsUp className="w-4 h-4 text-emerald-300" />
-                                        </div>
-                                    </IconTooltip>
-                                    <p className="text-[9px] font-medium text-emerald-400/80 mb-0.5">Positive</p>
-                                    <p className="text-lg font-semibold text-white">{profile.recommendedCount}</p>
-                                </div>
-                                <div className="text-center group cursor-help">
-                                    <IconTooltip content="Negative Feedback">
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-rose-400/10 border border-rose-400/20 mb-1.5 transition-colors group-hover:bg-rose-400/20">
-                                            <ThumbsDown className="w-4 h-4 text-rose-300" />
-                                        </div>
-                                    </IconTooltip>
-                                    <p className="text-[9px] font-medium text-rose-400/80 mb-0.5">Negative</p>
-                                    <p className="text-lg font-semibold text-white">{profile.notRecommendedCount}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center md:items-start gap-1 ml-1">
+                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-2xl transition-all hover:bg-white/10">
                                 <div className="flex items-center gap-0.5">
                                     {[1, 2, 3, 4, 5].map((s) => (
                                         <Star
                                             key={s}
-                                            className={`w-4 h-4 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                            className={`w-5 h-5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
                                         />
                                     ))}
                                 </div>
-                                <span className="text-[10px] font-medium text-white/50">
-                                    Rating: <span className="text-white font-semibold">{profile.rating}/5.0</span>
-                                </span>
+                                <div className="text-center">
+                                    <p className="text-xl font-bold text-white">{profile.rating}<span className="text-sm text-white/50">/5.0</span></p>
+                                    <p className="text-[9px] font-medium text-white/40 mt-0.5">{profile.recommendedCount + profile.notRecommendedCount} Total Reviews</p>
+                                </div>
                             </div>
                         </div>
 
@@ -220,26 +209,18 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         <div className="flex justify-center md:justify-end md:gap-10 w-full md:w-auto">
                             {/* Combined Mobile Stats / Desktop Activity Stats */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
-                                {/* Positive/Negative - Combined on Mobile, separate on Desktop Column 1 */}
-                                <div className="flex items-center gap-4 md:hidden">
-                                    <div className="text-center">
-                                        <IconTooltip content="Positive Feedback">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-400/10 border border-emerald-400/20 mb-1">
-                                                <ThumbsUp className="w-3.5 h-3.5 text-emerald-300" />
-                                            </div>
-                                        </IconTooltip>
-                                        <p className="text-[8px] font-medium text-emerald-400/80">Positive</p>
-                                        <p className="text-sm font-semibold text-white">{profile.recommendedCount}</p>
+                                {/* Star Rating - Mobile Only */}
+                                <div className="flex flex-col items-center gap-1 md:hidden">
+                                    <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-3.5 h-3.5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                            />
+                                        ))}
                                     </div>
-                                    <div className="text-center">
-                                        <IconTooltip content="Negative Feedback">
-                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-rose-400/10 border border-rose-400/20 mb-1">
-                                                <ThumbsDown className="w-3.5 h-3.5 text-rose-300" />
-                                            </div>
-                                        </IconTooltip>
-                                        <p className="text-[8px] font-medium text-rose-400/80">Negative</p>
-                                        <p className="text-sm font-semibold text-white">{profile.notRecommendedCount}</p>
-                                    </div>
+                                    <p className="text-sm font-bold text-white">{profile.rating}<span className="text-[10px] text-white/50">/5</span></p>
+                                    <p className="text-[8px] font-medium text-white/40">{profile.recommendedCount + profile.notRecommendedCount} reviews</p>
                                 </div>
 
                                 <div className="w-px h-8 bg-white/10 md:hidden" />

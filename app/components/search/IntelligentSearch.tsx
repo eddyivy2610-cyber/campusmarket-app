@@ -1,3 +1,13 @@
+/**
+ * @BACKEND: SEARCH — Currently filters local mock data arrays (PRODUCTS, PROFILES) client-side.
+ *
+ * Replace with:
+ *   - GET /api/search?q=<query>&type=products|profiles → full-text search API
+ *   - Support pagination, category filters, and sorting
+ *   - Recent searches should be stored per-user on the backend
+ *   - Trending searches can be fetched from GET /api/search/trending
+ */
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -84,7 +94,7 @@ export function IntelligentSearch() {
     };
 
     return (
-        <div ref={wrapperRef} className="relative w-full hidden md:block group z-50">
+        <div ref={wrapperRef} className="relative w-full max-w-xl mx-auto hidden md:block group z-50">
             {/* Search Input */}
             <form
                 onSubmit={handleSearchSubmit}
@@ -93,10 +103,6 @@ export function IntelligentSearch() {
                 border border-transparent
                 ${isOpen ? 'bg-background ring-2 ring-primary/10 border-primary/20 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-background focus-within:border-primary/20'}
             `}>
-                <div className="pl-5 pr-3 text-muted-foreground">
-                    <Search className="w-5 h-5" />
-                </div>
-
                 <input
                     ref={inputRef}
                     type="text"
@@ -104,7 +110,7 @@ export function IntelligentSearch() {
                     onChange={handleSearch}
                     onFocus={() => setIsOpen(true)}
                     placeholder="Search for products, brands and more..."
-                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-muted-foreground/70 text-foreground font-heading w-full"
+                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-muted-foreground/70 text-foreground font-heading w-full pl-5"
                 />
 
                 {query && (

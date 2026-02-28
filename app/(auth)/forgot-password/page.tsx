@@ -1,3 +1,14 @@
+/**
+ * @BACKEND: FORGOT PASSWORD PAGE — Multi-step password reset flow, all API calls are simulated.
+ *
+ * Replace with:
+ *   - POST /api/auth/forgot-password    → send password reset email/OTP
+ *   - POST /api/auth/verify-otp         → verify the OTP code
+ *   - POST /api/auth/reset-password     → set the new password
+ *
+ * Server should handle rate limiting on OTP sends and expiry on reset tokens.
+ */
+
 "use client";
 
 import React, { useState } from "react";
@@ -27,7 +38,7 @@ export default function ForgotPasswordPage() {
             return;
         }
         setIsLoading(true);
-        // Simulate API call
+        /* @BACKEND: Replace with POST /api/auth/forgot-password — send { email } */
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsLoading(false);
         setStep("verify");
@@ -41,7 +52,7 @@ export default function ForgotPasswordPage() {
             return;
         }
         setIsLoading(true);
-        // Simulate API call
+        /* @BACKEND: Replace with POST /api/auth/verify-otp — send { email, otp } */
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsLoading(false);
         setStep("reset");
@@ -59,7 +70,7 @@ export default function ForgotPasswordPage() {
             return;
         }
         setIsLoading(true);
-        // Simulate API call
+        /* @BACKEND: Replace with POST /api/auth/reset-password — send { email, otp, newPassword } */
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsLoading(false);
         setStep("success");

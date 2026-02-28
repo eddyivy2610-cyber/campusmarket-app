@@ -1,3 +1,14 @@
+/**
+ * @BACKEND: REGISTRATION PAGE — Multi-step user registration form, currently client-side only.
+ *
+ * Replace with:
+ *   - POST /api/auth/register  → create new user account with all form data
+ *   - POST /api/auth/verify-email → email verification step
+ *   - Upload profile image to file storage (S3/Cloudinary)
+ *   - Handle validation errors from the server (duplicate email, weak password, etc.)
+ *   - Auto-login after successful registration or redirect to login
+ */
+
 "use client";
 
 import React, { useState } from "react";
@@ -8,7 +19,6 @@ import { Step3StudentStatus } from "@/components/auth/steps/Step3StudentStatus";
 import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({

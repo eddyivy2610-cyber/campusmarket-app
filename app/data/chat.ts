@@ -1,3 +1,18 @@
+/**
+ * @BACKEND: MOCK DATA — Hardcoded chat conversations, participants, and messages for prototyping.
+ *
+ * Replace with:
+ *   - GET /api/conversations                → fetch user's conversation list
+ *   - GET /api/conversations/:id/messages   → fetch messages for a conversation (paginated)
+ *   - POST /api/conversations/:id/messages  → send a new message
+ *   - POST /api/conversations               → start a new conversation with a seller
+ *   - WebSocket channel                     → real-time message delivery and typing indicators
+ *   - PUT /api/conversations/:id/read       → mark conversation as read
+ *
+ * Negotiation records should be managed server-side with proper state transitions.
+ * The interfaces below can be reused as API response types.
+ */
+
 // ── Types ──────────────────────────────────────────────────────────────────
 export interface ChatParticipant {
     id: string;

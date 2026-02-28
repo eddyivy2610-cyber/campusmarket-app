@@ -1,3 +1,8 @@
+/**
+ * @BACKEND: SETTINGS LAYOUT — Settings sections that need backend integration are marked below.
+ * Removed sections (Security, Payments, Blocked Users, Privacy) can be re-added once backend supports them.
+ */
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -17,21 +22,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { AccountSettings } from "./sections/AccountSettings";
 import { ProfileSettings } from "./sections/ProfileSettings";
-import { PrivacySettings } from "./sections/PrivacySettings";
 import { NotificationSettings } from "./sections/NotificationSettings";
-import { SecuritySettings } from "./sections/SecuritySettings";
-import { PaymentSettings } from "./sections/PaymentSettings";
-import { BlockedUsers } from "./sections/BlockedUsers";
 import { HelpSettings } from "./sections/HelpSettings";
 
 type SettingsSection =
     | "account"
     | "profile"
-    | "privacy"
     | "notifications"
-    | "security"
-    | "payments"
-    | "blocked"
     | "help";
 
 interface NavItem {
@@ -42,11 +39,7 @@ interface NavItem {
 const NAV_ITEMS: (NavItem & { icon: any })[] = [
     { id: "account", label: "Personal Information", icon: Settings },
     { id: "profile", label: "Public Profile", icon: Edit3 },
-    { id: "security", label: "Account Security", icon: Settings },
-    { id: "privacy", label: "Privacy Settings", icon: Settings },
     { id: "notifications", label: "Preferences", icon: Settings },
-    { id: "payments", label: "Payments", icon: Settings },
-    { id: "blocked", label: "Blocked Users", icon: Settings },
     { id: "help", label: "Help & Support", icon: Settings },
 ];
 
@@ -161,6 +154,7 @@ export function SettingsLayout() {
                                     <div className="px-6 py-4 flex items-center gap-6">
                                         <div className="relative group">
                                             <div className="w-24 h-24 rounded-full border-2 border-background shadow-xl overflow-hidden">
+                                                {/* @BACKEND: Replace with authenticated user's avatar from GET /api/users/me */}
                                                 <img
                                                     src="https://api.dicebear.com/7.x/avataaars/svg?seed=Charlotte"
                                                     alt="User"
@@ -173,6 +167,7 @@ export function SettingsLayout() {
                                         </div>
                                         <div className="flex-1 space-y-3">
                                             <div>
+                                                {/* @BACKEND: Replace with authenticated user's name and email */}
                                                 <h3 className="text-2xl font-bold">Lucky John</h3>
                                                 <p className="text-sm text-muted-foreground font-medium">lucky@john.com</p>
                                             </div>
@@ -206,6 +201,7 @@ export function SettingsLayout() {
                                         </div>
 
                                         <div className="mt-8 px-4 pb-12">
+                                            {/* @BACKEND: Wire up to POST /api/auth/logout — clear session/JWT */}
                                             <button className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-500 font-bold hover:bg-red-50 active:bg-red-100 transition-colors">
                                                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                                                     <X className="w-5 h-5" />
@@ -221,11 +217,7 @@ export function SettingsLayout() {
                                 <div className={cn(isMobile ? "px-6 py-6" : "")}>
                                     {activeSection === "account" && <AccountSettings />}
                                     {activeSection === "profile" && <ProfileSettings />}
-                                    {activeSection === "privacy" && <PrivacySettings />}
                                     {activeSection === "notifications" && <NotificationSettings />}
-                                    {activeSection === "security" && <SecuritySettings />}
-                                    {activeSection === "payments" && <PaymentSettings />}
-                                    {activeSection === "blocked" && <BlockedUsers />}
                                     {activeSection === "help" && <HelpSettings />}
                                 </div>
                             )}

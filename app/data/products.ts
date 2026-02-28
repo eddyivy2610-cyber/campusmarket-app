@@ -1,3 +1,19 @@
+/**
+ * @BACKEND: MOCK DATA — This entire file contains hardcoded product data used for prototyping.
+ *
+ * Replace with:
+ *   - GET /api/products            → fetch all products (with pagination, filters, sorting)
+ *   - GET /api/products/:id        → fetch single product by ID
+ *   - POST /api/products           → create new product listing
+ *   - PUT /api/products/:id        → update an existing product
+ *   - DELETE /api/products/:id     → delete a product listing
+ *   - GET /api/products/:id/reviews → fetch reviews for a product
+ *   - POST /api/products/:id/reviews → submit a review
+ *
+ * The Product and Review interfaces below can be reused as response types.
+ * Image URLs should come from a file storage service (e.g. S3, Cloudinary).
+ */
+
 export interface Review {
     id: string;
     userName: string;

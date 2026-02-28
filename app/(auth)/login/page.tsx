@@ -1,3 +1,13 @@
+/**
+ * @BACKEND: LOGIN PAGE — Currently simulates authentication with a setTimeout.
+ *
+ * Replace with:
+ *   - POST /api/auth/login  → authenticate user with email + password
+ *   - Store JWT/session token on success
+ *   - Handle error responses (invalid credentials, account locked, etc.)
+ *   - Redirect based on user role (buyer → home, seller → dashboard)
+ */
+
 "use client";
 
 import React, { useState } from "react";
@@ -21,7 +31,7 @@ export default function LoginPage() {
         }
 
         setIsLoading(true);
-        // Mimic backend login
+        /* @BACKEND: Replace with POST /api/auth/login — send { email, password }, receive JWT token */
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsLoading(false);
         router.push("/");

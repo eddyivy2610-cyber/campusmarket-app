@@ -168,18 +168,14 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     {/* ── Quick Links (mirrors footer, shown on mobile) ── */}
                     <Section label="Quick Links">
-                        <NavRow icon={Globe} label="Marketplace" onClick={() => nav("/community")} />
+                        <NavRow icon={Globe} label="Marketplace" onClick={() => nav("/listings")} />
                         <NavRow icon={Info} label="About Us" onClick={() => nav("/about-us")} />
                         <NavRow icon={ShieldCheck} label="Safety Guidelines" onClick={() => nav("/safety-guidelines")} />
                         <NavRow icon={BookMarked} label="Usage Policy" onClick={() => nav("/usage-policy")} />
                         <NavRow icon={HelpCircle} label="Terms of Service" onClick={() => nav("/terms-of-service")} />
                     </Section>
 
-                    {/* ── Community ── */}
-                    <Section label="Community">
-                        <NavRow icon={MessageSquare} label="Community Hub" onClick={() => nav("/community")} />
-                        <NavRow icon={Users2} label="Teams" onClick={() => nav("/coming-soon")} />
-                    </Section>
+
 
                     {/* ── Support & Info ── */}
                     <Section label="Support">

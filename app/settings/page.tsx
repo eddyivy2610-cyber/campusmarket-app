@@ -1,3 +1,13 @@
+/**
+ * @BACKEND: SETTINGS PAGE — Form inputs are UI-only, no data is persisted.
+ *
+ * Replace with:
+ *   - GET /api/users/me/settings   → pre-fill forms with current user settings
+ *   - PUT /api/users/me/settings   → save updated settings (notifications, privacy, etc.)
+ *   - PUT /api/users/me            → update profile details (name, bio, social links)
+ *   - DELETE /api/users/me         → account deletion
+ */
+
 "use client";
 
 import React from "react";

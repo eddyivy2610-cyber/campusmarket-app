@@ -1,3 +1,15 @@
+/**
+ * @BACKEND: SAVED ITEMS CONTEXT — Currently uses localStorage for persistence.
+ *
+ * Replace with:
+ *   - GET /api/users/me/saved        → fetch user's saved items on login
+ *   - POST /api/users/me/saved/:id   → save an item
+ *   - DELETE /api/users/me/saved/:id → unsave an item
+ *
+ * After backend integration, remove localStorage logic and sync state with the API.
+ * Consider optimistic updates: update UI immediately, then sync with server.
+ */
+
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
@@ -28,7 +40,7 @@ const SavedContext = createContext<SavedContextType | undefined>(undefined);
 export function SavedProvider({ children }: { children: ReactNode }) {
     const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
 
-    // Load from local storage on mount
+    /* @BACKEND: Replace localStorage with API call — GET /api/users/me/saved on mount */
     useEffect(() => {
         const stored = localStorage.getItem("saved_items");
         if (stored) {
@@ -40,7 +52,7 @@ export function SavedProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    // Save to local storage whenever savedItems changes
+    /* @BACKEND: Replace localStorage with API sync — POST/DELETE on change */
     useEffect(() => {
         localStorage.setItem("saved_items", JSON.stringify(savedItems));
     }, [savedItems]);

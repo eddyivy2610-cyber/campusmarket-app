@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pathname = usePathname();
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-hidden text-foreground font-heading">
+        <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             {/* Global Header */}
             <MainHeader />
 
@@ -77,8 +77,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </nav>
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-                    <div className="bg-card border border-border/50 rounded-2xl p-4 md:p-6 shadow-sm min-h-[calc(100vh-8rem)]">
+                <main className="flex-1 min-h-0 overflow-y-auto pb-20 md:pb-0">
+                    <div className="bg-card border border-border/50 rounded-2xl p-4 md:p-6 shadow-sm min-h-full">
                         {children}
                     </div>
                 </main>

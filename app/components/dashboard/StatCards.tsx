@@ -1,7 +1,16 @@
+/**
+ * @BACKEND: DASHBOARD STAT CARDS — All values below are hardcoded mock data.
+ *
+ * Replace with:
+ *   - GET /api/dashboard/stats → fetch real-time metrics (customers, offers, interactions, sales)
+ *   - Values, change percentages, and trends should all come from the server.
+ */
+
 "use client";
 
 import { Users, Tag, MousePointerClick, CheckCircle, TrendingUp, TrendingDown } from "lucide-react";
 
+/* @BACKEND: Replace this hardcoded array with data from GET /api/dashboard/stats */
 const stats = [
     {
         title: "Customers",

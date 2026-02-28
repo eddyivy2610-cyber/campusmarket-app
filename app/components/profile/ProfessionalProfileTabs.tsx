@@ -1,3 +1,12 @@
+/**
+ * @BACKEND: PROFILE TABS — Review submission is client-only, listings use mock data.
+ *
+ * Replace with:
+ *   - POST /api/users/:id/reviews  → submit a star rating + comment review
+ *   - GET /api/users/:id/reviews   → fetch existing reviews (paginated)
+ *   - GET /api/users/:id/listings  → fetch vendor's listings (already handled by ProfessionalListingsArea)
+ */
+
 "use client";
 
 import React, { useState } from "react";
@@ -7,14 +16,11 @@ import {
     User,
     Clock,
     BadgeCheck,
-    X,
     MessageSquare,
     Activity,
     Store,
-    BarChart3,
     ShieldCheck,
     Briefcase,
-    CheckCircle2,
     Instagram,
     Twitter,
     Linkedin,
@@ -24,7 +30,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
 import { Profile } from "../../data/profiles";
 import { ProfessionalListingsArea } from "./ProfessionalListingsArea";
-import { ProfessionalPerformanceArea } from "./ProfessionalPerformanceArea";
 import { IconTooltip } from "../common/IconTooltip";
 import { ProUpgradePrompt } from "../shared/ProUpgradePrompt";
 
@@ -35,7 +40,8 @@ interface ProfessionalProfileTabsProps {
 
 export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfileTabsProps) {
     const [activeTab, setActiveTab] = useState(profile.type === 'vendor' ? "Listings" : "About");
-    const [isRecommended, setIsRecommended] = useState<boolean | null>(null);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,7 +53,6 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
     const vendorTabs = [
         { name: "Listings", icon: Store },
-        { name: "Performance", icon: BarChart3 },
         { name: "Reviews", icon: Star },
         { name: "About", icon: Briefcase },
     ];
@@ -199,32 +204,6 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                         )
                     )}
 
-                    {activeTab === "Performance" && (
-                        <div className="space-y-8">
-                            {!profile.isVerified ? (
-                                <ProUpgradePrompt
-                                    title="Unlock Performance Data"
-                                    featureName="performance analytics"
-                                    description="Upgrade to a Pro account to view analytics and track your sales."
-                                />
-                            ) : viewAs === "private" ? (
-                                <ProfessionalPerformanceArea
-                                    vendor={{
-                                        activeListings: profile.activeListingsCount || 0,
-                                        soldItems: profile.soldItems || 0,
-                                        rating: profile.rating,
-                                        recommended: profile.recommendedCount.toString(),
-                                        notRecommended: profile.notRecommendedCount.toString()
-                                    }}
-                                />
-                            ) : (
-                                <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
-                                    <BarChart3 className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
-                                    <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">Performance data is private</h4>
-                                </div>
-                            )}
-                        </div>
-                    )}
 
                     {activeTab === "Reviews" && (
                         !profile.isVerified ? (
@@ -244,31 +223,28 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                         placeholder="Leave a review..."
                                         className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
                                     />
-                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1.5 bg-background rounded-xl px-2 border border-border/40">
-                                        <IconTooltip content="Recommend" position="top">
-                                            <button
-                                                onClick={() => setIsRecommended(true)}
-                                                className={cn(
-                                                    "p-2 rounded-lg transition-all",
-                                                    isRecommended === true ? "text-emerald-500 bg-emerald-500/10" : "text-muted-foreground/30 hover:text-emerald-500"
-                                                )}
-                                            >
-                                                <CheckCircle2 className="w-4 h-4" />
-                                            </button>
-                                        </IconTooltip>
-                                        <IconTooltip content="Do Not Recommend" position="top">
-                                            <button
-                                                onClick={() => setIsRecommended(false)}
-                                                className={cn(
-                                                    "p-2 rounded-lg transition-all",
-                                                    isRecommended === false ? "text-red-500 bg-red-500/10" : "text-muted-foreground/30 hover:text-red-500"
-                                                )}
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </IconTooltip>
+                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
+                                        <div className="flex items-center gap-0.5 pr-1">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setReviewRating(s)}
+                                                    onMouseEnter={() => setHoverRating(s)}
+                                                    onMouseLeave={() => setHoverRating(0)}
+                                                    className="p-0.5 transition-transform hover:scale-125"
+                                                >
+                                                    <Star
+                                                        className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
+                                                            ? 'text-amber-400 fill-amber-400'
+                                                            : 'text-muted-foreground/20'
+                                                            }`}
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
                                         <button
-                                            disabled={isRecommended === null || !comment.trim()}
+                                            disabled={reviewRating === 0 || !comment.trim()}
                                             className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
                                         >
                                             Go

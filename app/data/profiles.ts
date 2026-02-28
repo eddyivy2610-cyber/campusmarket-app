@@ -1,3 +1,18 @@
+/**
+ * @BACKEND: MOCK DATA — This entire file contains hardcoded user/vendor profiles for prototyping.
+ *
+ * Replace with:
+ *   - GET /api/users/:id           → fetch user profile by ID
+ *   - GET /api/users/me            → fetch current authenticated user's profile
+ *   - PUT /api/users/me            → update profile (bio, social links, avatar, cover photo)
+ *   - GET /api/users/:id/listings  → fetch a vendor's listings
+ *   - GET /api/users/:id/reviews   → fetch reviews for a vendor
+ *
+ * The Profile interface below can be reused as the API response type.
+ * Avatar and cover photo URLs should come from a file storage service.
+ * The `isVerified` and `verifiedTier` fields should be managed server-side.
+ */
+
 export interface Profile {
     id: string;
     name: string;

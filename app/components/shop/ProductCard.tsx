@@ -1,3 +1,12 @@
+/**
+ * @BACKEND: PRODUCT CARD — Product data comes from mock imports; save/unsave uses local context.
+ *
+ * Replace with:
+ *   - Product data should come from API responses (already typed via ProductProps interface)
+ *   - Save/unsave toggle should call POST/DELETE /api/users/me/saved/:id
+ *   - Quick View should fetch full product data from GET /api/products/:id if not already loaded
+ */
+
 import React, { useState } from "react";
 import { Tooltip } from "../shared/Tooltip";
 import {
@@ -141,14 +150,20 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                         <span className="text-[10px] text-muted-foreground font-medium bg-secondary/50 px-1 py-0.5 rounded-sm">
                             {product.category}
                         </span>
-                        <Tooltip content={`${product.recommendedCount} Recommended`}>
-                            <div className="flex items-center gap-0.5 text-emerald-600 font-bold">
-                                <span className="text-[10px]">{product.recommendedCount}</span>
-                                <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                        </Tooltip>
+                        {(() => {
+                            const rating = Math.min(5, Math.max(1, Math.round((product.recommendedCount / (product.recommendedCount + product.notRecommendedCount || 1)) * 5)));
+                            const totalReviews = product.recommendedCount + product.notRecommendedCount;
+                            return (
+                                <div className="flex items-center gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className={`w-2.5 h-2.5 ${i < rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/20'}`} />
+                                    ))}
+                                    {totalReviews > 0 && (
+                                        <span className="text-[9px] text-muted-foreground ml-0.5">({totalReviews})</span>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 
