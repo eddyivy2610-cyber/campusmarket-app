@@ -1,38 +1,108 @@
 "use client";
 
-import React from 'react';
-import { Bell, ChevronDown, Menu, Settings, User, LogOut } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useMemo, useState } from "react";
+import { Bell, Search, ShieldCheck, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-interface AdminHeaderProps {
-    onMenuClick: () => void;
-    adminName?: string;
-}
+const SEARCH_TARGETS = [
+    { label: "Settings", keywords: ["settings", "preferences", "config"], href: "/admin/settings" },
+    { label: "Controls", keywords: ["controls", "moderation", "rules"], href: "/admin/reports" },
+    { label: "Users", keywords: ["users", "accounts", "members"], href: "/admin/users" },
+];
 
-export function AdminHeader({ onMenuClick, adminName = "Admin" }: AdminHeaderProps) {
+export function AdminHeader() {
+    const router = useRouter();
+    const [query, setQuery] = useState("");
+
+    const matches = useMemo(() => {
+        const normalized = query.trim().toLowerCase();
+        if (!normalized) return [];
+        return SEARCH_TARGETS.filter((target) =>
+            target.keywords.some((keyword) => keyword.includes(normalized) || normalized.includes(keyword))
+        );
+    }, [query]);
+
+    const handleSearch = (value: string) => {
+        const normalized = value.trim().toLowerCase();
+        if (!normalized) return;
+        const target = SEARCH_TARGETS.find((entry) =>
+            entry.keywords.some((keyword) => keyword.includes(normalized) || normalized.includes(keyword))
+        );
+        if (target) {
+            router.push(target.href);
+        }
+    };
+
     return (
-        <header className="h-14 border-b border-border bg-background sticky top-0 z-30 px-4 md:px-6 flex items-center justify-between">
-            {/* Left: Mobile Menu Toggle & Brand (Mobile only really for toggle) */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={onMenuClick}
-                    className="md:hidden p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-accent transition-colors"
-                >
-                    <Menu size={20} />
-                </button>
-                <div className="flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-blue-600 animate-spin-slow" />
-                    <span className="font-bold text-lg tracking-tight hidden sm:inline-block">Admin Panel</span>
+        <div className="bg-background text-foreground py-2 md:py-3.5 fixed top-0 left-0 right-0 z-40 border-b border-border/30 shadow-sm">
+            <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex items-center gap-3 md:gap-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Admin</span>
+                        <span className="text-lg font-bold tracking-tight font-heading">Control Center</span>
+                    </div>
+                    <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-secondary/40 text-muted-foreground border border-border/40">
+                        Moderation Suite
+                    </span>
+                </div>
+
+                <div className="ml-auto flex items-center gap-2 md:gap-3 shrink-0">
+                    <div className="relative hidden md:flex items-center bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
+                        <Search className="w-4 h-4 text-muted-foreground ml-1" />
+                        <input
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    handleSearch(query);
+                                }
+                            }}
+                            placeholder="Search settings, controls, users..."
+                            className="bg-transparent outline-none text-sm px-2 w-56 text-foreground placeholder:text-muted-foreground/70"
+                            aria-label="Admin search"
+                        />
+                        {matches.length > 0 && (
+                            <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border/50 rounded-xl shadow-lg overflow-hidden z-50">
+                                {matches.slice(0, 3).map((match) => (
+                                    <button
+                                        key={match.label}
+                                        type="button"
+                                        onClick={() => handleSearch(match.keywords[0])}
+                                        className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-widest text-foreground/70 hover:text-foreground hover:bg-secondary/40 transition-colors"
+                                    >
+                                        {match.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-1 md:gap-2 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
+                    <button
+                        className="relative flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+                        title="Admin notifications"
+                    >
+                        <Bell className="w-5 h-5 shrink-0" strokeWidth={2} />
+                        <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
+                            3
+                        </span>
+                    </button>
+                    <div className="w-px h-6 bg-border/60 mx-1"></div>
+                    <button
+                        className="flex items-center gap-2 text-foreground hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
+                        title="Admin profile"
+                    >
+                        <div className="bg-secondary p-1.5 rounded-full">
+                            <User className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
+                        </div>
+                        <span className="hidden sm:flex text-xs font-bold font-heading pr-1">Admin</span>
+                    </button>
+                </div>
                 </div>
             </div>
-
-            {/* Right: Notifications*/}
-            <div className="flex items-center gap-3">
-                <button className="relative p-2 text-muted-foreground hover:text-foreground rounded-xl hover:bg-accent transition-all group">
-                    <Bell size={20} />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background" />
-                </button>
-            </div>
-        </header>
+        </div>
     );
 }
