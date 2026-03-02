@@ -31,7 +31,7 @@ function FAQItem({ question, answer }: FAQProps) {
 
 export function HelpSettings() {
     return (
-        <div className="max-w-4xl space-y-12 pb-12">
+        <div className="max-w-4xl space-y-12 pb-12 font-sans">
             {/* FAQs Section */}
             <div className="space-y-6">
                 <div className="pb-4 border-b border-border/40">

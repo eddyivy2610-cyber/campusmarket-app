@@ -14,7 +14,7 @@ import {
 import { IconTooltip } from "../components/common/IconTooltip";
 
 import { MainHeader } from "../components/header/MainHeader";
-
+import { DashboardOnboarding } from "../components/dashboard/DashboardOnboarding";
 const NAV_ITEMS = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { name: "Products", href: "/dashboard/products", icon: Package },
@@ -26,13 +26,15 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-
+    const isMessagesRoute = pathname.startsWith("/dashboard/messages");
     return (
         <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             {/* Global Header */}
             <MainHeader />
 
-            <div className="flex flex-1 max-w-[1780px] mx-auto w-full px-2 md:px-6 py-4 md:py-6 gap-6 relative">
+           <div className={`flex flex-1 max-w-[1780px] mx-auto w-full gap-6 relative ${
+                isMessagesRoute ? "px-0 py-0 md:px-6 md:py-6" : "px-2 md:px-6 py-4 md:py-6"
+                }`}>
                 {/* Floating Sidebar */}
                 <aside className="w-20 hidden md:flex flex-col items-center py-6 bg-card border border-border/50 rounded-2xl shadow-sm sticky top-24 h-[calc(100vh-8rem)] z-20">
                     {/* Back to Profile */}
@@ -76,10 +78,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                {/* Main Content */}
-                <main className="flex-1 min-h-0 overflow-y-auto pb-20 md:pb-0">
-                    <div className="bg-card border border-border/50 rounded-2xl p-4 md:p-6 shadow-sm min-h-full">
+                <main className={`flex-1 min-h-0 overflow-y-auto ${isMessagesRoute ? "pb-0" : "pb-20 md:pb-0"}`}>
+                    <div className={`bg-card border border-border/50 shadow-sm min-h-full ${
+                        isMessagesRoute ? "rounded-none p-0 md:rounded-2xl md:p-6" : "rounded-2xl p-4 md:p-6"
+                        }`}>
                         {children}
+                        <DashboardOnboarding />
                     </div>
                 </main>
             </div>

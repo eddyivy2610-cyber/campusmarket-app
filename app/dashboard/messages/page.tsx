@@ -156,7 +156,7 @@ function DashboardMessagesInner() {
     };
 
     return (
-        <div className="flex-1 min-h-[600px] overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0 flex overflow-hidden bg-background">
                 {/* ── LEFT: Inbox sidebar ─────────────────────────────────────── */}
                 <div className={`w-full md:w-72 lg:w-80 shrink-0 min-h-0 flex flex-col border-r border-border/40 ${mobileView === "thread" ? "hidden md:flex" : "flex"}`}>

@@ -12,8 +12,10 @@ import {
     Menu,
     ShoppingBasket,
     ArrowLeft,
-    Settings,
-    Edit3,
+    UserRound,
+    IdCard,
+    Bell,
+    CircleHelp,
     Camera,
     Check
 } from "lucide-react";
@@ -37,14 +39,17 @@ interface NavItem {
 }
 
 const NAV_ITEMS: (NavItem & { icon: any })[] = [
-    { id: "account", label: "Personal Information", icon: Settings },
-    { id: "profile", label: "Public Profile", icon: Edit3 },
-    { id: "notifications", label: "Preferences", icon: Settings },
-    { id: "help", label: "Help & Support", icon: Settings },
+    { id: "account", label: "Personal Information", icon: UserRound },
+    { id: "profile", label: "Public Profile", icon: IdCard },
+    { id: "notifications", label: "Preferences", icon: Bell },
+    { id: "help", label: "Help & Support", icon: CircleHelp },
 ];
 
 export function SettingsLayout() {
-    const [activeSection, setActiveSection] = useState<SettingsSection | "menu">("account");
+    const [activeSection, setActiveSection] = useState<SettingsSection | "menu">(() => {
+        if (typeof window !== "undefined" && window.innerWidth < 1024) return "menu";
+        return "account";
+    });
     const [isMobile, setIsMobile] = useState(false);
 
     // Initial check and resize listener for mobile
@@ -63,19 +68,13 @@ export function SettingsLayout() {
         return () => window.removeEventListener("resize", checkMobile);
     }, [activeSection]);
 
-    // On mobile, if we load settings, we might want to start at "menu"
-    useEffect(() => {
-        if (window.innerWidth < 1024) {
-            setActiveSection("menu");
-        }
-    }, []);
-
+   
     const activeItem = NAV_ITEMS.find(item => item.id === activeSection);
 
     return (
-        <div className="max-w-[1240px] mx-auto lg:px-6 lg:py-12 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-heading">
+        <div className="max-w-[1240px] mx-auto lg:px-6 lg:pt-3 lg:pb-10 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-sans text-sm">
             {/* Desktop Header Navigation */}
-            <div className="hidden lg:flex mb-12 items-center justify-between">
+           <div className="hidden lg:flex mb-8 items-center justify-between">
                 <Link href="/" className="flex items-center gap-2 group">
                     <span className="text-primary">
                         <ShoppingBasket className="w-6 h-6" />
@@ -107,7 +106,7 @@ export function SettingsLayout() {
                 </h2>
                 <div className="w-10 flex justify-end">
                     {activeSection === "menu" ? (
-                        <Settings className="w-6 h-6 text-foreground/80" />
+                        <UserRound className="w-6 h-6 text-foreground/80" />
                     ) : (
                         <Check className="w-6 h-6 text-primary" />
                     )}
