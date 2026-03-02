@@ -5,6 +5,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { ExploreDropdown } from "./ExploreDropdown";
 
+const NAV_ITEMS = [
+    { label: "Home", href: "/" },
+    { label: "Listings", href: "/listings" },
+    { label: "Vendors", href: "/profile/campus-market" },
+    { label: "Blog", href: "/blog" },
+    { label: "Help & Support", href: "/help-support" },
+];
+
 export function NavBar() {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
 
@@ -34,13 +42,13 @@ export function NavBar() {
 
                     {/* Horizontal Menu Links */}
                     <nav className="flex items-center gap-8">
-                        {['Home', 'Listings', 'Vendors', 'Blog', 'Contact'].map((item) => (
+                        {NAV_ITEMS.map((item) => (
                             <Link
-                                key={item}
-                                href={item === 'Home' ? '/' : (item === 'Vendors' ? '/profile/campus-market' : `/${item.toLowerCase()}`)}
+                                key={item.label}
+                                href={item.href}
                                 className="text-sm font-bold font-heading text-gray-300 hover:text-white transition-colors uppercase tracking-wider text-[11px]"
                             >
-                                {item}
+                                {item.label}
                             </Link>
                         ))}
                     </nav>

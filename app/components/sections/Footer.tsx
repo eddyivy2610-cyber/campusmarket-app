@@ -73,7 +73,7 @@ export function Footer() {
                                     { label: "Marketplace", href: "/listings" },
                                     { label: "Events", href: "#" },
                                     { label: "About Us", href: "/about-us" },
-                                    { label: "Contact Support", href: "#" },
+                                    { label: "Contact Support", href: "/help-support" },
                                 ].map(l => (
                                     <Link key={l.label} href={l.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">{l.label}</Link>
                                 ))}

@@ -53,7 +53,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <User className="w-4 h-4" />
                     <span>My Profile</span>
                 </Link>
-                <Link href="/messages" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
+                <Link href="/dashboard/messages" className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors text-foreground/80">
                     <MessageSquare className="w-4 h-4" />
                     <span>Messages</span>
                 </Link>

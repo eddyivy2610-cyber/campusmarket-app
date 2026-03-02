@@ -77,16 +77,16 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                 className="hidden"
             />
 
-            {/* Main Header Card - Approved Split Layout */}
+            {/* Main Header Card - overflow-hidden removed so dropdown isn't clipped */}
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="bg-card border border-border/50 rounded-[24px] shadow-sm relative overflow-hidden flex flex-col"
+                className="bg-card border border-border/50 rounded-[24px] shadow-sm relative flex flex-col"
             >
-                {/* TOP AREA: Profile Section with Cover Photo Background */}
-                <div className="relative w-full overflow-hidden p-8 md:p-12">
+                {/* TOP AREA: overflow-hidden + rounded-t-[24px] so cover photo still clips correctly */}
+                <div className="relative w-full overflow-hidden rounded-t-[24px] p-5 md:p-7">
                     {/* Cover Photo Background */}
                     <div className="absolute inset-0 z-0">
                         {(previewCover || profile.coverPhoto) ? (
@@ -98,7 +98,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         ) : (
                             <div className="w-full h-full bg-secondary/30" />
                         )}
-                        {/* Adaptive Dark Overlay - slightly lighter to let BG show through more */}
+                        {/* Adaptive Dark Overlay */}
                         <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
                     </div>
 
@@ -118,7 +118,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     {/* Mobile/Desktop Layout Transition */}
                     <div className="relative z-10 flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 items-center">
 
-                        {/* Column 1: Trust Signals (Hidden on mobile as they merge into Column 3) */}
+                        {/* Column 1: Trust Signals */}
                         <div className="hidden md:flex flex-col items-center md:items-start gap-4">
                             <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-2xl transition-all hover:bg-white/10">
                                 <div className="flex items-center gap-0.5">
@@ -189,7 +189,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                 </div>
                             </div>
 
-                            {/* Mobile-only Rating: Scaled down between name and stats */}
+                            {/* Mobile-only Rating */}
                             <div className="flex flex-col items-center gap-1 mt-4 mb-2 md:hidden">
                                 <div className="flex items-center gap-0.5">
                                     {[1, 2, 3, 4, 5].map((s) => (
@@ -205,9 +205,8 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                             </div>
                         </div>
 
-                        {/* Column 3: Stats Board (Right on Desktop, Centered Bottom on Mobile) */}
+                        {/* Column 3: Stats Board */}
                         <div className="flex justify-center md:justify-end md:gap-10 w-full md:w-auto">
-                            {/* Combined Mobile Stats / Desktop Activity Stats */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
                                 {/* Star Rating - Mobile Only */}
                                 <div className="flex flex-col items-center gap-1 md:hidden">
@@ -225,7 +224,6 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                                 <div className="w-px h-8 bg-white/10 md:hidden" />
 
-                                {/* Active/Sold Items */}
                                 <div className="flex items-center gap-4 md:gap-10">
                                     <div className="flex flex-col items-center text-center group">
                                         <IconTooltip content="Currently Active Items">

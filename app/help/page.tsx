@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Header } from "../components/header/Header";
 import { Footer } from "../components/sections/Footer";
 import { Search, BookOpen, MessageCircleQuestion, Users, ChevronDown } from "lucide-react";
@@ -155,9 +156,16 @@ export default function HelpCenterPage() {
                                 </button>
                             </div>
 
-                            <p className="text-xs text-muted-foreground font-medium">
+                            <p className="text-xs text-muted-foreground font-medium mb-4">
                                 Or <strong className="text-foreground">choose</strong> an option below to find what you need.
                             </p>
+                            
+                            <Link
+                                href="/help-support"
+                                className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
+                            >
+                                Contact Help & Support
+                            </Link>
                         </div>
 
                         {/* Category Cards */}
