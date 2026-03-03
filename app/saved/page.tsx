@@ -14,9 +14,9 @@ export default function SavedPage() {
         <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
             <Header />
 
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="container mx-auto px-4 py-4 max-w-7xl">
                 {/* Breadcrumb */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <Breadcrumb items={[{ label: "Saved", href: "/saved" }]} />
                 </div>
 
@@ -49,7 +49,7 @@ export default function SavedPage() {
                     </div>
                 ) : (
                     /* Grid of Saved Items */
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         {savedItems.map((item) => (
                             <div key={item.id} className="relative">
                                 <ProductCard product={{

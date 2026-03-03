@@ -12,7 +12,7 @@ export default function SafetyGuidelines() {
         <div className="text-foreground">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp}>
                 <h1 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 font-heading tracking-tight">Safety Guidelines</h1>
-                <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary mb-10 border-b border-border pb-6">Last Updated: March 23, 2025</p>
+                <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary mb-10 border-b border-border pb-6">Last Updated: March 28, 2026</p>
 
                 <p className="text-sm md:text-base text-muted-foreground font-medium mb-12 leading-relaxed">
                     Your safety is our absolute priority. Follow these platform recommendations to ensure secure and trustworthy transactions on campus.

@@ -66,7 +66,7 @@ export function Hero() {
         {
             label: "Inquiries",
             description: "Ask a question or get help",
-            href: "/inquiries",
+            href: "/help-support",
             icon: MessageCircleQuestion,
             gradient: "from-emerald-500/10 to-teal-500/10",
             iconColor: "text-emerald-500",

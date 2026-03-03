@@ -17,9 +17,9 @@ export default function HelpSupportPage() {
             <main className="flex-1 py-10 md:py-14 px-4 sm:px-6 xl:px-10">
                 <div className="max-w-6xl mx-auto space-y-8">
                     <section className="bg-card border border-border/50 rounded-3xl p-6 sm:p-8 shadow-sm">
-                        <p className="text-xs uppercase tracking-[0.25em] text-primary font-bold mb-3">Help & Support</p>
-                        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-3">Tell us what you need.</h1>
-                        <p className="text-sm sm:text-base text-muted-foreground max-w-3xl">
+                        <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary mb-10 border-b border-border pb-4">Help & Support</p>
+                        <h1 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 font-heading tracking-tight">Tell us what you need.</h1>
+                        <p className="text-sm md:text-base text-muted-foreground font-medium mb-12 leading-relaxed">
                             Use the forms below to ask product questions, report account problems, or share marketplace concerns.
                             Our support team usually responds within one business day.
                         </p>
@@ -27,8 +27,8 @@ export default function HelpSupportPage() {
 
                     <section className="grid lg:grid-cols-2 gap-6">
                         <form className="bg-card border border-border/50 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
-                            <h2 className="text-xl font-bold">General query form</h2>
-                            <p className="text-sm text-muted-foreground">For how-to questions, listing guidance, or general platform support.</p>
+                            <h2 className="text-lg md:text-xl font-bold text-foreground mb-6 font-heading">General query form</h2>
+                            <p className="text-sm text-muted-foreground space-y-4">For how-to questions, listing guidance, or general platform support.</p>
 
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <input type="text" placeholder="Full name" className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
@@ -45,7 +45,7 @@ export default function HelpSupportPage() {
                         </form>
 
                         <form className="bg-card border border-border/50 rounded-3xl p-6 sm:p-7 shadow-sm space-y-4">
-                            <h2 className="text-xl font-bold">Issue escalation form</h2>
+                            <h2 className="text-lg md:text-xl font-bold text-foreground mb-6 font-heading">Issue escalation form</h2>
                             <p className="text-sm text-muted-foreground">For failed transactions, safety incidents, and urgent account access issues.</p>
 
                             <div className="grid grid-cols-2 gap-3">
