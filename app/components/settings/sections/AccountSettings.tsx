@@ -3,8 +3,14 @@
 import React from "react";
 import { ShieldCheck, ShoppingBag, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { cn } from "../../../lib/utils";
+import { useAuth } from "../../../context/AuthContext";
+import { BadgeCheck } from "lucide-react";
 
 export function AccountSettings() {
+    const { user } = useAuth();
+    const isPro = user?.role === "pro";
+
     return (
         <div className="max-w-2xl space-y-12">
             {/* Personal Information Section */}
@@ -59,22 +65,43 @@ export function AccountSettings() {
                     <h2 className="text-base font-semibold">Account Type</h2>
                 </div>
 
-                <div className="p-6 bg-primary/5 border border-primary/20 rounded-3xl space-y-4">
+                <div className={cn(
+                    "p-6 border rounded-3xl space-y-4",
+                    isPro ? "bg-emerald-500/5 border-emerald-500/20" : "bg-primary/5 border-primary/20"
+                )}>
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-xl text-primary">
-                            <ShoppingBag className="w-5 h-5" />
+                        <div className={cn(
+                            "p-2 rounded-xl",
+                            isPro ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
+                        )}>
+                            {isPro ? <BadgeCheck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
                         </div>
                         <div>
-                            <h3 className="font-bold text-sm">Upgrade to Pro Account</h3>
-                            <p className="text-xs text-muted-foreground font-medium">Start selling your items to the campus community today.</p>
+                            <h3 className="font-bold text-sm">
+                                {isPro ? "Pro Account Status" : "Upgrade to Pro Account"}
+                            </h3>
+                            <p className="text-xs text-muted-foreground font-medium">
+                                {isPro
+                                    ? "Your account is verified and professional status is active."
+                                    : "Start selling your items to the campus community today."}
+                            </p>
                         </div>
                     </div>
-                    <Link href="/register">
-                        <button className="w-full py-3 bg-primary text-white rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                            Get Started
-                            <ChevronRight className="w-4 h-4" />
-                        </button>
-                    </Link>
+                    {!isPro ? (
+                        <Link href="/register/seller">
+                            <button className="w-full py-3 bg-primary text-white rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                                Get Started
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </Link>
+                    ) : (
+                        <div className="pt-2">
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-100/50 w-fit px-3 py-1 rounded-full uppercase tracking-wider">
+                                <BadgeCheck className="w-3 h-3" />
+                                Professional Verified
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

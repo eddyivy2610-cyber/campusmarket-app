@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useMemo, useEffect } from "react";
-import { Header } from "../components/header/Header";
 import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
@@ -51,7 +50,6 @@ function CategoriesPageInner() {
 
     return (
         <main className="min-h-screen bg-background text-foreground font-heading selection:bg-primary/20">
-            <Header />
 
             <div className="bg-secondary/10 border-b border-border/50">
                 <div className="max-w-[1780px] mx-auto px-4 md:px-8 flex items-center justify-between">

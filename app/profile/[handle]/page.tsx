@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { ProfessionalProfileHeader } from "@/components/profile/ProfessionalProfileHeader";
 import { ProfessionalProfileTabs } from "@/components/profile/ProfessionalProfileTabs";
-import { MainHeader } from "@/components/header/MainHeader";
 import { useParams } from "next/navigation";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
 import { Footer } from "@/components/sections/Footer";
@@ -34,7 +33,6 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <MainHeader />
 
             <div className="bg-secondary/10 border-b border-border/50">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">

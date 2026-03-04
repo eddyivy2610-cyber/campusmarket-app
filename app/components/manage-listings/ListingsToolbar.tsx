@@ -33,7 +33,7 @@ export function ListingsToolbar({ searchQuery, setSearchQuery }: ListingsToolbar
             {/* Actions */}
             <button className="w-full md:w-auto h-10 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-medium tracking-tight hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm">
                 <Plus className="w-4 h-4" />
-                <span>Create Listing</span>
+                <span>Add Listing</span>
             </button>
         </div>
     );

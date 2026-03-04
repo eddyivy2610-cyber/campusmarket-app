@@ -12,6 +12,7 @@ import { IntelligentSearch } from "../search/IntelligentSearch";
 import { MobileSearch } from "../search/MobileSearch";
 import { usePathname } from "next/navigation";
 import { useSaved } from "../../context/SavedContext";
+import { useAuth } from "../../context/AuthContext";
 
 export function MainHeader() {
     useScrollReveal();
@@ -19,16 +20,26 @@ export function MainHeader() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
+    const { user } = useAuth();
     const isSettingsPage = pathname === "/settings";
+    const isLegalPage = pathname?.startsWith("/(legal)") || pathname === "/about-us" || pathname === "/terms-of-service" || pathname === "/safety-guidelines" || pathname === "/community-rules" || pathname === "/usage-policy";
+
+    // In Next.js App Router, (groups) aren't in the actual URL. 
+    // Legal routes are /about-us, etc.
+    const isActuallyLegal = ["/about-us", "/terms-of-service", "/safety-guidelines", "/community-rules", "/usage-policy"].includes(pathname);
+    const isAdminPage = pathname?.startsWith("/admin");
+    const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password");
     const { savedItems } = useSaved();
 
     const accountRef = useRef<HTMLDivElement>(null);
     useClickOutside(accountRef, () => setIsAccountOpen(false));
 
+    if (isActuallyLegal || isAdminPage || isAuthPage) return null;
+
     return (
         <>
             {/* ── Main header row ── */}
-            <div className="bg-background text-foreground py-2 md:py-3.5 sticky top-0 z-40 border-b border-border/30 shadow-sm">
+            <div className="bg-background text-foreground py-2 md:py-3.5 border-b border-border/30 shadow-sm relative z-40">
                 <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex items-center gap-3 md:gap-6">
 
                     {/* Hamburger (mobile) */}
@@ -101,8 +112,12 @@ export function MainHeader() {
                                     <User className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" strokeWidth={2} />
                                 </div>
                                 <div className="hidden sm:flex flex-col leading-tight pr-1">
-                                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold group-hover:text-primary/80 transition-colors">Guest</span>
-                                    <span className="text-xs font-bold font-heading">Account</span>
+                                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold group-hover:text-primary/80 transition-colors">
+                                        {user ? user.role : "Guest"}
+                                    </span>
+                                    <span className="text-xs font-bold font-heading">
+                                        {user ? user.name.split(' ')[0] : "Account"}
+                                    </span>
                                 </div>
                                 <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block mr-1 group-hover:text-primary transition-colors" />
                             </button>

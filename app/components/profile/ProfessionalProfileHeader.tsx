@@ -116,7 +116,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     )}
 
                     {/* Mobile/Desktop Layout Transition */}
-                    <div className="relative z-10 flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 items-center">
+                    <div className="relative z-10 flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-8 items-center">
 
                         {/* Column 1: Trust Signals */}
                         <div className="hidden md:flex flex-col items-center md:items-start gap-4">
@@ -138,7 +138,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                         {/* Column 2: Central Profile Info */}
                         <div className="flex flex-col items-center text-center order-first md:order-none">
-                            <div className="relative mb-4 md:mb-6 group/avatar">
+                            <div className="relative mb-3 md:mb-6 group/avatar">
                                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white/30 ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all group-hover:ring-white/50">
                                     {previewAvatar || profile.avatar ? (
                                         <img
@@ -189,25 +189,11 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                 </div>
                             </div>
 
-                            {/* Mobile-only Rating */}
-                            <div className="flex flex-col items-center gap-1 mt-4 mb-2 md:hidden">
-                                <div className="flex items-center gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((s) => (
-                                        <Star
-                                            key={s}
-                                            className={`w-3 h-3 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
-                                        />
-                                    ))}
-                                </div>
-                                <span className="text-[8px] font-medium text-white/40">
-                                    Rating: <span className="text-white font-semibold">{profile.rating}/5.0</span>
-                                </span>
-                            </div>
                         </div>
 
                         {/* Column 3: Stats Board */}
                         <div className="flex justify-center md:justify-end md:gap-10 w-full md:w-auto">
-                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
+                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-3 md:p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
                                 {/* Star Rating - Mobile Only */}
                                 <div className="flex flex-col items-center gap-1 md:hidden">
                                     <div className="flex items-center gap-0.5">

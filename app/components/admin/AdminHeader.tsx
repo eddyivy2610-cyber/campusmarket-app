@@ -1,18 +1,28 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Bell, Search, ShieldCheck, User } from "lucide-react";
+import { Bell, LogOut, Search, ShieldCheck, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { clearAdminSession, getAdminSession } from "@/lib/adminAuth";
 
 const SEARCH_TARGETS = [
     { label: "Settings", keywords: ["settings", "preferences", "config"], href: "/admin/settings" },
     { label: "Controls", keywords: ["controls", "moderation", "rules"], href: "/admin/reports" },
     { label: "Users", keywords: ["users", "accounts", "members"], href: "/admin/users" },
+    { label: "Dispute Center", keywords: ["dispute", "complaint", "feedback", "help center"], href: "/admin/dispute-center" },
 ];
 
 export function AdminHeader() {
     const router = useRouter();
     const [query, setQuery] = useState("");
+    const [adminLabel, setAdminLabel] = useState("Admin");
+
+    React.useEffect(() => {
+        const session = getAdminSession();
+        if (session?.username) {
+            setAdminLabel(session.username);
+        }
+    }, []);
 
     const matches = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -31,6 +41,11 @@ export function AdminHeader() {
         if (target) {
             router.push(target.href);
         }
+    };
+
+    const handleLogout = () => {
+        clearAdminSession();
+        router.replace("/admin/auth/sign-in");
     };
 
     return (
@@ -81,26 +96,34 @@ export function AdminHeader() {
                     </div>
 
                     <div className="flex items-center gap-1 md:gap-2 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
-                    <button
-                        className="relative flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
-                        title="Admin notifications"
-                    >
-                        <Bell className="w-5 h-5 shrink-0" strokeWidth={2} />
-                        <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
-                            3
-                        </span>
-                    </button>
-                    <div className="w-px h-6 bg-border/60 mx-1"></div>
-                    <button
-                        className="flex items-center gap-2 text-foreground hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
-                        title="Admin profile"
-                    >
-                        <div className="bg-secondary p-1.5 rounded-full">
-                            <User className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
-                        </div>
-                        <span className="hidden sm:flex text-xs font-bold font-heading pr-1">Admin</span>
-                    </button>
-                </div>
+                        <button
+                            className="relative flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+                            title="Admin notifications"
+                        >
+                            <Bell className="w-5 h-5 shrink-0" strokeWidth={2} />
+                            <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
+                                3
+                            </span>
+                        </button>
+                        <div className="w-px h-6 bg-border/60 mx-1"></div>
+                        <button
+                            className="flex items-center gap-2 text-foreground hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
+                            title="Admin profile"
+                        >
+                            <div className="bg-secondary p-1.5 rounded-full">
+                                <User className="w-4 h-4 text-muted-foreground" strokeWidth={2} />
+                            </div>
+                            <span className="hidden sm:flex text-xs font-bold font-heading pr-1 max-w-[120px] truncate">{adminLabel}</span>
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-500/10 transition-colors"
+                            title="Logout"
+                        >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Logout</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

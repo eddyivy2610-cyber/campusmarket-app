@@ -11,7 +11,6 @@ import { ListingActionBox } from "../../components/listings/ListingActionBox";
 import { ProductDetails } from "../../components/listings/ProductDetails";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
 import { OfferModal } from "../../components/modals/OfferModal";
-import { Header } from "../../components/header/Header";
 import { Footer } from "../../components/sections/Footer";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
 import { ChevronLeft } from "lucide-react";
@@ -31,7 +30,6 @@ export default function ListingPage() {
     if (!product || !vendor) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
-                <Header />
                 <div className="flex-1 flex flex-col items-center justify-center p-4">
                     <h1 className="text-xl font-bold mb-4 uppercase tracking-tighter">Listing Not Found</h1>
                     <button onClick={() => router.back()} className="text-primary font-bold uppercase tracking-widest text-[10px]">Go Back</button>
@@ -47,7 +45,6 @@ export default function ListingPage() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <Header />
 
             <main className="flex-1">
                 {/* Refined Breadcrumbs Bar */}

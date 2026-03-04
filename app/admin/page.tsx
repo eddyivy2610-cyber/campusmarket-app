@@ -17,6 +17,7 @@ export default function AdminDashboard() {
         { label: "Verify Sellers", href: "/admin/sellers", color: "bg-emerald-600" },
         { label: "Moderate Listings", href: "/admin/listings?status=pending", color: "bg-orange-600" },
         { label: "Resolve Reports", href: "/admin/reports", color: "bg-red-600" },
+        { label: "Dispute Center", href: "/admin/dispute-center", color: "bg-fuchsia-600" },
         { label: "Audit Logs", href: "/admin/logs", color: "bg-slate-700" },
     ];
 

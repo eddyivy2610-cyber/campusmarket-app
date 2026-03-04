@@ -1,13 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-    MoreHorizontal,
-    ShoppingBag,
-    PackageOpen
-} from "lucide-react";
+import React from "react";
+import { PackageOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PRODUCTS, Product } from "../../data/products";
+import { PRODUCTS } from "../../data/products";
 import { ProductCard } from "../shop/ProductCard";
 
 
@@ -42,7 +38,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                     </div>
                 </motion.div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 md:gap-3">
                     <AnimatePresence mode="popLayout">
                         {visibleListings.map((listing, idx) => (
                             <motion.div

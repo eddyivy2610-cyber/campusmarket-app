@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Package,
     ShoppingCart,
     MessageSquare,
     Bell,
-    Info,
-    ArrowLeft
+    ArrowLeft,
+    LogOut
 } from "lucide-react";
 import { IconTooltip } from "../components/common/IconTooltip";
+import { useAuth } from "../context/AuthContext";
 
-import { MainHeader } from "../components/header/MainHeader";
 import { DashboardOnboarding } from "../components/dashboard/DashboardOnboarding";
 const NAV_ITEMS = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -21,19 +21,23 @@ const NAV_ITEMS = [
     { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
     { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
     { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
-    { name: "Info", href: "/dashboard/info", icon: Info },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const { logout } = useAuth();
     const isMessagesRoute = pathname.startsWith("/dashboard/messages");
+
+    const handleUserLogout = () => {
+        logout();
+        router.push("/login");
+    };
     return (
         <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             {/* Global Header */}
-            <MainHeader />
 
-           <div className={`flex flex-1 max-w-[1780px] mx-auto w-full gap-6 relative ${
-                isMessagesRoute ? "px-0 py-0 md:px-6 md:py-6" : "px-2 md:px-6 py-4 md:py-6"
+            <div className={`flex flex-1 max-w-[1780px] mx-auto w-full gap-6 relative ${isMessagesRoute ? "px-0 py-0 md:px-6 md:py-6" : "px-2 md:px-6 py-4 md:py-6"
                 }`}>
                 {/* Floating Sidebar */}
                 <aside className="w-20 hidden md:flex flex-col items-center py-6 bg-card border border-border/50 rounded-2xl shadow-sm sticky top-24 h-[calc(100vh-8rem)] z-20">
@@ -64,11 +68,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             );
                         })}
                     </nav>
+
+                    <button
+                        onClick={handleUserLogout}
+                        className="mt-6 w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
+                        title="Logout"
+                    >
+                        <LogOut className="w-4.5 h-4.5" />
+                    </button>
                 </aside>
 
                 {/* Mobile Sidebar Navigation (Bottom Bar) */}
                 <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border/50 z-50 flex items-center justify-around px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                    {NAV_ITEMS.slice(0, 5).map((item) => {
+                    {NAV_ITEMS.map((item) => {
                         const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                         return (
                             <Link key={item.name} href={item.href} className={`p-3 rounded-xl transition-all ${isActive ? 'text-primary scale-110' : 'text-muted-foreground'}`}>
@@ -76,11 +88,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </Link>
                         );
                     })}
+                    <button
+                        onClick={handleUserLogout}
+                        className="p-3 rounded-xl text-red-600 hover:bg-red-500/10 transition-colors"
+                        title="Logout"
+                    >
+                        <LogOut className="w-[22px] h-[22px]" />
+                    </button>
                 </nav>
 
                 <main className={`flex-1 min-h-0 overflow-y-auto ${isMessagesRoute ? "pb-0" : "pb-20 md:pb-0"}`}>
-                    <div className={`bg-card border border-border/50 shadow-sm min-h-full ${
-                        isMessagesRoute ? "rounded-none p-0 md:rounded-2xl md:p-6" : "rounded-2xl p-4 md:p-6"
+                    <div className={`bg-card border border-border/50 shadow-sm min-h-full ${isMessagesRoute ? "rounded-none p-0 md:rounded-2xl md:p-6" : "rounded-2xl p-4 md:p-6"
                         }`}>
                         {children}
                         <DashboardOnboarding />

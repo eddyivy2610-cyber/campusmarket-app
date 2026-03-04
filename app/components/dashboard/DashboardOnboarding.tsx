@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { CircleHelp, X } from "lucide-react";
 
@@ -62,21 +62,22 @@ const STORAGE_KEY = "dashboard-onboarding-dismissed-routes";
 
 export function DashboardOnboarding() {
   const pathname = usePathname();
-  const [dismissedRoutes, setDismissedRoutes] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
+  const [dismissedRoutes, setDismissedRoutes] = useState<string[]>([]);
+  const [manualOpenForRoute, setManualOpenForRoute] = useState<string | null>(null);
 
+  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return [];
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed)
-        ? parsed.filter((value): value is string => typeof value === "string")
-        : [];
-    } catch {
-      return [];
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setDismissedRoutes(parsed.filter((value): value is string => typeof value === "string"));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load onboarding state", error);
     }
-  });
-  const [manualOpenForRoute, setManualOpenForRoute] = useState<string | null>(null);
+  }, []);
 
   const tip = useMemo(() => {
     const route = Object.keys(DASHBOARD_TIPS).find((item) => pathname === item || pathname.startsWith(`${item}/`));

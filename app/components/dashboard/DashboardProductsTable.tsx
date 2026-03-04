@@ -5,7 +5,6 @@ import {
     Plus,
     ChevronDown,
     MoreHorizontal,
-    Search,
     Edit,
     Trash2,
     EyeOff,
@@ -16,6 +15,8 @@ import {
 } from "lucide-react";
 import { Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AddListingModal } from "../profile/AddListingModal";
+import { Product } from "../../data/products";
 
 // Mock data extending standard product with extra dashboard fields
 const DASHBOARD_PRODUCTS = [
@@ -83,6 +84,9 @@ const DASHBOARD_PRODUCTS = [
 
 export function DashboardProductsTable() {
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [isListingModalOpen, setIsListingModalOpen] = useState(false);
+    const [listingModalMode, setListingModalMode] = useState<"create" | "update">("create");
+    const [editingListing, setEditingListing] = useState<Partial<Product> | undefined>(undefined);
 
     const getStatusStyles = (status: string) => {
         switch (status) {
@@ -99,13 +103,47 @@ export function DashboardProductsTable() {
         else setOpenDropdownId(id);
     };
 
+    const normalizeCategory = (raw: string): Product["category"] => {
+        if (raw === "Laptops" || raw === "Phones" || raw === "Electronics") return "Electronics";
+        return "Services";
+    };
+
+    const openCreateModal = () => {
+        setListingModalMode("create");
+        setEditingListing(undefined);
+        setIsListingModalOpen(true);
+    };
+
+    const openUpdateModal = (productRow: (typeof DASHBOARD_PRODUCTS)[number]) => {
+        setListingModalMode("update");
+        setEditingListing({
+            title: productRow.name,
+            category: normalizeCategory(productRow.category),
+            price: productRow.price,
+            location: "ABU Main Campus, Samaru",
+            condition: "Used - Like New",
+            images: [productRow.image],
+            description: `Updating ${productRow.name}. Current status: ${productRow.status}.`,
+            tags: [productRow.category.toLowerCase(), productRow.status.toLowerCase()],
+            specs: {
+                Category: productRow.category,
+                Status: productRow.status,
+            },
+        });
+        setIsListingModalOpen(true);
+        setOpenDropdownId(null);
+    };
+
     return (
         <div className="w-full flex-1 min-h-[600px] flex flex-col overflow-hidden">
             {/* Header Controls */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-                <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-foreground text-background font-bold px-6 py-3 rounded-full hover:opacity-90 transition-all text-xs tracking-wide">
+                <button
+                    onClick={openCreateModal}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-foreground text-background font-bold px-6 py-3 rounded-full hover:opacity-90 transition-all text-xs tracking-wide"
+                >
                     <Plus className="w-4 h-4" />
-                    Add Product
+                    Add Listing
                 </button>
 
                 <div className="w-full sm:w-auto flex items-center gap-3">
@@ -144,6 +182,7 @@ export function DashboardProductsTable() {
                                 <td className="py-2.5">
                                     <div className="flex items-center gap-3 pr-4">
                                         <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary shrink-0 border border-border/50">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex flex-col">
@@ -205,9 +244,12 @@ export function DashboardProductsTable() {
                                                         <Share2 className="w-4 h-4 text-indigo-500" />
                                                         Share
                                                     </button>
-                                                    <button className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary rounded-xl transition-colors">
+                                                    <button
+                                                        onClick={() => openUpdateModal(prod)}
+                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary rounded-xl transition-colors"
+                                                    >
                                                         <Edit className="w-4 h-4 text-blue-500" />
-                                                        Edit
+                                                        Update Listing
                                                     </button>
                                                     <button className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-foreground hover:bg-secondary rounded-xl transition-colors">
                                                         <EyeOff className="w-4 h-4 text-muted-foreground" />
@@ -254,6 +296,13 @@ export function DashboardProductsTable() {
                 <span className="px-1 text-muted-foreground text-xs font-bold">...</span>
                 <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">20</button>
             </div>
+
+            <AddListingModal
+                isOpen={isListingModalOpen}
+                onClose={() => setIsListingModalOpen(false)}
+                mode={listingModalMode}
+                initialData={editingListing}
+            />
         </div >
     );
 }

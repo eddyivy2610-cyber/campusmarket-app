@@ -1,6 +1,5 @@
 "use client";
 
-import { Header } from "../components/header/Header";
 import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { Heart, ArrowRight } from "lucide-react";
@@ -12,7 +11,6 @@ export default function SavedPage() {
     const { savedItems } = useSaved();
     return (
         <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
-            <Header />
 
             <div className="container mx-auto px-4 py-4 max-w-7xl">
                 {/* Breadcrumb */}

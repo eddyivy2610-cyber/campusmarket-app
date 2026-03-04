@@ -44,9 +44,9 @@ export function Hero() {
 
     const QUICK_ACTIONS = [
         {
-            label: "Create Ad",
-            description: "List a product or service",
-            href: "/ads/create",
+            label: "Ads / Promote",
+            description: "Request listing promotion",
+            href: "/promotions/request",
             icon: PlusCircle,
             gradient: "from-primary/10 to-orange-500/10",
             iconColor: "text-primary",
@@ -54,9 +54,9 @@ export function Hero() {
             hoverBorder: "hover:border-primary/40",
         },
         {
-            label: "Find Service",
-            description: "Browse campus services",
-            href: "/listings?type=service",
+            label: "Services",
+            description: "Post or find campus services",
+            href: "/services",
             icon: ConciergeBell,
             gradient: "from-indigo-500/10 to-purple-500/10",
             iconColor: "text-indigo-500",
@@ -65,8 +65,8 @@ export function Hero() {
         },
         {
             label: "Inquiries",
-            description: "Ask a question or get help",
-            href: "/help-support",
+            description: "Chat with support rooms",
+            href: "/help-center/chat-room",
             icon: MessageCircleQuestion,
             gradient: "from-emerald-500/10 to-teal-500/10",
             iconColor: "text-emerald-500",

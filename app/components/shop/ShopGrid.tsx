@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { ProductCard } from "./ProductCard";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Product, CATEGORIES } from "../../data/products";
 import { motion, Variants } from "framer-motion";
+import { InViewMount } from "../common/InViewMount";
+import { SkeletonProductCard } from "../skeletons/SkeletonProductCard";
 
 /* ─── Types ─────────────────────────────────────── */
 interface ShopGridProps {
@@ -88,6 +90,7 @@ function FilterPill({ label, children }: { label: string; children: React.ReactN
 }
 
 const SORT_OPTIONS = ["Newest", "Popular", "Rated", "Unrated"] as const;
+const PAGE_SIZE = 16;
 
 /* ─── ShopGrid ──────────────────────────────────── */
 export function ShopGrid({
@@ -98,24 +101,37 @@ export function ShopGrid({
     setPriceRange,
 }: ShopGridProps) {
     const isHost = viewAs === "private";
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
 
     const [sortLabel, setSortLabel] = useState<string>("Newest");
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     // Local price state for mobile pill
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
-
-    const containerVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
 
     const itemVariants: Variants = {
         hidden: { opacity: 0, scale: 0.95, y: 20 },
         visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
     };
+
+    const visibleProducts = useMemo(() => products.slice(0, visibleCount), [products, visibleCount]);
+    const hasMore = visibleCount < products.length;
+
+    useEffect(() => {
+        if (!hasMore || !sentinelRef.current) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, products.length));
+                }
+            },
+            { root: null, rootMargin: "360px", threshold: 0.01 }
+        );
+
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, products.length]);
 
 
     const toggleCategory = (cat: string) => {
@@ -236,24 +252,32 @@ export function ShopGrid({
             </div>
 
             {/* ── Products Grid ── */}
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.1 }}
-                className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
-            >
-                {products.map((product) => (
-                    <motion.div variants={itemVariants} key={product.id}>
-                        <ProductCard product={product} viewAs={viewAs} />
-                    </motion.div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {visibleProducts.map((product) => (
+                    <InViewMount key={product.id} placeholder={<SkeletonProductCard />}>
+                        <motion.div
+                            variants={itemVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.1 }}
+                        >
+                            <ProductCard product={product} viewAs={viewAs} />
+                        </motion.div>
+                    </InViewMount>
                 ))}
-                {products.length === 0 && (
-                    <div className="col-span-full py-16 text-center">
-                        <p className="text-muted-foreground italic">No products found matching your filters.</p>
-                    </div>
-                )}
-            </motion.div>
+            </div>
+
+            {products.length === 0 && (
+                <div className="py-16 text-center">
+                    <p className="text-muted-foreground italic">No products found matching your filters.</p>
+                </div>
+            )}
+
+            {hasMore && (
+                <div ref={sentinelRef} className="py-6 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                </div>
+            )}
 
 
         </div>

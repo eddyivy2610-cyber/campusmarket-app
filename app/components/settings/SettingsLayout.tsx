@@ -42,7 +42,6 @@ const NAV_ITEMS: (NavItem & { icon: any })[] = [
     { id: "account", label: "Personal Information", icon: UserRound },
     { id: "profile", label: "Public Profile", icon: IdCard },
     { id: "notifications", label: "Preferences", icon: Bell },
-    { id: "help", label: "Help & Support", icon: CircleHelp },
 ];
 
 export function SettingsLayout() {
@@ -68,21 +67,14 @@ export function SettingsLayout() {
         return () => window.removeEventListener("resize", checkMobile);
     }, [activeSection]);
 
-   
+
     const activeItem = NAV_ITEMS.find(item => item.id === activeSection);
 
     return (
-        <div className="max-w-[1240px] mx-auto lg:px-6 lg:pt-3 lg:pb-10 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-sans text-sm">
+        <div className="max-w-[1240px] mx-auto lg:px-6 lg:pt-0 lg:pb-10 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-sans text-sm">
             {/* Desktop Header Navigation */}
-           <div className="hidden lg:flex mb-8 items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 group">
-                    <span className="text-primary">
-                        <ShoppingBasket className="w-6 h-6" />
-                    </span>
-                    <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80 font-heading">
-                        CampusMarket
-                    </span>
-                </Link>
+            <div className="hidden lg:flex mb-4 items-center justify-between border-b border-border/10 pb-4">
+                <div />
 
                 <Link
                     href="/"
@@ -113,7 +105,7 @@ export function SettingsLayout() {
                 </div>
             </div>
 
-            <h1 className="hidden lg:block text-4xl font-bold tracking-tight mb-10">Settings</h1>
+            <h1 className="hidden lg:block text-2xl font-bold tracking-tight mb-6">Settings</h1>
 
             <div className="flex flex-col lg:flex-row gap-12 items-start relative">
                 {/* Desktop Sidebar Navigation */}
@@ -217,7 +209,6 @@ export function SettingsLayout() {
                                     {activeSection === "account" && <AccountSettings />}
                                     {activeSection === "profile" && <ProfileSettings />}
                                     {activeSection === "notifications" && <NotificationSettings />}
-                                    {activeSection === "help" && <HelpSettings />}
                                 </div>
                             )}
                         </motion.div>

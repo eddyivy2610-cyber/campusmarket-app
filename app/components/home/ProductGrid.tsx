@@ -3,30 +3,54 @@
 import { PRODUCTS } from "../../data/products";
 import { ProductCard } from "../shop/ProductCard";
 import { motion, Variants } from "framer-motion";
+import { useMemo, useEffect, useRef, useState } from "react";
+import { InViewMount } from "../common/InViewMount";
+import { SkeletonProductCard } from "../skeletons/SkeletonProductCard";
+
+const HOME_PAGE_SIZE = 20;
+const EXPLORE_POOL_SIZE = 120;
 
 export function ProductGrid() {
-    // Generate mock arrays by copying the first product multiple times
-    const sampleProduct = { ...PRODUCTS[0], originalPrice: PRODUCTS[0].price * 1.5 }; // Add 50% original price
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const [visibleCount, setVisibleCount] = useState(HOME_PAGE_SIZE);
 
-    const exploreItems = Array(40).fill(sampleProduct).map((item, index) => ({ ...item, id: `explore-${index}` }));
+    const exploreItems = useMemo(() => {
+        return Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
+            const base = PRODUCTS[index % PRODUCTS.length];
+            return {
+                ...base,
+                id: 100000 + index,
+                originalPrice: Math.round(base.price * 1.2),
+            };
+        });
+    }, []);
 
-    const containerVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.05 },
-        },
-    };
+    const visibleItems = useMemo(() => exploreItems.slice(0, visibleCount), [exploreItems, visibleCount]);
+    const hasMore = visibleCount < exploreItems.length;
 
     const itemVariants: Variants = {
         hidden: { opacity: 0, scale: 0.95, y: 20 },
         visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
     };
 
+    useEffect(() => {
+        if (!hasMore || !sentinelRef.current) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisibleCount((prev) => Math.min(prev + HOME_PAGE_SIZE, exploreItems.length));
+                }
+            },
+            { root: null, rootMargin: "420px", threshold: 0.01 }
+        );
+
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasMore, exploreItems.length]);
+
     return (
         <div className="flex flex-col gap-10 md:gap-16 w-full">
-
-            {/* More to Explore Section (Grid) */}
             <section>
                 <div className="flex items-center justify-between mb-6 border-b-2 border-blue-500 pb-2">
                     <div className="flex items-center gap-3 bg-blue-500 text-white px-4 py-1.5 rounded-t-lg">
@@ -34,27 +58,26 @@ export function ProductGrid() {
                     </div>
                 </div>
 
-                {/* Infinite Grid — updated for narrower content area */}
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.1 }}
-                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
-                >
-                    {exploreItems.map((product) => (
-                        <motion.div variants={itemVariants} key={product.id}>
-                            <ProductCard product={product} />
-                        </motion.div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {visibleItems.map((product) => (
+                        <InViewMount key={product.id} placeholder={<SkeletonProductCard />}>
+                            <motion.div
+                                variants={itemVariants}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true, amount: 0.1 }}
+                            >
+                                <ProductCard product={product} />
+                            </motion.div>
+                        </InViewMount>
                     ))}
-                </motion.div>
-
-                {/* Lazy loading indicator mocker */}
-                <div className="mt-10 flex justify-center pb-8">
-                    <button className="bg-secondary hover:bg-secondary/80 text-foreground font-bold px-8 py-3 rounded-xl text-sm transition-all duration-300">
-                        Load More Products
-                    </button>
                 </div>
+
+                {hasMore && (
+                    <div ref={sentinelRef} className="mt-8 flex justify-center pb-8">
+                        <div className="w-7 h-7 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    </div>
+                )}
             </section>
         </div>
     );

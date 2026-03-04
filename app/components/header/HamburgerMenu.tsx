@@ -11,7 +11,6 @@ import {
     Heart,
     Settings,
     HelpCircle,
-    Users2,
     MessageSquare,
     LifeBuoy,
     MonitorSmartphone,
@@ -28,10 +27,7 @@ import {
     Wrench,
     Tag,
     UtensilsCrossed,
-    Globe,
-    ShieldCheck,
-    BookMarked,
-    Info
+    LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,25 +40,18 @@ interface HamburgerMenuProps {
     notificationCount?: number;
 }
 
-const IconMap: { [key: string]: any } = {
+const IconMap: Record<string, LucideIcon> = {
     MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
     Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench, UtensilsCrossed
 };
 
 export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: HamburgerMenuProps) {
-    const [isVisible, setIsVisible] = useState(false);
     const [categoriesOpen, setCategoriesOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-            document.body.style.overflow = "hidden";
-        } else {
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            document.body.style.overflow = "unset";
-            return () => clearTimeout(timer);
-        }
+        document.body.style.overflow = isOpen ? "hidden" : "unset";
+        return () => { document.body.style.overflow = "unset"; };
     }, [isOpen]);
 
     const nav = (path: string) => {
@@ -70,7 +59,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
         onClose();
     };
 
-    if (!isVisible && !isOpen) return null;
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[60] flex justify-start">
@@ -122,7 +111,17 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     <Section label="My Account">
                         <NavRow icon={Bell} label="Alerts" badge={notificationCount} onClick={() => nav("/dashboard/alerts")} />
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
-                        <NavRow icon={Store} label="Vendor / Seller Profile" accent onClick={() => nav("/profile/campus-market")} />
+                        <NavRow icon={Store} label="My Profile" accent onClick={() => nav("/profile/campus-market")} />
+                        <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/dashboard/messages")} />
+                        <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
+                    </Section>
+
+                    {/* ── Main Navigation (desktop parity) ── */}
+                    <Section label="Navigation">
+                        <NavRow icon={Home} label="Home" onClick={() => nav("/")} />
+                        <NavRow icon={Tag} label="Listings" onClick={() => nav("/listings")} />
+                        <NavRow icon={Store} label="Vendors" onClick={() => nav("/profile/campus-market")} />
+                        <NavRow icon={LifeBuoy} label="Help & Support" onClick={() => nav("/help-support")} />
                     </Section>
 
                     {/* ── Shop: Full Categories ── */}
@@ -166,20 +165,12 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         )}
                     </Section>
 
-                    {/* ── Quick Links (mirrors footer, shown on mobile) ── */}
-                    <Section label="Quick Links">
-                        <NavRow icon={Globe} label="Marketplace" onClick={() => nav("/listings")} />
-                        <NavRow icon={Info} label="About Us" onClick={() => nav("/about-us")} />
-                        <NavRow icon={ShieldCheck} label="Safety Guidelines" onClick={() => nav("/safety-guidelines")} />
-                        <NavRow icon={BookMarked} label="Usage Policy" onClick={() => nav("/usage-policy")} />
-                        <NavRow icon={HelpCircle} label="Terms of Service" onClick={() => nav("/terms-of-service")} />
-                    </Section>
-
-
-
                     {/* ── Support & Info ── */}
                     <Section label="Support">
                         <NavRow icon={HelpCircle} label="Help Center" onClick={() => nav("/help")} />
+                        <NavRow icon={MessageSquare} label="Help Chat Room" onClick={() => nav("/help-center/chat-room")} />
+                        <NavRow icon={Tag} label="Service Requests" onClick={() => nav("/services")} />
+                        <NavRow icon={Store} label="Promotion Request" onClick={() => nav("/promotions/request")} />
                         <NavRow icon={MessageSquare} label="Feedback" onClick={() => nav("/feedback")} />
                         <NavRow icon={LifeBuoy} label="Contact Support" onClick={() => nav("/help-support")} />
                     </Section>
@@ -189,11 +180,11 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 {/* ── Sticky Footer ── */}
                 <div className="shrink-0 p-3 border-t border-border bg-secondary/20">
                     <button
-                        onClick={() => nav("/dashboard/info")}
+                        onClick={() => nav("/settings")}
                         className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors text-muted-foreground hover:text-foreground"
                     >
-                        <Info className="w-5 h-5" />
-                        <span className="font-medium text-sm">Info</span>
+                        <Settings className="w-5 h-5" />
+                        <span className="font-medium text-sm">Settings</span>
                     </button>
                 </div>
             </div>
@@ -219,7 +210,7 @@ function NavRow({
     accent,
     onClick,
 }: {
-    icon: any;
+    icon: LucideIcon;
     label: string;
     badge?: number;
     accent?: boolean;

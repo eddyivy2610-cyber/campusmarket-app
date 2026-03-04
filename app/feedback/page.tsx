@@ -1,8 +1,7 @@
 import React from "react";
-import { Star, MessageSquare } from "lucide-react";
-import Image from "next/image";
-import { MainHeader } from "../components/header/MainHeader";
+import { Star } from "lucide-react";
 import { Footer } from "../components/sections/Footer";
+import { BackToHomeBar } from "../components/common/BackToHomeBar";
 
 // Mock Data for Reviews
 const MOCK_REVIEWS = [
@@ -49,16 +48,18 @@ const RATING_BREAKDOWN = [
 export default function FeedbackPage() {
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <MainHeader />
 
             <main className="flex-1 py-10 md:py-16 relative overflow-hidden">
                 <div className="w-full max-w-[1400px] mx-auto relative flex justify-start px-4 sm:px-6 xl:px-12">
 
-                    <div className="max-w-4xl w-full flex flex-col lg:flex-row gap-10 lg:gap-14 lg:pr-[300px] xl:pr-0">
+                    <div className="max-w-4xl w-full lg:pr-[300px] xl:pr-0">
+                        <BackToHomeBar className="mb-6" />
 
-                        {/* Left Column: Average Rating Breakdown */}
-                        <div className="w-full lg:w-[300px] shrink-0">
-                            <h2 className="text-xl font-bold font-heading mb-5 tracking-tight">Average Rating</h2>
+                        <div className="flex flex-col lg:flex-row gap-10 lg:gap-14">
+
+                            {/* Left Column: Average Rating Breakdown */}
+                            <div className="w-full lg:w-[300px] shrink-0">
+                                <h2 className="text-xl font-bold font-heading mb-5 tracking-tight">Average Rating</h2>
 
                             <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
                                 {/* Score & Stars */}
@@ -111,11 +112,11 @@ export default function FeedbackPage() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                            </div>
 
-                        {/* Right Column: Customer Feedback List */}
-                        <div className="flex-1 min-w-0">
-                            <h2 className="text-xl font-bold font-heading mb-5 tracking-tight">Customer Feedback</h2>
+                            {/* Right Column: Customer Feedback List */}
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-xl font-bold font-heading mb-5 tracking-tight">Customer Feedback</h2>
 
                             <div className="space-y-5">
                                 {MOCK_REVIEWS.map((review) => (
@@ -164,8 +165,9 @@ export default function FeedbackPage() {
                                     Load More Reviews
                                 </button>
                             </div>
-                        </div>
+                            </div>
 
+                        </div>
                     </div>
 
                     {/* Right Illustration Placeholder */}

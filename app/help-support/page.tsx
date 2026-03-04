@@ -1,6 +1,7 @@
 import { LifeBuoy, MessageCircle, ShieldAlert, Wrench } from "lucide-react";
-import { MainHeader } from "../components/header/MainHeader";
 import { Footer } from "../components/sections/Footer";
+import Link from "next/link";
+import { BackToHomeBar } from "../components/common/BackToHomeBar";
 
 const supportTopics = [
     { label: "Technical issue", icon: Wrench },
@@ -11,13 +12,15 @@ const supportTopics = [
 
 export default function HelpSupportPage() {
     return (
-        <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <MainHeader />
+        <div className="min-h-screen flex flex-col bg-background text-foreground font-heading">
 
             <main className="flex-1 py-10 md:py-14 px-4 sm:px-6 xl:px-10">
                 <div className="max-w-6xl mx-auto space-y-8">
+                    <BackToHomeBar />
                     <section className="bg-card border border-border/50 rounded-3xl p-6 sm:p-8 shadow-sm">
-                        <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary mb-10 border-b border-border pb-4">Help & Support</p>
+                        <div className="mb-10 border-b border-border pb-4">
+                            <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary">Help & Support</p>
+                        </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold text-foreground mb-4 font-heading tracking-tight">Tell us what you need.</h1>
                         <p className="text-sm md:text-base text-muted-foreground font-medium mb-12 leading-relaxed">
                             Use the forms below to ask product questions, report account problems, or share marketplace concerns.
@@ -66,6 +69,24 @@ export default function HelpSupportPage() {
                                 Submit escalation
                             </button>
                         </form>
+                    </section>
+
+                    <section className="grid md:grid-cols-3 gap-4">
+                        <Link href="/services" className="bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/40 transition-colors">
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Services Board</p>
+                            <h3 className="font-bold text-foreground">Post a job or service request</h3>
+                            <p className="text-sm text-muted-foreground mt-2">Create service ads and find students for tasks.</p>
+                        </Link>
+                        <Link href="/promotions/request" className="bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/40 transition-colors">
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Promotions</p>
+                            <h3 className="font-bold text-foreground">Request listing promotion</h3>
+                            <p className="text-sm text-muted-foreground mt-2">Submit valid listing and campaign details for review.</p>
+                        </Link>
+                        <Link href="/help-center/chat-room" className="bg-card border border-border/50 rounded-2xl p-5 hover:border-primary/40 transition-colors">
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Live Help</p>
+                            <h3 className="font-bold text-foreground">Open Help Center Chat</h3>
+                            <p className="text-sm text-muted-foreground mt-2">Join support rooms and chat with moderators.</p>
+                        </Link>
                     </section>
                 </div>
             </main>

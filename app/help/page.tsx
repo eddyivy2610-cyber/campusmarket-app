@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Header } from "../components/header/Header";
 import { Footer } from "../components/sections/Footer";
 import { Search, BookOpen, MessageCircleQuestion, Users, ChevronDown } from "lucide-react";
+import { BackToHomeBar } from "../components/common/BackToHomeBar";
 
 // Types
 interface AccordionItem {
@@ -117,7 +117,6 @@ function Accordion({ items }: { items: AccordionItem[] }) {
 export default function HelpCenterPage() {
     return (
         <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
-            <Header />
 
             <main className="flex-1 relative overflow-hidden">
 
@@ -135,6 +134,7 @@ export default function HelpCenterPage() {
                     </div>
 
                     <div className="max-w-3xl w-full px-4 sm:px-6 lg:px-8">
+                        <BackToHomeBar className="mb-6" />
 
                         {/* Hero Section */}
                         <div className="text-center mb-12">
@@ -159,7 +159,7 @@ export default function HelpCenterPage() {
                             <p className="text-xs text-muted-foreground font-medium mb-4">
                                 Or <strong className="text-foreground">choose</strong> an option below to find what you need.
                             </p>
-                            
+
                             <Link
                                 href="/help-support"
                                 className="inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"

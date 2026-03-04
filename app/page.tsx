@@ -1,4 +1,3 @@
-import { Header } from "./components/header/Header";
 import { Hero } from "./components/home/Hero";
 import { SubHeroCategories } from "./components/home/SubHeroCategories";
 import { CategoriesSidebar } from "./components/home/CategoriesSidebar";
@@ -8,7 +7,6 @@ import { Footer } from "./components/sections/Footer";
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
-      <Header />
 
       <div className="max-w-[1780px] mx-auto px-4 md:px-8">
 

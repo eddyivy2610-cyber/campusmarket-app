@@ -11,7 +11,7 @@ import {
     CheckCircle,
     FileText,
     Settings,
-    ArrowLeft,
+    MessageSquareWarning,
 } from "lucide-react";
 import { IconTooltip } from "../common/IconTooltip";
 
@@ -21,13 +21,14 @@ const ADMIN_NAV_ITEMS = [
     { name: "Sellers", href: "/admin/sellers", icon: UserCheck },
     { name: "Listings", href: "/admin/listings", icon: Package },
     { name: "Reports", href: "/admin/reports", icon: Flag },
+    { name: "Dispute Center", href: "/admin/dispute-center", icon: MessageSquareWarning },
     { name: "Badges", href: "/admin/badges", icon: CheckCircle },
     { name: "Logs", href: "/admin/logs", icon: FileText },
     { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 const MOBILE_NAV_ITEMS = ADMIN_NAV_ITEMS.filter((item) =>
-    ["Overview", "Users", "Listings", "Reports", "Settings"].includes(item.name)
+    ["Overview", "Users", "Listings", "Dispute Center", "Settings"].includes(item.name)
 );
 
 const isActiveRoute = (pathname: string, href: string) => {
@@ -44,14 +45,6 @@ const AdminSidebar = () => {
         <>
             {/* Floating Sidebar */}
             <aside className="w-20 hidden md:flex flex-col items-center py-6 bg-card border border-border/50 rounded-2xl shadow-sm fixed top-28 left-6 h-[calc(100vh-7rem)] z-30">
-                <Link href="/" className="mb-8">
-                    <IconTooltip content="Back to Marketplace" position="right">
-                        <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
-                            <ArrowLeft className="w-5 h-5" />
-                        </div>
-                    </IconTooltip>
-                </Link>
-
                 <nav className="flex flex-col gap-3 flex-1">
                     {ADMIN_NAV_ITEMS.map((item) => {
                         const active = isActiveRoute(pathname, item.href);

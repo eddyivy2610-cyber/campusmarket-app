@@ -1,6 +1,5 @@
 "use client";
 
-import { MainHeader } from "../components/header/MainHeader";
 import { Footer } from "../components/sections/Footer";
 import { ListingsToolbar } from "../components/manage-listings/ListingsToolbar";
 import { ListingsTable } from "../components/manage-listings/ListingsTable";
@@ -15,8 +14,7 @@ export default function ManageListingsPage() {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
     return (
-        <main className="min-h-screen bg-background text-foreground">
-            <MainHeader />
+        <main className="min-h-screen bg-background text-foreground font-heading">
 
             <div className="max-w-[1780px] mx-auto px-4 md:px-8 py-8 md:py-12">
                 <div className="flex flex-col gap-6">

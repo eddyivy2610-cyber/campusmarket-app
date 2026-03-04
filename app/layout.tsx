@@ -3,9 +3,11 @@ import { Geist, Geist_Mono, Bricolage_Grotesque, Quicksand, Inter, Montserrat, P
 import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SavedProvider } from "./context/SavedContext";
+import { AuthProvider } from "./context/AuthContext";
 import { ScrollToTop } from "./components/locations/ScrollToTop";
 import { CustomerCareButton } from "./components/locations/CustomerCareButton";
 import { SmoothScroll } from "./components/common/SmoothScroll";
+import { Header } from "./components/header/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,13 +58,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} ${quicksand.variable} ${inter.variable} ${montserrat.variable} ${poppins.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}>
         <ThemeProvider>
-          <SavedProvider>
-            <SmoothScroll>
-              {children}
-              <ScrollToTop />
-              <CustomerCareButton />
-            </SmoothScroll>
-          </SavedProvider>
+          <AuthProvider>
+            <SavedProvider>
+              <SmoothScroll>
+                <Header />
+                <div className="pt-[148px] md:pt-[84px]">
+                  {children}
+                </div>
+                <ScrollToTop />
+                <CustomerCareButton />
+              </SmoothScroll>
+            </SavedProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -3,12 +3,36 @@
 import React from "react";
 import AdminSidebar from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
+import { usePathname, useRouter } from "next/navigation";
+import { getAdminSession } from "@/lib/adminAuth";
 
 interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+    const router = useRouter();
+    const pathname = usePathname();
+    const [isReady, setIsReady] = React.useState(false);
+
+    React.useEffect(() => {
+        const session = getAdminSession();
+        if (!session) {
+            const next = encodeURIComponent(pathname || "/admin");
+            router.replace(`/admin/auth/sign-in?next=${next}`);
+            return;
+        }
+        setIsReady(true);
+    }, [pathname, router]);
+
+    if (!isReady) {
+        return (
+            <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             <AdminHeader />
