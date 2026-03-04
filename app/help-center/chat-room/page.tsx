@@ -12,7 +12,7 @@ type ChatMessage = {
     time: string;
 };
 
-const ROOM_SEEDS: Record<string, ChatMessage[]> = {
+const ROOM_SEEDS = {
     "General Support": [
         { id: "g1", sender: "support", text: "Welcome to Help Center Chat. Tell us what you need.", time: "09:10" },
     ],
@@ -22,17 +22,19 @@ const ROOM_SEEDS: Record<string, ChatMessage[]> = {
     "Payments & Billing": [
         { id: "p1", sender: "support", text: "For payment issues, include order ID and amount.", time: "09:14" },
     ],
-};
+} as const;
 
-const ROOM_ICONS = {
+type RoomName = keyof typeof ROOM_SEEDS;
+
+const ROOM_ICONS: Record<RoomName, React.ElementType> = {
     "General Support": Headset,
     "Safety & Reports": ShieldCheck,
     "Payments & Billing": Wallet,
 };
 
 export default function HelpCenterChatRoomPage() {
-    const [activeRoom, setActiveRoom] = useState<keyof typeof ROOM_SEEDS>("General Support");
-    const [messagesByRoom, setMessagesByRoom] = useState<Record<string, ChatMessage[]>>(ROOM_SEEDS);
+    const [activeRoom, setActiveRoom] = useState<RoomName>("General Support");
+    const [messagesByRoom, setMessagesByRoom] = useState<Record<string, readonly ChatMessage[]>>(ROOM_SEEDS);
     const [draft, setDraft] = useState("");
 
     const messages = useMemo(() => messagesByRoom[activeRoom] ?? [], [activeRoom, messagesByRoom]);
@@ -81,7 +83,7 @@ export default function HelpCenterChatRoomPage() {
                         <aside className="lg:col-span-1 bg-card border border-border/50 rounded-2xl p-4 h-fit">
                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Rooms</p>
                             <div className="space-y-2">
-                                {(Object.keys(ROOM_SEEDS) as Array<keyof typeof ROOM_SEEDS>).map((room) => {
+                                {(Object.keys(ROOM_SEEDS) as Array<RoomName>).map((room) => {
                                     const Icon = ROOM_ICONS[room];
                                     return (
                                         <button
