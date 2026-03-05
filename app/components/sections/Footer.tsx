@@ -34,9 +34,9 @@ export function Footer() {
                             <p className="text-xs font-bold uppercase tracking-widest text-foreground/80 mb-3">Our Core Team</p>
                             <div className="flex items-center">
                                 {[
-                                    { id: 1, name: "Sarah J.", role: "Lead Developer", initials: "SJ", color: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400" },
-                                    { id: 2, name: "David M.", role: "UI/UX Designer", initials: "DM", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400" },
-                                    { id: 3, name: "Alex K.", role: "System Admin", initials: "AK", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" },
+                                    { id: 1, name: "Abdurrahman Kabir.", role: "Project Manager", initials: "AK", color: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400" },
+                                    { id: 2, name: "Al-Imam Ahmed.", role: "Backend & System Engineer", initials: "AA", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400" },
+                                    { id: 3, name: "John Lucky.", role: "Frontend Developer", initials: "JL", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" },
                                 ].map((member) => (
                                     <button
                                         key={member.id}
