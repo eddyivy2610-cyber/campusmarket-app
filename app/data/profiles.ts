@@ -116,7 +116,7 @@ export const PROFILES: Profile[] = [
         bio: "Just a regular student making the most out of campus life. Lover of books, tech, and good music.",
         rating: 4.5,
         avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80",
-        type: 'vendor',
+        type: 'buyer',
         isStudent: true,
         isVerified: false,
         transactions: 12,

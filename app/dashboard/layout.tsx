@@ -15,6 +15,7 @@ import { IconTooltip } from "../components/common/IconTooltip";
 import { useAuth } from "../context/AuthContext";
 
 import { DashboardOnboarding } from "../components/dashboard/DashboardOnboarding";
+import { ProUpgradePrompt } from "../components/shared/ProUpgradePrompt";
 const NAV_ITEMS = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { name: "Products", href: "/dashboard/products", icon: Package },
@@ -26,8 +27,11 @@ const NAV_ITEMS = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
+    const isPro = user?.role === "pro";
     const isMessagesRoute = pathname.startsWith("/dashboard/messages");
+    const isAlertsRoute = pathname.startsWith("/dashboard/alerts");
+    const isFreePath = isMessagesRoute || isAlertsRoute;
 
     const handleUserLogout = () => {
         logout();
@@ -100,8 +104,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <main className={`flex-1 min-h-0 overflow-y-auto ${isMessagesRoute ? "pb-0" : "pb-20 md:pb-0"}`}>
                     <div className={`bg-card border border-border/50 shadow-sm min-h-full ${isMessagesRoute ? "rounded-none p-0 md:rounded-2xl md:p-6" : "rounded-2xl p-4 md:p-6"
                         }`}>
-                        {children}
-                        <DashboardOnboarding />
+                        {!isPro && !isFreePath ? (
+                            <div className="py-20 flex items-center justify-center">
+                                <ProUpgradePrompt
+                                    title="Unlock Professional Dashboard"
+                                    description="Upgrade to a Pro account to access professional management tools, analytics, and business growth features."
+                                    featureName="professional dashboard tools"
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                {children}
+                                {isPro && <DashboardOnboarding />}
+                            </>
+                        )}
                     </div>
                 </main>
             </div>

@@ -17,7 +17,6 @@ import {
     Clock,
     BadgeCheck,
     MessageSquare,
-    Activity,
     Store,
     ShieldCheck,
     Briefcase,
@@ -47,7 +46,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
     const buyerTabs = [
         { name: "About", icon: User },
-        { name: "Activity", icon: Activity },
+        { name: "Listings", icon: Store },
         { name: "Reviews", icon: Star },
     ];
 

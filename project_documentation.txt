@@ -1,0 +1,71 @@
+CAMPUS MARKET PROJECT DOCUMENTATION
+==================================
+
+OVERVIEW
+--------
+Campus Market is a specialized e-commerce platform designed for university students, 
+enabling them to buy, sell, and trade within their campus community. The project 
+emphasizes trust, ease of use, and professional features for student entrepreneurs.
+
+USER ROLES & AUTHENTICATION
+---------------------------
+- Regular Member (Buyer/Student): Can browse, buy, message sellers, and save listings.
+- Pro Member (Seller/Vendor): Verified students who can list products, access sales 
+  analytics, and manage their business via a professional dashboard.
+- Verification: Student verification is a core trust feature, often displayed in 
+  the profile details.
+
+CORE SECTIONS & FEATURES
+------------------------
+
+1. HOME & LANDING PAGE
+   - Feature: Hero section with campus-specific branding.
+   - Content: Featured categories, trending products, and quick-links to popular items.
+   - Usage: Discovering the latest campus deals and navigating to specific niches.
+
+2. SEARCH & LISTINGS
+   - Feature: Advanced filtering by category, price, and condition.
+   - Content: Product cards showing prices, high-quality images, and seller ratings.
+   - Usage: Finding specific textbooks, electronics, or dorm essentials quickly.
+
+3. PRODUCT DETAIL PAGE
+   - Feature: Real-time messaging, "Save for Later," and share options.
+   - Content: Detailed descriptions, policies, and "More from this seller" sections.
+   - Usage: Reviewing product specs before committing to a purchase or inquiry.
+
+4. USER PROFILES
+   - Regular Profile: A clean, student-focused view showing verified status and "About" info.
+   - Professional Profile: A premium header for sellers featuring ratings, total sales, 
+     active items, and business info like return policies and hours.
+   - Usage: Building trust between buyers and sellers via membership history and reviews.
+
+5. PROFESSIONAL DASHBOARD (Pro Only)
+   - Overview: High-level sales revenue charts, total orders, and store health stats.
+   - Products: Inventory management system to add, edit, or pause listings.
+   - Orders: Fulfillment tracker for pending and completed transactions.
+   - Usage: A centralized workspace for student businesses to scale and manage sales.
+
+6. COMMUNICATION HUB
+   - Messages: A unified workspace for buyer-seller negotiations and support.
+   - Alerts: Real-time notifications for price drops, new listings, and system updates.
+   - Usage: Staying connected and responsive within the campus marketplace.
+
+7. HELP & SUPPORT
+   - Help Center: FAQs, chat supportrooms, and resolution centers for disputes.
+   - Usage: Resolving technical issues or transaction disagreements.
+
+8. ADMIN PANEL
+   - Seller Approvals: A tool for administrators to verify IDs and business applications.
+   - Content Management: Moderation of listings and user reports.
+   - Usage: Maintaining marketplace safety and verifying authentic student vendors.
+
+9. SAVED ITEMS & SETTINGS
+   - Saved: A dedicated space for users to track items they are interested in.
+   - Account Settings: Management of personal info, notifications, and "Upgrade to Pro" flows.
+   - Usage: Customizing the platform experience and managing user data.
+
+TECHNICAL STACK
+---------------
+- Core: Next.js (App Router), Tailwind CSS, Framer Motion for animations.
+- Icons: Lucide React.
+- State: AuthContext for role-based access control.

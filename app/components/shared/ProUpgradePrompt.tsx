@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 import { Lock, Zap, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -52,14 +53,16 @@ export function ProUpgradePrompt({
                         ))}
                     </div>
 
-                    <button className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2 group">
-                        <Zap className="w-4 h-4 fill-white text-white" />
-                        Upgrade Now
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-1" />
-                    </button>
+                    <Link href="/register/seller" className="w-full">
+                        <button className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2 group">
+                            <Zap className="w-4 h-4 fill-white text-white" />
+                            Upgrade Now
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-1" />
+                        </button>
+                    </Link>
 
                     <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                        Billed annually or monthly
+                        Free
                     </p>
                 </div>
             </motion.div>

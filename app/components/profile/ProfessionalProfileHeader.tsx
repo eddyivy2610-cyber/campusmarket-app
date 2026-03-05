@@ -120,20 +120,22 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                         {/* Column 1: Trust Signals */}
                         <div className="hidden md:flex flex-col items-center md:items-start gap-4">
-                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-2xl transition-all hover:bg-white/10">
-                                <div className="flex items-center gap-0.5">
-                                    {[1, 2, 3, 4, 5].map((s) => (
-                                        <Star
-                                            key={s}
-                                            className={`w-5 h-5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
-                                        />
-                                    ))}
+                            {profile.type === 'vendor' && (
+                                <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-2xl transition-all hover:bg-white/10">
+                                    <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-5 h-5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xl font-bold text-white">{profile.rating}<span className="text-sm text-white/50">/5.0</span></p>
+                                        <p className="text-[9px] font-medium text-white/40 mt-0.5">{profile.recommendedCount + profile.notRecommendedCount} Total Reviews</p>
+                                    </div>
                                 </div>
-                                <div className="text-center">
-                                    <p className="text-xl font-bold text-white">{profile.rating}<span className="text-sm text-white/50">/5.0</span></p>
-                                    <p className="text-[9px] font-medium text-white/40 mt-0.5">{profile.recommendedCount + profile.notRecommendedCount} Total Reviews</p>
-                                </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Column 2: Central Profile Info */}
@@ -178,7 +180,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                 </div>
                                 <div className="flex flex-col items-center text-center">
                                     <span className="text-[9px] md:text-[10px] font-semibold text-white/50 uppercase tracking-widest mb-0.5">
-                                        PRO MEMBER FROM
+                                        {profile.type === 'vendor' ? "PRO MEMBER FROM" : "MEMBER FROM"}
                                     </span>
                                     <span className="text-xs md:text-sm font-semibold text-white/90">
                                         {profile.location}
@@ -193,44 +195,46 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                         {/* Column 3: Stats Board */}
                         <div className="flex justify-center md:justify-end md:gap-10 w-full md:w-auto">
-                            <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-3 md:p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
-                                {/* Star Rating - Mobile Only */}
-                                <div className="flex flex-col items-center gap-1 md:hidden">
-                                    <div className="flex items-center gap-0.5">
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                            <Star
-                                                key={s}
-                                                className={`w-3.5 h-3.5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
-                                            />
-                                        ))}
+                            {profile.type === 'vendor' && (
+                                <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-3 md:p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
+                                    {/* Star Rating - Mobile Only */}
+                                    <div className="flex flex-col items-center gap-1 md:hidden">
+                                        <div className="flex items-center gap-0.5">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <Star
+                                                    key={s}
+                                                    className={`w-3.5 h-3.5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm font-bold text-white">{profile.rating}<span className="text-[10px] text-white/50">/5</span></p>
+                                        <p className="text-[8px] font-medium text-white/40">{profile.recommendedCount + profile.notRecommendedCount} reviews</p>
                                     </div>
-                                    <p className="text-sm font-bold text-white">{profile.rating}<span className="text-[10px] text-white/50">/5</span></p>
-                                    <p className="text-[8px] font-medium text-white/40">{profile.recommendedCount + profile.notRecommendedCount} reviews</p>
-                                </div>
 
-                                <div className="w-px h-8 bg-white/10 md:hidden" />
+                                    <div className="w-px h-8 bg-white/10 md:hidden" />
 
-                                <div className="flex items-center gap-4 md:gap-10">
-                                    <div className="flex flex-col items-center text-center group">
-                                        <IconTooltip content="Currently Active Items">
-                                            <div className="p-2 bg-amber-400/10 border border-amber-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-amber-400/20">
-                                                <LayoutGrid className="w-4 h-4 text-amber-300 md:w-5 md:h-5" />
-                                            </div>
-                                        </IconTooltip>
-                                        <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Active Items</span>
-                                        <span className="text-sm md:text-lg font-semibold text-white">{profile.activeListingsCount || 0}</span>
-                                    </div>
-                                    <div className="flex flex-col items-center text-center group">
-                                        <IconTooltip content="Successfully Sold Items">
-                                            <div className="p-2 bg-emerald-400/10 border border-emerald-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-emerald-400/20">
-                                                <CheckCircle className="w-4 h-4 text-emerald-300 md:w-5 md:h-5" />
-                                            </div>
-                                        </IconTooltip>
-                                        <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Sold Items</span>
-                                        <span className="text-sm md:text-lg font-semibold text-white">{profile.soldItems || 0}</span>
+                                    <div className="flex items-center gap-4 md:gap-10">
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Currently Active Items">
+                                                <div className="p-2 bg-amber-400/10 border border-amber-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-amber-400/20">
+                                                    <LayoutGrid className="w-4 h-4 text-amber-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Active Items</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.activeListingsCount || 0}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Successfully Sold Items">
+                                                <div className="p-2 bg-emerald-400/10 border border-emerald-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-emerald-400/20">
+                                                    <CheckCircle className="w-4 h-4 text-emerald-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Sold Items</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.soldItems || 0}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { User, Camera, Building2, ArrowLeft, Loader2, X } from "lucide-react";
+import { User, Camera, ArrowLeft, Loader2, X } from "lucide-react";
 
 interface Step2Props {
     formData: any;
@@ -41,7 +41,7 @@ export function Step2ProfileInfo({ formData, updateFormData, onNext, onBack }: S
 
     const handleNext = async () => {
         const newErrors: { [key: string]: string } = {};
-        if (!formData.displayName) newErrors.displayName = "Display Name is required";
+        if (!formData.fullName) newErrors.fullName = "Full Name is required";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -103,51 +103,51 @@ export function Step2ProfileInfo({ formData, updateFormData, onNext, onBack }: S
                 </div>
 
                 <div className="flex-1 space-y-4 w-full">
+                    {/* Full Name */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
+                            Full Name
+                        </label>
+                        <div className="relative group">
+                            <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.fullName ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-primary'}`}>
+                                <User className="w-5 h-5" />
+                            </div>
+                            <input
+                                type="text"
+                                value={formData.fullName || ""}
+                                onChange={(e) => {
+                                    updateFormData({ fullName: e.target.value });
+                                    if (errors.fullName) setErrors({ ...errors, fullName: "" });
+                                }}
+                                placeholder="e.g. Jane Smith"
+                                className={`w-full bg-secondary/30 border-2 ${errors.fullName ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
+                            />
+                        </div>
+                        <p className="text-[10px] font-medium text-muted-foreground/60 ml-2 italic">
+                            Your legal name for account verification
+                        </p>
+                        {errors.fullName && <p className="text-xs font-bold text-red-500 ml-2">{errors.fullName}</p>}
+                    </div>
+
                     {/* Display Name */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
-                            Display Name
+                            Display Name <span className="text-muted-foreground/40 font-medium">(Optional)</span>
                         </label>
                         <div className="relative group">
-                            <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.displayName ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-primary'}`}>
+                            <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-muted-foreground group-focus-within:text-primary`}>
                                 <User className="w-5 h-5" />
                             </div>
                             <input
                                 type="text"
                                 value={formData.displayName || ""}
-                                onChange={(e) => {
-                                    updateFormData({ displayName: e.target.value });
-                                    if (errors.displayName) setErrors({ ...errors, displayName: "" });
-                                }}
-                                placeholder="e.g. Jane Smith"
-                                className={`w-full bg-secondary/30 border-2 ${errors.displayName ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
-                            />
-                        </div>
-                        <p className="text-[10px] font-medium text-muted-foreground/60 ml-2 italic">
-                            This is how others will see you
-                        </p>
-                        {errors.displayName && <p className="text-xs font-bold text-red-500 ml-2">{errors.displayName}</p>}
-                    </div>
-
-                    {/* Business Name */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70 text-left block">
-                            Business Name <span className="text-muted-foreground/40 font-medium">(Optional)</span>
-                        </label>
-                        <div className="relative group">
-                            <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-muted-foreground group-focus-within:text-primary`}>
-                                <Building2 className="w-5 h-5" />
-                            </div>
-                            <input
-                                type="text"
-                                value={formData.businessName || ""}
-                                onChange={(e) => updateFormData({ businessName: e.target.value })}
-                                placeholder="Your brand or business"
+                                onChange={(e) => updateFormData({ displayName: e.target.value })}
+                                placeholder="What should we call you?"
                                 className={`w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm`}
                             />
                         </div>
                         <p className="text-[10px] font-medium text-muted-foreground/60 ml-2 italic">
-                            Leave blank if not applicable
+                            This is how others will see you in the market
                         </p>
                     </div>
                 </div>
