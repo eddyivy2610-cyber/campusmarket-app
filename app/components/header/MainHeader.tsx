@@ -1,9 +1,10 @@
 "use client";
 
-import { Search, ShoppingBasket, User, Bell, LayoutGrid, Heart, ChevronDown } from "lucide-react";
+import { User, Bell, LayoutGrid, Heart, ChevronDown } from "lucide-react";
 import { useState, useRef } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import Link from "next/link";
+import Image from "next/image";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 import { NotificationsModal } from "../notifications/NotificationsModal";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -53,12 +54,18 @@ export function MainHeader() {
 
                     {/* Logo */}
                     <div className="flex-1 md:flex-none flex md:block justify-center">
-                        <Link href="/" className="flex items-center gap-2 group">
-                            <span className="text-primary">
-                                <ShoppingBasket className="w-7 h-7" />
-                            </span>
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/80 font-heading">
-                                CampusMarket
+                        <Link href="/" className="flex items-center gap-2 md:gap-3 group" aria-label="CampusMarket Home">
+                            <Image
+                                src="/LOGO.png"
+                                alt="CampusMarket logo"
+                                width={64}
+                                height={64}
+                                priority
+                                className="h-9 md:h-10 w-auto"
+                            />
+                            <span className="text-lg md:text-2xl font-extrabold font-heading leading-none tracking-tight">
+                                <span className="text-blue-800">Campus</span>{" "}
+                                <span className="text-orange-500">Market</span>
                             </span>
                         </Link>
                     </div>
