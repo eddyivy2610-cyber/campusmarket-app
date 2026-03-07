@@ -170,7 +170,7 @@ export function IntelligentSearch() {
                                             return (
                                                 <Link
                                                     key={cat.name}
-                                                    href={`/categories?category=${encodeURIComponent(cat.name)}`}
+                                                    href={cat.href || `/categories?category=${encodeURIComponent(cat.name)}`}
                                                     onClick={() => setIsOpen(false)}
                                                     className="flex flex-col items-center justify-center p-3 hover:bg-secondary/50 rounded-xl transition-colors text-center group border border-transparent hover:border-primary/20"
                                                 >

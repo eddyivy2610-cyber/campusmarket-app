@@ -54,17 +54,17 @@ export function MainHeader() {
 
                     {/* Logo */}
                     <div className="flex-1 md:flex-none flex md:block justify-center">
-                        <Link href="/" className="flex items-center gap-2 md:gap-3 group" aria-label="CampusMarket Home">
+                        <Link href="/" className="flex items-center gap-0 group" aria-label="CampusMarket Home">
                             <Image
                                 src="/LOGO.png"
                                 alt="CampusMarket logo"
-                                width={64}
-                                height={64}
+                                width={56}
+                                height={56}
                                 priority
-                                className="h-9 md:h-10 w-auto"
+                                className="h-7 md:h-8 w-auto shrink-0"
                             />
-                            <span className="text-lg md:text-2xl font-extrabold font-heading leading-none tracking-tight">
-                                <span className="text-blue-800">Campus</span>{" "}
+                            <span className="text-[14px] md:text-[18px] font-extrabold font-sans leading-none tracking-tight ml-1">
+                                <span className="text-[#16325f]">Campus</span>{" "}
                                 <span className="text-orange-500">Market</span>
                             </span>
                         </Link>

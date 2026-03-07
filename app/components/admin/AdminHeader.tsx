@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { Bell, LogOut, Search, ShieldCheck, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { clearAdminSession, getAdminSession } from "@/lib/adminAuth";
 
 const SEARCH_TARGETS = [
@@ -51,13 +52,17 @@ export function AdminHeader() {
     return (
         <div className="bg-background text-foreground py-2 md:py-3.5 fixed top-0 left-0 right-0 z-40 border-b border-border/30 shadow-sm">
             <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex items-center gap-3 md:gap-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                        <ShieldCheck className="w-5 h-5" />
-                    </div>
+                <div className="flex items-center gap-0 group">
+                    <Image
+                        src="/LOGO.png"
+                        alt="CampusMarket logo"
+                        width={56}
+                        height={56}
+                        className="h-7 w-auto shrink-0"
+                    />
                     <div className="flex flex-col leading-tight">
-                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Admin</span>
-                        <span className="text-lg font-bold tracking-tight font-heading">Control Center</span>
+                        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">CampusMarket</span>
+                        <span className="text-lg font-bold tracking-tight font-heading group-hover:text-primary transition-colors">Admin Center</span>
                     </div>
                     <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-secondary/40 text-muted-foreground border border-border/40">
                         Moderation Suite
@@ -125,7 +130,7 @@ export function AdminHeader() {
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

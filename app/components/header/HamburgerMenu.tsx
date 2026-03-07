@@ -3,7 +3,6 @@
 import {
     X,
     User,
-    ShoppingBasket,
     Bell,
     ChevronRight,
     ChevronDown,
@@ -32,6 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { CATEGORIES } from "../../data/products";
 
 interface HamburgerMenuProps {
@@ -41,8 +41,19 @@ interface HamburgerMenuProps {
 }
 
 const IconMap: Record<string, LucideIcon> = {
-    MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench, UtensilsCrossed
+    MonitorSmartphone,
+    BookOpen,
+    Home,
+    Shirt,
+    Sparkles,
+    Dumbbell,
+    Music,
+    Package,
+    Bike,
+    Calendar,
+    AlertCircle,
+    Wrench,
+    UtensilsCrossed,
 };
 
 export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: HamburgerMenuProps) {
@@ -51,7 +62,9 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
     useEffect(() => {
         document.body.style.overflow = isOpen ? "hidden" : "unset";
-        return () => { document.body.style.overflow = "unset"; };
+        return () => {
+            document.body.style.overflow = "unset";
+        };
     }, [isOpen]);
 
     const nav = (path: string) => {
@@ -63,21 +76,27 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
     return (
         <div className="fixed inset-0 z-[60] flex justify-start">
-            {/* Backdrop */}
             <div
                 className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
                 onClick={onClose}
             />
 
-            {/* Sidebar Panel */}
             <div
                 className={`relative w-full max-w-[85vw] sm:max-w-[360px] bg-background border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out font-heading ${isOpen ? "translate-x-0" : "-translate-x-full"} h-full overflow-hidden`}
             >
-                {/* ── Header ── */}
                 <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-primary/5 shrink-0">
-                    <Link href="/" onClick={onClose} className="flex items-center gap-2">
-                        <ShoppingBasket className="w-6 h-6 text-primary" />
-                        <span className="font-bold text-base text-foreground font-heading">CampusMarket</span>
+                    <Link href="/" onClick={onClose} className="flex items-center gap-0 group">
+                        <Image
+                            src="/LOGO.png"
+                            alt="CampusMarket logo"
+                            width={56}
+                            height={56}
+                            className="h-7 w-auto shrink-0"
+                        />
+                        <span className="font-extrabold text-base font-sans leading-none tracking-tight">
+                            <span className="text-[#16325f]">Campus</span>{" "}
+                            <span className="text-orange-500">Market</span>
+                        </span>
                     </Link>
                     <button
                         onClick={onClose}
@@ -87,10 +106,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     </button>
                 </div>
 
-                {/* ── Scrollable Body ── */}
                 <div className="flex-1 overflow-y-auto">
-
-                    {/* Auth CTA */}
                     <div className="p-4">
                         <button
                             onClick={() => nav("/register")}
@@ -107,7 +123,6 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         </button>
                     </div>
 
-                    {/* ── My Account ── */}
                     <Section label="My Account">
                         <NavRow icon={Bell} label="Alerts" badge={notificationCount} onClick={() => nav("/dashboard/alerts")} />
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
@@ -116,7 +131,6 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
 
-                    {/* ── Main Navigation (desktop parity) ── */}
                     <Section label="Navigation">
                         <NavRow icon={Home} label="Home" onClick={() => nav("/")} />
                         <NavRow icon={Tag} label="Listings" onClick={() => nav("/listings")} />
@@ -124,9 +138,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         <NavRow icon={LifeBuoy} label="Help & Support" onClick={() => nav("/help-support")} />
                     </Section>
 
-                    {/* ── Shop: Full Categories ── */}
                     <Section label="Shop by Category">
-                        {/* Expandable category list */}
                         <button
                             onClick={() => setCategoriesOpen((v) => !v)}
                             className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors group"
@@ -159,13 +171,12 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                                     onClick={() => nav("/listings")}
                                     className="w-full flex items-center gap-3 px-2 py-2 hover:bg-primary/5 rounded-lg transition-colors text-primary font-bold text-xs uppercase tracking-widest"
                                 >
-                                    View All Listings →
+                                    View All Listings {"->"}
                                 </button>
                             </div>
                         )}
                     </Section>
 
-                    {/* ── Support & Info ── */}
                     <Section label="Support">
                         <NavRow icon={HelpCircle} label="Help Center" onClick={() => nav("/help")} />
                         <NavRow icon={MessageSquare} label="Help Chat Room" onClick={() => nav("/help-center/chat-room")} />
@@ -174,10 +185,8 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         <NavRow icon={MessageSquare} label="Feedback" onClick={() => nav("/feedback")} />
                         <NavRow icon={LifeBuoy} label="Contact Support" onClick={() => nav("/help-support")} />
                     </Section>
-
                 </div>
 
-                {/* ── Sticky Footer ── */}
                 <div className="shrink-0 p-3 border-t border-border bg-secondary/20">
                     <button
                         onClick={() => nav("/settings")}
@@ -191,8 +200,6 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
         </div>
     );
 }
-
-/* ── Helpers ── */
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
     return (
@@ -219,16 +226,10 @@ function NavRow({
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors group ${accent
-                ? "bg-primary/10 text-primary hover:bg-primary/15"
-                : "hover:bg-secondary text-foreground"
-                }`}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors group ${accent ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-secondary text-foreground"}`}
         >
             <div className="flex items-center gap-3">
-                <Icon
-                    className={`w-5 h-5 transition-colors shrink-0 ${accent ? "text-primary" : "text-gray-400 group-hover:text-primary"
-                        }`}
-                />
+                <Icon className={`w-5 h-5 transition-colors shrink-0 ${accent ? "text-primary" : "text-gray-400 group-hover:text-primary"}`} />
                 <span className={`text-sm ${accent ? "font-bold" : "font-medium"}`}>{label}</span>
             </div>
             {badge && badge > 0 ? (

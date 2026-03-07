@@ -8,8 +8,6 @@ import {
     Heart,
     Star,
     MapPin,
-    ShieldAlert,
-    BadgeCheck,
     Calendar,
     MessageSquare,
     ExternalLink,
@@ -17,7 +15,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useSaved } from "../../context/SavedContext";
-import { PROFILES } from "../../data/profiles";
 
 interface QuickViewModalProps {
     isOpen: boolean;
@@ -48,11 +45,6 @@ interface QuickViewModalProps {
 export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps) {
     const { toggleSaved, isSaved } = useSaved();
     const router = useRouter();
-
-    const sellerProfile = useMemo(
-        () => PROFILES.find((profile) => profile.id === product.sellerId),
-        [product.sellerId]
-    );
 
     const imageList = useMemo(() => {
         if (product.images && product.images.length > 0) return product.images;
@@ -93,12 +85,6 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
     const goToListing = () => {
         onClose();
         router.push(`/listings/${product.id}`);
-    };
-
-    const goToSellerProfile = () => {
-        if (!sellerProfile) return;
-        onClose();
-        router.push(`/profile/${sellerProfile.handle}`);
     };
 
     if (typeof document === "undefined") return null;
@@ -227,49 +213,6 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-2xl">
-                                    <div className="w-10 h-10 rounded-xl bg-secondary overflow-hidden relative border border-border shrink-0">
-                                        <Image
-                                            src={sellerProfile?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80"}
-                                            alt={sellerProfile?.name || "Seller"}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <p className="text-sm font-bold text-foreground truncate">
-                                                {sellerProfile?.name || product.seller || "Seller"}
-                                            </p>
-                                            {sellerProfile?.isVerified && (
-                                                <BadgeCheck className="w-4 h-4 text-blue-500" />
-                                            )}
-                                        </div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                            {sellerProfile ? `@${sellerProfile.handle}` : "Campus seller"}
-                                        </p>
-                                    </div>
-                                    {sellerProfile && (
-                                        <button
-                                            onClick={goToSellerProfile}
-                                            className="h-8 px-3 rounded-xl bg-foreground text-background text-[9px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95"
-                                        >
-                                            Profile
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-3 p-3 bg-orange-50 rounded-2xl border border-orange-200/60">
-                                    <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-                                        <ShieldAlert className="w-4 h-4 text-orange-600" />
-                                    </div>
-                                    <div className="space-y-0.5">
-                                        <p className="text-[9px] text-orange-950 font-bold uppercase tracking-wider">Campus Safety</p>
-                                        <p className="text-[10px] text-orange-900/80 font-bold leading-snug">
-                                            Meet in public campus areas and inspect the item before payment.
-                                        </p>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

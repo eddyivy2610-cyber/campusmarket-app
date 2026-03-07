@@ -14,7 +14,7 @@
   --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #3b82f6;
+  --accent: #1a3673;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
@@ -39,7 +39,7 @@
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #3b82f6;
+  --accent: #1a3673;
   --accent-foreground: #ffffff;
   --destructive: #7f1d1d;
   --destructive-foreground: #f8fafc;
@@ -69,11 +69,11 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-poppins), var(--font-inter), var(--font-geist-sans), sans-serif;
+  --font-sans: "Poppins", var(--font-poppins), var(--font-inter), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
   --font-poppins: var(--font-poppins);
-  --font-heading: var(--font-poppins), sans-serif;
-  --font-display: var(--font-poppins), sans-serif;
+  --font-heading: "Poppins", var(--font-poppins), sans-serif;
+  --font-display: "Poppins", var(--font-poppins), sans-serif;
 }
 
 html {

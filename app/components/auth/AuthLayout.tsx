@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingBasket, ArrowLeft, Home } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -40,12 +41,18 @@ export function AuthLayout({
             <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 lg:p-16 relative overflow-hidden bg-secondary/20 border-r border-border/50 min-h-screen">
                 <div className="relative z-10 w-full max-w-sm">
                     {/* Logo Section */}
-                    <Link href="/" className="flex items-center gap-2 mb-8 group">
-                        <div className="p-2.5 bg-primary rounded-xl shadow-lg shadow-primary/20 transition-transform group-hover:scale-110 group-hover:rotate-6">
-                            <ShoppingBasket className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-2xl font-bold tracking-tight font-heading bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                            CampusMarket
+                    <Link href="/" className="flex items-center gap-0 mb-8 group">
+                        <Image
+                            src="/LOGO.png"
+                            alt="CampusMarket logo"
+                            width={56}
+                            height={56}
+                            priority
+                            className="h-7 w-auto shrink-0"
+                        />
+                        <span className="text-xl font-extrabold font-sans leading-none tracking-tight">
+                            <span className="text-[#16325f]">Campus</span>{" "}
+                            <span className="text-orange-500">Market</span>
                         </span>
                     </Link>
 
@@ -155,9 +162,15 @@ export function AuthLayout({
 
                 {/* ── BOTTOM BRANDING — pinned on mobile ── */}
                 <div className="flex-shrink-0 pb-6 pt-4 border-t border-border/50 flex items-center justify-center md:hidden">
-                    <div className="flex items-center gap-2 grayscale brightness-200 opacity-30">
-                        <ShoppingBasket className="w-5 h-5" />
-                        <span className="text-sm font-bold font-heading uppercase tracking-tighter">CampusMarket</span>
+                    <div className="flex items-center gap-0 grayscale brightness-200 opacity-30">
+                        <Image
+                            src="/LOGO.png"
+                            alt="CampusMarket logo"
+                            width={32}
+                            height={32}
+                            className="h-5 w-auto shrink-0"
+                        />
+                        <span className="text-sm font-extrabold font-heading uppercase tracking-tighter">CampusMarket</span>
                     </div>
                 </div>
             </div>

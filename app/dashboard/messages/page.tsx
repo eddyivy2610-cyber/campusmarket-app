@@ -71,7 +71,10 @@ function DashboardMessagesInner() {
                 negotiations: listing ? [{ id: `n-${Date.now()}`, listing, status: "active", startedAt: "Now" }] : [],
                 messages: [],
             };
-            setConversations(prev => [newConv, ...prev]);
+            setConversations(prev => {
+                if (prev.some(c => c.id === newConv.id)) return prev;
+                return [newConv, ...prev];
+            });
             conv = newConv;
         }
 

@@ -48,7 +48,7 @@ export interface Product {
     };
 }
 
-export const CATEGORIES = [
+export const CATEGORIES: { name: string; icon: string; lucideIcon: string; href?: string }[] = [
     { name: "Electronics", icon: "📱", lucideIcon: "MonitorSmartphone" },
     { name: "Academics", icon: "📚", lucideIcon: "BookOpen" },
     { name: "Accomodation", icon: "🏠", lucideIcon: "Home" },
@@ -61,7 +61,7 @@ export const CATEGORIES = [
     { name: "Transport", icon: "🚲", lucideIcon: "Bike" },
     { name: "Events", icon: "📅", lucideIcon: "Calendar" },
     { name: "Urgent", icon: "🚨", lucideIcon: "AlertCircle" },
-    { name: "Services", icon: "🛠️", lucideIcon: "Wrench" }
+    { name: "Services", icon: "🛠️", lucideIcon: "Wrench", href: "/services" }
 ];
 
 export const PRODUCTS: Product[] = [

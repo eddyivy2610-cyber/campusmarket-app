@@ -30,7 +30,7 @@ export function ExploreDropdown({ isOpen }: ExploreDropdownProps) {
                     return (
                         <a
                             key={index}
-                            href={`/listings?category=${category.name}`}
+                            href={category.href || `/listings?category=${category.name}`}
                             className="flex items-center justify-between px-4 py-2.5 hover:bg-primary/10 hover:text-primary transition-colors group"
                         >
                             <div className="flex items-center gap-3">

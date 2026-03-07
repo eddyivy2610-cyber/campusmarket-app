@@ -25,7 +25,7 @@ export function CategoriesSidebar() {
                         return (
                             <Link
                                 key={idx}
-                                href={`/listings?category=${cat.name}`}
+                                href={cat.href || `/listings?category=${cat.name}`}
                                 className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-secondary transition-all duration-200 group"
                             >
                                 <div className="flex items-center gap-3 text-[12px] font-heading font-medium text-foreground/80 group-hover:text-primary">
