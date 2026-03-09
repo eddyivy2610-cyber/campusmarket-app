@@ -76,12 +76,12 @@ export function MainHeader() {
                     </div>
 
                     {/* Right actions */}
-                    <div className="flex items-center gap-1 md:gap-2 shrink-0 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
+                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-2 shrink-0 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-xl px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
 
                         {/* Saved Items button — desktop only */}
                         <Link
                             href="/saved"
-                            className="hidden sm:flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
+                            className="hidden sm:flex items-center justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
                             title="Saved Items"
                         >
                             <Heart className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={2} />
@@ -96,7 +96,7 @@ export function MainHeader() {
                         <div className="relative z-40 flex">
                             <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
+                                className="flex items-center justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
                                 title="Notifications"
                             >
                                 <Bell className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={2} />
@@ -110,12 +110,12 @@ export function MainHeader() {
                         <div className="hidden sm:block w-px h-6 bg-border/60 mx-1"></div>
 
                         {/* Account — visible on mobile too */}
-                        <div ref={accountRef} className="relative z-40 pl-1">
+                        <div className="pl-1">
                             <button
                                 onClick={() => setIsAccountOpen(!isAccountOpen)}
-                                className="flex items-center gap-2 text-foreground hover:text-primary transition-colors group p-1.5 rounded-full hover:bg-primary/5 text-left"
+                                className="flex items-center gap-2 text-foreground hover:text-primary transition-colors group p-1.5 rounded-lg hover:bg-primary/5 text-left"
                             >
-                                <div className="bg-secondary p-1.5 rounded-full group-hover:bg-primary/10 transition-colors">
+                                <div className="bg-secondary p-1.5 rounded-md group-hover:bg-primary/10 transition-colors">
                                     <User className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" strokeWidth={2} />
                                 </div>
                                 <div className="hidden sm:flex flex-col leading-tight pr-1">
@@ -128,8 +128,8 @@ export function MainHeader() {
                                 </div>
                                 <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block mr-1 group-hover:text-primary transition-colors" />
                             </button>
-                            <AccountDropdown isOpen={isAccountOpen} />
                         </div>
+                        <AccountDropdown isOpen={isAccountOpen} />
                     </div>
                 </div>
             </div>

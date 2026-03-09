@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PRODUCTS, Product } from "../../data/products";
 import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
-import { ProfessionalOffer } from "../../components/listings/ProfessionalOffer";
-import { ListingActionBox } from "../../components/listings/ListingActionBox";
 import { ProductDetails } from "../../components/listings/ProductDetails";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
-import { OfferModal } from "../../components/modals/OfferModal";
 import { Footer } from "../../components/sections/Footer";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
 import { ChevronLeft } from "lucide-react";
@@ -90,17 +87,13 @@ export default function ListingPage() {
                             </div>
                         </div>
 
-                        {/* Right Column: Actions, Offer, Vendor, Safety */}
+                        {/* Right Column: Primary Purchase Panel */}
                         <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit order-2 lg:order-none">
-                            <ProductHeader product={product} />
-
-                            <ListingActionBox
+                            <ProductHeader
                                 product={product}
                                 vendor={vendor}
                                 onOfferOpen={() => router.push(`/chat?user=${vendor.id}&listing=${product.id}`)}
                             />
-
-                            <ProfessionalOffer offer={product.offer} />
                         </div>
                     </div>
                 </div>

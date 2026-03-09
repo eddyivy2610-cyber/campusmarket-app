@@ -52,9 +52,9 @@ export function ProductGrid() {
     return (
         <div className="flex flex-col gap-10 md:gap-16 w-full">
             <section>
-                <div className="flex items-center justify-between mb-6 border-b-2 border-blue-500 pb-2">
-                    <div className="flex items-center gap-3 bg-blue-500 text-white px-4 py-1.5 rounded-t-lg">
-                        <h2 className="text-sm md:text-base font-bold uppercase tracking-wider">More to Explore</h2>
+                <div className="flex items-center justify-between mb-1 border-b-2 border-blue-500 pb-1.5">
+                    <div className="radius-native flex items-center gap-2 bg-blue-500 text-white px-3 py-1 rounded-t-md">
+                        <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider">More to Explore</h2>
                     </div>
                 </div>
 

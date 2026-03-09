@@ -2,8 +2,10 @@
 
 import React, { useMemo, useState } from "react";
 import { BadgeCheck, Megaphone, ShieldCheck, WalletCards } from "lucide-react";
+import Image from "next/image";
 import { Footer } from "../../components/sections/Footer";
 import { BackToHomeBar } from "../../components/common/BackToHomeBar";
+import { saveHeroBanner } from "../../lib/heroBanners";
 
 const placements = ["Homepage Spotlight", "Category Top Slot", "Search Boost", "Weekend Promo Banner"];
 
@@ -20,6 +22,7 @@ export default function PromotionRequestPage() {
         agreed: false,
     });
     const [message, setMessage] = useState<string>("");
+    const [bannerPreview, setBannerPreview] = useState<string>("");
 
     const isValid = useMemo(() => {
         const budgetNumber = Number(form.budget);
@@ -42,6 +45,9 @@ export default function PromotionRequestPage() {
             setMessage("Please provide valid campaign details before submitting.");
             return;
         }
+        if (bannerPreview) {
+            saveHeroBanner(bannerPreview);
+        }
         setMessage("Promotion request submitted. Review typically completes within 24 hours.");
         setForm({
             sellerName: "",
@@ -54,6 +60,25 @@ export default function PromotionRequestPage() {
             objective: "",
             agreed: false,
         });
+        setBannerPreview("");
+    };
+
+    const onBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setMessage("Uploaded file must be an image.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result === "string") {
+                setBannerPreview(reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     return (
@@ -111,6 +136,21 @@ export default function PromotionRequestPage() {
                         <div className="grid sm:grid-cols-2 gap-4">
                             <input value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} type="date" className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />
                             <input value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))} type="date" className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold">Custom Hero Banner (optional)</label>
+                            <input type="file" accept="image/*" onChange={onBannerUpload} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />
+                            {bannerPreview && (
+                                <Image
+                                    src={bannerPreview}
+                                    alt="Banner preview"
+                                    width={1200}
+                                    height={360}
+                                    unoptimized
+                                    className="w-full h-40 object-cover rounded-xl border border-border/60"
+                                />
+                            )}
                         </div>
 
                         <textarea value={form.objective} onChange={(e) => setForm((f) => ({ ...f, objective: e.target.value }))} rows={5} placeholder="Campaign objective and expected outcome..." className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none" />

@@ -54,7 +54,7 @@ export function Footer() {
                                                 <span className="text-[10px] text-background/80 whitespace-nowrap mt-0.5">{member.role}</span>
                                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-foreground"></div>
                                             </div>
-                                        </div>Regular profile cant access dashboards, switch
+                                        </div>
                                     </button>
                                 ))}
                             </div>

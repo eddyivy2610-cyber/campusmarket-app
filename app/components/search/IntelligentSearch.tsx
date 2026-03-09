@@ -100,7 +100,7 @@ export function IntelligentSearch() {
                 onSubmit={handleSearchSubmit}
                 className={`
                 flex items-center w-full h-12 bg-secondary/50 rounded-2xl overflow-hidden transition-all duration-300 
-                border border-transparent
+                border border-border/40
                 ${isOpen ? 'bg-background ring-2 ring-primary/10 border-primary/20 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-background focus-within:border-primary/20'}
             `}>
                 <input
@@ -136,7 +136,7 @@ export function IntelligentSearch() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-12 left-0 right-0 bg-background border border-t-0 border-primary/20 rounded-b-2xl shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto custom-scrollbar"
+                        className="absolute top-full mt-0 left-0 right-0 bg-secondary/65 dark:bg-secondary/75 backdrop-blur-md border border-t-0 border-border/50 rounded-b-2xl shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto custom-scrollbar"
                     >
                         {query.trim().length === 0 ? (
                             // Default State: Recent & Trending

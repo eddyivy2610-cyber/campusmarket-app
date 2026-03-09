@@ -10,15 +10,15 @@ export default function Home() {
 
       <div className="max-w-[1780px] mx-auto px-4 md:px-8">
 
-        <div className="flex gap-5 lg:gap-6 items-start">
+        <div className="flex gap-5 lg:gap-6 items-start overflow-visible">
 
 
-          <div className="hidden lg:block pt-4 md:pt-6 sticky top-24 self-start">
+          <div className="hidden lg:block pt-4 md:pt-6 sticky top-24 self-start pl-1 md:pl-2 relative z-[300]">
             <CategoriesSidebar />
           </div>
 
 
-          <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col relative z-10">
             <Hero />
             <SubHeroCategories />
 

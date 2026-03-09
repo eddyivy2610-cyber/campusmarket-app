@@ -194,3 +194,29 @@ body {
     animation: bounce-soft 0.5s ease-in-out;
   }
 }
+
+@layer base {
+  :root {
+    --ui-radius-unified: 0.6rem;
+  }
+
+  :where(
+      div,
+      section,
+      article,
+      aside,
+      form,
+      a,
+      button,
+      input,
+      select,
+      textarea,
+      table,
+      th,
+      td,
+      span,
+      img
+    )[class*="rounded"]:not([class*="rounded-full"]):not(.radius-native) {
+    border-radius: var(--ui-radius-unified) !important;
+  }
+}
