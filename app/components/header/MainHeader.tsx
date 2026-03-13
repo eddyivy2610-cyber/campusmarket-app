@@ -46,10 +46,10 @@ export function MainHeader() {
                     {/* Hamburger (mobile) */}
                     <button
                         onClick={() => setIsMenuOpen(true)}
-                        className="md:hidden p-1 -ml-1 text-foreground hover:bg-secondary rounded-full transition-all shrink-0"
+                        className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-border/60 bg-secondary/40 text-foreground hover:bg-secondary transition-colors shrink-0"
                         aria-label="Open menu"
                     >
-                        <LayoutGrid className="w-6 h-6" />
+                        <LayoutGrid className="w-5 h-5" />
                     </button>
 
                     {/* Logo */}
@@ -78,10 +78,10 @@ export function MainHeader() {
                     {/* Right actions */}
                     <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm">
 
-                        {/* Saved Items button — desktop only */}
+                        {/* Saved Items */}
                         <Link
                             href="/saved"
-                            className="hidden sm:flex items-center justify-center p-1 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
+                            className="flex items-center justify-center p-1 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
                             title="Saved Items"
                         >
                             <Heart className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={2} />
@@ -92,8 +92,8 @@ export function MainHeader() {
                             )}
                         </Link>
 
-                        {/* Notifications — visible on mobile too */}
-                        <div className="relative z-40 flex">
+                        {/* Notifications */}
+                        <div className="relative z-40 hidden sm:flex">
                             <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                                 className="flex items-center justify-center p-1 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground relative group"
@@ -107,7 +107,7 @@ export function MainHeader() {
                             <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
                         </div>
 
-                        <div className="hidden sm:block w-px h-6 bg-border/60 mx-1"></div>
+                        <div className="w-px h-6 bg-border/60 mx-1"></div>
 
                         {/* Account — visible on mobile too */}
                         <div className="pl-1">

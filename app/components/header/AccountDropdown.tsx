@@ -15,7 +15,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
     return (
         <div
-            className={`absolute top-full left-0 mt-1 w-full bg-secondary/65 dark:bg-secondary/75 backdrop-blur-md text-foreground font-heading rounded-b-xl rounded-t-none border border-border/50 overflow-hidden transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
+            className={`absolute top-full right-0 left-auto mt-2 w-[min(84vw,250px)] max-h-[60vh] overflow-y-auto bg-secondary/65 dark:bg-secondary/75 backdrop-blur-md text-foreground font-heading rounded-md border border-border/50 shadow-sm transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
                 ? 'opacity-100 scale-100 visible'
                 : 'opacity-0 scale-95 invisible'
                 }`}
