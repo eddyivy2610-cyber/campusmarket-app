@@ -103,7 +103,8 @@ html {
 html,
 body {
   position: relative;
-  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
 }
 
 body {
