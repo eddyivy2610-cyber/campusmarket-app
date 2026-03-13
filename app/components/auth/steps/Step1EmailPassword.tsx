@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -32,7 +32,9 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
         const newErrors: { [key: string]: string } = {};
         if (!formData.email) newErrors.email = "Email is required";
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
-        else if (!formData.email.split("@")[1].includes("gmail")) newErrors.email = "Use your Gmail for verification";
+        else if (!/(gmail|yahoo)\./i.test(formData.email.split("@")[1] || "")) {
+            newErrors.email = "Use your Gmail or Yahoo for verification";
+        }
 
         if (!formData.password) newErrors.password = "Password is required";
         else if (formData.password.length < 8) newErrors.password = "Minimum 8 characters";
@@ -54,45 +56,37 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-5">
             {/* Email Field */}
             <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
                     Email Address
                 </label>
-                <div className="relative group">
-                    <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.email ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-primary'}`}>
-                        <Mail className="w-5 h-5" />
-                    </div>
-                    <input
-                        type="email"
-                        value={formData.email || ""}
-                        onChange={(e) => {
-                            updateFormData({ email: e.target.value });
-                            if (errors.email) setErrors({ ...errors, email: "" });
-                        }}
-                        placeholder="jane.smith@gmail.com"
-                        className={`w-full bg-secondary/30 border-2 ${errors.email ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
-                    />
-                </div>
+                <input
+                    type="email"
+                    value={formData.email || ""}
+                    onChange={(e) => {
+                        updateFormData({ email: e.target.value });
+                        if (errors.email) setErrors({ ...errors, email: "" });
+                    }}
+                    placeholder="jane.smith@gmail.com"
+                    className={`w-full border-b ${errors.email ? 'border-red-500/60' : 'border-border'} bg-transparent pb-2 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
+                />
                 {errors.email ? (
-                    <p className="text-[10px] font-bold text-red-500 ml-2">{errors.email}</p>
+                    <p className="text-[11px] font-semibold text-red-500">{errors.email}</p>
                 ) : (
-                    <p className="text-[10px] font-medium text-muted-foreground/60 ml-2 italic">
-                        * Use your Gmail for verification
+                    <p className="text-[11px] font-medium text-muted-foreground/60 italic">
+                        * Use your Gmail or Yahoo for verification
                     </p>
                 )}
             </div>
 
             {/* Password Field */}
             <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
                     Create Password
                 </label>
-                <div className="relative group">
-                    <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.password ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-primary'}`}>
-                        <Lock className="w-5 h-5" />
-                    </div>
+                <div className="relative">
                     <input
                         type={showPassword ? "text" : "password"}
                         value={formData.password || ""}
@@ -101,12 +95,12 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             if (errors.password) setErrors({ ...errors, password: "" });
                         }}
                         placeholder="Min. 8 characters"
-                        className={`w-full bg-secondary/30 border-2 ${errors.password ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-12 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
+                        className={`w-full border-b ${errors.password ? 'border-red-500/60' : 'border-border'} bg-transparent pb-2 pr-8 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -125,61 +119,54 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             />
                         ))}
                     </div>
-                    <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-tighter">
+                    <div className="flex justify-between items-center text-[9px] font-semibold uppercase tracking-tighter">
                         <span className={strength <= 25 ? "text-red-500" : strength <= 50 ? "text-orange-500" : strength <= 75 ? "text-yellow-500" : "text-green-500"}>
                             {strength <= 25 ? "Weak" : strength <= 50 ? "Fair" : strength <= 75 ? "Strong" : "Very Strong"}
                         </span>
                         <span className="text-muted-foreground/40 italic">Strength indicator</span>
                     </div>
                 </div>
-                {errors.password && <p className="text-[10px] font-bold text-red-500 ml-2">{errors.password}</p>}
+                {errors.password && <p className="text-[11px] font-semibold text-red-500">{errors.password}</p>}
             </div>
 
             {/* Confirm Password Field */}
             <div className="space-y-4 pt-2">
                 <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
                         Confirm Password
                     </label>
-                    <div className="relative group">
-                        <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${errors.confirmPassword ? 'text-red-500' : 'text-muted-foreground group-focus-within:text-primary'}`}>
-                            <Lock className="w-5 h-5" />
-                        </div>
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            value={formData.confirmPassword || ""}
-                            onChange={(e) => {
-                                updateFormData({ confirmPassword: e.target.value });
-                                if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
-                            }}
-                            placeholder="Repeat password"
-                            className={`w-full bg-secondary/30 border-2 ${errors.confirmPassword ? 'border-red-500/50' : 'border-border/50 focus:border-primary/50'} rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-xs`}
-                        />
-                    </div>
-                    {errors.confirmPassword && <p className="text-[10px] font-bold text-red-500 ml-2">{errors.confirmPassword}</p>}
+                    <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.confirmPassword || ""}
+                        onChange={(e) => {
+                            updateFormData({ confirmPassword: e.target.value });
+                            if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
+                        }}
+                        placeholder="Repeat password"
+                        className={`w-full border-b ${errors.confirmPassword ? 'border-red-500/60' : 'border-border'} bg-transparent pb-2 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
+                    />
+                    {errors.confirmPassword && <p className="text-[11px] font-semibold text-red-500">{errors.confirmPassword}</p>}
                 </div>
             </div>
 
             <button
                 onClick={handleNext}
                 disabled={isLoading}
-                className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
+                className="w-full bg-primary text-white font-semibold uppercase tracking-widest text-xs py-2.5 rounded-md shadow-sm hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
             >
                 {isLoading ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                     <>
                         Next Step
-                        <span className="p-1 bg-white/20 rounded-lg group-hover:translate-x-1 transition-transform">
-                            <ArrowLeft className="w-4 h-4 rotate-180" />
-                        </span>
+                        <ArrowLeft className="w-4 h-4 rotate-180 group-hover:translate-x-1 transition-transform" />
                     </>
                 )}
             </button>
 
-            <p className="text-center text-xs font-medium text-muted-foreground">
+            <p className="text-center text-sm font-medium text-muted-foreground">
                 Already have an account?{" "}
-                <Link href="/login" className="text-primary font-bold hover:underline">
+                <Link href="/login" className="text-primary font-semibold hover:underline">
                     Log in
                 </Link>
             </p>

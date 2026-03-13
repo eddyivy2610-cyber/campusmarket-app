@@ -68,7 +68,6 @@ export function Footer() {
                                 {[
                                     { label: "Home", href: "/" },
                                     { label: "Marketplace", href: "/listings" },
-                                    { label: "Events", href: "#" },
                                     { label: "About Us", href: "/about-us" },
                                     { label: "Contact Support", href: "/help-support" },
                                 ].map((l) => (
@@ -80,8 +79,6 @@ export function Footer() {
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">Resources</h3>
                             <div className="flex flex-col gap-2">
-                                <Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help Center</Link>
-                                <Link href="/feedback" className="text-sm text-muted-foreground hover:text-primary transition-colors">Feedback</Link>
                                 {[
                                     { label: "Safety Guidelines", href: "/safety-guidelines" },
                                     { label: "Community Rules", href: "/community-rules" },
@@ -114,8 +111,8 @@ export function Footer() {
                         </p>
                     </div>
                     <form className="flex flex-col sm:flex-row gap-2 sm:items-center sm:shrink-0">
-                        <input type="text" placeholder="Your name" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-36" />
-                        <input type="email" placeholder="Your email" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-44" />
+                        <input type="text" placeholder="Your name" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 dark:border-white/30 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-36" />
+                        <input type="email" placeholder="Your email" className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 dark:border-white/30 placeholder:text-white/50 text-sm focus:outline-none focus:border-white/50 text-white transition-colors w-full sm:w-44" />
                         <button className="bg-white text-primary font-bold px-5 py-2 rounded-lg hover:bg-white/90 transition-colors text-sm shadow-sm whitespace-nowrap">
                             Subscribe
                         </button>

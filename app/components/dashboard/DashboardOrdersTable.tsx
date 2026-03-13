@@ -50,9 +50,9 @@ export function DashboardOrdersTable() {
     return (
         <div className="w-full flex-1 min-h-[600px] flex flex-col overflow-hidden">
             {/* Header Controls */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
                 <div>
-                    <h2 className="text-sm font-bold font-heading">Recent Orders</h2>
+                    <h2 className="text-sm font-semibold font-heading">Recent Orders</h2>
                 </div>
 
                 <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
@@ -62,16 +62,16 @@ export function DashboardOrdersTable() {
                         <input
                             type="text"
                             placeholder="Search"
-                            className="w-full sm:w-64 bg-secondary/50 border border-transparent focus:border-primary/30 focus:bg-background outline-none rounded-full py-2.5 pl-9 pr-4 text-xs font-medium transition-all"
+                            className="w-full sm:w-64 bg-background border border-border/60 focus:border-primary/40 outline-none rounded-md py-2 pl-9 pr-4 text-xs font-medium transition-all"
                         />
                     </div>
 
                     <div className="w-full sm:w-auto flex items-center gap-3">
-                        <button className="flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 rounded-full border border-border text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">
+                        <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
                             Date Range
                             <Calendar className="w-3.5 h-3.5 ml-1" />
                         </button>
-                        <button className="flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 rounded-full border border-border text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">
+                        <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
                             All Status
                             <ChevronDown className="w-3.5 h-3.5 ml-1" />
                         </button>
@@ -94,14 +94,14 @@ export function DashboardOrdersTable() {
                                     />
                                 </div>
                             </th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Order ID</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Customer</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Product Name</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Date</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Quantity</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Amount</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Status</th>
-                            <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-center">Action</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Order ID</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Customer</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Product Name</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Quantity</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody className="text-xs">
@@ -126,7 +126,7 @@ export function DashboardOrdersTable() {
                                     ₦{(order.amount / 1000)}k
                                 </td>
                                 <td className="py-4">
-                                    <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-xl whitespace-nowrap ${getStatusStyles(order.status)}`}>
+                                    <span className={`px-3 py-1 text-[9px] font-semibold uppercase tracking-wider rounded-md whitespace-nowrap ${getStatusStyles(order.status)}`}>
                                         {order.status}
                                     </span>
                                 </td>

@@ -88,7 +88,7 @@ export default function DashboardAlertsPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 shrink-0">
                 <button
                     onClick={() => setIsAlertModalOpen(true)}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-foreground text-background font-bold px-6 py-3 rounded-full hover:opacity-90 transition-all text-xs tracking-wide shadow-sm"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-md hover:bg-primary/90 transition-all text-xs tracking-widest uppercase shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
                     Create Alert
@@ -101,22 +101,22 @@ export default function DashboardAlertsPage() {
                         <input
                             type="text"
                             placeholder="Search alerts"
-                            className="w-full sm:w-64 bg-secondary/50 border border-transparent focus:border-primary/30 focus:bg-background outline-none rounded-full py-2.5 pl-9 pr-4 text-xs font-medium transition-all"
+                            className="w-full sm:w-64 bg-background border border-border/60 focus:border-primary/40 outline-none rounded-md py-2 pl-9 pr-4 text-xs font-medium transition-all"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Filter Tabs & Content Area */}
-            <div className="flex flex-col flex-1 min-h-0 bg-card border border-border/50 rounded-3xl p-6 shadow-sm overflow-hidden">
+            <div className="flex flex-col flex-1 min-h-0 bg-card border border-border/50 rounded-2xl p-5 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/40">
                     <div className="flex overflow-x-auto hide-scrollbar gap-2 pb-1">
                         {FILTERS.map(filter => (
                             <button
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
-                                className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all ${activeFilter === filter
-                                    ? "bg-foreground text-background shadow-sm"
+                                className={`whitespace-nowrap px-3 py-2 rounded-md text-[10px] font-semibold uppercase tracking-widest transition-all ${activeFilter === filter
+                                    ? "bg-primary text-primary-foreground shadow-sm"
                                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
                                     }`}
                             >
@@ -125,7 +125,7 @@ export default function DashboardAlertsPage() {
                         ))}
                     </div>
 
-                    <button className="shrink-0 hidden sm:flex text-[11px] font-bold text-primary hover:underline items-center gap-1.5 px-2">
+                    <button className="shrink-0 hidden sm:flex text-[10px] font-semibold uppercase tracking-widest text-primary hover:underline items-center gap-1.5 px-2">
                         <Check className="w-3.5 h-3.5" />
                         Mark all as read
                     </button>

@@ -6,7 +6,6 @@ import { PRODUCTS, Product } from "../../data/products";
 import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
-import { ProductDetails } from "../../components/listings/ProductDetails";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
 import { Footer } from "../../components/sections/Footer";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
@@ -71,11 +70,6 @@ export default function ListingPage() {
                         {/* Left Column: Media, Details, Related (Desktop) */}
                         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-12 order-1 lg:order-none">
                             <ProductGallery images={product.images} />
-
-                            <ProductDetails
-                                description={product.description}
-                                specs={product.specs}
-                            />
 
                             {/* Related Products: Bottom on Mobile, Middle on Desktop */}
                             <div className="pt-8 md:pt-12 mt-8 md:mt-12 border-t border-border/40 order-3 lg:order-none">

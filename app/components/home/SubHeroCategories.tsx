@@ -1,98 +1,91 @@
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
-import categoryFashion from "../../../public/category-fashion.png";
-import categoryTech from "../../../public/category-tech.png";
-import categoryFurniture from "../../../public/category-furniture.png";
-import categoryBeauty from "../../../public/category-beauty.jpg";
+import { Smartphone, BookOpen, Home, UtensilsCrossed, Shirt, Sparkles, Dumbbell, Music } from "lucide-react";
 
 export function SubHeroCategories() {
-    const categories = [
+    const items = [
         {
-            title: "Fashion & Accessories",
-            image: categoryFashion,
-            gradientClass: "from-[#f6d7f9] via-[#edd9ff] to-[#d6d9ff]",
-            accentClass: "text-fuchsia-700",
-            imageWrapClass: "bg-fuchsia-600/10",
-            buttonClass: "bg-fuchsia-700 text-white",
-            link: "/listings?category=Fashion",
-        },
-        {
-            title: "Electronics & Tech",
-            image: categoryTech,
-            gradientClass: "from-[#d7ecff] via-[#d5e5ff] to-[#dde0ff]",
-            accentClass: "text-blue-700",
-            imageWrapClass: "bg-blue-700/10",
-            buttonClass: "bg-blue-700 text-white",
+            label: "Phones",
+            key: "phones",
+            icon: Smartphone,
             link: "/listings?category=Electronics",
         },
         {
-            title: "Furniture & Decor",
-            image: categoryFurniture,
-            gradientClass: "from-[#ffe5d0] via-[#ffecd9] to-[#fff6e8]",
-            accentClass: "text-amber-700",
-            imageWrapClass: "bg-amber-600/10",
-            buttonClass: "bg-amber-700 text-white",
+            label: "Books",
+            key: "books",
+            icon: BookOpen,
+            link: "/listings?category=Academics",
+        },
+        {
+            label: "Housing",
+            key: "housing",
+            icon: Home,
             link: "/listings?category=Accomodation",
         },
         {
-            title: "Health & Beauty",
-            image: categoryBeauty,
-            gradientClass: "from-[#d7f7ef] via-[#dcf8ea] to-[#ecfff8]",
-            accentClass: "text-emerald-700",
-            imageWrapClass: "bg-emerald-700/10",
-            buttonClass: "bg-emerald-700 text-white",
-            link: "/listings?category=Personal Care",
+            label: "Food & Provisions",
+            key: "food",
+            icon: UtensilsCrossed,
+            link: "/listings?category=Food%20%26%20Provisions",
+        },
+        {
+            label: "Fashion",
+            key: "fashion",
+            icon: Shirt,
+            link: "/listings?category=Fashion",
+        },
+        {
+            label: "Personal Care",
+            key: "personal-care",
+            icon: Sparkles,
+            link: "/listings?category=Personal%20Care",
+        },
+        {
+            label: "Sports & Fitness",
+            key: "sports",
+            icon: Dumbbell,
+            link: "/listings?category=Sports%20%26%20Fitness",
+        },
+        {
+            label: "Entertainment",
+            key: "entertainment",
+            icon: Music,
+            link: "/listings?category=Entertainment",
         }
     ];
 
     return (
-        <section className="pt-3 pb-2 space-y-3">
-            <div className="flex items-center justify-between mb-1 border-b-2 border-orange-500 pb-1.5">
-                <div className="radius-native flex items-center gap-2 bg-orange-500 text-white px-3 py-1 rounded-t-md">
-                    <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider">Top Categories</h2>
+        <section className="hidden md:block pt-0 pb-0 space-y-3">
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-5 bg-primary rounded-none" />
+                <h2 className="text-xs md:text-sm font-semibold text-primary">
+                    Looking for something specific?
+                </h2>
+                <div className="ml-auto">
+                    <Link href="/listings" className="text-[10px] md:text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors">
+                        View all
+                    </Link>
                 </div>
-                <Link href="/listings" className="text-[11px] md:text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
-                    View all
-                </Link>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-3">
-                {categories.map((category, idx) => (
-                    <Link
-                        key={idx}
-                        href={category.link}
-                        className="group relative overflow-hidden rounded-xl min-h-[112px] md:min-h-[124px] border border-black/10 shadow-[0_8px_24px_rgba(15,23,42,0.08)] bg-transparent transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.14)]"
-                    >
-                        <div className={`absolute inset-0 opacity-55 bg-gradient-to-br ${category.gradientClass}`} />
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.75),transparent_55%)]" />
-                        <div className="relative z-10 p-3 md:p-3.5 flex h-full flex-col">
-                            <div className="mt-1 max-w-[66%]">
-                                <h3 className="text-[12px] md:text-sm font-extrabold font-heading leading-tight text-slate-900">
-                                    {category.title}
-                                </h3>
-                            </div>
+            <div className="grid grid-cols-8 gap-2.5 md:gap-3 overflow-x-auto pb-1">
+                {items.map((item) => {
+                    const Icon = item.icon;
 
-                            <div className="mt-auto flex items-center gap-1.5">
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold shadow-sm transition-transform group-hover:translate-x-0.5 ${category.buttonClass}`}>
-                                    Shop now <ArrowUpRight className="h-3.5 w-3.5" />
-                                </span>
-                                <span className={`text-[10px] font-semibold ${category.accentClass}`}>Featured</span>
+                    return (
+                        <Link
+                            key={item.key}
+                            href={item.link}
+                            className="group flex flex-col items-center justify-center text-center rounded-lg border border-orange-100/90 bg-white dark:bg-card dark:border-border/40 transition-all duration-200 p-2.5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:shadow-[0_12px_24px_rgba(15,23,42,0.16)] min-w-[110px] w-[110px] aspect-square"
+                        >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-none border border-orange-100/90 bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 shadow-inner group-hover:bg-orange-200 transition-colors">
+                                <Icon className="h-5 w-5" />
                             </div>
-                        </div>
-
-                        <div className={`absolute -right-8 -bottom-8 h-28 w-28 rounded-full blur-2xl ${category.imageWrapClass}`} />
-                        <div className="absolute right-1.5 bottom-0.5 h-[72%] w-[42%] pointer-events-none">
-                            <Image
-                                src={category.image}
-                                alt={category.title}
-                                fill
-                                className="object-contain object-bottom drop-shadow-[0_14px_22px_rgba(15,23,42,0.22)] transition-transform duration-300 group-hover:scale-105"
-                                sizes="(max-width: 640px) 110px, (max-width: 1280px) 140px, 170px"
-                            />
-                        </div>
-                    </Link>
-                ))}
+                            <p className="mt-2 text-[10px] md:text-[11px] font-semibold text-foreground group-hover:text-orange-700 dark:group-hover:text-orange-300">
+                                {item.label}
+                            </p>
+                        </Link>
+                    );
+                })}
             </div>
         </section>
     );

@@ -137,21 +137,21 @@ export function DashboardProductsTable() {
     return (
         <div className="w-full flex-1 min-h-[600px] flex flex-col overflow-hidden">
             {/* Header Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <button
                     onClick={openCreateModal}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-foreground text-background font-bold px-6 py-3 rounded-full hover:opacity-90 transition-all text-xs tracking-wide"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-md hover:bg-primary/90 transition-all text-xs tracking-widest uppercase"
                 >
                     <Plus className="w-4 h-4" />
                     Add Listing
                 </button>
 
                 <div className="w-full sm:w-auto flex items-center gap-3">
-                    <button className="flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 rounded-full border border-border text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">
+                    <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
                         Export data
                         <ChevronDown className="w-3.5 h-3.5" />
                     </button>
-                    <button className="flex-1 sm:flex-none flex items-center justify-between sm:justify-center gap-2 px-4 py-2.5 rounded-full border border-border text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">
+                    <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
                         Sort by: ID
                         <ChevronDown className="w-3.5 h-3.5" />
                     </button>
@@ -163,16 +163,16 @@ export function DashboardProductsTable() {
                 <table className="w-full text-left border-collapse min-w-[1000px]">
                     <thead>
                         <tr className="border-b border-border/30">
-                            <th className="pb-4 text-xs font-bold font-heading w-12 text-center">No</th>
-                            <th className="pb-4 text-xs font-bold font-heading">Image & Name</th>
-                            <th className="pb-4 text-xs font-bold font-heading">Status</th>
-                            <th className="pb-4 text-xs font-bold font-heading">Category</th>
-                            <th className="pb-4 text-xs font-bold font-heading">Price</th>
-                            <th className="pb-4 text-xs font-bold font-heading text-center">review</th>
-                            <th className="pb-4 text-xs font-bold font-heading text-center">Sold</th>
-                            <th className="pb-4 text-xs font-bold font-heading text-right">Profit</th>
-                            <th className="pb-4 text-xs font-bold font-heading text-right">Date Listed</th>
-                            <th className="pb-4 text-xs font-bold font-heading w-16 text-center"></th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-12 text-center">No</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Image & Name</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Category</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Price</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center">Review</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center">Sold</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-right">Profit</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-right">Date Listed</th>
+                            <th className="pb-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground w-16 text-center"></th>
                         </tr>
                     </thead>
                     <tbody className="text-xs">
@@ -191,7 +191,7 @@ export function DashboardProductsTable() {
                                     </div>
                                 </td>
                                 <td className="py-2.5">
-                                    <span className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md whitespace-nowrap ${getStatusStyles(prod.status)}`}>
+                                    <span className={`px-2.5 py-1 text-[9px] font-semibold uppercase tracking-wider rounded-md whitespace-nowrap ${getStatusStyles(prod.status)}`}>
                                         {prod.status}
                                     </span>
                                 </td>

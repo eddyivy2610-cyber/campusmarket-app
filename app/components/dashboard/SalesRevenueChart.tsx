@@ -31,7 +31,7 @@ export function SalesRevenueChart() {
     const [activeIndex, setActiveIndex] = useState<number | null>(5); // Default focus on Jun
 
     return (
-        <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm col-span-1 lg:col-span-2 flex flex-col h-full">
+        <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm flex flex-col h-full">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-bold font-heading">Sales Revenue</h2>
                 <div className="flex items-center gap-2 text-[10px] font-bold">

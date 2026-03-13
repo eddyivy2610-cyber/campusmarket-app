@@ -45,7 +45,7 @@ export default function RootLayout({
             <SavedProvider>
               <SmoothScroll>
                 <Header />
-                <div className="pt-[148px] md:pt-[84px]">
+                <div className="pt-[110px] md:pt-[56px]">
                   {children}
                 </div>
                 <ScrollToTop />

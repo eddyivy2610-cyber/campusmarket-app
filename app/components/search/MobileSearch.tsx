@@ -28,7 +28,7 @@ export function MobileSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products, sellers..."
-                className="w-full bg-white border border-border/80 shadow-sm rounded-full py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-shadow text-foreground placeholder:text-muted-foreground/60"
+                className="w-full bg-white border border-border/80 dark:border-border/80 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-shadow text-foreground placeholder:text-muted-foreground/60"
             />
             {query && (
                 <button
@@ -41,7 +41,7 @@ export function MobileSearch() {
             )}
             <button
                 type="submit"
-                className="absolute right-2 top-2 w-8 h-8 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98]"
+                className="absolute right-2 top-2 w-8 h-8 bg-orange-400 hover:bg-orange-500 rounded-md flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98]"
             >
                 <Search className="w-4 h-4 font-bold" />
             </button>

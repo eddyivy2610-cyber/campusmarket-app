@@ -100,7 +100,7 @@ export function IntelligentSearch() {
                 onSubmit={handleSearchSubmit}
                 className={`
                 flex items-center w-full h-12 bg-secondary/50 rounded-2xl overflow-hidden transition-all duration-300 
-                border border-border/40
+                border border-border/40 dark:border-border/80
                 ${isOpen ? 'bg-background ring-2 ring-primary/10 border-primary/20 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-background focus-within:border-primary/20'}
             `}>
                 <input

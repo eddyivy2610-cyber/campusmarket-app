@@ -1,20 +1,20 @@
 /**
- * @BACKEND: LOGIN PAGE — Currently simulates authentication with a setTimeout.
+ * @BACKEND: LOGIN PAGE - Currently simulates authentication with a setTimeout.
  *
  * Replace with:
- *   - POST /api/auth/login  → authenticate user with email + password
+ *   - POST /api/auth/login -> authenticate user with email + password
  *   - Store JWT/session token on success
  *   - Handle error responses (invalid credentials, account locked, etc.)
- *   - Redirect based on user role (buyer → home, seller → dashboard)
+ *   - Redirect based on user role (buyer -> home, seller -> dashboard)
  */
 
 "use client";
 
 import React, { useState } from "react";
-import { AuthLayout } from "@/components/auth/AuthLayout";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Footer } from "@/components/sections/Footer";
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -31,99 +31,102 @@ export default function LoginPage() {
         }
 
         setIsLoading(true);
-        /* @BACKEND: Replace with POST /api/auth/login — send { email, password }, receive JWT token */
+        /* @BACKEND: Replace with POST /api/auth/login - send { email, password }, receive JWT token */
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsLoading(false);
         router.push("/");
     };
 
     return (
-        <AuthLayout
-            title="Welcome Back"
-            subtitle="Sign in to continue to your campus community"
-            illustrationUrl="https://images.unsplash.com/photo-1541339907198-e08759dfc3ef?auto=format&fit=crop&q=80&w=800"
-        >
-            <form onSubmit={handleLogin} className="space-y-4 font-heading">
-                {/* Email Field */}
-                <div className="space-y-2">
-                    <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
-                        Email Address
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Mail className="w-5 h-5" />
+        <div className="bg-background">
+            <div className="flex items-start justify-center px-4 pt-10 md:pt-14 pb-8">
+                <div className="mx-auto flex w-full max-w-[1040px] flex-col overflow-hidden md:flex-row md:border md:border-border/40 md:rounded-xl md:shadow-sm md:min-h-[620px]">
+                    <div className="hidden w-full items-center justify-center bg-[#cfe5eb] p-7 md:flex md:w-1/2 md:p-10">
+                        <div className="w-full max-w-[420px]">
+                            <img
+                                src="/mobile.png"
+                                alt="Shopping illustration"
+                                className="h-auto w-full object-contain"
+                            />
                         </div>
-                        <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => {
-                                setFormData({ ...formData, email: e.target.value });
-                                setError("");
-                            }}
-                            placeholder="jane.smith@gmail.com"
-                            className="w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm"
-                        />
+                    </div>
+
+                    <div className="flex w-full items-center justify-center bg-background px-8 py-10 md:w-1/2 md:px-14">
+                        <div className="w-full max-w-[380px] font-heading">
+                            <h1 className="text-2xl font-semibold text-foreground">Log in to Campus Market</h1>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                Welcome back. Access your campus marketplace in seconds.
+                            </p>
+
+                            <form onSubmit={handleLogin} className="mt-6 space-y-5">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
+                                        Email or Phone Number
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, email: e.target.value });
+                                            setError("");
+                                        }}
+                                        placeholder="jane.smith@gmail.com"
+                                        className="w-full border-b border-border bg-transparent pb-2 text-base font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">
+                                        Password
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, password: e.target.value });
+                                                setError("");
+                                            }}
+                                            placeholder="********"
+                                            className="w-full border-b border-border bg-transparent pb-2 pr-8 text-base font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
+
+                                <div className="flex items-center gap-4 pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="inline-flex items-center justify-center rounded-md bg-primary px-7 py-2.5 text-xs font-semibold uppercase tracking-widest text-white shadow-sm transition hover:bg-primary/90"
+                                    >
+                                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Log In"}
+                                    </button>
+                                    <Link href="/forgot-password" className="text-sm font-semibold text-primary hover:underline">
+                                        Forget Password?
+                                    </Link>
+                                </div>
+
+                                <p className="pt-4 text-sm font-medium text-muted-foreground">
+                                    New here?{" "}
+                                    <Link href="/register" className="font-semibold text-primary hover:underline">
+                                        Create an account
+                                    </Link>
+                                </p>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-                {/* Password Field */}
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                        <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
-                            Password
-                        </label>
-                        <Link href="/forgot-password" title="Forgot Password" className="text-xs font-bold text-primary hover:underline">
-                            Forgot?
-                        </Link>
-                    </div>
-                    <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Lock className="w-5 h-5" />
-                        </div>
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            onChange={(e) => {
-                                setFormData({ ...formData, password: e.target.value });
-                                setError("");
-                            }}
-                            placeholder="••••••••"
-                            className="w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-12 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-                        >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                    </div>
-                </div>
-
-                {error && <p className="text-xs font-bold text-red-500 text-center animate-shake">{error}</p>}
-
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group mt-4"
-                >
-                    {isLoading ? (
-                        <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                        <>
-                            Sign In
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </>
-                    )}
-                </button>
-
-                <p className="text-center text-sm font-medium text-muted-foreground">
-                    New here?{" "}
-                    <Link href="/register" className="text-primary font-bold hover:underline">
-                        Create an account
-                    </Link>
-                </p>
-            </form>
-        </AuthLayout>
+            </div>
+            <Footer />
+        </div>
     );
 }

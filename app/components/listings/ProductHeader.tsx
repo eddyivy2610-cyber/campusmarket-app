@@ -27,8 +27,8 @@ export function ProductHeader({ product, vendor, onOfferOpen }: ProductHeaderPro
         currency: "NGN",
         maximumFractionDigits: 0,
     }).format(product.price);
-
     const shortDescription = product.description.split("\n")[0]?.slice(0, 140) || product.description;
+
     return (
         <div className="space-y-5 border border-border/50 rounded-md p-4 md:p-5 bg-card">
             <div className="space-y-1.5">

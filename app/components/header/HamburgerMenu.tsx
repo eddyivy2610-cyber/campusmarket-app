@@ -178,11 +178,9 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     </Section>
 
                     <Section label="Support">
-                        <NavRow icon={HelpCircle} label="Help Center" onClick={() => nav("/help")} />
                         <NavRow icon={MessageSquare} label="Help Chat Room" onClick={() => nav("/help-center/chat-room")} />
                         <NavRow icon={Tag} label="Service Requests" onClick={() => nav("/services")} />
                         <NavRow icon={Store} label="Promotion Request" onClick={() => nav("/promotions/request")} />
-                        <NavRow icon={MessageSquare} label="Feedback" onClick={() => nav("/feedback")} />
                         <NavRow icon={LifeBuoy} label="Contact Support" onClick={() => nav("/help-support")} />
                     </Section>
                 </div>

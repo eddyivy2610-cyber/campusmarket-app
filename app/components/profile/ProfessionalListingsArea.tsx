@@ -38,7 +38,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                     </div>
                 </motion.div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 md:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 md:gap-2.5">
                     <AnimatePresence mode="popLayout">
                         {visibleListings.map((listing, idx) => (
                             <motion.div
@@ -49,6 +49,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                                 viewport={{ once: true, amount: 0.1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ duration: 0.4, delay: (idx % 8) * 0.05, ease: "easeOut" }}
+                                className="scale-[0.95] origin-top"
                             >
                                 <ProductCard
                                     product={{

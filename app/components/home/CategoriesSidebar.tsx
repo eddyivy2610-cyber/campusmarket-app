@@ -20,13 +20,14 @@ export function CategoriesSidebar() {
     const [isMoreOpen, setIsMoreOpen] = useState(false);
 
     return (
-        <aside className="hidden lg:block w-56 shrink-0 sticky top-20 h-max z-[400]">
+        <aside className="hidden lg:block w-56 shrink-0 z-[400]">
             <div className="rounded-xl bg-[#f8fafc] dark:bg-transparent overflow-visible flex flex-col">
-                <div className="px-2.5 pt-2.5 pb-1.5 border-b border-border/40 dark:border-white/10">
-                    <div className="border-b-2 border-orange-500 pb-2">
-                        <div className="radius-native inline-flex items-center gap-2 bg-orange-500 dark:bg-orange-600 text-white px-2.5 py-1 rounded-t-md">
-                            <h3 className="font-bold text-[11px] font-heading tracking-wider uppercase">Explore Categories</h3>
-                        </div>
+                <div className="px-2.5 pt-2 pb-1.5">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-5 bg-primary rounded-none" />
+                        <h3 className="text-xs md:text-sm font-semibold font-heading tracking-wider uppercase text-primary">
+                            Browse by category
+                        </h3>
                     </div>
                 </div>
                 <div
@@ -39,7 +40,7 @@ export function CategoriesSidebar() {
                             <Link
                                 key={idx}
                                 href={cat.href || `/listings?category=${cat.name}`}
-                                className="flex items-center justify-between px-2.5 py-2 rounded-lg border border-orange-100/90 dark:border-transparent bg-white hover:border-orange-300 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/15 transition-all duration-200 group"
+                                className="flex items-center justify-between px-2.5 py-2 rounded-lg border border-orange-100/90 dark:border-border/40 bg-white dark:bg-card/60 hover:border-orange-300 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/15 transition-all duration-200 group"
                             >
                                 <div className="flex items-center gap-2 text-[11px] font-heading font-bold text-foreground group-hover:text-orange-700 dark:group-hover:text-orange-300">
                                     <span className="w-6 h-6 rounded-md bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 flex items-center justify-center group-hover:bg-orange-200 dark:group-hover:bg-orange-500/30 transition-colors">
@@ -59,7 +60,7 @@ export function CategoriesSidebar() {
                         >
                             <button
                                 type="button"
-                                className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg border border-orange-100/90 dark:border-transparent bg-white hover:border-orange-300 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/15 transition-all duration-200"
+                                className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg border border-orange-100/90 dark:border-border/40 bg-white dark:bg-card/60 hover:border-orange-300 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/15 transition-all duration-200"
                             >
                                 <div className="flex items-center gap-2 text-[11px] font-heading font-bold text-foreground">
                                     <span className="w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 flex items-center justify-center transition-colors">

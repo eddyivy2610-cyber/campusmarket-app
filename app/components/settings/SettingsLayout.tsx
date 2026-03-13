@@ -1,219 +1,100 @@
-/**
- * @BACKEND: SETTINGS LAYOUT — Settings sections that need backend integration are marked below.
- * Removed sections (Security, Payments, Blocked Users, Privacy) can be re-added once backend supports them.
- */
-
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-    ChevronRight,
-    X,
-    Menu,
-    ShoppingBasket,
-    ArrowLeft,
-    UserRound,
-    IdCard,
-    Bell,
-    CircleHelp,
-    Camera,
-    Check
-} from "lucide-react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
-import { AccountSettings } from "./sections/AccountSettings";
 import { ProfileSettings } from "./sections/ProfileSettings";
-import { NotificationSettings } from "./sections/NotificationSettings";
-import { HelpSettings } from "./sections/HelpSettings";
+import { SecuritySettings } from "./sections/SecuritySettings";
+import { PreferencesSettings } from "./sections/PreferencesSettings";
+import { BusinessSettings } from "./sections/BusinessSettings";
+import { AccountStatusSettings } from "./sections/AccountStatusSettings";
+import { SignOutSettings } from "./sections/SignOutSettings";
+import { SwitchAccountSettings } from "./sections/SwitchAccountSettings";
+import { Breadcrumb } from "../common/Breadcrumb";
 
-type SettingsSection =
-    | "account"
-    | "profile"
-    | "notifications"
-    | "help";
+type SectionId = "profile" | "business" | "payment" | "security" | "preferences" | "help" | "account-status" | "logout" | "switch-account";
 
-interface NavItem {
-    id: SettingsSection;
-    label: string;
-}
-
-const NAV_ITEMS: (NavItem & { icon: any })[] = [
-    { id: "account", label: "Personal Information", icon: UserRound },
-    { id: "profile", label: "Public Profile", icon: IdCard },
-    { id: "notifications", label: "Preferences", icon: Bell },
+const SIDEBAR_SECTIONS: { id: SectionId; label: string; group: string }[] = [
+    { id: "profile", label: "My Profile", group: "Profile" },
+    { id: "business", label: "Business", group: "Profile" },
+    { id: "payment", label: "My Payment Options", group: "Profile" },
+    { id: "security", label: "Security Settings", group: "Account" },
+    { id: "preferences", label: "Preferences", group: "Account" },
+    { id: "account-status", label: "Deactivation & Deletion", group: "Account" },
+    { id: "help", label: "Help & Support", group: "Support" },
+    { id: "logout", label: "Log Out", group: "Sign Out" },
+    { id: "switch-account", label: "Switch Account", group: "Sign Out" },
 ];
 
+function SectionPlaceholder({ title }: { title: string }) {
+    return (
+        <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-primary">{title}</h2>
+            <p className="text-xs text-muted-foreground">
+                This section will be available soon.
+            </p>
+        </div>
+    );
+}
+
 export function SettingsLayout() {
-    const [activeSection, setActiveSection] = useState<SettingsSection | "menu">(() => {
-        if (typeof window !== "undefined" && window.innerWidth < 1024) return "menu";
-        return "account";
-    });
-    const [isMobile, setIsMobile] = useState(false);
+    const [activeSection, setActiveSection] = useState<SectionId>("profile");
 
-    // Initial check and resize listener for mobile
-    useEffect(() => {
-        const checkMobile = () => {
-            const mobile = window.innerWidth < 1024;
-            setIsMobile(mobile);
-            if (mobile && activeSection !== "menu") {
-                // Stay in section if mobile
-            } else if (!mobile && activeSection === "menu") {
-                setActiveSection("account");
-            }
-        };
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
-        return () => window.removeEventListener("resize", checkMobile);
-    }, [activeSection]);
-
-
-    const activeItem = NAV_ITEMS.find(item => item.id === activeSection);
+    const grouped = SIDEBAR_SECTIONS.reduce<Record<string, { id: SectionId; label: string }[]>>((acc, item) => {
+        acc[item.group] = acc[item.group] || [];
+        acc[item.group].push({ id: item.id, label: item.label });
+        return acc;
+    }, {});
 
     return (
-        <div className="max-w-[1240px] mx-auto lg:px-6 lg:pt-0 lg:pb-10 min-h-screen lg:min-h-0 bg-background lg:bg-transparent font-sans text-sm">
-            {/* Desktop Header Navigation */}
-            <div className="hidden lg:flex mb-4 items-center justify-between border-b border-border/10 pb-4">
-                <div />
-
-                <Link
-                    href="/"
-                    className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
-                >
-                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                    Back to Home
-                </Link>
-            </div>
-
-            {/* Mobile Local Header */}
-            <div className="lg:hidden sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/10 px-4 py-4 flex items-center justify-between">
-                <button
-                    onClick={() => activeSection === "menu" ? window.history.back() : setActiveSection("menu")}
-                    className="p-2 -ml-2 text-foreground/80 hover:text-foreground transition-colors"
-                >
-                    <ArrowLeft className="w-6 h-6" />
-                </button>
-                <h2 className="text-lg font-bold">
-                    {activeSection === "menu" ? "My Profile" : activeItem?.label}
-                </h2>
-                <div className="w-10 flex justify-end">
-                    {activeSection === "menu" ? (
-                        <UserRound className="w-6 h-6 text-foreground/80" />
-                    ) : (
-                        <Check className="w-6 h-6 text-primary" />
-                    )}
+        <div className="max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 pt-6 pb-10 text-sm">
+            <div className="flex items-center justify-between gap-3">
+                <div className="-my-2">
+                    <Breadcrumb items={[{ label: "Settings" }]} />
                 </div>
             </div>
 
-            <h1 className="hidden lg:block text-2xl font-bold tracking-tight mb-6">Settings</h1>
-
-            <div className="flex flex-col lg:flex-row gap-12 items-start relative">
-                {/* Desktop Sidebar Navigation */}
-                <aside className="hidden lg:block w-56 shrink-0 sticky top-24">
-                    <nav className="flex flex-col space-y-4">
-                        {NAV_ITEMS.map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => setActiveSection(item.id)}
-                                className={cn(
-                                    "text-left text-sm font-medium transition-colors duration-200",
-                                    activeSection === item.id
-                                        ? "text-primary font-bold"
-                                        : "text-muted-foreground hover:text-foreground"
-                                )}
-                            >
-                                {item.label}
-                            </button>
+            <div className="mt-6 flex flex-col lg:flex-row gap-6 items-start">
+                <aside className="w-full lg:w-[220px] shrink-0">
+                    <div className="space-y-5">
+                        {Object.entries(grouped).map(([group, items]) => (
+                            <div key={group}>
+                                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground mb-1.5">{group}</h3>
+                                <ul className="space-y-1">
+                                    {items.map((item) => (
+                                        <li key={item.id}>
+                                            <button
+                                                onClick={() => setActiveSection(item.id)}
+                                                className={cn(
+                                                    "text-left text-[12px] transition-colors",
+                                                    activeSection === item.id
+                                                        ? "font-semibold text-primary"
+                                                        : "text-muted-foreground hover:text-foreground"
+                                                )}
+                                            >
+                                                {item.label}
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         ))}
-                    </nav>
+                    </div>
                 </aside>
 
-                {/* Main Content Area */}
-                <main className="flex-1 w-full min-h-[600px]">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeSection}
-                            initial={{ opacity: 0, x: isMobile ? 20 : 0, y: isMobile ? 0 : 5 }}
-                            animate={{ opacity: 1, x: 0, y: 0 }}
-                            exit={{ opacity: 0, x: isMobile ? -20 : 0, y: isMobile ? 0 : -5 }}
-                            transition={{ duration: 0.2 }}
-                            className={cn(isMobile ? "px-0" : "space-y-12")}
-                        >
-                            {activeSection === "menu" && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
-                                    {/* Profile Hero Mobile */}
-                                    <div className="px-6 py-4 flex items-center gap-6">
-                                        <div className="relative group">
-                                            <div className="w-24 h-24 rounded-full border-2 border-background shadow-xl overflow-hidden">
-                                                {/* @BACKEND: Replace with authenticated user's avatar from GET /api/users/me */}
-                                                <img
-                                                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=Charlotte"
-                                                    alt="User"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white shadow-lg border border-border/20 flex items-center justify-center text-foreground/80 hover:text-primary transition-colors">
-                                                <Camera className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                        <div className="flex-1 space-y-3">
-                                            <div>
-                                                {/* @BACKEND: Replace with authenticated user's name and email */}
-                                                <h3 className="text-2xl font-bold">Lucky John</h3>
-                                                <p className="text-sm text-muted-foreground font-medium">lucky@john.com</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setActiveSection("profile")}
-                                                className="w-full py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98]"
-                                            >
-                                                Edit Profile
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Mobile List Navigation */}
-                                    <div className="bg-card/50 lg:hidden px-2">
-                                        <div className="space-y-1">
-                                            {NAV_ITEMS.map((item) => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => setActiveSection(item.id)}
-                                                    className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-secondary/50 active:bg-secondary transition-colors group"
-                                                >
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-                                                            <item.icon className="w-5 h-5" />
-                                                        </div>
-                                                        <span className="text-[15px] font-semibold text-foreground/90">{item.label}</span>
-                                                    </div>
-                                                    <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <div className="mt-8 px-4 pb-12">
-                                            {/* @BACKEND: Wire up to POST /api/auth/logout — clear session/JWT */}
-                                            <button className="w-full flex items-center gap-4 p-4 rounded-2xl text-red-500 font-bold hover:bg-red-50 active:bg-red-100 transition-colors">
-                                                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                                                    <X className="w-5 h-5" />
-                                                </div>
-                                                Log Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeSection !== "menu" && (
-                                <div className={cn(isMobile ? "px-6 py-6" : "")}>
-                                    {activeSection === "account" && <AccountSettings />}
-                                    {activeSection === "profile" && <ProfileSettings />}
-                                    {activeSection === "notifications" && <NotificationSettings />}
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
-                </main>
+                <div className="flex-1 flex justify-center w-full">
+                    <main className="w-full max-w-[860px] bg-card border border-border/40 shadow-sm rounded-md px-6 py-5 md:px-8 md:py-6">
+                        {activeSection === "profile" && <ProfileSettings />}
+                        {activeSection === "business" && <BusinessSettings />}
+                        {activeSection === "security" && <SecuritySettings />}
+                        {activeSection === "preferences" && <PreferencesSettings />}
+                        {activeSection === "account-status" && <AccountStatusSettings />}
+                        {activeSection === "logout" && <SignOutSettings />}
+                        {activeSection === "switch-account" && <SwitchAccountSettings />}
+                        {activeSection === "payment" && <SectionPlaceholder title="My Payment Options" />}
+                        {activeSection === "help" && <SectionPlaceholder title="Help & Support" />}
+                    </main>
+                </div>
             </div>
         </div>
     );

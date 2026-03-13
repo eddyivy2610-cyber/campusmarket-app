@@ -28,15 +28,15 @@ function ProductScroller({ title, items, badge, viewAllHref }: {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                    {badge}
-                    <h2 className="text-sm font-bold font-heading tracking-wider uppercase">{title}</h2>
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-5 bg-primary rounded-none" />
+                    <h2 className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider">{title}</h2>
                 </div>
                 <Link
                     href={viewAllHref}
-                    className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.2em] text-primary hover:opacity-70 transition-opacity"
+                    className="text-[10px] md:text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors"
                 >
-                    All <ChevronRight className="w-3 h-3" />
+                    View all
                 </Link>
             </div>
 

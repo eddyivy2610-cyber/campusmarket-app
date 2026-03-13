@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
     LayoutDashboard,
     Package,
     ShoppingCart,
     MessageSquare,
     Bell,
-    ArrowLeft,
-    LogOut
+    ArrowLeft
 } from "lucide-react";
 import { IconTooltip } from "../components/common/IconTooltip";
 import { useAuth } from "../context/AuthContext";
@@ -26,30 +26,29 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const router = useRouter();
-    const { logout, user } = useAuth();
+    const { user } = useAuth();
     const isPro = user?.role === "pro";
+    const [showUpgradeGate, setShowUpgradeGate] = useState(true);
     const isMessagesRoute = pathname.startsWith("/dashboard/messages");
     const isAlertsRoute = pathname.startsWith("/dashboard/alerts");
     const isFreePath = isMessagesRoute || isAlertsRoute;
 
-    const handleUserLogout = () => {
-        logout();
-        router.push("/login");
-    };
     return (
         <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             {/* Global Header */}
 
             <div className={`flex flex-1 max-w-[1780px] mx-auto w-full gap-6 relative ${isMessagesRoute ? "px-0 py-0 md:px-6 md:py-6" : "px-2 md:px-6 py-4 md:py-6"
                 }`}>
+                {/* Sidebar Spacer */}
+                <div className="hidden md:block w-16 shrink-0" />
+
                 {/* Floating Sidebar */}
-                <aside className="w-20 hidden md:flex flex-col items-center py-6 bg-card border border-border/50 rounded-2xl shadow-sm sticky top-24 h-[calc(100vh-8rem)] z-20">
+                <aside className="w-16 hidden md:flex flex-col items-center py-4 bg-card border border-border/40 rounded-xl shadow-sm fixed top-24 left-3 md:left-6 h-[calc(100vh-8rem)] z-30">
                     {/* Back to Profile */}
                     <Link href="/profile" className="mb-8">
                         <IconTooltip content="Back to Profile" position="right">
-                            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
-                                <ArrowLeft className="w-5 h-5" />
+                            <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all">
+                                <ArrowLeft className="w-4 h-4" />
                             </div>
                         </IconTooltip>
                     </Link>
@@ -61,25 +60,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             return (
                                 <Link key={item.name} href={item.href}>
                                     <IconTooltip content={item.name} position="right">
-                                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all ${isActive
-                                            ? "bg-primary text-primary-foreground shadow-md"
-                                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                                            }`}>
-                                            <item.icon className="w-5 h-5" />
-                                        </div>
-                                    </IconTooltip>
-                                </Link>
-                            );
-                        })}
-                    </nav>
-
-                    <button
-                        onClick={handleUserLogout}
-                        className="mt-6 w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors"
-                        title="Logout"
-                    >
-                        <LogOut className="w-4.5 h-4.5" />
-                    </button>
+                                    <div className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${isActive
+                                        ? "bg-primary text-primary-foreground shadow-sm"
+                                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                        }`}>
+                                            <item.icon className="w-4.5 h-4.5" />
+                                    </div>
+                                </IconTooltip>
+                            </Link>
+                        );
+                    })}
+                </nav>
                 </aside>
 
                 {/* Mobile Sidebar Navigation (Bottom Bar) */}
@@ -92,19 +83,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </Link>
                         );
                     })}
-                    <button
-                        onClick={handleUserLogout}
-                        className="p-3 rounded-xl text-red-600 hover:bg-red-500/10 transition-colors"
-                        title="Logout"
-                    >
-                        <LogOut className="w-[22px] h-[22px]" />
-                    </button>
                 </nav>
 
                 <main className={`flex-1 min-h-0 overflow-y-auto ${isMessagesRoute ? "pb-0" : "pb-20 md:pb-0"}`}>
                     <div className={`bg-card border border-border/50 shadow-sm min-h-full ${isMessagesRoute ? "rounded-none p-0 md:rounded-2xl md:p-6" : "rounded-2xl p-4 md:p-6"
                         }`}>
-                        {!isPro && !isFreePath ? (
+                        {!isPro && !isFreePath && showUpgradeGate ? (
                             <div className="py-20 flex items-center justify-center">
                                 <ProUpgradePrompt
                                     title="Unlock Professional Dashboard"
@@ -114,9 +98,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                         ) : (
                             <>
+                                {!isPro && !isFreePath && (
+                                    <div className="mb-4 flex items-center justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowUpgradeGate(true)}
+                                            className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                                        >
+                                            Show upgrade prompt
+                                        </button>
+                                    </div>
+                                )}
                                 {children}
                                 {isPro && <DashboardOnboarding />}
                             </>
+                        )}
+                        {!isPro && !isFreePath && showUpgradeGate && (
+                            <div className="mt-6 flex items-center justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUpgradeGate(false)}
+                                    className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                                >
+                                    View content
+                                </button>
+                            </div>
                         )}
                     </div>
                 </main>
