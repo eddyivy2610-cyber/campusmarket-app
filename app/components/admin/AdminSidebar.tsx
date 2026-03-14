@@ -44,7 +44,7 @@ const AdminSidebar = () => {
     return (
         <>
             {/* Floating Sidebar */}
-            <aside className="w-20 hidden md:flex flex-col items-center py-6 bg-card border border-border/50 rounded-2xl shadow-sm fixed top-28 left-6 h-[calc(100vh-7rem)] z-30">
+            <aside className="w-16 hidden md:flex flex-col items-center py-4 bg-card border border-border/40 rounded-xl shadow-sm fixed top-24 left-3 md:left-6 h-[calc(100vh-8rem)] z-30">
                 <nav className="flex flex-col gap-3 flex-1">
                     {ADMIN_NAV_ITEMS.map((item) => {
                         const active = isActiveRoute(pathname, item.href);
@@ -52,12 +52,12 @@ const AdminSidebar = () => {
                             <Link key={item.name} href={item.href}>
                                 <IconTooltip content={item.name} position="right">
                                     <div
-                                        className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all ${active
-                                            ? "bg-primary text-primary-foreground shadow-md"
+                                        className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${active
+                                            ? "bg-primary text-primary-foreground shadow-sm"
                                             : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                                             }`}
                                     >
-                                        <item.icon className="w-5 h-5" />
+                                        <item.icon className="w-4.5 h-4.5" />
                                     </div>
                                 </IconTooltip>
                             </Link>
