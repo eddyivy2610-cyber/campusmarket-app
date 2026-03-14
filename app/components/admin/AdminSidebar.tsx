@@ -67,19 +67,25 @@ const AdminSidebar = () => {
             </aside>
 
             {/* Mobile Bottom Navigation */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border/50 z-50 flex items-center justify-around px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                {MOBILE_NAV_ITEMS.map((item) => {
-                    const active = isActiveRoute(pathname, item.href);
-                    return (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`p-3 rounded-xl transition-all ${active ? "text-primary scale-110" : "text-muted-foreground"}`}
-                        >
-                            <item.icon className="w-[22px] h-[22px]" />
-                        </Link>
-                    );
-                })}
+            <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 pb-[env(safe-area-inset-bottom)]">
+                <div className="mx-auto w-full max-w-[560px] px-3 pb-3">
+                    <div className="bg-card border border-border/50 rounded-2xl shadow-[0_-6px_24px_rgba(0,0,0,0.08)] px-2 py-2">
+                        <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden no-scrollbar px-1 h-12">
+                            {ADMIN_NAV_ITEMS.map((item) => {
+                                const active = isActiveRoute(pathname, item.href);
+                                return (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        className={`p-2 rounded-xl transition-all flex items-center justify-center shrink-0 ${active ? "text-primary scale-105" : "text-muted-foreground"}`}
+                                    >
+                                        <item.icon className="w-[20px] h-[20px]" />
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             </nav>
         </>
     );

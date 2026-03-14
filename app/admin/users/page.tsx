@@ -1,9 +1,18 @@
 'use client';
 
-import { MoreHorizontal, ShieldOff, User, Search, Filter, Download, UserCheck, Mail, Calendar } from 'lucide-react';
+import { MoreHorizontal, ShieldOff, User, Search, Filter, Download, UserCheck, Mail, Calendar, TrendingUp } from 'lucide-react';
 import StatusBadge from '@/components/admin/StatusBadge';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
+import {
+    CartesianGrid,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 const startUsers = [
     { id: 1, name: 'Active User', email: 'active@email.com', date: '2023-09-15', status: 'Active', role: 'Regular', avatar: 'A' },
@@ -12,8 +21,32 @@ const startUsers = [
     { id: 4, name: 'Pending User', email: 'pending@email.com', date: '2023-12-05', status: 'Pending', role: 'Vendor', avatar: 'S' },
 ];
 
+const userGrowthSeries = [
+    { month: 'Jan', users: 520 },
+    { month: 'Feb', users: 610 },
+    { month: 'Mar', users: 740 },
+    { month: 'Apr', users: 820 },
+    { month: 'May', users: 900 },
+    { month: 'Jun', users: 1030 },
+    { month: 'Jul', users: 1200 },
+    { month: 'Aug', users: 1320 },
+    { month: 'Sep', users: 1480 },
+    { month: 'Oct', users: 1620 },
+    { month: 'Nov', users: 1760 },
+    { month: 'Dec', users: 1940 },
+].map((point, index, array) => {
+    if (index === 0) {
+        return { ...point, growthRate: 0 };
+    }
+    const prev = array[index - 1].users;
+    const growthRate = prev ? ((point.users - prev) / prev) * 100 : 0;
+    return { ...point, growthRate: Number(growthRate.toFixed(1)) };
+});
+
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState("");
+    const latest = userGrowthSeries[userGrowthSeries.length - 1];
+    const latestGrowth = latest?.growthRate ?? 0;
 
     return (
         <div className="space-y-6">
@@ -33,6 +66,71 @@ export default function UsersPage() {
                         <UserCheck size={14} />
                         Add User
                     </button>
+                </div>
+            </div>
+
+            {/* Growth Rate */}
+            <div className="bg-card border border-border/50 rounded-2xl p-4 md:p-6 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">User Growth Rate</h2>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Monthly growth trend</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] font-semibold text-muted-foreground">
+                        <div className="flex items-center gap-2 rounded-md border border-border/40 bg-secondary/10 px-3 py-1.5">
+                            <span className="text-[10px] uppercase tracking-widest">Total</span>
+                            <span className="text-foreground font-bold">{latest?.users ?? 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-md border border-border/40 bg-emerald-500/10 px-3 py-1.5 text-emerald-600">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                            <span className="text-[10px] uppercase tracking-widest">Growth</span>
+                            <span className="font-bold">{latestGrowth}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-4 h-56 md:h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={userGrowthSeries} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                            <XAxis
+                                dataKey="month"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 10, fill: "currentColor" }}
+                                dy={8}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fontSize: 10, fill: "currentColor" }}
+                                tickFormatter={(val) => `${val}%`}
+                                domain={[0, 'dataMax + 6']}
+                            />
+                            <Tooltip
+                                cursor={{ stroke: "hsl(var(--border))", strokeDasharray: "3 3" }}
+                                content={({ active, payload, label }) => {
+                                    if (active && payload && payload.length) {
+                                        return (
+                                            <div className="bg-popover text-popover-foreground border border-border text-xs font-bold px-3 py-2 rounded-lg shadow-xl">
+                                                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
+                                                <div className="mt-1">Growth: {(payload[0].value as number).toFixed(1)}%</div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="growthRate"
+                                stroke="var(--color-primary)"
+                                strokeWidth={2.5}
+                                dot={{ r: 3, strokeWidth: 2, fill: "var(--color-primary)" }}
+                                activeDot={{ r: 5 }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 

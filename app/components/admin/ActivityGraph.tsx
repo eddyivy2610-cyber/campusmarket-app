@@ -22,20 +22,20 @@ const data = [
 
 const ActivityGraph = () => {
     return (
-        <div className="bg-card p-6 rounded-xl border border-border h-[400px]">
-            <div className="mb-6">
-                <h3 className="text-lg font-semibold text-foreground">Platform Activity</h3>
-                <p className="text-sm text-muted-foreground">Listings vs Reports trend over the last 7 days</p>
+        <div className="bg-card p-4 md:p-6 rounded-xl border border-border">
+            <div className="mb-4 md:mb-6">
+                <h3 className="text-base md:text-lg font-semibold text-foreground">Platform Activity</h3>
+                <p className="text-[11px] md:text-sm text-muted-foreground">Listings vs Reports trend over the last 7 days</p>
             </div>
 
-            <div className="w-full h-[85%] text-muted-foreground">
+            <div className="w-full h-[220px] sm:h-[260px] md:h-[320px] text-muted-foreground">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                         data={data}
                         margin={{
                             top: 10,
-                            right: 30,
-                            left: 0,
+                            right: 10,
+                            left: -10,
                             bottom: 0,
                         }}
                     >
@@ -53,13 +53,13 @@ const ActivityGraph = () => {
                         <XAxis
                             dataKey="name"
                             stroke="currentColor"
-                            tick={{ fill: 'currentColor', fontSize: 12 }}
+                            tick={{ fill: 'currentColor', fontSize: 10 }}
                             axisLine={false}
                             tickLine={false}
                         />
                         <YAxis
                             stroke="currentColor"
-                            tick={{ fill: 'currentColor', fontSize: 12 }}
+                            tick={{ fill: 'currentColor', fontSize: 10 }}
                             axisLine={false}
                             tickLine={false}
                         />

@@ -64,13 +64,13 @@ export function AdminHeader() {
                         <span className="text-[9px] md:text-[10px] uppercase tracking-widest text-muted-foreground font-bold">CampusMarket</span>
                         <span className="text-base md:text-lg font-bold tracking-tight font-heading group-hover:text-primary transition-colors">Admin Center</span>
                     </div>
-                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-bold uppercase tracking-widest bg-secondary/40 text-muted-foreground border border-border/40">
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-widest bg-secondary/40 text-muted-foreground border border-border/40">
                         Moderation Suite
                     </span>
                 </div>
 
                 <div className="ml-auto flex items-center gap-2 md:gap-3 shrink-0">
-                    <div className="relative hidden md:flex items-center bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
+                    <div className="relative hidden md:flex items-center bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-md px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
                         <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground ml-1" />
                         <input
                             value={query}
@@ -100,9 +100,9 @@ export function AdminHeader() {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 md:gap-2 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-full px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
+                    <div className="flex items-center gap-1 md:gap-2 bg-secondary/20 backdrop-blur-lg border border-border/40 rounded-md px-2 py-1.5 md:px-3 md:py-2 shadow-sm">
                         <button
-                            className="relative flex items-center justify-center p-2 rounded-full hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
+                            className="relative flex items-center justify-center p-2 rounded-md hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground"
                             title="Admin notifications"
                         >
                             <Bell className="w-4 h-4 md:w-5 md:h-5 shrink-0" strokeWidth={2} />
@@ -112,17 +112,17 @@ export function AdminHeader() {
                         </button>
                         <div className="w-px h-6 bg-border/60 mx-1"></div>
                         <button
-                            className="flex items-center gap-2 text-foreground hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
+                            className="flex items-center gap-2 text-foreground hover:text-primary transition-colors p-1.5 rounded-md hover:bg-primary/5"
                             title="Admin profile"
                         >
-                            <div className="bg-secondary p-1.5 rounded-full">
+                            <div className="bg-secondary p-1.5 rounded-md">
                                 <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground" strokeWidth={2} />
                             </div>
                             <span className="hidden sm:flex text-[11px] md:text-xs font-bold font-heading pr-1 max-w-[120px] truncate">{adminLabel}</span>
                         </button>
                         <button
                             onClick={handleLogout}
-                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-500/10 transition-colors"
+                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-500/10 transition-colors"
                             title="Logout"
                         >
                             <LogOut className="w-3 md:w-3.5 h-3 md:h-3.5" />

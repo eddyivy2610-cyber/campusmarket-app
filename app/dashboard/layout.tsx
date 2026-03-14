@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const isFreePath = isMessagesRoute || isAlertsRoute;
 
     return (
-        <div className="flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
+        <div className="dashboard-scope flex flex-col min-h-screen w-full bg-secondary/10 overflow-x-hidden text-foreground font-heading">
             {/* Global Header */}
 
             <div className={`flex flex-1 max-w-[1780px] mx-auto w-full gap-6 relative ${isMessagesRoute ? "px-0 py-0 md:px-6 md:py-6" : "px-2 md:px-6 py-4 md:py-6"
