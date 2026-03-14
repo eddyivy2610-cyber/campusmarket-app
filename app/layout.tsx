@@ -3,8 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SavedProvider } from "./context/SavedContext";
 import { AuthProvider } from "./context/AuthContext";
-import { ScrollToTop } from "./components/locations/ScrollToTop";
-import { CustomerCareButton } from "./components/locations/CustomerCareButton";
+import { FloatingActions } from "./components/locations/FloatingActions";
 import { SmoothScroll } from "./components/common/SmoothScroll";
 import { Header } from "./components/header/Header";
 import { Poppins } from "next/font/google";
@@ -48,8 +47,7 @@ export default function RootLayout({
                 <div className="pt-[110px] md:pt-[56px]">
                   {children}
                 </div>
-                <ScrollToTop />
-                <CustomerCareButton />
+                <FloatingActions />
               </SmoothScroll>
             </SavedProvider>
           </AuthProvider>
