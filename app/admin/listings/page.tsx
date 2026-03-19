@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Search, Filter, Eye, EyeOff, Trash2, CheckCircle, MoreHorizontal, Package, AlertTriangle, ShieldCheck, Download, Trash, Tag, User } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useSearchParams } from 'next/navigation';
 
 const listingsData = [
     { id: 1, title: 'Vintage Leather Jacket', seller: 'CampusMarket', date: '2023-10-26', reports: 5, status: 'Active', category: 'Fashion', price: '1000' },
-    
+
 ];
 
 export default function ListingsPage() {
@@ -59,7 +59,7 @@ export default function ListingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                     { label: "Total Active", value: "12,402", color: "text-green-500", icon: ShieldCheck },
-                    { label: "Pending Review", value: "87", color: "text-orange-500", icon: Package },
+                    { label: "Pending Review", value: "87", color: "text-blue-500", icon: Package },
                     { label: "Flagged Listings", value: "15", color: "text-red-500", icon: AlertTriangle },
                     { label: "Daily New", value: "+342", color: "text-blue-500", icon: Tag },
                 ].map((stat) => (

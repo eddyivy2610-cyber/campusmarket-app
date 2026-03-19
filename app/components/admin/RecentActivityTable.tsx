@@ -1,4 +1,4 @@
-import { Eye, CheckCircle, XCircle } from 'lucide-react';
+﻿import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
 const recentActivities = [
     { id: 1, item: 'Vintage Leather Jacket', type: 'Listing', date: '2 mins ago', status: 'Pending', user: 'AlexRider' },
@@ -38,7 +38,7 @@ const RecentActivityTable = () => {
                                 <td className="px-6 py-4 text-muted-foreground">{activity.date}</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${activity.status === 'Active' ? 'bg-green-500/10 text-green-500' :
-                                        activity.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' :
+                                        activity.status === 'Pending' ? 'bg-blue-500/10 text-blue-500' :
                                             activity.status === 'Resolved' ? 'bg-blue-500/10 text-blue-500' :
                                                 'bg-red-500/10 text-red-500'
                                         }`}>

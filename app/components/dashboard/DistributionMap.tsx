@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { MapPin } from "lucide-react";
 
@@ -35,8 +35,8 @@ const distributions: CampusDistribution[] = [
         name: "Kongo Campus Axis",
         percentage: 18,
         listings: 72,
-        color: "bg-amber-500",
-        dotClass: "text-amber-500",
+        color: "bg-blue-500",
+        dotClass: "text-blue-500",
         x: "64%",
         y: "68%",
     },

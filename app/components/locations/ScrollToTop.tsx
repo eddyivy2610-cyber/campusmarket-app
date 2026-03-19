@@ -29,7 +29,7 @@ export function ScrollToTop() {
     return (
         <button
             onClick={scrollToTop}
-            className={`fixed bottom-8 right-8 p-3 rounded-full bg-primary text-white shadow-lg hover:bg-orange-600 hover:-translate-y-1 transition-all duration-300 z-50 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
+            className={`fixed bottom-8 right-8 p-3 rounded-full bg-brand-yellow-tint hover-bg-brand-yellow-tint-hover text-brand-blue shadow-lg hover:-translate-y-1 transition-all duration-300 z-50 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
             title="Back to Top"
         >
             <ArrowUp className="w-5 h-5" />

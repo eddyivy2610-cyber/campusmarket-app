@@ -30,7 +30,7 @@ export interface Product {
     price: number;
     image: string;
     images: string[];
-    category: "Electronics" | "Academics" | "Accomodation" | "Fashion" | "Personal Care" | "Sports & Fitness" | "Entertainment" | "Transport" | "Events" | "Urgent" | "Services" | "Food & Provisions";
+    category: "Electronics" | "Academics" | "Accomodation" | "Fashion" | "Personal Care" | "Sports & Fitness" | "Entertainment" | "Transport" | "Services" | "Food & Provisions";
     recommendedCount: number;
     notRecommendedCount: number;
     location: string;
@@ -59,8 +59,6 @@ export const CATEGORIES: { name: string; icon: string; lucideIcon: string; href?
     { name: "Entertainment", icon: "🎸", lucideIcon: "Music" },
 
     { name: "Transport", icon: "🚲", lucideIcon: "Bike" },
-    { name: "Events", icon: "📅", lucideIcon: "Calendar" },
-    { name: "Urgent", icon: "🚨", lucideIcon: "AlertCircle" },
     { name: "Services", icon: "🛠️", lucideIcon: "Wrench", href: "/services" }
 ];
 

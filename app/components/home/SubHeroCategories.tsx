@@ -54,14 +54,14 @@ export function SubHeroCategories() {
     ];
 
     return (
-        <section className="hidden md:block pt-0 pb-0 space-y-3">
+        <section className="hidden md:block pt-2 pb-2 space-y-3">
             <div className="flex items-center gap-2">
-                <div className="w-2 h-5 bg-primary rounded-none" />
-                <h2 className="text-xs md:text-sm font-semibold text-primary">
+                <div className="w-2 h-5 bg-[#f2c94c] rounded-none shadow-sm" />
+                <h2 className="text-sm md:text-base font-bold text-[#1f1f1f]">
                     Looking for something specific?
                 </h2>
                 <div className="ml-auto">
-                    <Link href="/listings" className="text-[10px] md:text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors">
+                    <Link href="/listings" className="text-[10px] md:text-[11px] font-semibold text-[#6b6458] hover:text-[#1f1f1f] transition-colors">
                         View all
                     </Link>
                 </div>
@@ -75,12 +75,12 @@ export function SubHeroCategories() {
                         <Link
                             key={item.key}
                             href={item.link}
-                            className="group flex flex-col items-center justify-center text-center rounded-lg border border-orange-100/90 bg-white dark:bg-card dark:border-border/40 transition-all duration-200 p-2.5 shadow-[0_6px_18px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:shadow-[0_12px_24px_rgba(15,23,42,0.16)] min-w-[110px] w-[110px] aspect-square"
+                            className="group flex flex-col items-center justify-center text-center rounded-2xl border border-[#efe3cf] bg-white transition-all duration-200 p-2.5 shadow-[0_10px_24px_rgba(40,30,10,0.08)] hover:-translate-y-0.5 hover:border-[#f2c94c]/60 hover:bg-[#fff9e6] hover:shadow-[0_16px_32px_rgba(40,30,10,0.12)] min-w-[110px] w-[110px] aspect-square"
                         >
-                            <div className="flex h-10 w-10 items-center justify-center rounded-none border border-orange-100/90 bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 shadow-inner group-hover:bg-orange-200 transition-colors">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#f2c94c]/30 bg-[#fff3c6] text-[#1f1f1f] transition-colors group-hover:bg-[#f2c94c] group-hover:text-black">
                                 <Icon className="h-5 w-5" />
                             </div>
-                            <p className="mt-2 text-[10px] md:text-[11px] font-semibold text-foreground group-hover:text-orange-700 dark:group-hover:text-orange-300">
+                            <p className="mt-2 text-[10px] md:text-[11px] font-semibold text-[#1f1f1f] group-hover:text-black">
                                 {item.label}
                             </p>
                         </Link>

@@ -225,20 +225,6 @@ export const CATEGORY_FILTERS: Record<string, DynamicFilter[]> = {
             options: buildOptions(["Bicycle", "Electric Scooter", "Carpooling Offer", "Travel Ticket", "Car Rentals"])
         }
     ],
-    "Events": [
-        {
-            id: "eventType",
-            label: "Event Type",
-            type: "multi-select",
-            options: buildOptions(["Party/Clubbing", "Seminar/Conference", "Workshop", "Sports Event", "Meetup"])
-        },
-        {
-            id: "ticketType",
-            label: "Ticket Type",
-            type: "multi-select",
-            options: buildOptions(["Regular", "VIP", "VVIP", "Table"])
-        }
-    ],
     "Services": [
         {
             id: "serviceType",

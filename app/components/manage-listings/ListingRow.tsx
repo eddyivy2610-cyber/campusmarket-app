@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Product } from "../../data/products";
 import { MoreHorizontal, Edit2, Copy, Trash2, PowerOff, TrendingUp, AlertCircle, EyeOff, Star, MousePointerClick, ShoppingBag, Share2 } from "lucide-react";
 import { useState, useRef } from "react";
@@ -108,7 +108,7 @@ export function ListingRow({ listing, isSelected, onSelect, onViewShare }: Listi
                 <div className="flex items-center gap-4 text-muted-foreground">
                     <div className="flex flex-col items-center gap-1 group/stat cursor-pointer tooltip-trigger">
                         <div className="flex items-center gap-1 text-xs">
-                            <Star className="w-3.5 h-3.5 group-hover/stat:text-yellow-500 transition-colors" />
+                            <Star className="w-3.5 h-3.5 group-hover/stat:text-blue-500 transition-colors" />
                             <span className="font-medium">4.8</span>
                         </div>
                     </div>

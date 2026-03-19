@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { Award, Settings, Search, Filter, Plus, Trophy, Star, Shield, Zap, MoreHorizontal, Users, Edit3, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 
 const badges = [
-    { id: 1, name: 'Top Seller', icon: Trophy, color: 'text-yellow-600 bg-yellow-500/10', description: 'Awarded to sellers with >50 successful sales and 4.5+ rating.', earners: 124, type: 'Achievement' },
+    { id: 1, name: 'Top Seller', icon: Trophy, color: 'text-blue-600 bg-blue-500/10', description: 'Awarded to sellers with >50 successful sales and 4.5+ rating.', earners: 124, type: 'Achievement' },
     { id: 2, name: 'Verified Student', icon: Shield, color: 'text-blue-600 bg-blue-500/10', description: 'Automatically given to users with verified university email.', earners: 4202, type: 'System' },
     { id: 3, name: 'Early Adopter', icon: Zap, color: 'text-purple-600 bg-purple-500/10', description: 'Joined during the beta phase of Campus Market.', earners: 850, type: 'Legacy' },
     { id: 4, name: 'Trusted Buyer', icon: Star, color: 'text-green-600 bg-green-500/10', description: 'Awarded to buyers with >10 reviews and 0 disputes.', earners: 312, type: 'Achievement' },

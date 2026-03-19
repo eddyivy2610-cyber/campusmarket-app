@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Handshake, CheckCircle2, XCircle, Clock, ShoppingBag } from "lucide-react";
 import { NegotiationRecord, NegotiationStatus, ChatParticipant } from "../../data/chat";

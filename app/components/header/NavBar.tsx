@@ -17,7 +17,7 @@ export function NavBar() {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
 
     return (
-        <div className="hidden md:block bg-[#111] border-b border-accent/20 text-white">
+        <div className="hidden md:block bg-gradient-to-r from-yellow-200/80 via-yellow-100/70 to-white border-b border-black/10 text-black">
             <div className="max-w-[1780px] mx-auto px-8">
                 <div className="flex items-center gap-8 h-14">
 
@@ -46,14 +46,14 @@ export function NavBar() {
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="text-sm font-bold font-heading text-gray-300 hover:text-white transition-colors uppercase tracking-wider text-[11px]"
+                                className="text-sm font-bold font-heading text-black/70 hover:text-black transition-colors uppercase tracking-wider text-[11px]"
                             >
                                 {item.label}
                             </Link>
                         ))}
                     </nav>
 
-                    <div className="ml-auto text-xs font-medium text-gray-400">
+                    <div className="ml-auto text-xs font-medium text-black/60">
                         <span className="text-[#e31e24] font-bold">Free Shipping</span> on orders over ₦15,000
                     </div>
 

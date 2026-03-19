@@ -164,12 +164,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                                 <div className="flex items-start justify-between gap-3">
                                     <h2 className="text-base font-bold font-heading leading-tight text-foreground">{product.title}</h2>
                                     <div className="text-right shrink-0">
-                                        <p className="text-lg font-price font-bold text-primary">N{formatPrice(product.price)}</p>
-                                        {product.originalPrice && (
-                                            <p className="text-[11px] text-muted-foreground line-through">
-                                                N{formatPrice(product.originalPrice)}
-                                            </p>
-                                        )}
+                                        <p className="text-lg font-price font-bold text-amber-800">N{formatPrice(product.price)}</p>
                                     </div>
                                 </div>
 
@@ -261,3 +256,4 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
         document.body
     );
 }
+

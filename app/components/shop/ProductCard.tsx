@@ -130,19 +130,14 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
 
             {/* Content — completely transparent, close-knit text */}
             <div className="pt-2 pb-1 flex-1 flex flex-col relative z-2 pointer-events-none bg-transparent">
-                <h3 className="font-heading font-medium text-[13px] md:text-sm text-foreground/90 leading-snug line-clamp-2 group-hover:text-primary transition-colors flex-1" title={product.title}>
+                <h3 className="font-heading font-medium text-[13px] md:text-sm text-foreground/90 leading-snug line-clamp-2 group-hover:text-amber-800 transition-colors flex-1" title={product.title}>
                     {product.title}
                 </h3>
 
                 <div className="flex items-end gap-1.5 mt-1.5">
-                    <span className="font-price font-bold text-sm md:text-base text-foreground">
+                    <span className="font-price font-bold text-sm md:text-base text-amber-800">
                         ₦{formatPrice(product.price)}
                     </span>
-                    {product.originalPrice && (
-                        <span className="text-[10px] md:text-xs text-muted-foreground line-through font-medium mb-0.5">
-                            ₦{formatPrice(product.originalPrice)}
-                        </span>
-                    )}
                 </div>
 
                 <div className="flex items-center justify-between mt-1">
@@ -177,3 +172,5 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
         </motion.div>
     );
 }
+
+

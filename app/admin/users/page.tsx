@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { MoreHorizontal, ShieldOff, User, Search, Filter, Download, UserCheck, Mail, Calendar, TrendingUp } from 'lucide-react';
 import StatusBadge from '@/components/admin/StatusBadge';
@@ -209,7 +209,7 @@ export default function UsersPage() {
                                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-foreground/60">
                                                 <span className={cn(
                                                     "px-2 py-0.5 rounded-md",
-                                                    user.role === 'Seller' ? "bg-orange-500/10 text-orange-600" : "bg-blue-500/10 text-blue-600"
+                                                    user.role === 'Seller' ? "bg-blue-500/10 text-blue-600" : "bg-blue-500/10 text-blue-600"
                                                 )}>{user.role}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] opacity-30">

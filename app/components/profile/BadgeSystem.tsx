@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { GraduationCap, BadgeCheck, Trophy, Shield, Zap, Star } from "lucide-react";
@@ -96,7 +96,7 @@ export function AchievementBadge({ achievement, className }: {
 }) {
     const IconComponent = AchievementIcons[achievement.icon as keyof typeof AchievementIcons] || Star;
 
-    // Extract base color name from tailwind class (e.g. "text-yellow-600" -> "yellow")
+    // Extract base color name from tailwind class (e.g. "text-blue-600" -> "yellow")
     const colorClass = achievement.color.split(' ').find(c => c.startsWith('text-')) || 'text-primary';
 
     return (

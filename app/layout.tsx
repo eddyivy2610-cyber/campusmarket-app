@@ -36,15 +36,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        style={fontVars}
+        style={{ ...fontVars, background: "#ffffff" }}
         className={`${poppinsFont.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}
       >
         <ThemeProvider>
           <AuthProvider>
             <SavedProvider>
+              <Header />
               <SmoothScroll>
-                <Header />
-                <div className="pt-[110px] md:pt-[56px]">
+                <div className="pt-[96px] md:pt-[64px]">
                   {children}
                 </div>
                 <FloatingActions />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Star, ShieldCheck, Mail, Calendar, Package, TrendingUp, Search, Filter, MoreHorizontal, User, Store } from 'lucide-react';
 import StatusBadge from '@/components/admin/StatusBadge';
@@ -84,7 +84,7 @@ export default function VendorsPage() {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col gap-1">
                                             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                                                <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                                                <Star size={12} className="text-blue-500 fill-yellow-500" />
                                                 {vendor.rating}
                                             </div>
                                             <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 bg-blue-500/10 text-blue-600 rounded-md self-start">

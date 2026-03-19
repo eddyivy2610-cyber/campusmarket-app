@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @BACKEND: MOCK DATA — This entire file contains hardcoded user/vendor profiles for prototyping.
  *
  * Replace with:
@@ -97,7 +97,7 @@ export const PROFILES: Profile[] = [
             hours: "Mon - Sat: 9:00 AM - 6:00 PM"
         },
         achievements: [
-            { name: 'Top Seller', icon: 'Trophy', color: 'text-yellow-600 bg-yellow-500/10', description: 'completed 100 negotiations', type: 'Achievement' },
+            { name: 'Top Seller', icon: 'Trophy', color: 'text-blue-600 bg-blue-500/10', description: 'completed 100 negotiations', type: 'Achievement' },
             { name: 'Verified Student', icon: 'Shield', color: 'text-blue-600 bg-blue-500/10', description: 'verified with id', type: 'System' },
             { name: 'Early Adopter', icon: 'Zap', color: 'text-purple-600 bg-purple-500/10', description: 'joined during beta phase', type: 'Legacy' },
             { name: 'Trusted Buyer', icon: 'Star', color: 'text-green-600 bg-green-500/10', description: '50+ positive feedback', type: 'Achievement' },

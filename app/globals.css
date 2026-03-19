@@ -1,51 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  /* Light Mode (Default) */
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  /* Light Mode (Commonly used in clean, professional apps) */
+  --background: #ffffff;
+  --foreground: #020617;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #020617;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #f97316;
-  --primary-foreground: #ffffff;
+  --popover-foreground: #020617;
+  --primary: #f9db1a;
+  --primary-foreground: #1d1c1d;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
+  --muted: #f8fafc;
   --muted-foreground: #64748b;
-  --accent: #1a3673;
-  --accent-foreground: #ffffff;
+  --accent: #d4d5d5;
+  --accent-foreground: #1d1c1d;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #fed7aa;
-  --input: #fed7aa;
-  --ring: #f97316;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #f9db1a;
   --radius: 0.5rem;
   --font-bricolage: var(--font-bricolage);
+
+  /* Brand accents */
+  --brand-blue: #262B52;
+  --brand-blue-rgb: 38, 43, 82;
+  --brand-yellow: #FFD700;
+  --brand-yellow-rgb: 255, 215, 0;
+  --brand-yellow-tint: rgba(255, 215, 0, 0.88);
+  --brand-yellow-tint-hover: rgba(255, 215, 0, 0.98);
+  --brand-yellow-soft: rgba(255, 244, 196, 0.6);
 }
 
 .dark {
-  /* Dark Mode */
-  --background: #0f172a;
+  /* Dark Mode - deep obsidian/navy */
+  --background: #020617;
   --foreground: #f8fafc;
-  --card: #1e293b;
+  --card: #0f172a;
   --card-foreground: #f8fafc;
-  --popover: #0f172a;
+  --popover: #020617;
   --popover-foreground: #f8fafc;
-  --primary: #f97316;
-  --primary-foreground: #ffffff;
+  --primary: #f9db1a;
+  --primary-foreground: #1d1c1d;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #1a3673;
-  --accent-foreground: #ffffff;
-  --destructive: #7f1d1d;
+  --accent: #5b5c61;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #ea580c40;
-  --input: #ea580c40;
-  --ring: #f97316;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #f9db1a;
+  --brand-blue: #262B52;
+  --brand-blue-rgb: 38, 43, 82;
+  --brand-yellow: #FFD700;
+  --brand-yellow-rgb: 255, 215, 0;
+  --brand-yellow-tint: rgba(255, 215, 0, 0.88);
+  --brand-yellow-tint-hover: rgba(255, 215, 0, 0.98);
+  --brand-yellow-soft: rgba(255, 244, 196, 0.6);
 }
 
 @theme inline {
@@ -96,8 +112,7 @@ html {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ea580c;
-  /* darker orange */
+  background: #e0bf12;
 }
 
 html,
@@ -114,11 +129,11 @@ body {
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(249, 115, 22, 0.6);
+    background: rgba(249, 219, 26, 0.6);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(234, 88, 12, 0.7);
+    background: rgba(224, 191, 18, 0.7);
   }
 
   .dashboard-scope * {
@@ -132,7 +147,7 @@ body {
 }
 
 body {
-  background: var(--background);
+  background: var(--background) !important;
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -141,11 +156,64 @@ body {
   overflow-x: hidden;
 }
 
+
 .scroll-contain {
   overscroll-behavior: contain;
 }
 
 @layer utilities {
+  .header-pattern {
+    background-image:
+      radial-gradient(circle at 12px 12px, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+      radial-gradient(circle at 28px 28px, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 215, 0, 0.98) 0%, rgba(255, 236, 170, 0.95) 45%, rgba(255, 255, 255, 0.98) 100%);
+    background-size: 40px 40px, 40px 40px, 100% 100%;
+    background-position: 0 0, 6px 6px, 0 0;
+  }
+  .text-brand-blue {
+    color: var(--brand-blue);
+  }
+
+  .text-brand-blue-90 {
+    color: rgba(var(--brand-blue-rgb), 0.9);
+  }
+
+  .text-brand-blue-80 {
+    color: rgba(var(--brand-blue-rgb), 0.8);
+  }
+
+  .text-brand-yellow {
+    color: var(--brand-yellow);
+  }
+
+  .text-outline-dark {
+    text-shadow:
+      -1px 0 0 rgba(0, 0, 0, 0.35),
+      1px 0 0 rgba(0, 0, 0, 0.35),
+      0 -1px 0 rgba(0, 0, 0, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  .bg-brand-yellow-tint {
+    background-color: var(--brand-yellow-tint);
+  }
+
+  .hover-bg-brand-yellow-tint-hover:hover {
+    background-color: var(--brand-yellow-tint-hover);
+  }
+
+  .group:hover .group-hover-brand-yellow-tint-hover {
+    background-color: var(--brand-yellow-tint-hover);
+  }
+
+  .bg-brand-yellow-soft {
+    background-color: var(--brand-yellow-soft);
+  }
+
+  .border-brand-yellow-soft {
+    border-color: rgba(var(--brand-yellow-rgb), 0.6);
+  }
+
   .reveal {
     opacity: 0;
     transform: translateY(20px);
@@ -219,6 +287,20 @@ body {
     animation: bounce-soft 0.5s ease-in-out;
   }
 
+  @keyframes card-breath {
+    0%,
+    100% {
+      box-shadow: 0 12px 28px rgba(30, 20, 10, 0.08);
+    }
+    50% {
+      box-shadow: 0 18px 38px rgba(30, 20, 10, 0.12);
+    }
+  }
+
+  .card-live {
+    animation: card-breath 6s ease-in-out infinite;
+  }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -243,23 +325,23 @@ body {
     --ui-radius-unified: 0.6rem;
   }
 
-  :where(
-      div,
-      section,
-      article,
-      aside,
-      form,
-      a,
-      button,
-      input,
-      select,
-      textarea,
-      table,
-      th,
-      td,
-      span,
-      img
-    )[class*="rounded"]:not([class*="rounded-full"]):not(.radius-native) {
+  :where(div,
+    section,
+    article,
+    aside,
+    form,
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    table,
+    th,
+    td,
+    span,
+    img)[class*="rounded"]:not([class*="rounded-full"]):not(.radius-native) {
     border-radius: var(--ui-radius-unified) !important;
   }
 }
+
+

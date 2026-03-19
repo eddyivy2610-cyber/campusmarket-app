@@ -1,4 +1,4 @@
-export function GlobalLoader() {
+﻿export function GlobalLoader() {
     return (
         <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center gap-8">
 
@@ -16,7 +16,7 @@ export function GlobalLoader() {
                         <div className="absolute left-0 bottom-0.5 w-5 h-5 rounded-full bg-blue-700 border-2 border-blue-800 animate-spin" style={{ animationDuration: "1.2s" }}>
                             <div className="absolute inset-1 rounded-full bg-white/80" />
                         </div>
-                        <div className="absolute right-0 bottom-0.5 w-5 h-5 rounded-full bg-orange-500 border-2 border-orange-600 animate-spin" style={{ animationDuration: "1.2s", animationDirection: "reverse" }}>
+                        <div className="absolute right-0 bottom-0.5 w-5 h-5 rounded-full bg-blue-500 border-2 border-yellow-600 animate-spin" style={{ animationDuration: "1.2s", animationDirection: "reverse" }}>
                             <div className="absolute inset-1 rounded-full bg-white/85" />
                         </div>
                         <div className="absolute left-2 right-2 bottom-4 h-1.5 rounded-full bg-blue-700" />
@@ -26,14 +26,14 @@ export function GlobalLoader() {
 
             {/* Brand Name */}
             <div className="flex flex-col items-center gap-3">
-                <h1 className="text-2xl font-extrabold font-heading bg-clip-text text-transparent bg-gradient-to-r from-primary via-orange-500 to-rose-500 tracking-tight">
+                <h1 className="text-2xl font-extrabold font-heading bg-clip-text text-transparent bg-gradient-to-r from-primary via-yellow-400 to-rose-500 tracking-tight">
                     CampusMarket
                 </h1>
 
                 {/* Animated loading bar */}
                 <div className="w-48 h-1 bg-secondary/50 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-primary via-orange-500 to-rose-500 rounded-full"
+                        className="h-full bg-gradient-to-r from-primary via-yellow-400 to-rose-500 rounded-full"
                         style={{
                             animation: "loadingBar 1.5s ease-in-out infinite",
                         }}

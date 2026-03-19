@@ -10,7 +10,7 @@ export function HowItWorks() {
             icon: Search,
             iconColor: "text-primary",
             iconBg: "bg-primary/10",
-            imageBg: "bg-gradient-to-br from-primary/20 to-orange-500/5",
+            imageBg: "bg-gradient-to-br from-primary/20 to-yellow-500/5",
             graphic: (
                 <div className="relative w-full h-full flex items-center justify-center">
                     <div className="absolute w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>

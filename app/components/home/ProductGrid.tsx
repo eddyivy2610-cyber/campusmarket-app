@@ -52,9 +52,9 @@ export function ProductGrid() {
     return (
         <div className="flex flex-col gap-10 md:gap-16 w-full">
             <section>
-                <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-5 bg-primary rounded-none" />
-                    <h2 className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="w-2 h-5 bg-[#f2c94c] rounded-none shadow-sm" />
+                    <h2 className="text-sm md:text-base font-bold text-[#1f1f1f] uppercase tracking-wider">
                         More to Explore
                     </h2>
                 </div>

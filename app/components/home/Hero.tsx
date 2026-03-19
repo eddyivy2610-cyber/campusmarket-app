@@ -39,29 +39,25 @@ export function Hero() {
     }, [currentSlide, heroBanners.length]);
 
     return (
-        <div className="pb-0 pt-0 mt-0 mb-0">
-            <div className="flex flex-col lg:flex-row gap-4 h-auto relative z-10 w-full">
-
-                {/* Main Banner Carousel */}
-                <div className="w-full h-[220px] sm:h-[300px] lg:max-w-[1170px] lg:h-[460px] lg:flex-none relative overflow-hidden">
-                    <div
-                        className="flex w-full h-full transition-transform duration-700 ease-out"
-                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                    >
-                        {heroBanners.map((banner, index) => (
-                            <div key={index} className="w-full h-full shrink-0 relative">
-                                <Image
-                                    src={banner}
-                                    alt={`Hero banner ${index + 1}`}
-                                    fill
-                                    unoptimized
-                                    className="object-contain object-left scale-100 sm:scale-[0.92] lg:scale-[0.85] origin-left"
-                                />
-                            </div>
-                        ))}
-                    </div>
+        <div className="w-full lg:flex-1">
+            {/* Main Banner Carousel */}
+            <div className="w-full aspect-[1170/600] max-w-[1260px] h-auto relative overflow-hidden rounded-[28px] border border-[#efe3cf] bg-white shadow-[0_24px_60px_rgba(50,40,20,0.08)]">
+                <div
+                    className="flex w-full h-full transition-transform duration-700 ease-out"
+                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                    {heroBanners.map((banner, index) => (
+                        <div key={index} className="w-full h-full shrink-0 relative">
+                            <Image
+                                src={banner}
+                                alt={`Hero banner ${index + 1}`}
+                                fill
+                                unoptimized
+                                className="object-cover object-center"
+                            />
+                        </div>
+                    ))}
                 </div>
-                <div className="hidden lg:block flex-1 min-h-[460px]" />
             </div>
         </div>
     );

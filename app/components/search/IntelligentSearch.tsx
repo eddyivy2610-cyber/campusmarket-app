@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @BACKEND: SEARCH — Currently filters local mock data arrays (PRODUCTS, PROFILES) client-side.
  *
  * Replace with:
@@ -99,9 +99,9 @@ export function IntelligentSearch() {
             <form
                 onSubmit={handleSearchSubmit}
                 className={`
-                flex items-center w-full h-12 bg-secondary/50 rounded-2xl overflow-hidden transition-all duration-300 
-                border border-border/40 dark:border-border/80
-                ${isOpen ? 'bg-background ring-2 ring-primary/10 border-primary/20 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/10 focus-within:bg-background focus-within:border-primary/20'}
+                flex items-center w-full h-12 bg-black/30 rounded-2xl overflow-hidden transition-all duration-300 
+                border border-white/20
+                ${isOpen ? 'bg-black/45 ring-2 ring-white/15 border-white/30 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-white/15 focus-within:bg-black/35 focus-within:border-white/30'}
             `}>
                 <input
                     ref={inputRef}
@@ -110,20 +110,20 @@ export function IntelligentSearch() {
                     onChange={handleSearch}
                     onFocus={() => setIsOpen(true)}
                     placeholder="Search for products, brands and more..."
-                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-muted-foreground/70 text-foreground font-heading w-full pl-5"
+                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-white/70 text-white font-heading w-full pl-5"
                 />
 
                 {query && (
                     <button
                         type="button"
                         onClick={() => { setQuery(""); setProductResults([]); setProfileResults([]); inputRef.current?.focus(); }}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="p-2 text-white/70 hover:text-white transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
                 )}
 
-                <button type="submit" className="h-8 w-8 mr-2 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98] shrink-0">
+                <button type="submit" className="h-8 w-8 mr-2 bg-brand-yellow-tint hover-bg-brand-yellow-tint-hover rounded-full flex items-center justify-center text-black transition-colors shadow-md shadow-yellow-500/20 active:scale-[0.98] shrink-0">
                     <Search className="w-4 h-4 font-bold" />
                 </button>
             </form>
@@ -230,12 +230,12 @@ export function IntelligentSearch() {
                                                                         <span className="truncate max-w-[200px]">{profile.bio}</span>
                                                                         <span className="w-1 h-1 rounded-full bg-border" />
                                                                         <div className="flex items-center gap-0.5">
-                                                                            <span className="text-yellow-500">★</span>
+                                                                            <span className="text-blue-500">★</span>
                                                                             <span>{profile.rating}</span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                                <ChevronRight className="w-4 h-4 text-black/80 group-hover:text-black transition-colors" />
                                                             </Link>
                                                         </li>
                                                     ))}
@@ -275,7 +275,7 @@ export function IntelligentSearch() {
                                                                 <div className="text-right">
                                                                     <span className="font-bold text-primary text-sm">₦{product.price.toLocaleString()}</span>
                                                                 </div>
-                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                                <ChevronRight className="w-4 h-4 text-black/80 group-hover:text-black transition-colors" />
                                                             </Link>
                                                         </li>
                                                     ))}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
@@ -113,14 +113,14 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                             <div
                                 key={level}
                                 className={`flex-1 rounded-full transition-all duration-500 ${strength >= level
-                                    ? strength <= 25 ? "bg-red-500" : strength <= 50 ? "bg-orange-500" : strength <= 75 ? "bg-yellow-500" : "bg-green-500"
+                                    ? strength <= 25 ? "bg-red-500" : strength <= 50 ? "bg-orange-500" : strength <= 75 ? "bg-blue-500" : "bg-green-500"
                                     : "bg-secondary"
                                     }`}
                             />
                         ))}
                     </div>
                     <div className="flex justify-between items-center text-[9px] font-semibold uppercase tracking-tighter">
-                        <span className={strength <= 25 ? "text-red-500" : strength <= 50 ? "text-orange-500" : strength <= 75 ? "text-yellow-500" : "text-green-500"}>
+                        <span className={strength <= 25 ? "text-red-500" : strength <= 50 ? "text-orange-500" : strength <= 75 ? "text-blue-500" : "text-green-500"}>
                             {strength <= 25 ? "Weak" : strength <= 50 ? "Fair" : strength <= 75 ? "Strong" : "Very Strong"}
                         </span>
                         <span className="text-muted-foreground/40 italic">Strength indicator</span>

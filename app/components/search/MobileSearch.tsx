@@ -28,20 +28,20 @@ export function MobileSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products, sellers..."
-                className="w-full bg-white border border-border/80 dark:border-border/80 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-shadow text-foreground placeholder:text-muted-foreground/60"
+                className="w-full bg-black/30 border border-white/20 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-white/15 focus:border-white/30 transition-shadow text-white placeholder:text-white/70"
             />
             {query && (
                 <button
                     type="button"
                     onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 text-white/70 hover:text-white transition-colors"
                 >
                     <X className="w-4 h-4" />
                 </button>
             )}
             <button
                 type="submit"
-                className="absolute right-2 top-2 w-8 h-8 bg-orange-400 hover:bg-orange-500 rounded-md flex items-center justify-center text-white transition-colors shadow-md shadow-orange-500/20 active:scale-[0.98]"
+                className="absolute right-2 top-2 w-8 h-8 bg-brand-yellow-tint hover-bg-brand-yellow-tint-hover rounded-md flex items-center justify-center text-black transition-colors shadow-md shadow-yellow-500/20 active:scale-[0.98]"
             >
                 <Search className="w-4 h-4 font-bold" />
             </button>

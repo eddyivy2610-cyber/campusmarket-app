@@ -50,7 +50,7 @@ export function ProductHeader({ product, vendor, onOfferOpen }: ProductHeaderPro
                 {shortDescription}
             </p>
 
-            <div className="text-2xl md:text-[28px] font-black font-price text-foreground">
+            <div className="text-2xl md:text-[28px] font-black font-price text-amber-800">
                 {formattedPrice}
             </div>
 
