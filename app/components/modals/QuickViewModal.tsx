@@ -79,7 +79,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
 
     const goToMessages = () => {
         onClose();
-        router.push(`/dashboard/messages?user=${product.sellerId}&listing=${product.id}`);
+        router.push(`/messages?user=${product.sellerId}&listing=${product.id}`);
     };
 
     const goToListing = () => {

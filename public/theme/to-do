@@ -1,0 +1,63 @@
+6.3 Analytics Sections
+Section	Content	Visualizations
+Revenue Trend	Sales over time	Line chart with compare option
+PART 7: MOBILE NAVIGATION
+7.1 Bottom Tab Bar
+text
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                      │
+│  [📊 Overview]  [📦 Products]  [🛒 Orders]  [💬 Messages]  [📈 Analytics]│
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+7.2 Mobile Page Adaptations
+Page	Mobile Adaptation
+Overview	Collapsible widgets, simplified KPIs
+Products	Swipeable cards, simplified table
+Orders	List view with status badges
+Messages	Full-width chat, swipe to archive
+Analytics	Single chart per view, horizontal scroll
+PART 8: PAGE COMPARISON SUMMARY
+Feature	Overview	Products	Orders	Messages	Analytics
+KPIs	Top 4	Listing stats	Order stats	Response stats	Full metrics
+Charts	Trend + category	Per-listing	Order timeline	Response trend	Multiple charts
+Actions	Quick actions	Edit, boost, mark sold	Confirm, contact	Reply, templates	Export
+Tables	Activity feed	Listing table	Orders table	Conversation list	Top items
+Export	❌	✅	✅	✅	✅
+Insights	Badge progress	Performance per item	Order analysis	Response tips	AI insights
+Alerts	Recent activity	Low stock	Pending actions	Unread messages	Benchmarking
+PART 9: IMPLEMENTATION NOTES
+9.1 Page Navigation
+Desktop: Top navigation bar with active indicator
+
+Mobile: Bottom tab bar with icons
+
+State persistence: Returns to last page on revisit
+
+Breadcrumbs: Optional for deep navigation
+
+9.2 Data Refresh by Page
+Page	Auto-Refresh	Manual Refresh
+Overview	Real-time (pull)	Refresh button
+Products	On load	Pull to refresh
+Orders	Real-time	Refresh button
+Messages	Real-time	WebSocket
+Analytics	Daily	Date range change
+9.3 Page-Specific Permissions
+Page	New Vendor	Rising	Trusted	Elite
+Overview	Full	Full	Full	Full
+Products	Limited listings	50 listings	100 listings	Unlimited
+Orders	Full	Full	Full	Full
+Messages	Full	Full	Full	Full
+Analytics	30 days	90 days	1 year	All time
+Sales by Day/Time	Temporal patterns	Heat map, bar chart
+Top Listings	Best performers	Sortable table
+Performance Insights	AI-driven recommendations	Text cards
+Competitor Benchmarking	Market comparison	Metrics comparison
+Traffic Sources	Where views come from	Bar chart, funnel
+Customer Demographics	Buyer insights	Charts (if data available)
+6.4 Export Options
+Format	Content	Use Case
+
+PDF	Formatted report	Stakeholder sharing
+
+Dashboard Snapshot	Screenshot	Quick sharing

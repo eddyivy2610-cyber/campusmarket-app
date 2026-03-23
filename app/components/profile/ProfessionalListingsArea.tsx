@@ -29,7 +29,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                     animate={{ opacity: 1, y: 0 }}
                     className="py-16 flex flex-col items-center justify-center gap-4 bg-secondary/10 rounded-2xl border-2 border-dashed border-border/30"
                 >
-                    <div className="w-14 h-14 rounded-2xl bg-secondary/30 flex items-center justify-center text-muted-foreground/40">
+                    <div className="w-14 h-14 rounded-2xl bg-[#fff3c6] border border-[#FFD700]/20 flex items-center justify-center text-black">
                         <PackageOpen className="w-8 h-8" />
                     </div>
                     <div className="text-center space-y-1">

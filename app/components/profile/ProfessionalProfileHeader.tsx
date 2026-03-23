@@ -23,6 +23,8 @@ import {
     Camera,
     BadgeCheck,
     Flag,
+    Users,
+    UserPlus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ReportDropdown } from "../common/ReportDropdown";
@@ -42,6 +44,95 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
     const coverInputRef = React.useRef<HTMLInputElement>(null);
     const [previewAvatar, setPreviewAvatar] = React.useState<string | null>(null);
     const [previewCover, setPreviewCover] = React.useState<string | null>(null);
+    const [verificationColor, setVerificationColor] = React.useState<string>("#0A2472");
+    const [isCoverLight, setIsCoverLight] = React.useState<boolean>(false);
+
+    const sampleImageColor = React.useCallback((src: string) => {
+        return new Promise<string>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const size = 24;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) throw new Error("no-canvas");
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const data = ctx.getImageData(0, 0, size, size).data;
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const alpha = data[i + 3];
+                        if (alpha < 10) continue;
+                        r += data[i];
+                        g += data[i + 1];
+                        b += data[i + 2];
+                        count++;
+                    }
+                    if (!count) throw new Error("no-data");
+                    r = Math.round(r / count);
+                    g = Math.round(g / count);
+                    b = Math.round(b / count);
+                    resolve("#0A2472");
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = reject;
+            img.src = src;
+        });
+    }, []);
+
+    const sampleImageLuma = React.useCallback((src: string) => {
+        return new Promise<number>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const size = 24;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) throw new Error("no-canvas");
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const data = ctx.getImageData(0, 0, size, size).data;
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const alpha = data[i + 3];
+                        if (alpha < 10) continue;
+                        r += data[i];
+                        g += data[i + 1];
+                        b += data[i + 2];
+                        count++;
+                    }
+                    if (!count) throw new Error("no-data");
+                    r = r / count;
+                    g = g / count;
+                    b = b / count;
+                    // relative luminance
+                    const luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+                    resolve(luma);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = reject;
+            img.src = src;
+        });
+    }, []);
+
+    React.useEffect(() => {
+        const src = previewCover || profile.coverPhoto || previewAvatar || profile.avatar;
+        if (!src) return;
+        sampleImageColor(src)
+            .then((color) => setVerificationColor(color))
+            .catch(() => setVerificationColor("#FFD700"));
+        sampleImageLuma(src)
+            .then((luma) => setIsCoverLight(luma > 0.52))
+            .catch(() => setIsCoverLight(false));
+    }, [previewCover, previewAvatar, profile.coverPhoto, profile.avatar, sampleImageColor, sampleImageLuma]);
 
     const handleAvatarUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -131,8 +222,13 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                         ))}
                                     </div>
                                     <div className="text-center">
-                                        <p className="text-xl font-bold text-white">{profile.rating}<span className="text-sm text-white/50">/5.0</span></p>
-                                        <p className="text-[9px] font-medium text-white/40 mt-0.5">{profile.recommendedCount + profile.notRecommendedCount} Total Reviews</p>
+                                        <p className="text-xl font-bold text-white">
+                                            {profile.rating}
+                                            <span className={`text-sm ${isCoverLight ? "text-black/60" : "text-white/60"}`}>/5.0</span>
+                                        </p>
+                                        <p className={`text-[9px] font-bold mt-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                            {profile.recommendedCount + profile.notRecommendedCount} Total Reviews
+                                        </p>
                                     </div>
                                 </div>
                             )}
@@ -169,23 +265,23 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                             <div className="space-y-1 md:space-y-1.5">
                                 <div className="flex items-center justify-center gap-2">
-                                    <h1 className="text-lg md:text-2xl font-bold text-white tracking-tight drop-shadow-sm">
+                                    <h1 className={`text-lg md:text-2xl font-bold tracking-tight drop-shadow-sm ${isCoverLight ? "text-slate-950" : "text-white"}`}>
                                         {profile.name}
                                     </h1>
                                     {profile.isVerified && (
                                         <IconTooltip content="Pro Member" position="top">
-                                            <BadgeCheck className="w-5 h-5 text-blue-300 fill-white/10" />
+                                            <BadgeCheck className="w-6 h-6" style={{ color: "#ffffff", fill: verificationColor }} strokeWidth={2} />
                                         </IconTooltip>
                                     )}
                                 </div>
                                 <div className="flex flex-col items-center text-center">
-                                    <span className="text-[9px] md:text-[10px] font-semibold text-white/50 uppercase tracking-widest mb-0.5">
+                                    <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
                                         {profile.type === 'vendor' ? "PRO MEMBER FROM" : "MEMBER FROM"}
                                     </span>
-                                    <span className="text-xs md:text-sm font-semibold text-white/90">
+                                    <span className={`text-xs md:text-sm font-bold ${isCoverLight ? "text-black/80" : "text-white/90"}`}>
                                         {profile.location}
                                     </span>
-                                    <span className="text-[9px] md:text-[10px] font-medium text-white/30 mt-0.5">
+                                    <span className={`text-[9px] md:text-[10px] font-bold mt-0.5 ${isCoverLight ? "text-black/50" : "text-white/50"}`}>
                                         Joined {profile.joinedDate}
                                     </span>
                                 </div>
@@ -207,8 +303,13 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                                 />
                                             ))}
                                         </div>
-                                        <p className="text-sm font-bold text-white">{profile.rating}<span className="text-[10px] text-white/50">/5</span></p>
-                                        <p className="text-[8px] font-medium text-white/40">{profile.recommendedCount + profile.notRecommendedCount} reviews</p>
+                                        <p className="text-sm font-bold text-white">
+                                            {profile.rating}
+                                            <span className={`text-[10px] ${isCoverLight ? "text-black/60" : "text-white/60"}`}>/5</span>
+                                        </p>
+                                        <p className={`text-[8px] font-bold ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                            {profile.recommendedCount + profile.notRecommendedCount} reviews
+                                        </p>
                                     </div>
 
                                     <div className="w-px h-8 bg-white/10 md:hidden" />
@@ -220,7 +321,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                                     <LayoutGrid className="w-4 h-4 text-amber-300 md:w-5 md:h-5" />
                                                 </div>
                                             </IconTooltip>
-                                            <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Active Items</span>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Active Items</span>
                                             <span className="text-sm md:text-lg font-semibold text-white">{profile.activeListingsCount || 0}</span>
                                         </div>
                                         <div className="flex flex-col items-center text-center group">
@@ -229,8 +330,17 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                                     <CheckCircle className="w-4 h-4 text-emerald-300 md:w-5 md:h-5" />
                                                 </div>
                                             </IconTooltip>
-                                            <span className="text-[8px] md:text-[9px] font-medium text-white/40 mb-0.5">Sold Items</span>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Sold Items</span>
                                             <span className="text-sm md:text-lg font-semibold text-white">{profile.soldItems || 0}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Followers">
+                                                <div className="p-2 bg-purple-400/10 border border-purple-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-purple-400/20">
+                                                    <Users className="w-4 h-4 text-purple-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Followers</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.followers ?? 0}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -245,20 +355,26 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         {viewAs === 'private' ? (
                             <>
                                 <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
-                                    <button className="w-full flex items-center justify-center gap-2 bg-foreground text-background font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:opacity-90 active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
-                                        Dashboard
-                                    </button>
+                                <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                    Dashboard
+                                </button>
                                 </Link>
                             </>
                         ) : (
                             <>
-                                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-foreground text-background font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:opacity-90 active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
                                     Message
+                                </button>
+                                <button
+                                    className="flex-1 md:flex-none flex items-center justify-center bg-[#fff3c6] text-black font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-[#FFD700]/30 hover:bg-[#FFD700]/20 active:scale-95 transition-all"
+                                    aria-label="Follow"
+                                >
+                                    <UserPlus className="w-4 h-4" />
                                 </button>
                                 <ReportDropdown
                                     reportType="profile"
                                     targetId={profile.handle}
-                                    triggerClassName="p-2.5 md:p-3 bg-secondary/40 text-muted-foreground rounded-lg md:rounded-xl border border-border/30 hover:text-rose-500 hover:bg-rose-500/5 transition-all flex items-center justify-center"
+                                    triggerClassName="p-2.5 md:p-3 bg-red-500/10 text-red-600 rounded-lg md:rounded-xl border border-red-500/30 hover:text-red-700 hover:bg-red-500/20 transition-all flex items-center justify-center"
                                     align="left"
                                 />
                             </>
@@ -279,9 +395,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-end md:min-w-[120px]">
                         {viewAs === 'private' && (
                             <Link href="/settings" className="w-full md:w-auto">
-                                <button className="w-full flex items-center justify-center gap-2 bg-secondary/50 text-foreground font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-border/40 hover:bg-secondary transition-all text-[10px] md:text-[11px] group">
+                                <button className="w-full flex items-center justify-center gap-2 bg-[#fff3c6] text-black font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-[#FFD700]/30 hover:bg-[#FFD700]/30 transition-all text-[10px] md:text-[11px] group">
                                     <IconTooltip content="Settings" position="top">
-                                        <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground group-hover:rotate-45 transition-transform" />
+                                        <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-black group-hover:rotate-45 transition-transform" />
                                     </IconTooltip>
                                     Settings
                                 </button>

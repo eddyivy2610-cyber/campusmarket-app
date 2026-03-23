@@ -17,7 +17,7 @@ export function NavBar() {
     const [isExploreOpen, setIsExploreOpen] = useState(false);
 
     return (
-        <div className="hidden md:block bg-gradient-to-r from-yellow-200/80 via-yellow-100/70 to-white border-b border-black/10 text-black">
+        <div className="hidden md:block bg-white border-b border-black/10 text-black">
             <div className="max-w-[1780px] mx-auto px-8">
                 <div className="flex items-center gap-8 h-14">
 

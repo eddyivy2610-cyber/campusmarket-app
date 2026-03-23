@@ -68,8 +68,8 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                         key={tab.name}
                         onClick={() => setActiveTab(tab.name)}
                         className={`flex-1 px-2 py-4 text-[10px] md:text-[13px] font-bold tracking-tight transition-all relative whitespace-nowrap ${activeTab === tab.name
-                            ? "text-primary opacity-100"
-                            : "text-muted-foreground/60 hover:text-foreground opacity-60 hover:opacity-100"
+                            ? "text-[#FFD700] opacity-100"
+                            : "text-muted-foreground/60 hover:text-black opacity-60 hover:opacity-100"
                             }`}
                     >
                         <div className="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
@@ -79,7 +79,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                         {activeTab === tab.name && (
                             <motion.div
                                 layoutId="activeTabUnderline"
-                                className="absolute bottom-0 left-0 right-0 h-1.5 md:h-1 bg-orange-500 md:bg-primary rounded-t-full md:shadow-[0_-2px_10px_rgba(var(--primary-rgb),0.3)]"
+                                className="absolute bottom-0 left-0 right-0 h-1.5 md:h-1 bg-[#FFD700] rounded-t-full md:shadow-[0_-2px_10px_rgba(255,215,0,0.35)]"
                             />
                         )}
                     </button>
@@ -118,9 +118,10 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                             <div className="space-y-4">
                                                 {[
                                                     { label: "School Department", value: profile.department || "Computer Science" },
-                                                    { label: "Date Joined", value: profile.joinedDateFull }
+                                                    { label: "Date Joined", value: profile.joinedDateFull },
+                                                    { label: "Joined (relative)", value: profile.joinedDate }
                                                 ].map((item) => (
-                                                    <div key={item.label} className="border-l-2 border-primary/10 pl-4 py-1">
+                                                    <div key={item.label} className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
                                                         <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
                                                         <span className="font-bold text-sm text-foreground/90">{item.value}</span>
                                                     </div>
@@ -128,7 +129,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
                                                 {/* Social Links */}
                                                 {(profile.socialLinks?.whatsapp || profile.socialLinks?.instagram || profile.socialLinks?.twitter || profile.socialLinks?.linkedin) && (
-                                                    <div className="border-l-2 border-primary/10 pl-4 py-1">
+                                                    <div className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
                                                         <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-2">Social Links</span>
                                                         <div className="flex items-center gap-3">
                                                             {profile.socialLinks.whatsapp && (
@@ -174,15 +175,15 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
                                         <div className="space-y-4">
                                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Return Policies</h3>
-                                            <p className="text-xs font-semibold leading-relaxed p-4 bg-orange-500/5 border border-orange-500/10 rounded-2xl text-orange-700/80">
+                                            <p className="text-xs font-semibold leading-relaxed p-4 bg-[#fff3c6] border border-[#FFD700]/20 rounded-2xl text-black/70">
                                                 {profile.businessInfo?.policies}
                                             </p>
                                         </div>
                                         <div className="space-y-4">
                                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Business Hours</h3>
-                                            <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/10 rounded-2xl">
-                                                <Clock className="w-5 h-5 text-primary" />
-                                                <span className="text-xs font-bold text-primary">{profile.businessInfo?.hours}</span>
+                                            <div className="flex items-center gap-3 p-4 bg-[#fff3c6] border border-[#FFD700]/20 rounded-2xl">
+                                                <Clock className="w-5 h-5 text-black" />
+                                                <span className="text-xs font-bold text-black">{profile.businessInfo?.hours}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -220,7 +221,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
                                         placeholder="Leave a review..."
-                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-primary focus:bg-background transition-all outline-none"
+                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
                                     />
                                     <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
                                         <div className="flex items-center gap-0.5 pr-1">
@@ -244,7 +245,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                         </div>
                                         <button
                                             disabled={reviewRating === 0 || !comment.trim()}
-                                            className="p-2 text-primary hover:bg-primary/5 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
+                                            className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
                                         >
                                             Go
                                         </button>

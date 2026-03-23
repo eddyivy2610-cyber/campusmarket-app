@@ -38,7 +38,7 @@ const DASHBOARD_TIPS: Record<string, TipItem> = {
       "Use bulk actions to mark updates faster when handling many orders."
     ]
   },
-  "/dashboard/messages": {
+  "/messages": {
     title: "Messages workspace",
     description: "Handle buyer conversations and negotiations in one thread view.",
     controls: [
@@ -104,7 +104,7 @@ export function DashboardOnboarding() {
   return (
     <>
       {isVisible && (
-        <div className="fixed bottom-20 right-4 md:bottom-6 md:right-8 z-50 w-[min(92vw,360px)] rounded-2xl border border-border/70 bg-background/95 backdrop-blur shadow-xl p-4 space-y-3">
+        <div className="fixed bottom-20 right-4 md:bottom-6 md:right-8 z-50 w-[min(92vw,360px)] rounded-2xl border border-border/50 bg-background/95 backdrop-blur shadow-xl p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Dashboard onboarding</p>

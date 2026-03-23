@@ -53,7 +53,7 @@ export function ProductGrid() {
         <div className="flex flex-col gap-10 md:gap-16 w-full">
             <section>
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-5 bg-[#f2c94c] rounded-none shadow-sm" />
+                    <div className="w-3.5 h-6 bg-[#FFD700]/80 rounded-none shadow-sm" />
                     <h2 className="text-sm md:text-base font-bold text-[#1f1f1f] uppercase tracking-wider">
                         More to Explore
                     </h2>
@@ -83,3 +83,5 @@ export function ProductGrid() {
         </div>
     );
 }
+
+

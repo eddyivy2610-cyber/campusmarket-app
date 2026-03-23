@@ -10,6 +10,7 @@ import { BusinessSettings } from "./sections/BusinessSettings";
 import { AccountStatusSettings } from "./sections/AccountStatusSettings";
 import { SignOutSettings } from "./sections/SignOutSettings";
 import { SwitchAccountSettings } from "./sections/SwitchAccountSettings";
+import { ProfileActivitySettings } from "./sections/ProfileActivitySettings";
 import { SETTINGS_SECTIONS, SectionId } from "./settingsSections";
 
 function SectionPlaceholder({ title }: { title: string }) {
@@ -31,6 +32,7 @@ const SECTION_COMPONENTS: Record<SectionId, React.ReactNode> = {
     preferences: <PreferencesSettings />,
     help: <SectionPlaceholder title="Help & Support" />,
     "account-status": <AccountStatusSettings />,
+    "profile-activity": <ProfileActivitySettings />,
     logout: <SignOutSettings />,
     "switch-account": <SwitchAccountSettings />,
 };

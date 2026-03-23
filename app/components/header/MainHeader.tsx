@@ -40,7 +40,7 @@ export function MainHeader() {
     return (
         <>
             {/* ── Main header row ── */}
-            <div className="bg-gradient-to-r from-yellow-200/80 via-yellow-100/70 to-white text-black py-1 md:py-2 border-b border-black/10 shadow-sm relative z-40">
+            <div className="bg-white text-black py-1 md:py-2 border-b border-black/10 shadow-sm relative z-40">
                 <div className="w-full max-w-[1780px] mx-auto px-3 md:px-6 flex items-center gap-2 md:gap-4">
 
                     {/* Hamburger (mobile) */}
@@ -49,7 +49,7 @@ export function MainHeader() {
                         className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-black/20 bg-black/10 text-black hover:bg-black/20 transition-colors shrink-0"
                         aria-label="Open menu"
                     >
-                        <LayoutGrid className="w-5 h-5" />
+                        <LayoutGrid className="w-5 h-5 text-black" />
                     </button>
 
                     {/* Logo */}
@@ -75,7 +75,7 @@ export function MainHeader() {
                             className="flex items-center justify-center p-1 rounded-lg hover:bg-black/5 transition-colors text-black/70 relative group"
                             title="Saved Items"
                         >
-                            <Heart className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" strokeWidth={2} />
+                            <Heart className="w-5 h-5 text-black shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
                             {savedItems.length > 0 && (
                                 <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-primary text-black text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background">
                                     {savedItems.length}
@@ -90,7 +90,7 @@ export function MainHeader() {
                                 className="flex items-center justify-center p-1 rounded-lg hover:bg-black/5 transition-colors text-black/70 relative group"
                                 title="Notifications"
                             >
-                                <Bell className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" strokeWidth={2} />
+                                <Bell className="w-4 h-4 text-black shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
                                 <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
                                     3
                                 </span>
@@ -107,7 +107,7 @@ export function MainHeader() {
                                 className="flex items-center gap-2 text-black hover:text-black transition-colors group p-1 rounded-lg hover:bg-black/5 text-left"
                             >
                                 <div className="bg-black/5 p-1 rounded-md group-hover:bg-black/10 transition-colors">
-                                    <User className="w-3.5 h-3.5 text-black/70 group-hover:text-black transition-colors shrink-0" strokeWidth={2} />
+                                    <User className="w-3.5 h-3.5 text-black group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
                                 </div>
                                 <div className="hidden sm:flex flex-col leading-tight pr-1">
                                     <span className="text-[9px] uppercase tracking-widest text-black/60 font-bold group-hover:text-black transition-colors">
@@ -117,7 +117,7 @@ export function MainHeader() {
                                         {user ? user.name.split(' ')[0] : "Account"}
                                     </span>
                                 </div>
-                                <ChevronDown className="w-3.5 h-3.5 text-brand-blue hidden sm:block mr-1 group-hover:text-brand-blue transition-colors" />
+                                <ChevronDown className="w-3.5 h-3.5 text-black hidden sm:block mr-1 transition-colors" />
                             </button>
                         </div>
                         <AccountDropdown isOpen={isAccountOpen} />

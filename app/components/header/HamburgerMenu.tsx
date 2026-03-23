@@ -126,7 +126,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     <Section label="My Account">
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
                         <NavRow icon={Store} label="My Profile" accent onClick={() => nav("/profile/campus-market")} />
-                        <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/dashboard/messages")} />
+                        <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
                         <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
 

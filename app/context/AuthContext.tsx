@@ -7,6 +7,7 @@ interface User {
     name: string;
     email: string;
     role: "user" | "pro";
+    tier?: "new" | "rising" | "trusted" | "elite";
     image?: string;
 }
 

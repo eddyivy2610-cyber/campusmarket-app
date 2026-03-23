@@ -1,31 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Search,
     Calendar,
     ChevronDown,
-    Eye,
-    Edit,
-    Trash2,
+    CheckCircle2,
+    MessageSquareText,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Eye
 } from "lucide-react";
 
-// Mock data extending standard order with dashboard fields
-const DASHBOARD_ORDERS = [
-    { id: "#ORD-1024", customer: "John Doe", productName: "Macbook Pro 15'", date: "12/1/2026", qty: 3, amount: 400000, status: "Pending" },
-    { id: "#ORD-1023", customer: "Kabir Shing", productName: "iPhone 13 Mini", date: "12/1/2026", qty: 6, amount: 700000, status: "Processing" },
-    { id: "#ORD-1044", customer: "Nazmul Basu", productName: "AirPods 2", date: "12/1/2026", qty: 2, amount: 250000, status: "Delivered" },
-];
+import { DASHBOARD_ORDERS, DashboardOrder, OrderStatus } from "../../data/dashboardOrders";
+import { OrderDetailModal } from "./OrderDetailModal";
+
+type FilterKey = "status" | "amount";
 
 export function DashboardOrdersTable() {
+    const [orders, setOrders] = useState<DashboardOrder[]>(DASHBOARD_ORDERS);
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
+    const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
+        status: null,
+        amount: null,
+    });
+    const [activeFilterColumn, setActiveFilterColumn] = useState<FilterKey | null>(null);
+    const [selectedOrder, setSelectedOrder] = useState<DashboardOrder | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const STATUS_OPTIONS: OrderStatus[] = [
+        "Pending",
+        "Active",
+        "Completed",
+        "Failed",
+        "Cancelled",
+        "Pending Admin Verification"
+    ];
+    const AMOUNT_OPTIONS = ["<₦100k", "₦100k - ₦500k", ">₦500k"];
+
+    const filteredOrders = useMemo(() => {
+        return orders.filter((order) => {
+            const statusFilter = filters.status;
+            const amountFilter = filters.amount;
+
+            if (statusFilter && order.status !== statusFilter) return false;
+
+            if (amountFilter) {
+                if (amountFilter === "<₦100k" && order.amount >= 100000) return false;
+                if (amountFilter === "₦100k - ₦500k" && (order.amount < 100000 || order.amount > 500000)) return false;
+                if (amountFilter === ">₦500k" && order.amount <= 500000) return false;
+            }
+
+            return true;
+        });
+    }, [filters, orders]);
+
+    const pageSize = 10;
+    const pageOrders = filteredOrders.slice(0, pageSize);
+    const totalEntries = filteredOrders.length;
+    const showingTo = Math.min(pageSize, totalEntries);
 
     // Select all handler
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedRows(DASHBOARD_ORDERS.map(o => o.id));
+            setSelectedRows(pageOrders.map(o => o.id));
         } else {
             setSelectedRows([]);
         }
@@ -38,110 +76,148 @@ export function DashboardOrdersTable() {
         );
     };
 
-    const getStatusStyles = (status: string) => {
+    const toggleFilterMenu = (column: FilterKey) => {
+        setActiveFilterColumn((prev) => (prev === column ? null : column));
+    };
+
+    const applyFilter = (column: FilterKey, value: string | null) => {
+        setFilters((prev) => ({ ...prev, [column]: value }));
+        setActiveFilterColumn(null);
+    };
+
+    const handleViewDetails = (order: DashboardOrder) => {
+        setSelectedOrder(order);
+        setIsModalOpen(true);
+    };
+
+    const handleOrderAction = (orderId: string, action: "confirm" | "fail") => {
+        setOrders(prev => prev.map(o => {
+            if (o.id === orderId) {
+                if (action === "confirm") {
+                    return { ...o, status: "Pending Admin Verification", sellerConfirmed: true };
+                } else {
+                    return { ...o, status: "Failed", failureReason: "Marked as failed by seller" };
+                }
+            }
+            return o;
+        }));
+        // Update selected order view
+        setSelectedOrder(prev => prev ? (prev.id === orderId ? { 
+            ...prev, 
+            status: action === "confirm" ? "Pending Admin Verification" : "Failed",
+            sellerConfirmed: action === "confirm" ? true : prev.sellerConfirmed,
+            failureReason: action === "fail" ? "Marked as failed by seller" : prev.failureReason
+        } : prev) : null);
+    };
+
+    const renderFilterMenu = (column: FilterKey, options: string[]) => {
+        if (activeFilterColumn !== column) return null;
+        return (
+            <div className="absolute left-0 top-full mt-1 z-30 w-[180px] rounded-2xl border border-border bg-popover p-2 shadow-2xl normal-case tracking-normal">
+                {options.map((option) => (
+                    <button
+                        key={option}
+                        onClick={() => applyFilter(column, option)}
+                        className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-[11px] font-bold text-foreground/70 hover:bg-secondary transition-all"
+                    >
+                        {option}
+                        {filters[column] === option && <span className="text-primary">●</span>}
+                    </button>
+                ))}
+                <div className="mt-2 h-px bg-border/40" />
+                <button
+                    onClick={() => applyFilter(column, null)}
+                    className="w-full rounded-xl px-3 py-2 text-[11px] font-bold text-foreground/50 hover:bg-secondary/20 transition-all"
+                >
+                    Clear Filter
+                </button>
+            </div>
+        );
+    };
+
+    const getStatusStyles = (status: OrderStatus) => {
         switch (status) {
-            case "Delivered": return "bg-emerald-500/10 text-emerald-500";
-            case "Processing": return "bg-amber-500/10 text-amber-500";
-            case "Pending": return "bg-orange-500/10 text-orange-500";
-            default: return "bg-secondary text-muted-foreground";
+            case "Completed":
+            case "Active":
+                return "bg-[#10B981] text-white";
+            case "Pending":
+            case "Pending Admin Verification":
+                return "bg-slate-200 text-slate-500";
+            case "Failed":
+            case "Cancelled":
+                return "bg-red-100 text-red-600";
+            default:
+                return "bg-secondary text-muted-foreground";
         }
     };
 
     return (
-        <div className="w-full flex-1 min-h-[600px] flex flex-col overflow-hidden">
-            {/* Header Controls */}
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
-                <div>
-                    <h2 className="text-sm font-semibold font-heading">Recent Orders</h2>
-                </div>
-
-                <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-3">
-                    {/* Search */}
-                    <div className="w-full sm:w-auto relative flex items-center">
-                        <Search className="w-4 h-4 text-muted-foreground absolute left-3" />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="w-full sm:w-64 bg-background border border-border/60 focus:border-primary/40 outline-none rounded-md py-2 pl-9 pr-4 text-xs font-medium transition-all"
-                        />
-                    </div>
-
-                    <div className="w-full sm:w-auto flex items-center gap-3">
-                        <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
-                            Date Range
-                            <Calendar className="w-3.5 h-3.5 ml-1" />
-                        </button>
-                        <button className="flex-1 sm:flex-none inline-flex items-center justify-between sm:justify-center gap-2 px-3 py-2 rounded-md border border-border/60 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-colors">
-                            All Status
-                            <ChevronDown className="w-3.5 h-3.5 ml-1" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Table Area */}
-            <div className="w-full flex-1 overflow-auto custom-scrollbar pr-2 pb-4" data-lenis-prevent>
-                <table className="w-full text-left border-collapse min-w-[1000px]">
+        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
+            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2" data-lenis-prevent>
+                <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                        <tr className="border-b border-border/30">
-                            <th className="pb-4 w-12 pl-2">
-                                <div className="flex items-center justify-center">
+                        <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
+                            <th className="pb-4 font-medium pl-4 md:pl-6 w-12">
+                                <div className="flex items-center">
                                     <input
                                         type="checkbox"
-                                        className="w-4 h-4 rounded border-border/50 text-primary focus:ring-primary/20 accent-primary cursor-pointer"
-                                        checked={selectedRows.length === DASHBOARD_ORDERS.length && DASHBOARD_ORDERS.length > 0}
+                                        className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 bg-blue-50/50 cursor-pointer"
+                                        checked={selectedRows.length === pageOrders.length && pageOrders.length > 0}
                                         onChange={handleSelectAll}
                                     />
                                 </div>
                             </th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Order ID</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Customer</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Product Name</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Date</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Quantity</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                            <th className="pb-4 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Action</th>
+                            <th className="pb-4 font-medium w-[15%]">Order ID</th>
+                            <th className="pb-4 font-medium w-[20%]">Customer</th>
+                            <th className="pb-4 font-medium w-[20%]">Product Name</th>
+                            <th className="pb-4 font-medium w-[10%]">Date</th>
+                            <th className="pb-4 font-medium w-[10%] relative">
+                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("amount")}>
+                                    <span>Amount</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
+                                </div>
+                                {renderFilterMenu("amount", AMOUNT_OPTIONS)}
+                            </th>
+                            <th className="pb-4 font-medium w-[15%] relative">
+                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("status")}>
+                                    <span>Status</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
+                                </div>
+                                {renderFilterMenu("status", STATUS_OPTIONS)}
+                            </th>
+                            <th className="pb-4 text-center font-medium pr-4 md:pr-6 w-[10%]">Options</th>
                         </tr>
                     </thead>
-                    <tbody className="text-xs">
-                        {DASHBOARD_ORDERS.map((order) => (
-                            <tr key={order.id} className="border-b border-border/10 hover:bg-secondary/20 transition-colors group">
-                                <td className="py-2.5 pl-2">
-                                    <div className="flex items-center justify-center">
+                    <tbody className="text-sm">
+                        {pageOrders.map((order) => (
+                            <tr key={order.id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group cursor-pointer" onClick={() => handleViewDetails(order)}>
+                                <td className="py-3 pl-4 md:pl-6" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center">
                                         <input
                                             type="checkbox"
-                                            className="w-4 h-4 rounded border-border/50 text-primary focus:ring-primary/20 accent-primary cursor-pointer"
+                                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 bg-blue-50/50 cursor-pointer"
                                             checked={selectedRows.includes(order.id)}
                                             onChange={() => handleSelectRow(order.id)}
                                         />
                                     </div>
                                 </td>
-                                <td className="py-2.5 text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">{order.id}</td>
-                                <td className="py-4 font-bold text-sm text-foreground">{order.customer}</td>
-                                <td className="py-4 font-bold text-sm text-foreground">{order.productName}</td>
-                                <td className="py-4 text-xs font-medium text-muted-foreground whitespace-nowrap">{order.date}</td>
-                                <td className="py-4 text-sm font-medium text-muted-foreground">{order.qty}</td>
-                                <td className="py-4 text-sm font-bold text-foreground">
-                                    ₦{(order.amount / 1000)}k
-                                </td>
-                                <td className="py-4">
-                                    <span className={`px-3 py-1 text-[9px] font-semibold uppercase tracking-wider rounded-md whitespace-nowrap ${getStatusStyles(order.status)}`}>
+                                <td className="py-3 font-medium text-foreground/80">{order.id}</td>
+                                <td className="py-3 font-medium text-foreground">{order.customer}</td>
+                                <td className="py-3 font-medium text-foreground/80">{order.productName}</td>
+                                <td className="py-3 font-medium text-foreground/80">{order.date}</td>
+                                <td className="py-3 font-medium text-foreground/80">₦{(order.amount / 1000).toFixed(0)}k</td>
+                                <td className="py-3">
+                                    <span className={`px-4 py-1.5 text-[12px] font-medium rounded-md whitespace-nowrap ${getStatusStyles(order.status as OrderStatus)}`}>
                                         {order.status}
                                     </span>
                                 </td>
-                                <td className="py-4">
-                                    <div className="flex items-center justify-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                                        <button className="w-7 h-7 flex items-center justify-center rounded-md bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors" title="View">
-                                            <Eye className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button className="w-7 h-7 flex items-center justify-center rounded-md bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors" title="Edit">
-                                            <Edit className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button className="w-7 h-7 flex items-center justify-center rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors" title="Delete">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
+                                <td className="py-3 text-center relative pr-4 md:pr-6">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}
+                                        className="text-[13px] font-medium text-foreground/80 hover:text-foreground transition-colors hover:bg-secondary/50 px-3 py-1.5 rounded-lg whitespace-nowrap"
+                                    >
+                                        Details
+                                    </button>
                                 </td>
                             </tr>
                         ))}
@@ -149,30 +225,25 @@ export function DashboardOrdersTable() {
                 </table>
             </div>
 
-            {/* Pagination Layer bottom */}
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6">
-                <div className="flex items-center gap-2">
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary transition-colors">
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold bg-indigo-500 text-white shadow-sm shadow-indigo-500/20">1</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">2</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">3</button>
-                    <span className="px-1 text-muted-foreground text-xs font-bold">...</span>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold text-muted-foreground hover:bg-secondary transition-colors">10</button>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary transition-colors">
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
-                    <span>Showing 1 to 10 of 50 entries</span>
-                    <button className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors min-w-[90px]">
-                        Show 10
-                        <ChevronDown className="w-3 h-3" />
-                    </button>
+            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
+                <span className="text-[13px] font-medium text-muted-foreground order-2 md:order-1">Showing 1 to {showingTo} of {totalEntries} entries</span>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 order-1 md:order-2">
+                    <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Prev</button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold bg-primary text-primary-foreground border-primary shadow-sm">1</button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">2</button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">3</button>
+                    <span className="px-1 text-xs font-semibold text-muted-foreground">...</span>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">10</button>
+                    <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Next</button>
                 </div>
             </div>
+
+            <OrderDetailModal 
+                order={selectedOrder} 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                onAction={handleOrderAction}
+            />
         </div>
     );
 }

@@ -21,7 +21,7 @@
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #f9db1a;
-  --radius: 0.5rem;
+  --radius: 5px;
   --font-bricolage: var(--font-bricolage);
 
   /* Brand accents */
@@ -35,25 +35,25 @@
 }
 
 .dark {
-  /* Dark Mode - deep obsidian/navy */
-  --background: #020617;
+  /* Dark Mode - Brand Blue Obsidian */
+  --background: #0c0e1a;
   --foreground: #f8fafc;
-  --card: #0f172a;
+  --card: #1a1d33;
   --card-foreground: #f8fafc;
-  --popover: #020617;
+  --popover: #1a1d33;
   --popover-foreground: #f8fafc;
   --primary: #f9db1a;
   --primary-foreground: #1d1c1d;
-  --secondary: #1e293b;
+  --secondary: #262b52;
   --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
+  --muted: #262b52;
   --muted-foreground: #94a3b8;
-  --accent: #5b5c61;
+  --accent: #313a69;
   --accent-foreground: #f8fafc;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #1e293b;
-  --input: #1e293b;
+  --border: #313a69;
+  --input: #313a69;
   --ring: #f9db1a;
   --brand-blue: #262B52;
   --brand-blue-rgb: 38, 43, 82;
@@ -147,7 +147,7 @@ body {
 }
 
 body {
-  background: var(--background) !important;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -170,6 +170,7 @@ body {
     background-size: 40px 40px, 40px 40px, 100% 100%;
     background-position: 0 0, 6px 6px, 0 0;
   }
+
   .text-brand-blue {
     color: var(--brand-blue);
   }
@@ -288,10 +289,12 @@ body {
   }
 
   @keyframes card-breath {
+
     0%,
     100% {
       box-shadow: 0 12px 28px rgba(30, 20, 10, 0.08);
     }
+
     50% {
       box-shadow: 0 18px 38px rgba(30, 20, 10, 0.12);
     }
@@ -322,7 +325,7 @@ body {
 
 @layer base {
   :root {
-    --ui-radius-unified: 0.6rem;
+    --ui-radius-unified: 5px;
   }
 
   :where(div,
@@ -342,6 +345,6 @@ body {
     img)[class*="rounded"]:not([class*="rounded-full"]):not(.radius-native) {
     border-radius: var(--ui-radius-unified) !important;
   }
+
+  /* keep default rounded utilities intact */
 }
-
-

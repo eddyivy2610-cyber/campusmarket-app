@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SavedProvider } from "./context/SavedContext";
 import { AuthProvider } from "./context/AuthContext";
 import { FloatingActions } from "./components/locations/FloatingActions";
 import { SmoothScroll } from "./components/common/SmoothScroll";
-import { Header } from "./components/header/Header";
+import { LayoutWrapper } from "./components/common/LayoutWrapper";
 import { Poppins } from "next/font/google";
 
 const poppinsFont = Poppins({
@@ -42,11 +43,10 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <SavedProvider>
-              <Header />
               <SmoothScroll>
-                <div className="pt-[96px] md:pt-[64px]">
+                <LayoutWrapper>
                   {children}
-                </div>
+                </LayoutWrapper>
                 <FloatingActions />
               </SmoothScroll>
             </SavedProvider>

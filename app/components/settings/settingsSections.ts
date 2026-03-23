@@ -6,6 +6,7 @@ export type SectionId =
     | "preferences"
     | "help"
     | "account-status"
+    | "profile-activity"
     | "logout"
     | "switch-account";
 
@@ -17,8 +18,9 @@ export const SETTINGS_SECTIONS: { id: SectionId; label: string; group: string }[
     { id: "preferences", label: "Preferences", group: "Account" },
     { id: "account-status", label: "Deactivation & Deletion", group: "Account" },
     { id: "help", label: "Help & Support", group: "Support" },
-    { id: "logout", label: "Log Out", group: "Sign Out" },
-    { id: "switch-account", label: "Switch Account", group: "Sign Out" },
+    { id: "profile-activity", label: "Profile Activity", group: "Activity" },
+    { id: "logout", label: "Log Out", group: "Activity" },
+    { id: "switch-account", label: "Switch Account", group: "Activity" },
 ];
 
 export function groupSettingsSections() {

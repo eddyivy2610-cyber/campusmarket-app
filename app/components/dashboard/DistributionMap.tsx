@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { MapPin } from "lucide-react";
 
@@ -63,15 +63,15 @@ const distributions: CampusDistribution[] = [
 export function DistributionMap() {
     return (
         <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm h-full flex flex-col">
-            <h2 className="text-sm font-bold font-heading mb-4">Distribution Maps</h2>
+            <h2 className="text-sm font-bold font-heading mb-4 text-foreground">Distribution Maps</h2>
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-4">
                 Active listing clusters around ABU Zaria
             </p>
 
             <div className="flex-1 mb-5">
-                <div className="relative w-full h-[170px] rounded-2xl border border-border/50 bg-gradient-to-br from-secondary/70 via-secondary/40 to-background overflow-hidden">
-                    <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_30%,#10b98133,transparent_35%),radial-gradient(circle_at_70%_25%,#3b82f633,transparent_30%),radial-gradient(circle_at_55%_75%,#f59e0b2e,transparent_30%)]" />
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#94a3b814_1px,transparent_1px),linear-gradient(to_bottom,#94a3b814_1px,transparent_1px)] bg-[size:22px_22px]" />
+                <div className="relative w-full h-[170px] rounded-2xl border border-border bg-gradient-to-br from-secondary/30 via-secondary/10 to-background overflow-hidden shadow-inner">
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_30%,var(--primary),transparent_35%),radial-gradient(circle_at_70%_25%,#3b82f633,transparent_30%),radial-gradient(circle_at_55%_75%,#f59e0b2e,transparent_30%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:22px_22px] opacity-[0.05]" />
 
                     {distributions.map((spot) => (
                         <div

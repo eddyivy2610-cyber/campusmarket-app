@@ -16,6 +16,7 @@
 
 export interface Review {
     id: string;
+    orderId?: string; // Links review to a specific order
     userName: string;
     recommended: boolean;
     date: string;

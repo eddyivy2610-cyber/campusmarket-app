@@ -133,22 +133,15 @@ function MessageBubble({ msg, participantAvatar, participantName, userRole, onEn
 
     // Standard text message
     return (
-        <div className={`flex items-end gap-1.5 ${isMe ? "flex-row-reverse" : ""}`}>
-            {!isMe && (
-                <div className="w-5 h-5 rounded-full bg-secondary overflow-hidden relative shrink-0">
-                    {participantAvatar && <Image src={participantAvatar} alt="" fill className="object-cover" />}
-                </div>
-            )}
-            <div className={`flex flex-col gap-0.5 max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
-                <div className={`px-3 py-1.5 rounded-2xl text-[11px] font-medium leading-relaxed ${isMe
-                    ? "bg-primary text-white rounded-br-sm"
-                    : "bg-secondary/70 text-foreground rounded-bl-sm"}`}>
-                    {msg.text}
-                </div>
-                <div className={`flex items-center gap-1 ${isMe ? "flex-row-reverse" : ""}`}>
-                    <span className="text-[8px] text-muted-foreground">{msg.timestamp}</span>
-                    {isMe && <CheckCheck className={`w-2 h-2 ${msg.read ? "text-primary" : "text-muted-foreground"}`} />}
-                </div>
+        <div className={`flex flex-col gap-1 w-full mt-2 ${isMe ? "items-end" : "items-start"}`}>
+            <div className={`max-w-[80%] md:max-w-[70%] px-4 py-3 rounded-2xl text-[13px] font-medium leading-relaxed shadow-sm ${isMe
+                ? "bg-[#4154F1] text-white rounded-br-sm"
+                : "bg-[#f3f6fc] dark:bg-secondary/50 text-foreground/90 rounded-bl-sm"}`}>
+                {msg.text}
+            </div>
+            <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMe ? "flex-row-reverse" : ""}`}>
+                <span className="text-[10px] font-medium text-muted-foreground/60">{msg.timestamp}</span>
+                {isMe && <CheckCheck className={`w-3 h-3 ${msg.read ? "text-primary" : "text-muted-foreground"}`} />}
             </div>
         </div>
     );

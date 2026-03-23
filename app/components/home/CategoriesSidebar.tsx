@@ -20,7 +20,7 @@ export function CategoriesSidebar() {
             <div className="rounded-2xl bg-white border border-[#efe3cf] shadow-[0_16px_36px_rgba(40,30,10,0.08)] overflow-visible flex flex-col">
                 <div className="px-3 pt-3 pb-2">
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-5 bg-[#f2c94c] rounded-none shadow-sm" />
+                        <div className="w-2 h-5 bg-[#FFD700] rounded-none shadow-sm" />
                         <h3 className="text-sm md:text-[15px] font-bold font-heading tracking-wide uppercase text-black whitespace-nowrap">
                             Browse Categories
                         </h3>
@@ -33,15 +33,15 @@ export function CategoriesSidebar() {
                             <Link
                                 key={idx}
                                 href={cat.href || `/listings?category=${cat.name}`}
-                                className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white transition-all duration-200 group hover:border-[#f2c94c]/40 hover:bg-[#fff9e6]"
+                                className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6]"
                             >
                                 <div className="flex items-center gap-2 text-[11px] font-heading font-medium text-black group-hover:text-black">
-                                    <span className="w-6 h-6 rounded-md bg-[#fff3c6] text-black flex items-center justify-center transition-colors group-hover:bg-[#f2c94c]">
+                                    <span className="w-6 h-6 rounded-md bg-[#fff3c6] text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
                                         <Icon className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" />
                                     </span>
                                     <span>{cat.name}</span>
                                 </div>
-                                <ChevronRight className="w-3.5 h-3.5 text-black/60 transition-transform group-hover:translate-x-1" />
+                                <ChevronRight className="w-3.5 h-3.5 text-black/70 transition-transform group-hover:translate-x-1" />
                             </Link>
                         );
                     })}
@@ -50,3 +50,4 @@ export function CategoriesSidebar() {
         </aside>
     );
 }
+

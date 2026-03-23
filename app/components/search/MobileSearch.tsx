@@ -41,7 +41,7 @@ export function MobileSearch() {
             )}
             <button
                 type="submit"
-                className="absolute right-2 top-2 w-8 h-8 bg-brand-yellow-tint hover-bg-brand-yellow-tint-hover rounded-md flex items-center justify-center text-black transition-colors shadow-md shadow-yellow-500/20 active:scale-[0.98]"
+                className="absolute right-2 top-2 w-8 h-8 bg-[#FFD700] hover:bg-[#f5dc48] rounded-md flex items-center justify-center text-black transition-colors shadow-md shadow-[#FFD700]/40 active:scale-[0.98]"
             >
                 <Search className="w-4 h-4 font-bold" />
             </button>

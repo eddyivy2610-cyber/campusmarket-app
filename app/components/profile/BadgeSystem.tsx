@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { GraduationCap, BadgeCheck, Trophy, Shield, Zap, Star } from "lucide-react";
@@ -65,7 +65,7 @@ export function BadgeSystem({ type, value, tier, className }: BadgeProps) {
             >
                 <div className="flex flex-col items-center">
                     <div className={cn(
-                        "w-12 h-12 rounded-full border-2 bg-white flex flex-col items-center justify-center z-10 relative overflow-hidden",
+                        "w-12 h-12 rounded-full border-2 bg-card flex flex-col items-center justify-center z-10 relative overflow-hidden",
                         tierColor
                     )}>
                         <span className="text-[12px] font-bold leading-none">{label}</span>
@@ -102,7 +102,7 @@ export function AchievementBadge({ achievement, className }: {
     return (
         <IconTooltip content={achievement.description} position="top">
             <div className={cn(
-                "p-2.5 rounded-xl border border-border/30 backdrop-blur-md transition-all duration-300",
+                "p-2.5 rounded-xl border border-border/50 backdrop-blur-md transition-all duration-300",
                 "hover:scale-110 hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.15)] hover:border-primary/30",
                 achievement.color.split(' ').find(c => c.startsWith('bg-')) || 'bg-primary/5',
                 className

@@ -29,7 +29,7 @@ export function IconTooltip({
 
     return (
         <div
-            className={cn("relative inline-flex items-center justify-center cursor-help", containerClassName)}
+            className={cn("relative inline-flex items-center justify-center cursor-help overflow-visible", containerClassName)}
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
             onClick={() => setIsVisible(!isVisible)}
@@ -45,13 +45,14 @@ export function IconTooltip({
             {/* Tooltip Wrapper */}
             <div
                 className={cn(
-                    "absolute z-50 px-2.5 py-1.5 text-[10px] sm:text-xs font-medium text-white whitespace-nowrap",
+                    "absolute z-[9999] px-2.5 py-1.5 text-[10px] sm:text-xs font-medium text-white whitespace-nowrap",
                     "bg-black/40 backdrop-blur-md border border-white/20 rounded-lg shadow-xl",
                     "pointer-events-none transition-all duration-200 ease-out",
                     isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95",
                     positionClasses[position],
                     className
                 )}
+                style={{ pointerEvents: "none" }}
                 role="tooltip"
                 aria-hidden={!isVisible}
             >

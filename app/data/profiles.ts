@@ -44,6 +44,7 @@ export interface Profile {
     soldItems?: number;
     responseRate?: string;
     responseTime?: string;
+    followers?: number;
     businessInfo?: {
         extendedBio: string;
         policies: string;
@@ -90,6 +91,7 @@ export const PROFILES: Profile[] = [
         coverPhoto: "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1200&q=80",
         responseRate: "95%",
         responseTime: "2 hours",
+        followers: 1240,
         tags: ["official", "trusted", "essentials"],
         businessInfo: {
             extendedBio: "Campus Market is the premier platform for student-to-student commerce at Ahmadu Bello University. We curate the best deals and ensure a safe trading environment for everyone.",
@@ -101,6 +103,7 @@ export const PROFILES: Profile[] = [
             { name: 'Verified Student', icon: 'Shield', color: 'text-blue-600 bg-blue-500/10', description: 'verified with id', type: 'System' },
             { name: 'Early Adopter', icon: 'Zap', color: 'text-purple-600 bg-purple-500/10', description: 'joined during beta phase', type: 'Legacy' },
             { name: 'Trusted Buyer', icon: 'Star', color: 'text-green-600 bg-green-500/10', description: '50+ positive feedback', type: 'Achievement' },
+            { name: 'Popular', icon: 'Star', color: 'text-yellow-600 bg-yellow-500/10', description: '100+ followers', type: 'Achievement' },
         ],
         socialLinks: {
             whatsapp: "https://wa.me/1234567890",

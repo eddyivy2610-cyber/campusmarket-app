@@ -123,7 +123,7 @@ export function IntelligentSearch() {
                     </button>
                 )}
 
-                <button type="submit" className="h-8 w-8 mr-2 bg-brand-yellow-tint hover-bg-brand-yellow-tint-hover rounded-full flex items-center justify-center text-black transition-colors shadow-md shadow-yellow-500/20 active:scale-[0.98] shrink-0">
+                <button type="submit" className="h-8 w-8 mr-2 bg-[#FFD700] hover:bg-[#f5dc48] rounded-full flex items-center justify-center text-black transition-colors shadow-md shadow-[#FFD700]/40 active:scale-[0.98] shrink-0">
                     <Search className="w-4 h-4 font-bold" />
                 </button>
             </form>
