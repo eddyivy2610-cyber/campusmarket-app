@@ -15,7 +15,7 @@ const poppinsFont = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Campus Market",
+  title: "Campus Hive",
   description: "Your Campus, Your Vibe",
 };
 
@@ -36,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         style={{ ...fontVars, background: "#ffffff" }}
         className={`${poppinsFont.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}
       >

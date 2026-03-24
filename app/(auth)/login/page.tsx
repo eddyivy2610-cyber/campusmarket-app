@@ -53,9 +53,9 @@ export default function LoginPage() {
 
                     <div className="flex w-full items-center justify-center bg-background px-8 py-10 md:w-1/2 md:px-14">
                         <div className="w-full max-w-[380px] font-heading">
-                            <h1 className="text-2xl font-semibold text-foreground">Log in to Campus Market</h1>
+                            <h1 className="text-2xl font-semibold text-foreground">Log in to Campus Hive</h1>
                             <p className="mt-2 text-sm text-muted-foreground">
-                                Welcome back. Access your campus marketplace in seconds.
+                                Welcome back to Campus Hive.
                             </p>
 
                             <form onSubmit={handleLogin} className="mt-6 space-y-5">

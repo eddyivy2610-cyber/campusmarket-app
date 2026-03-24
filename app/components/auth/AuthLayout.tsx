@@ -41,18 +41,9 @@ export function AuthLayout({
             <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 lg:p-16 relative overflow-hidden bg-secondary/20 border-r border-border/50 min-h-screen">
                 <div className="relative z-10 w-full max-w-sm">
                     {/* Logo Section */}
-                    <Link href="/" className="flex items-center gap-0 mb-8 group">
-                        <Image
-                            src="/LOGO.png"
-                            alt="CampusMarket logo"
-                            width={56}
-                            height={56}
-                            priority
-                            className="h-7 w-auto shrink-0"
-                        />
-                        <span className="text-xl font-extrabold font-sans leading-none tracking-tight">
-                            <span className="text-[#16325f]">Campus</span>{" "}
-                            <span className="text-orange-500">Market</span>
+                    <Link href="/" className="flex items-center gap-0 mb-8 group" aria-label="Campus Hive Home">
+                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
+                            HIVE
                         </span>
                     </Link>
 
@@ -74,7 +65,7 @@ export function AuthLayout({
                                     <div className="w-16 h-16 bg-primary/20 rounded-full mx-auto mb-4 flex items-center justify-center">
                                         <ShoppingBasket className="w-8 h-8 text-primary animate-pulse" />
                                     </div>
-                                    <h2 className="text-xl font-bold mb-1">Join Your Campus Marketplace</h2>
+                                    <h2 className="text-xl font-bold mb-1">Join Campus Hive</h2>
                                     <p className="text-sm text-muted-foreground leading-relaxed">Buy and sell with confidence in your student community.</p>
                                 </div>
                             </div>
@@ -162,15 +153,10 @@ export function AuthLayout({
 
                 {/* ── BOTTOM BRANDING — pinned on mobile ── */}
                 <div className="flex-shrink-0 pb-6 pt-4 border-t border-border/50 flex items-center justify-center md:hidden">
-                    <div className="flex items-center gap-0 grayscale brightness-200 opacity-30">
-                        <Image
-                            src="/LOGO.png"
-                            alt="CampusMarket logo"
-                            width={32}
-                            height={32}
-                            className="h-5 w-auto shrink-0"
-                        />
-                        <span className="text-sm font-extrabold font-heading uppercase tracking-tighter">CampusMarket</span>
+                    <div className="flex items-center gap-0 opacity-30">
+                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
+                            HIVE
+                        </span>
                     </div>
                 </div>
             </div>

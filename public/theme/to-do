@@ -1,63 +1,97 @@
-6.3 Analytics Sections
-Section	Content	Visualizations
-Revenue Trend	Sales over time	Line chart with compare option
-PART 7: MOBILE NAVIGATION
-7.1 Bottom Tab Bar
+PART 5: REPORT MANAGEMENT
+5.1 Reports Queue
+
+
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  [Pending (23)] [In Review (8)] [Resolved (45)]                                │
+│                                                                                  │
+│                                     ││
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐││
+│  │  │ 🚩 Scam report • Listing #LST-1234                                      ││
+│  │  │ Reported by: Michael O. • 10 min ago                                   ││
+│  │  │ Against: John Doe (Vendor, [50])                                       ││
+│  │  │ Reason: ""                    ││
+│  │  │ Evidence: [View Chat Screenshot] [View Listing]                        ││
+│  │  │ [View] [Mark In Progress] [Resolve]                                    ││
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  │                                                                              ││
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐││
+│  │  │ 🚩 Harassment • Chat #CHT-5678                                          ││
+│  │  │ Reported by: Sarah K. • 45 min ago                                     ││
+│  │  │ Against: Mike Johnson (Buyer)                                          ││
+│  │  │ Reason: "r"       ││
+│  │  │ Evidence: [View Chat Transcript]                                        ││
+│  │  │ [View] [Mark In Progress] [Resolve]                                    ││
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────────────┘│
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐│
+│  │  🟡 Medium Priority (12)                                                    ││
+│  ├─────────────────────────────────────────────────────────────────────────────┤│
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐││
+│  │  │ 🚩 Fake item • Listing #LST-7890                                        ││
+│  │  │ Reported by: Amina T. • 2 hours ago                                    ││
+│  │  │ Against: Peter O. (Vendor, [100+])                                     ││
+│  │  │ Reason: "Item received was counterfeit"                                ││
+│  │  │ Evidence: [View Photos] [View Chat]                                    ││
+│  │  │ [View] [Mark In Progress] [Resolve]                                    ││
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────────────┘│
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐│
+│  │  🟢 Low Priority (6)                                                        ││
+│  ├─────────────────────────────────────────────────────────────────────────────┤│
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐││
+│  │  │ 🚩 Inappropriate photo • Listing #LST-4321                              ││
+│  │  │ Reported by: Grace E. • 1 day ago                                      ││
+│  │  │ Against: Usman B. (Vendor)                                             ││
+│  │  │ Reason: "Photo contains contact information"                           ││
+│  │  │ [View] [Mark In Progress] [Resolve]                                    ││
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────────────┘
+5.2 Report Detail View
 text
-┌─────────────────────────────────────────────────────────────────────┐
-│                                                                      │
-│  [📊 Overview]  [📦 Products]  [🛒 Orders]  [💬 Messages]  [📈 Analytics]│
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-7.2 Mobile Page Adaptations
-Page	Mobile Adaptation
-Overview	Collapsible widgets, simplified KPIs
-Products	Swipeable cards, simplified table
-Orders	List view with status badges
-Messages	Full-width chat, swipe to archive
-Analytics	Single chart per view, horizontal scroll
-PART 8: PAGE COMPARISON SUMMARY
-Feature	Overview	Products	Orders	Messages	Analytics
-KPIs	Top 4	Listing stats	Order stats	Response stats	Full metrics
-Charts	Trend + category	Per-listing	Order timeline	Response trend	Multiple charts
-Actions	Quick actions	Edit, boost, mark sold	Confirm, contact	Reply, templates	Export
-Tables	Activity feed	Listing table	Orders table	Conversation list	Top items
-Export	❌	✅	✅	✅	✅
-Insights	Badge progress	Performance per item	Order analysis	Response tips	AI insights
-Alerts	Recent activity	Low stock	Pending actions	Unread messages	Benchmarking
-PART 9: IMPLEMENTATION NOTES
-9.1 Page Navigation
-Desktop: Top navigation bar with active indicator
-
-Mobile: Bottom tab bar with icons
-
-State persistence: Returns to last page on revisit
-
-Breadcrumbs: Optional for deep navigation
-
-9.2 Data Refresh by Page
-Page	Auto-Refresh	Manual Refresh
-Overview	Real-time (pull)	Refresh button
-Products	On load	Pull to refresh
-Orders	Real-time	Refresh button
-Messages	Real-time	WebSocket
-Analytics	Daily	Date range change
-9.3 Page-Specific Permissions
-Page	New Vendor	Rising	Trusted	Elite
-Overview	Full	Full	Full	Full
-Products	Limited listings	50 listings	100 listings	Unlimited
-Orders	Full	Full	Full	Full
-Messages	Full	Full	Full	Full
-Analytics	30 days	90 days	1 year	All time
-Sales by Day/Time	Temporal patterns	Heat map, bar chart
-Top Listings	Best performers	Sortable table
-Performance Insights	AI-driven recommendations	Text cards
-Competitor Benchmarking	Market comparison	Metrics comparison
-Traffic Sources	Where views come from	Bar chart, funnel
-Customer Demographics	Buyer insights	Charts (if data available)
-6.4 Export Options
-Format	Content	Use Case
-
-PDF	Formatted report	Stakeholder sharing
-
-Dashboard Snapshot	Screenshot	Quick sharing
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  🚩 Report #REP-20250321-1234                                          [Close]   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  Status: 🔴 Pending                     Priority: High                          │
+│  Submitted: 10 minutes ago                                                      │
+│  Reported by: Michael O.           │
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐│
+│  │  Report Details                                                            ││
+│  ├─────────────────────────────────────────────────────────────────────────────┤│
+│  │  Reason:    Scam or fraud attempt                                          ││
+│  │  Against:   John Doe (Vendor, joined Jan 2025, 52 orders, 4.8★)           ││
+│  │             User ID: USR-12345                                             ││
+│  │  Context:   Listing #LST-7890 - MacBook Pro 2021                          ││
+│  │                                                                              ││
+│  │  Description:                                                              ││
+│  │  "."                        ││
+│  │                                                                              ││
+│  │  Attachments: [View Chat Screenshot 1] [View Chat Screenshot 2]            ││
+│  └─────────────────────────────────────────────────────────────────────────────┘│
+│                                                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐│
+│  │  Admin Actions                                                              ││
+│  ├─────────────────────────────────────────────────────────────────────────────┤│
+│  │  [Contact Reporter]  [Contact Vendor]  [View Listing]  [View Chat]         ││
+│  │                                                                              ││
+│  │  Resolution:                                                                ││
+│  │  ┌─────────────────────────────────────────────────────────────────────────┐││
+│  │  │ ○ No action needed                                      │││
+│  │  │ ○ Issue warning                                              │││
+│  │  │ ● Suspend                                      │││
+│  │  │ ○ Remove listing                                                       │││
+│  │  │ ○ Ban                                               │││
+│  │  │                                  │││
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  │                                                                        
+│  │  └─────────────────────────────────────────────────────────────────────────┘││
+│  │                                                                              ││
+│  │  [Cancel]                                          [Resolve Report]        ││
+│  └─────────────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────────────┘

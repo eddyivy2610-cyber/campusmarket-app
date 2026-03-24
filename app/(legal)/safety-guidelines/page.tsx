@@ -28,7 +28,7 @@ export default function SafetyGuidelines() {
                             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp} className="space-y-3">
                                 <h2 className="text-[13px] font-semibold text-foreground">1. Communication Safety</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    All communications related to transactions must occur through Campus Market's built-in messaging system. This helps us protect your personal information and provides a record of the conversation in case a dispute arises.
+                                    All communications related to transactions must occur through Campus Hive's built-in messaging system. This helps us protect your personal information and provides a record of the conversation in case a dispute arises.
                                 </p>
                                 <div className="bg-primary/10 text-primary p-4 border border-primary/20">
                                     <span className="text-[11px] font-semibold uppercase tracking-wider block mb-1">Warning</span>
@@ -52,7 +52,7 @@ export default function SafetyGuidelines() {
 
                             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp} className="space-y-3">
                                 <h2 className="text-[13px] font-semibold text-foreground">3. Payment Best Practices</h2>
-                                <p className="text-sm text-muted-foreground">Currently, Campus Market does not process payments or hold escrow. You are responsible for payment methods. To avoid fraud:</p>
+                                <p className="text-sm text-muted-foreground">Currently, Campus Hive does not process payments or hold escrow. You are responsible for payment methods. To avoid fraud:</p>
                                 <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground marker:text-primary">
                                     <li>Prefer in-person cash transactions when meeting safely.</li>
                                     <li>Always inspect an item thoroughly before transferring money.</li>

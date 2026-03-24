@@ -86,16 +86,8 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
             >
                 <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-secondary/30 shrink-0">
                     <Link href="/" onClick={onClose} className="flex items-center gap-0 group">
-                        <Image
-                            src="/LOGO.png"
-                            alt="CampusMarket logo"
-                            width={56}
-                            height={56}
-                            className="h-7 w-auto shrink-0"
-                        />
-                        <span className="font-extrabold text-base font-sans leading-none tracking-tight">
-                            <span className="text-[#16325f]">Campus</span>{" "}
-                            <span className="text-orange-500">Market</span>
+                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
+                            HIVE
                         </span>
                     </Link>
                     <button
@@ -115,7 +107,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                             <div className="flex items-center gap-3">
                                 <User className="w-5 h-5" />
                                 <div className="text-left">
-                                    <p className="font-semibold uppercase tracking-widest text-[11px]">Join Campus Market</p>
+                                    <p className="font-semibold uppercase tracking-widest text-[11px]">Join Campus Hive</p>
                                     <p className="text-[10px] text-white/70 font-medium">Log in or Sign up</p>
                                 </div>
                             </div>
@@ -125,7 +117,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     <Section label="My Account">
                         <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
-                        <NavRow icon={Store} label="My Profile" accent onClick={() => nav("/profile/campus-market")} />
+                        <NavRow icon={Store} label="My Profile" accent onClick={() => nav("/profile/campus-hive")} />
                         <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
                         <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
@@ -133,7 +125,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     <Section label="Navigation">
                         <NavRow icon={Home} label="Home" onClick={() => nav("/")} />
                         <NavRow icon={Tag} label="Listings" onClick={() => nav("/listings")} />
-                        <NavRow icon={Store} label="Vendors" onClick={() => nav("/profile/campus-market")} />
+                        <NavRow icon={Store} label="Vendors" onClick={() => nav("/profile/campus-hive")} />
                         <NavRow icon={BookOpen} label="Blog" onClick={() => nav("/blog")} />
                         <NavRow icon={LifeBuoy} label="Help & Support" onClick={() => nav("/help-support")} />
                     </Section>

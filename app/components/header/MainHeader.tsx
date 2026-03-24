@@ -40,22 +40,22 @@ export function MainHeader() {
     return (
         <>
             {/* ── Main header row ── */}
-            <div className="bg-white text-black py-1 md:py-2 border-b border-black/10 shadow-sm relative z-40">
+            <div className="bg-background/80 dark:bg-card/80 text-foreground py-1 md:py-2 border-b border-border/50 backdrop-blur-md shadow-sm relative z-40 transition-colors">
                 <div className="w-full max-w-[1780px] mx-auto px-3 md:px-6 flex items-center gap-2 md:gap-4">
 
                     {/* Hamburger (mobile) */}
                     <button
                         onClick={() => setIsMenuOpen(true)}
-                        className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-black/20 bg-black/10 text-black hover:bg-black/20 transition-colors shrink-0"
+                        className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-border/50 bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0"
                         aria-label="Open menu"
                     >
-                        <LayoutGrid className="w-5 h-5 text-black" />
+                        <LayoutGrid className="w-5 h-5" />
                     </button>
 
                     {/* Logo */}
                     <div className="flex-1 md:flex-none flex md:block justify-center">
                         <Link href="/" className="flex items-center gap-0 group" aria-label="CampusMarket Home">
-                            <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-black">
+                            <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
                                 Hive
                             </span>
                         </Link>
@@ -67,17 +67,17 @@ export function MainHeader() {
                     </div>
 
                     {/* Right actions */}
-                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-white/70 backdrop-blur-lg border border-black/10 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm">
+                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-secondary/20 backdrop-blur-lg border border-border/50 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm">
 
                         {/* Saved Items */}
                         <Link
                             href="/saved"
-                            className="flex items-center justify-center p-1 rounded-lg hover:bg-black/5 transition-colors text-black/70 relative group"
+                            className="flex items-center justify-center p-1 rounded-lg hover:bg-secondary/50 transition-colors text-foreground/70 relative group"
                             title="Saved Items"
                         >
-                            <Heart className="w-5 h-5 text-black shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                            <Heart className="w-5 h-5 text-foreground shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
                             {savedItems.length > 0 && (
-                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-primary text-black text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background">
+                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-primary text-primary-foreground text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background">
                                     {savedItems.length}
                                 </span>
                             )}
@@ -87,10 +87,10 @@ export function MainHeader() {
                         <div className="relative z-40 hidden sm:flex">
                             <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="flex items-center justify-center p-1 rounded-lg hover:bg-black/5 transition-colors text-black/70 relative group"
+                                className="flex items-center justify-center p-1 rounded-lg hover:bg-secondary/50 transition-colors text-foreground/70 relative group"
                                 title="Notifications"
                             >
-                                <Bell className="w-4 h-4 text-black shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                                <Bell className="w-4 h-4 text-foreground shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
                                 <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
                                     3
                                 </span>
@@ -98,26 +98,26 @@ export function MainHeader() {
                             <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
                         </div>
 
-                        <div className="w-px h-6 bg-black/15 mx-1"></div>
+                        <div className="w-px h-6 bg-border/40 mx-1"></div>
 
                         {/* Account — visible on mobile too */}
                         <div className="pl-1">
                             <button
                                 onClick={() => setIsAccountOpen(!isAccountOpen)}
-                                className="flex items-center gap-2 text-black hover:text-black transition-colors group p-1 rounded-lg hover:bg-black/5 text-left"
+                                className="flex items-center gap-2 text-foreground hover:text-foreground transition-colors group p-1 rounded-lg hover:bg-secondary/50 text-left"
                             >
-                                <div className="bg-black/5 p-1 rounded-md group-hover:bg-black/10 transition-colors">
-                                    <User className="w-3.5 h-3.5 text-black group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
+                                <div className="bg-secondary p-1 rounded-md group-hover:bg-secondary/80 transition-colors">
+                                    <User className="w-3.5 h-3.5 text-foreground group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
                                 </div>
                                 <div className="hidden sm:flex flex-col leading-tight pr-1">
-                                    <span className="text-[9px] uppercase tracking-widest text-black/60 font-bold group-hover:text-black transition-colors">
+                                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold group-hover:text-foreground transition-colors">
                                         {user ? user.role : "Guest"}
                                     </span>
                                     <span className="text-[11px] font-bold font-heading">
                                         {user ? user.name.split(' ')[0] : "Account"}
                                     </span>
                                 </div>
-                                <ChevronDown className="w-3.5 h-3.5 text-black hidden sm:block mr-1 transition-colors" />
+                                <ChevronDown className="w-3.5 h-3.5 text-foreground hidden sm:block mr-1 transition-colors" />
                             </button>
                         </div>
                         <AccountDropdown isOpen={isAccountOpen} />
@@ -127,7 +127,7 @@ export function MainHeader() {
 
             {/* ── Mobile search bar (below header) ── */}
             {!isSettingsPage && !isAuthPage && (
-                <div className="block md:hidden bg-gradient-to-r from-yellow-200/80 via-yellow-100/70 to-white border-b border-black/10 px-3 py-1 text-black">
+                <div className="block md:hidden bg-gradient-to-r from-secondary/80 via-secondary/40 to-background border-b border-border/50 px-3 py-1 text-foreground">
                     <MobileSearch />
                 </div>
             )}

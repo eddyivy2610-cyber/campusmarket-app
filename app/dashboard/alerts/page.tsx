@@ -50,7 +50,7 @@ const BASE_ALERTS: {
         {
             id: 5,
             type: "system",
-            message: "Welcome to Campus Market! Create an alert to find exactly what you're looking for.",
+            message: "Welcome to Campus Hive! Create an alert to find exactly what you're looking for.",
             timestamp: "2 days ago",
             isRead: true
         }

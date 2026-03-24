@@ -23,7 +23,7 @@ export function AccountStatusSettings() {
                 <div>
                     <h3 className="text-[12px] font-semibold text-foreground">Delete Account</h3>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                        Permanently delete your account and remove your data from Campus Market.
+                        Permanently delete your account and remove your data from Campus Hive.
                     </p>
                 </div>
                 <button className="px-4 py-2 text-[11px] font-semibold text-red-700 border border-red-300/80 bg-red-100 hover:bg-red-200 transition-colors">

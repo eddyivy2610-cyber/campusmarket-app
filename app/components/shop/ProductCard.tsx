@@ -142,7 +142,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
 
                 <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground font-medium bg-secondary/50 px-1 py-0.5 rounded-sm">
+                        <span className="text-[10px] text-amber-800 dark:text-amber-400/90 font-medium bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded-sm">
                             {product.category}
                         </span>
                         {(() => {

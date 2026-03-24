@@ -1,33 +1,37 @@
-import { LucideIcon } from 'lucide-react';
+import React from 'react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatCardProps {
     label: string;
     value: string | number;
-    icon?: LucideIcon;
     trend?: {
         value: string;
         isPositive: boolean;
     };
+    variant?: 'blue' | 'gray';
 }
 
-const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, trend }) => {
+const StatCard: React.FC<StatCardProps> = ({ label, value, trend }) => {
     return (
-        <div className="bg-card p-4 rounded-xl border border-border flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-widest">{label}</span>
-                {Icon && <Icon size={16} className="text-muted-foreground" />}
-            </div>
-
-            <div className="flex items-end justify-between">
-                <span className="text-2xl font-bold text-foreground">{value}</span>
-
+        <div className="p-4 rounded-xl flex flex-col justify-center min-h-[90px] transition-all duration-300 border border-border/40 bg-transparent hover:bg-secondary/5 group">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1.5">{label}</span>
+            
+            <div className="flex items-center gap-2.5">
+                <span className="text-2xl font-bold tracking-tight text-foreground">{value}</span>
+                
                 {trend && (
-                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${trend.isPositive
-                        ? 'bg-green-500/10 text-green-500'
-                        : 'bg-red-500/10 text-red-500'
+                    <div className="flex items-center gap-1">
+                        <span className={`text-[11px] font-bold ${
+                            trend.isPositive ? 'text-emerald-500' : 'text-rose-500'
                         }`}>
-                        {trend.value}
-                    </span>
+                            {trend.value}
+                        </span>
+                        {trend.isPositive ? (
+                            <TrendingUp size={12} className="text-emerald-500/70" />
+                        ) : (
+                            <TrendingDown size={12} className="text-rose-500/70" />
+                        )}
+                    </div>
                 )}
             </div>
         </div>

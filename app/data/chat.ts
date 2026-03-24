@@ -88,7 +88,7 @@ export const PARTICIPANTS: Record<string, ChatParticipant> = {
     },
     bot: {
         id: "bot",
-        name: "Campus Market Bot",
+        name: "Campus Hive Bot",
         avatar: "",
         memberSince: "Always",
         responseTime: "Instant",
@@ -115,7 +115,7 @@ export const PARTICIPANTS: Record<string, ChatParticipant> = {
     },
     "vendor-1": {
         id: "vendor-1",
-        name: "Campus Market Official",
+        name: "Campus Hive Official",
         avatar: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=200&q=80",
         memberSince: "Jan 2025",
         responseTime: "Within 1 hour",
@@ -223,7 +223,7 @@ export const CONVERSATIONS: Conversation[] = [
         lastTime: "Mar 10",
         unread: 0,
         messages: [
-            { id: "m11", senderId: "bot", type: "text", text: "Welcome to Campus Market! Remember to keep all conversations on this platform. Never share phone numbers or bank details. Stay safe! 🔒", timestamp: "Mar 10", read: true },
+            { id: "m11", senderId: "bot", type: "text", text: "Welcome to Campus Hive! Remember to keep all conversations on this platform. Never share phone numbers or bank details. Stay safe! 🔒", timestamp: "Mar 10", read: true },
         ],
     },
     {

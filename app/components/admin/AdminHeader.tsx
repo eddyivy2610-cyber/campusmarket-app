@@ -53,15 +53,11 @@ export function AdminHeader() {
         <div className="bg-background text-foreground py-2 md:py-3 fixed top-0 left-0 right-0 z-40 border-b border-border/30 shadow-sm">
             <div className="w-full max-w-[1780px] mx-auto px-4 md:px-8 flex items-center gap-3 md:gap-6">
                 <div className="flex items-center gap-0 group">
-                    <Image
-                        src="/LOGO.png"
-                        alt="CampusMarket logo"
-                        width={56}
-                        height={56}
-                        className="h-6 md:h-7 w-auto shrink-0"
-                    />
-                    <div className="flex flex-col leading-tight">
-                        <span className="text-[9px] md:text-[10px] uppercase tracking-widest text-muted-foreground font-bold">CampusMarket</span>
+                    <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
+                        HIVE
+                    </span>
+                    <div className="flex flex-col leading-tight ml-2">
+                        <span className="text-[9px] md:text-[10px] uppercase tracking-widest text-muted-foreground font-bold">CampusHive</span>
                         <span className="text-base md:text-lg font-bold tracking-tight font-heading group-hover:text-primary transition-colors">Admin Center</span>
                     </div>
                     <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-bold uppercase tracking-widest bg-secondary/40 text-muted-foreground border border-border/40">

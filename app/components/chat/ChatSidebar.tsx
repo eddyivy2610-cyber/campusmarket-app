@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Handshake, CheckCircle2, XCircle, Clock, ShoppingBag } from "lucide-react";
 import { NegotiationRecord, NegotiationStatus, ChatParticipant } from "../../data/chat";
@@ -48,7 +48,7 @@ export function NegotiationHistory({ negotiations, participant }: NegotiationHis
                         <ShoppingBag className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-foreground leading-none tracking-tight">Campus Market</p>
+                        <p className="text-sm font-bold text-foreground leading-none tracking-tight">Campus Hive</p>
                         <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Campus. Connect. Trade.</p>
                     </div>
                 </div>

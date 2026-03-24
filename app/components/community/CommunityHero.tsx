@@ -29,7 +29,7 @@ export function CommunityHero() {
                 >
 
                     <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold font-heading text-white mb-3 tracking-tight leading-tight">
-                        Campus Market Community
+                        Campus Hive Community
                     </h1>
 
                     <p className="text-sm md:text-base text-white/80 max-w-xl leading-relaxed font-medium">

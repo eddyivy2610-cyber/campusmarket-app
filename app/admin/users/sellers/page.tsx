@@ -1,8 +1,8 @@
 "use client";
 
-import { Star, Mail, Calendar, Package, TrendingUp, Store, MoreHorizontal } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useState } from 'react';
+import AdminUserDetailsModal from '@/components/admin/AdminUserDetailsModal';
+import { Star, Mail, Calendar, Package, TrendingUp, Store, Eye, MoreHorizontal } from 'lucide-react';
 
 const vendors = [
     {
@@ -15,7 +15,8 @@ const vendors = [
         sales: 156,
         listings: 24,
         avatar: 'S',
-        badge: 'Top Seller'
+        badge: 'Top Seller',
+        role: 'Vendor'
     },
     {
         id: 2,
@@ -27,7 +28,8 @@ const vendors = [
         sales: 89,
         listings: 12,
         avatar: 'J',
-        badge: 'Verified'
+        badge: 'Verified',
+        role: 'Vendor'
     },
     {
         id: 3,
@@ -39,16 +41,25 @@ const vendors = [
         sales: 42,
         listings: 8,
         avatar: 'R',
-        badge: 'Rising Star'
+        badge: 'Rising Star',
+        role: 'Vendor'
     }
 ];
 
 export default function VendorsPage() {
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewDetails = (user: any) => {
+        setSelectedUser(user);
+        setIsModalOpen(true);
+    };
+
     return (
         <div className="space-y-6">
             <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
                 <div className="p-3 md:p-4 flex w-full items-center justify-between border-b border-border/40">
-                    <h1 className="text-sm font-bold tracking-tight text-foreground uppercase px-2">Campus Professionals</h1>
+                    <h1 className="text-sm font-bold tracking-tight text-foreground uppercase px-2">Campus Sellers</h1>
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 bg-secondary/20 px-3 py-1.5 rounded-lg">
                             Active Sellers: {vendors.length}
@@ -60,7 +71,7 @@ export default function VendorsPage() {
                     <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide uppercase">
-                                <th className="pb-4 font-bold pl-4 md:pl-6 w-[25%]">Professional Profile</th>
+                                <th className="pb-4 font-bold pl-4 md:pl-6 w-[25%]">Seller Profile</th>
                                 <th className="pb-4 font-bold w-[20%]">Reputation</th>
                                 <th className="pb-4 font-bold w-[20%]">Inventory</th>
                                 <th className="pb-4 font-bold w-[20%]">Performance</th>
@@ -112,10 +123,17 @@ export default function VendorsPage() {
                                     </td>
                                     <td className="py-4 text-center pr-4 md:pr-6">
                                         <div className="flex items-center justify-center gap-2">
-                                            <button className="p-2.5 rounded-xl bg-secondary/30 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all" title="View Store">
+                                            <button 
+                                                onClick={() => handleViewDetails(vendor)}
+                                                className="p-2.5 rounded-xl bg-secondary/30 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20" 
+                                                title="View Profile"
+                                            >
+                                                <Eye size={15} />
+                                            </button>
+                                            <button className="p-2.5 rounded-xl bg-secondary/30 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border border-transparent hover:border-primary/20" title="View Store">
                                                 <Store size={15} />
                                             </button>
-                                            <button className="p-2.5 rounded-xl bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                                            <button className="p-2.5 rounded-xl bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-accent transition-all border border-transparent">
                                                 <MoreHorizontal size={15} />
                                             </button>
                                         </div>
@@ -130,6 +148,13 @@ export default function VendorsPage() {
                     <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">Showing {vendors.length} entries</span>
                 </div>
             </div>
+
+            {/* Modal */}
+            <AdminUserDetailsModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                user={selectedUser}
+            />
         </div>
     );
 }

@@ -444,7 +444,7 @@ export function AddListingModal({
                                             </label>
                                             <label className="flex items-start gap-2 text-sm font-semibold">
                                                 <input type="checkbox" checked={formData.confirmSafety} onChange={(e) => setValue("confirmSafety", e.target.checked)} className="mt-1 accent-primary" />
-                                                I agree to campus marketplace safety and posting policies.
+                                                I agree to Campus Hive safety and posting policies.
                                             </label>
                                         </div>
                                     </>

@@ -1,245 +1,138 @@
-﻿'use client';
+"use client";
 
-import { MoreHorizontal, ShieldOff, User, Search, Filter, Download, UserCheck, Mail, Calendar, TrendingUp } from 'lucide-react';
-import StatusBadge from '@/components/admin/StatusBadge';
+import { UserPlus, User, Search, MoreHorizontal, ShieldOff, Mail, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
-import {
-    CartesianGrid,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
+import Link from 'next/link';
+
+import AdminUserDetailsModal from '@/components/admin/AdminUserDetailsModal';
 
 const startUsers = [
-    { id: 1, name: 'Active User', email: 'active@email.com', date: '2023-09-15', status: 'Active', role: 'Regular', avatar: 'A' },
-    { id: 2, name: 'Suspended User', email: 'suspended@email.com', date: '2023-08-20', status: 'Suspended', role: 'Vendor', avatar: 'S' },
-    { id: 3, name: 'Banned User', email: 'banned@email.com', date: '2023-11-12', status: 'Banned', role: 'Regular', avatar: 'B' },
-    { id: 4, name: 'Pending User', email: 'pending@email.com', date: '2023-12-05', status: 'Pending', role: 'Vendor', avatar: 'S' },
+    { id: 1, name: 'Alex Mordern', email: 'alex@email.com', date: '20 Jan, 2022', status: 'Active', role: 'Regular', avatar: 'A' },
+    { id: 2, name: 'Sarah Konnor', email: 'sarah@email.com', date: '22 Feb, 2022', status: 'Suspended', role: 'Vendor', avatar: 'S' },
+    { id: 3, name: 'Bob Bansen', email: 'bob@email.com', date: '12 Mar, 2022', status: 'Banned', role: 'Regular', avatar: 'B' },
+    { id: 4, name: 'John Doe', email: 'john@email.com', date: '05 Apr, 2022', status: 'Pending', role: 'Vendor', avatar: 'S' },
 ];
-
-const userGrowthSeries = [
-    { month: 'Jan', users: 520 },
-    { month: 'Feb', users: 610 },
-    { month: 'Mar', users: 740 },
-    { month: 'Apr', users: 820 },
-    { month: 'May', users: 900 },
-    { month: 'Jun', users: 1030 },
-    { month: 'Jul', users: 1200 },
-    { month: 'Aug', users: 1320 },
-    { month: 'Sep', users: 1480 },
-    { month: 'Oct', users: 1620 },
-    { month: 'Nov', users: 1760 },
-    { month: 'Dec', users: 1940 },
-].map((point, index, array) => {
-    if (index === 0) {
-        return { ...point, growthRate: 0 };
-    }
-    const prev = array[index - 1].users;
-    const growthRate = prev ? ((point.users - prev) / prev) * 100 : 0;
-    return { ...point, growthRate: Number(growthRate.toFixed(1)) };
-});
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const latest = userGrowthSeries[userGrowthSeries.length - 1];
-    const latestGrowth = latest?.growthRate ?? 0;
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewDetails = (user: any) => {
+        setSelectedUser(user);
+        setIsModalOpen(true);
+    };
+
+    const getStatusStyles = (status: string) => {
+        switch (status) {
+            case "Active":
+                return "bg-[#10B981] text-white";
+            case "Pending":
+                return "bg-slate-200 text-slate-500";
+            case "Suspended":
+                return "bg-amber-100 text-amber-600";
+            case "Banned":
+                return "bg-red-100 text-red-600";
+            default:
+                return "bg-secondary text-muted-foreground";
+        }
+    };
 
     return (
         <div className="space-y-6">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground uppercase">All Users</h1>
-                    <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[9px]">Total Platform Users: {startUsers.length}</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/10 hover:bg-secondary/20 transition-all text-[10px] font-bold uppercase tracking-widest">
-                        <Download size={14} />
-                        Export
-                    </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-all text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20">
-                        <UserCheck size={14} />
-                        Add User
+            {/* Table Container */}
+            <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
+                {/* Custom Header Bar */}
+                <div className="p-3 md:p-4 flex w-full items-center justify-between border-b border-border/40">
+                    <h1 className="text-sm font-bold tracking-tight text-foreground uppercase px-2">All Users</h1>
+                    <button className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm">
+                        <UserPlus className="w-4 h-4" />
+                        <span className="hidden sm:inline uppercase tracking-widest text-[10px]">Add User</span>
                     </button>
                 </div>
-            </div>
 
-            {/* Growth Rate */}
-            <div className="bg-card border border-border/50 rounded-2xl p-4 md:p-6 shadow-sm">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-foreground">User Growth Rate</h2>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Monthly growth trend</p>
-                    </div>
-                    <div className="flex items-center gap-3 text-[11px] font-semibold text-muted-foreground">
-                        <div className="flex items-center gap-2 rounded-md border border-border/40 bg-secondary/10 px-3 py-1.5">
-                            <span className="text-[10px] uppercase tracking-widest">Total</span>
-                            <span className="text-foreground font-bold">{latest?.users ?? 0}</span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-md border border-border/40 bg-emerald-500/10 px-3 py-1.5 text-emerald-600">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                            <span className="text-[10px] uppercase tracking-widest">Growth</span>
-                            <span className="font-bold">{latestGrowth}%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-4 h-56 md:h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={userGrowthSeries} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
-                            <XAxis
-                                dataKey="month"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fill: "currentColor" }}
-                                dy={8}
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10, fill: "currentColor" }}
-                                tickFormatter={(val) => `${val}%`}
-                                domain={[0, 'dataMax + 6']}
-                            />
-                            <Tooltip
-                                cursor={{ stroke: "hsl(var(--border))", strokeDasharray: "3 3" }}
-                                content={({ active, payload, label }) => {
-                                    if (active && payload && payload.length) {
-                                        return (
-                                            <div className="bg-popover text-popover-foreground border border-border text-xs font-bold px-3 py-2 rounded-lg shadow-xl">
-                                                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
-                                                <div className="mt-1">Growth: {(payload[0].value as number).toFixed(1)}%</div>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                }}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="growthRate"
-                                stroke="var(--color-primary)"
-                                strokeWidth={2.5}
-                                dot={{ r: 3, strokeWidth: 2, fill: "var(--color-primary)" }}
-                                activeDot={{ r: 5 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* Filters Bar */}
-            <div className="flex flex-col md:flex-row gap-4 p-4 bg-card border border-border/50 rounded-[24px]">
-                <div className="flex-1 relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-primary transition-colors" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search users by name, email or ID..."
-                        className="w-full pl-12 pr-4 py-2.5 bg-secondary/5 border-none rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 transition-all"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <select className="appearance-none pl-4 pr-10 py-3 bg-secondary/5 border-none rounded-xl text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-secondary/10 transition-all focus:ring-2 focus:ring-primary/20">
-                            <option>All Roles</option>
-                            <option>Regular</option>
-                            <option>Vendors</option>
-                            <option>Admins</option>
-                        </select>
-                        <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 pointer-events-none" size={12} />
-                    </div>
-                    <div className="relative">
-                        <select className="appearance-none pl-4 pr-10 py-2.5 bg-secondary/5 border-none rounded-xl text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-secondary/10 transition-all focus:ring-2 focus:ring-primary/20">
-                            <option>All Status</option>
-                            <option>Active</option>
-                            <option>Suspended</option>
-                            <option>Banned</option>
-                            <option>Pending</option>
-                        </select>
-                        <Filter className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/30 pointer-events-none" size={12} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Users Table */}
-            <div className="bg-card border border-border/50 rounded-[32px] overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                            <tr className="bg-secondary/5 border-b border-border/50">
-                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">User Details</th>
-                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Contact</th>
-                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Account Info</th>
-                                <th className="px-6 py-4 text-left text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Status</th>
-                                <th className="px-6 py-4 text-right text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">Actions</th>
+                            <tr className="border-b border-border/50 text-[13px] font-bold text-muted-foreground/70 tracking-wide uppercase">
+                                <th className="pb-4 font-bold pl-4 md:pl-6 w-[25%]">User Details</th>
+                                <th className="pb-4 font-bold w-[25%]">Contact</th>
+                                <th className="pb-4 font-bold w-[20%]">Account Info</th>
+                                <th className="pb-4 font-bold w-[15%]">Status</th>
+                                <th className="pb-4 text-center font-bold pr-4 md:pr-6 w-[15%]">Options</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border/30">
+                        <tbody className="text-sm">
                             {startUsers.map((user) => (
-                                <tr key={user.id} className="group hover:bg-secondary/5 transition-colors">
-                                    <td className="px-6 py-4">
+                                <tr key={user.id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
+                                    <td className="py-4 pl-4 md:pl-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-9 w-9 rounded-full bg-blue-600/10 border border-blue-600/20 flex items-center justify-center text-sm font-bold text-blue-600 shadow-inner">
+                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20">
                                                 {user.avatar}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{user.name}</span>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest opacity-30">ID: CPM-{user.id.toString().padStart(4, '0')}</span>
+                                                <span className="font-bold text-foreground group-hover:text-primary transition-colors">{user.name}</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">ID: CPM-{user.id.toString().padStart(4, '0')}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-foreground/70">
-                                                <Mail size={12} className="opacity-40" />
-                                                {user.email}
-                                            </div>
+                                    <td className="py-4">
+                                        <div className="flex items-center gap-2 font-medium text-foreground/80">
+                                            <Mail size={12} className="opacity-40" />
+                                            {user.email}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="py-4">
                                         <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-foreground/60">
-                                                <span className={cn(
-                                                    "px-2 py-0.5 rounded-md",
-                                                    user.role === 'Seller' ? "bg-blue-500/10 text-blue-600" : "bg-blue-500/10 text-blue-600"
-                                                )}>{user.role}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] opacity-30">
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded-md self-start">
+                                                {user.role}
+                                            </span>
+                                            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                                                 <Calendar size={10} />
                                                 Joined {user.date}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <StatusBadge status={user.status} />
+                                    <td className="py-4">
+                                        <span className={cn(
+                                            "px-4 py-1.5 text-[11px] font-bold rounded-md uppercase tracking-widest whitespace-nowrap",
+                                            getStatusStyles(user.status)
+                                        )}>
+                                            {user.status}
+                                        </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button className="p-2.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all" title="View Details">
-                                                <User size={16} />
-                                            </button>
-                                            <button className="p-2.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all" title="Suspend User">
-                                                <ShieldOff size={16} />
-                                            </button>
-                                            <button className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all">
-                                                <MoreHorizontal size={16} />
-                                            </button>
-                                        </div>
+                                    <td className="py-4 text-center pr-4 md:pr-6">
+                                        <button 
+                                            onClick={() => handleViewDetails(user)}
+                                            className="text-[11px] font-bold uppercase tracking-widest text-foreground/60 hover:text-primary transition-colors hover:bg-primary/5 px-4 py-2 rounded-xl whitespace-nowrap border border-border/40 group-hover:border-primary/20"
+                                        >
+                                            Details
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Footer Pagination (Simplified, following Products table style) */}
+                <div className="p-4 md:p-6 border-t border-border/40 flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">Showing {startUsers.length} entries</span>
+                    <div className="flex items-center gap-2">
+                        <button className="px-4 py-2 rounded-xl border border-border/50 bg-secondary/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-secondary/20 transition-all">Prev</button>
+                        <button className="w-8 h-8 rounded-xl bg-primary text-primary-foreground text-[10px] font-bold shadow-lg shadow-primary/20">1</button>
+                        <button className="px-4 py-2 rounded-xl border border-border/50 bg-secondary/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-secondary/20 transition-all">Next</button>
+                    </div>
+                </div>
             </div>
+
+            {/* Modal */}
+            <AdminUserDetailsModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                user={selectedUser}
+            />
         </div>
     );
-};
+}

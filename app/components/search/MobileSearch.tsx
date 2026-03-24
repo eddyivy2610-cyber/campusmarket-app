@@ -28,13 +28,13 @@ export function MobileSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search products, sellers..."
-                className="w-full bg-black/30 border border-white/20 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-white/15 focus:border-white/30 transition-shadow text-white placeholder:text-white/70"
+                className="w-full bg-black/5 dark:bg-black/30 border border-black/10 dark:border-white/20 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-white/70"
             />
             {query && (
                 <button
                     type="button"
                     onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 text-white/70 hover:text-white transition-colors"
+                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 text-black/50 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
                 >
                     <X className="w-4 h-4" />
                 </button>

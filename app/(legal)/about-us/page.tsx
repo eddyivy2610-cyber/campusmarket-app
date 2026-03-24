@@ -22,10 +22,10 @@ export default function AboutUs() {
                                 <h1 className="text-2xl md:text-3xl font-extrabold text-foreground">Our Story</h1>
                                 <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
                                     <p>
-                                        Campus Market was born out of a simple need: creating a safe, centralized, and student-focused marketplace for university communities. We understand the unique challenges and opportunities of campus life.
+                                        Campus Hive was born out of a simple need: creating a safe, centralized, and student-focused marketplace for university communities. We understand the unique challenges and opportunities of campus life.
                                     </p>
                                     <p>
-                                        We connect buyers and sellers within the same university community. Whether you&apos;re looking to sell textbooks from last semester, find affordable dorm furniture, or offer freelance design services, Campus Market provides the dedicated space to do it safely.
+                                        We connect buyers and sellers within the same university community. Whether you&apos;re looking to sell textbooks from last semester, find affordable dorm furniture, or offer freelance design services, Campus Hive provides the dedicated space to do it safely.
                                     </p>
                                     <p>
                                         We aim to foster a circular campus economy, making college living more affordable, sustainable, and connected.

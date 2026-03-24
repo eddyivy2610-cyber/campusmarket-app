@@ -33,7 +33,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
         <div className="space-y-6 text-center">
             <div className="space-y-2">
                 <h2 className="text-xl font-semibold font-heading">Almost there!</h2>
-                <p className="text-sm text-muted-foreground">What do you want to use Campus Market for?</p>
+                <p className="text-sm text-muted-foreground">What do you want to use Campus Hive for?</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

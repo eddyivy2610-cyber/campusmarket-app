@@ -15,7 +15,7 @@ export default function UsagePolicy() {
                 <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-primary mb-10 border-b border-border pb-6">Last Updated: March 23, 2025</p>
 
                 <p className="text-sm md:text-base text-muted-foreground font-medium mb-12 leading-relaxed">
-                    This document outlines the operational rules for using Campus Market, including eligibility, account types, and how you may list and review items.
+                    This document outlines the operational rules for using Campus Hive, including eligibility, account types, and how you may list and review items.
                 </p>
             </motion.div>
 
@@ -24,7 +24,7 @@ export default function UsagePolicy() {
                 <div className="text-sm text-muted-foreground space-y-4">
                     <ul className="list-disc pl-6 space-y-3 mt-4 marker:text-primary">
                         <li>You must be at least 18 years old to register.</li>
-                        <li>Campus Market is designed for university communities within Nigeria.</li>
+                        <li>Campus Hive is designed for university communities within Nigeria.</li>
                         <li>You must have the legal capacity to enter into binding contracts.</li>
                     </ul>
                 </div>

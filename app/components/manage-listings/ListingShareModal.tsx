@@ -42,7 +42,7 @@ export function ListingShareModal({ listing, onClose }: ListingShareModalProps) 
                         <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                             <span className="text-[8px] font-bold text-primary-foreground">CM</span>
                         </div>
-                        <span className="text-xs font-semibold tracking-tight">Campus Market</span>
+                        <span className="text-xs font-semibold tracking-tight">Campus Hive</span>
                     </div>
 
                     {/* Product Image */}

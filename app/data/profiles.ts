@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @BACKEND: MOCK DATA — This entire file contains hardcoded user/vendor profiles for prototyping.
  *
  * Replace with:
@@ -68,7 +68,7 @@ export interface Profile {
 export const PROFILES: Profile[] = [
     {
         id: "vendor-1",
-        name: "Campus Market Official",
+        name: "Campus Hive Official",
         handle: "campus-market",
         bio: "Your one-stop shop for all campus essentials. High quality, student prices.",
         rating: 4.9,
@@ -94,7 +94,7 @@ export const PROFILES: Profile[] = [
         followers: 1240,
         tags: ["official", "trusted", "essentials"],
         businessInfo: {
-            extendedBio: "Campus Market is the premier platform for student-to-student commerce at Ahmadu Bello University. We curate the best deals and ensure a safe trading environment for everyone.",
+            extendedBio: "Campus Hive is the premier platform for student-to-student commerce at Ahmadu Bello University. We curate the best deals and ensure a safe trading environment for everyone.",
             policies: "7-day return policy for faulty electronics. Meetups only in public campus areas.",
             hours: "Mon - Sat: 9:00 AM - 6:00 PM"
         },

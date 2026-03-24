@@ -245,7 +245,7 @@ export default function AddListingPage() {
                                 </label>
                                 <label className="flex items-start gap-2 text-sm font-semibold">
                                     <input type="checkbox" checked={formData.confirmSafety} onChange={(e) => setField("confirmSafety", e.target.checked)} className="mt-1 accent-primary" />
-                                    I agree to the Campus Market safety and posting guidelines.
+                                    I agree to the Campus Hive safety and posting guidelines.
                                 </label>
                             </div>
 

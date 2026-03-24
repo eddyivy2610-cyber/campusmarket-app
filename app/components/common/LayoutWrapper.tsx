@@ -8,8 +8,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isDashboard = pathname.startsWith("/dashboard");
     const isMessages = pathname.startsWith("/messages");
+    const isAdmin = pathname.startsWith("/admin");
 
-    if (isDashboard || isMessages) {
+    if (isDashboard || isMessages || isAdmin) {
         return <>{children}</>;
     }
 

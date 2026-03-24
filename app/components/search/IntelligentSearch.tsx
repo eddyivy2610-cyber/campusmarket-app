@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @BACKEND: SEARCH — Currently filters local mock data arrays (PRODUCTS, PROFILES) client-side.
  *
  * Replace with:
@@ -99,9 +99,9 @@ export function IntelligentSearch() {
             <form
                 onSubmit={handleSearchSubmit}
                 className={`
-                flex items-center w-full h-12 bg-black/30 rounded-2xl overflow-hidden transition-all duration-300 
-                border border-white/20
-                ${isOpen ? 'bg-black/45 ring-2 ring-white/15 border-white/30 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-white/15 focus-within:bg-black/35 focus-within:border-white/30'}
+                flex items-center w-full h-12 bg-black/5 dark:bg-black/30 rounded-2xl overflow-hidden transition-all duration-300 
+                border border-black/10 dark:border-white/20
+                ${isOpen ? 'bg-white dark:bg-black/45 ring-2 ring-primary/20 border-primary/30 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white dark:focus-within:bg-black/35 focus-within:border-primary/30'}
             `}>
                 <input
                     ref={inputRef}
@@ -110,14 +110,14 @@ export function IntelligentSearch() {
                     onChange={handleSearch}
                     onFocus={() => setIsOpen(true)}
                     placeholder="Search for products, brands and more..."
-                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-white/70 text-white font-heading w-full pl-5"
+                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-black/50 dark:placeholder:text-white/70 text-black dark:text-white font-heading w-full pl-5"
                 />
 
                 {query && (
                     <button
                         type="button"
                         onClick={() => { setQuery(""); setProductResults([]); setProfileResults([]); inputRef.current?.focus(); }}
-                        className="p-2 text-white/70 hover:text-white transition-colors"
+                        className="p-2 text-black/50 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>

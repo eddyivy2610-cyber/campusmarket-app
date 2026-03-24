@@ -32,7 +32,7 @@ export default function CommunityRules() {
                                     <li>Communicate honestly and transparently in all your interactions.</li>
                                     <li>Honor your commitments and transaction agreements.</li>
                                     <li>Respect the privacy and personal boundaries of all community members.</li>
-                                    <li>Use Campus Market solely for its intended purpose of C2C university commerce.</li>
+                                    <li>Use Campus Hive solely for its intended purpose of C2C university commerce.</li>
                                 </ul>
                             </motion.div>
 
@@ -75,7 +75,7 @@ export default function CommunityRules() {
                             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp} className="space-y-3">
                                 <h2 className="text-[13px] font-semibold text-foreground">3. Harassment & Bullying (Zero Tolerance)</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    Campus Market maintains a absolute zero-tolerance policy towards harassment. This includes repeated unwanted contact, threatening language, personal attacks or insults, and unauthorized sharing of personal information (doxxing). <strong className="text-foreground">Verified harassment will result in immediate and permanent account termination.</strong>
+                                    Campus Hive maintains a absolute zero-tolerance policy towards harassment. This includes repeated unwanted contact, threatening language, personal attacks or insults, and unauthorized sharing of personal information (doxxing). <strong className="text-foreground">Verified harassment will result in immediate and permanent account termination.</strong>
                                 </p>
                             </motion.div>
 
@@ -89,7 +89,7 @@ export default function CommunityRules() {
                             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp}>
                                 <div className="bg-primary/10 p-4 border border-primary/20 text-foreground text-sm">
                                     <p className="font-semibold mb-2">Notice a violation?</p>
-                                    <p className="text-xs md:text-sm text-muted-foreground">Help us keep Campus Market safe. If you see someone breaking these rules, please use the report button available on all profiles, listings, and message threads, or contact support directly.</p>
+                                    <p className="text-xs md:text-sm text-muted-foreground">Help us keep Campus Hive safe. If you see someone breaking these rules, please use the report button available on all profiles, listings, and message threads, or contact support directly.</p>
                                 </div>
                             </motion.div>
                         </div>

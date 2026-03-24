@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { 
     Flag, 
-    AlertTriangle,
-    CheckCircle2,
     Clock,
     User,
     ChevronRight,
@@ -24,16 +22,6 @@ const MOCK_REPORTS = [
         reason: "Attempted off-platform payment",
     },
     {
-        id: "REP-2025-002",
-        category: "Harassment",
-        priority: "High",
-        status: "In Review",
-        submittedAt: "45 mins ago",
-        reporter: { name: "Sarah K.", avatar: "S" },
-        against: { name: "Mike Johnson", type: "Buyer" },
-        reason: "Inappropriate language in chat",
-    },
-    {
         id: "REP-2025-003",
         category: "Fake item",
         priority: "Medium",
@@ -43,31 +31,12 @@ const MOCK_REPORTS = [
         against: { name: "Peter O.", type: "Vendor" },
         reason: "Item received was counterfeit",
     },
-    {
-        id: "REP-2025-004",
-        category: "Inappropriate photo",
-        priority: "Low",
-        status: "Resolved",
-        submittedAt: "1 day ago",
-        reporter: { name: "Grace E.", avatar: "G" },
-        against: { name: "Usman B.", type: "Vendor" },
-        reason: "Photo contains contact information",
-    },
 ];
 
-export default function AdminReportsPage() {
+export default function PendingReportsPage() {
     const [selectedReport, setSelectedReport] = useState<any>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
-    const filteredReports = useMemo(() => {
-        return MOCK_REPORTS.filter(r => 
-            r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            r.reporter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            r.against.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            r.category.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [searchQuery]);
 
     const handleViewReport = (report: any) => {
         setSelectedReport(report);
@@ -75,23 +44,28 @@ export default function AdminReportsPage() {
     };
 
     return (
-        <div className="space-y-8 pb-10">
+        <div className="space-y-6 pb-10">
+            {/* Simple Header for Sub-queue */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20 shadow-inner">
+                        <Clock size={20} />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-foreground leading-tight">Pending Triage</h2>
+                        <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-0.5">Newly reported items requiring initial review</p>
+                    </div>
+                </div>
+            </div>
 
-
-            {/* Main Table Section */}
             <div className="bg-card border border-border/50 rounded-[32px] overflow-hidden shadow-sm">
                 {/* Table Header */}
                 <div className="px-6 py-5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
-                            <Flag size={20} />
-                        </div>
-                        <div>
-                            <h3 className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">Reports Queue</h3>
-                            <p className="text-sm font-bold text-foreground">Active Investigations</p>
+                    <div className="flex items-center gap-2">
+                        <div className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold rounded-full border border-amber-500/20">
+                            {MOCK_REPORTS.length} PENDING
                         </div>
                     </div>
-
 
                 </div>
 
@@ -105,12 +79,11 @@ export default function AdminReportsPage() {
                                 <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Reporter</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Category</th>
                                 <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Priority</th>
-                                <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-right text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                            {filteredReports.map((report) => (
+                            {MOCK_REPORTS.map((report) => (
                                 <tr 
                                     key={report.id} 
                                     className="hover:bg-muted/30 transition-colors group cursor-pointer"
@@ -154,26 +127,9 @@ export default function AdminReportsPage() {
                                             {report.priority}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                            <div className={cn(
-                                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                                report.status === "Pending" ? "bg-amber-500 animate-pulse" :
-                                                report.status === "In Review" ? "bg-blue-500" :
-                                                "bg-emerald-500"
-                                            )} />
-                                            <span className="text-xs font-bold text-foreground/80">{report.status}</span>
-                                        </div>
-                                    </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button 
-                                            className="p-2 hover:bg-secondary rounded-lg transition-all text-muted-foreground hover:text-foreground"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleViewReport(report);
-                                            }}
-                                        >
-                                            <ChevronRight size={16} />
+                                        <button className="h-8 px-3 rounded-lg bg-secondary/50 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-primary hover:text-white transition-all">
+                                            Triage
                                         </button>
                                     </td>
                                 </tr>
@@ -181,28 +137,8 @@ export default function AdminReportsPage() {
                         </tbody>
                     </table>
                 </div>
-
-                {/* Table Footer */}
-                <div className="px-6 py-4 border-t border-border/50 bg-muted/5 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Showing {filteredReports.length} of {MOCK_REPORTS.length} reports</span>
-                    <div className="flex items-center gap-1">
-                        <button className="h-8 w-8 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-all disabled:opacity-30" disabled>
-                            <ChevronRight size={14} className="rotate-180" />
-                        </button>
-                        <button className="h-8 w-8 rounded-lg bg-primary text-white text-xs font-bold flex items-center justify-center shadow-lg shadow-primary/20">
-                            1
-                        </button>
-                        <button className="h-8 w-8 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-all">
-                            2
-                        </button>
-                        <button className="h-8 w-8 rounded-lg border border-border/50 flex items-center justify-center text-muted-foreground hover:bg-secondary transition-all">
-                            <ChevronRight size={14} />
-                        </button>
-                    </div>
-                </div>
             </div>
 
-            {/* Modals */}
             <AdminReportDetailModal 
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}

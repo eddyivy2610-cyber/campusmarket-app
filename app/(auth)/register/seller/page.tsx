@@ -124,7 +124,7 @@ export default function SellerRegisterPage() {
     };
 
     const stepInfo = {
-        0: { title: "Become a Seller", subtitle: "Start your selling journey on Campus Market" },
+        0: { title: "Become a Seller", subtitle: "Start your selling journey on Campus Hive" },
         1: { title: "Brand Identity", subtitle: "Give your business a name" },
         2: { title: "Verification", subtitle: "Confirm your student status" },
         3: { title: "Store Setup", subtitle: "Tell us about your business" },

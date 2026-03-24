@@ -197,7 +197,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                             <ProUpgradePrompt
                                 title="Unlock Seller Listings"
                                 featureName="your seller listings"
-                                description="Upgrade to a Pro account to display your items to the Campus Market community."
+                                description="Upgrade to a Pro account to display your items to the Campus Hive community."
                             />
                         ) : (
                             <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />

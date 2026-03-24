@@ -99,7 +99,7 @@ export default function RegisterPage() {
         1: { title: "Create your account", subtitle: "Let's get started with your email and password" },
         2: { title: "Profile Information", subtitle: "Tell us about yourself" },
         3: { title: "Student Status", subtitle: "Help us personalize your experience" },
-        4: { title: "Final Choice", subtitle: "How will you use Campus Market?" },
+        4: { title: "Final Choice", subtitle: "How will you use Campus Hive?" },
     };
 
     return (
