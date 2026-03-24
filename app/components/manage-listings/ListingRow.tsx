@@ -22,6 +22,8 @@ export function ListingRow({ listing, isSelected, onSelect, onViewShare }: Listi
     const isSold = listing.id === 2;
     const isHidden = false;
 
+    const isUrgent = listing.tags.some((tag) => tag.toLowerCase() === "urgent");
+
     // Status Badge Logic
     let StatusBadge = () => (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
@@ -75,7 +77,7 @@ export function ListingRow({ listing, isSelected, onSelect, onViewShare }: Listi
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-bold text-base group-hover:text-primary transition-colors line-clamp-1">{listing.title}</h3>
-                            {listing.category === 'Urgent' && (
+                            {isUrgent && (
                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-600 uppercase">Urgent</span>
                             )}
                         </div>
