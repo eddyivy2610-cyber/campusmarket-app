@@ -2,19 +2,12 @@
 
 import { ShieldCheck } from "lucide-react";
 
+import type { DashboardProductRow } from "./DashboardProductsTable";
+
 export interface EditListingCardProps {
-    listing: {
-        name: string;
-        status: string;
-        price: number;
-        category: string;
-        condition: string;
-        location: string;
-        dateListed: string;
-        views: number;
-        messages: number;
-        orders: number;
-        offers: number;
+    listing: DashboardProductRow & {
+        condition?: string;
+        location?: string;
     };
 }
 
@@ -66,9 +59,9 @@ export function EditListingCard({ listing }: EditListingCardProps) {
 
                 <div className="mt-1 grid gap-1 sm:grid-cols-3">
                     {[
-                        { label: "Condition", value: listing.condition },
+                        { label: "Condition", value: listing.condition ?? "Used" },
                         { label: "Category", value: listing.category },
-                        { label: "Location", value: listing.location },
+                        { label: "Location", value: listing.location ?? "Campus" },
                     ].map((item) => (
                         <div key={item.label} className="space-y-1">
                             <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">{item.label}</p>

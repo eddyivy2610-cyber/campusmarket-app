@@ -14,6 +14,12 @@ interface Props {
 export function EditListingModal({ listing, isOpen, onClose }: Props) {
     if (!isOpen) return null;
 
+    const editListing = {
+        ...listing,
+        condition: "Used",
+        location: "Campus",
+    };
+
     return (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <motion.div
@@ -33,7 +39,7 @@ export function EditListingModal({ listing, isOpen, onClose }: Props) {
                     </button>
                 </div>
                 <div className="max-h-[70vh] overflow-y-auto px-5 pb-4 pt-3">
-                    <EditListingCard listing={listing} />
+                    <EditListingCard listing={editListing} />
                 </div>
             </motion.div>
         </div>
