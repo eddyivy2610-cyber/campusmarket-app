@@ -4,7 +4,7 @@
  * Replace with:
  *   - Product data should come from API responses (already typed via ProductProps interface)
  *   - Save/unsave toggle should call POST/DELETE /api/users/me/saved/:id
- *   - Quick View should fetch full product data from GET /api/products/:id if not already loaded
+ *   - Quick View should fetch full product data from GET /api/products/:id 
  */
 
 import React, { useState } from "react";
@@ -130,7 +130,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
 
             {/* Content — completely transparent, close-knit text */}
             <div className="pt-2 pb-1 flex-1 flex flex-col relative z-2 pointer-events-none bg-transparent">
-                <h3 className="font-heading font-medium text-[13px] md:text-sm text-foreground/90 leading-snug line-clamp-2 group-hover:text-amber-800 transition-colors flex-1" title={product.title}>
+                <h3 className="font-heading font-medium text-[13px] md:text-sm text-foreground/90 leading-snug line-clamp-2 group-hover:text-amber-800 dark:group-hover:text-amber-300 transition-colors flex-1" title={product.title}>
                     {product.title}
                 </h3>
 

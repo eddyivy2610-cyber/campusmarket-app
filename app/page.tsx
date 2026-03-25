@@ -9,7 +9,7 @@ import { Footer } from "./components/sections/Footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#faf7ef] text-foreground selection:bg-primary/20">
+     <div className="min-h-screen bg-[#faf7ef] dark:bg-background text-foreground selection:bg-primary/20">
         <div className="max-w-[1780px] mx-auto px-4 md:px-8 overflow-visible">
 
           <div className="flex gap-5 lg:gap-6 items-start overflow-visible">
@@ -29,8 +29,8 @@ export default function Home() {
               <section className="w-full pt-4 pb-2">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-3 h-5 bg-[#FFD700]/80 rounded-none shadow-sm" />
-                  <h2 className="text-sm md:text-base font-bold text-black uppercase tracking-wider">
-                    Recommended
+                  <h2 className="text-sm md:text-base font-bold text-black dark:text-foreground uppercase tracking-wider">
+                    For You
                   </h2>
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-2">
