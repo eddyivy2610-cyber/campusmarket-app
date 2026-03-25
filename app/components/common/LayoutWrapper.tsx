@@ -9,8 +9,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const isDashboard = pathname.startsWith("/dashboard");
     const isMessages = pathname.startsWith("/messages");
     const isAdmin = pathname.startsWith("/admin");
+    const isLanding = pathname === "/";
 
-    if (isDashboard || isMessages || isAdmin) {
+    if (isDashboard || isMessages || isAdmin || isLanding) {
         return <>{children}</>;
     }
 

@@ -15,34 +15,34 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
     return (
         <div
-           className={`absolute top-full left-0 right-0 mt-2 w-full max-w-none max-h-[60vh] overflow-y-auto bg-white/95 dark:bg-card/95 backdrop-blur-md text-black dark:text-foreground font-heading rounded-xl border border-black/10 dark:border-border/70 shadow-[0_18px_40px_rgba(40,30,10,0.18)] dark:shadow-[0_18px_40px_rgba(0,0,0,0.45)] transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
-                ? 'opacity-100 scale-100 visible'
-                : 'opacity-0 scale-95 invisible'
+           className={`absolute top-full left-0 right-0 w-full max-w-none max-h-[60vh] overflow-y-auto bg-white dark:bg-card text-foreground font-heading rounded-2xl border border-border shadow-[0_18px_40px_rgba(0,0,0,0.15)] transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
+                ? 'opacity-100 translate-y-2 visible'
+                : 'opacity-0 translate-y-0 invisible'
                 }`}
         >
-            <div className="px-3 py-3 bg-[#fff9e6] dark:bg-secondary/50 border-b border-[#efe3cf] dark:border-border/70 text-center">
+            <div className="px-3 py-3 border-b border-border/60 text-center">
                 {!user ? (
                     <div className="flex flex-col gap-2">
                         <Link
                             href="/login"
-                            className="w-full py-2 bg-[#FFD700] text-black text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#f5dc48] transition-all active:scale-95"
+                            className="w-full py-2 bg-[#FFD700] text-black text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#F0C900] transition-all active:scale-95 shadow-sm"
                         >
-                            Login
+                            LOGIN
                         </Link>
-                        <p className="text-[10px] text-black/60 dark:text-foreground/70 font-medium">
+                        <p className="text-[10px] text-foreground/70 font-medium">
                             New here? <Link href="/register" className="text-[#FFD700] font-bold hover:underline">Create account</Link>
                         </p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-2">
-                        <div className="text-left mb-1">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-black/50 dark:text-foreground/60 mb-0.5">Signed in as</p>
-                            <p className="text-sm font-bold text-black dark:text-foreground truncate">{user.name}</p>
-                            <p className="text-[10px] text-black/60 dark:text-foreground/70 truncate">{user.email}</p>
+                    <div className="flex flex-col gap-1.5">
+                        <div className="text-left mb-0.5">
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/50 mb-0.5">Signed in as</p>
+                            <p className="text-xs font-bold text-foreground truncate">{user.name}</p>
+                            <p className="text-[10px] text-foreground/70 truncate">{user.email}</p>
                         </div>
                         <button
                             onClick={logout}
-                            className="w-full py-2 bg-white dark:bg-card border border-[#efe3cf] dark:border-border/70 text-black dark:text-foreground text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/30 transition-all active:scale-95 mt-1"
+                            className="w-full py-2 bg-card border border-border text-foreground text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all active:scale-95 shadow-sm mt-1"
                         >
                             Logout
                         </button>
@@ -51,36 +51,37 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
             </div>
 
             {/* Menu Links */}
-            <div className="py-1.5 px-1.5 space-y-0.5">
-                <Link href="/profile/campus-market" className="flex items-center justify-between px-2.5 py-2 rounded-lg border border-transparent bg-white dark:bg-transparent hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10 transition-all duration-200 group">
-                    <div className="flex items-center gap-2 text-[11px] font-heading font-bold text-black dark:text-foreground group-hover:text-black dark:group-hover:text-foreground">
-                        <span className="w-6 h-6 rounded-md bg-[#fff3c6] dark:bg-white/10 text-black dark:text-foreground flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
-                            <User className="w-3.5 h-3.5" />
+            <div className="p-1.5 space-y-0.5">
+                <Link href="/profile/campus-market" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
+                            <User className="w-[14px] h-[14px]" strokeWidth={1.5} />
                         </span>
                         <span>My Profile</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-black/60 dark:text-foreground/70 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/messages" className="flex items-center justify-between px-2.5 py-2 rounded-lg border border-transparent bg-white dark:bg-transparent hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10 transition-all duration-200 group">
-                    <div className="flex items-center gap-2 text-[11px] font-heading font-bold text-black dark:text-foreground group-hover:text-black dark:group-hover:text-foreground">
-                        <span className="w-6 h-6 rounded-md bg-[#fff3c6] dark:bg-white/10 text-black dark:text-foreground flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
-                            <MessageSquare className="w-3.5 h-3.5" />
+
+                <Link href="/messages" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
+                            <MessageSquare className="w-[14px] h-[14px]" strokeWidth={1.5} />
                         </span>
                         <span>Messages</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-black/60 dark:text-foreground/70 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
-                <Link href="/settings" className="flex items-center justify-between px-2.5 py-2 rounded-lg border border-transparent bg-white dark:bg-transparent hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10 transition-all duration-200 group">
-                    <div className="flex items-center gap-2 text-[11px] font-heading font-bold text-black dark:text-foreground group-hover:text-black dark:group-hover:text-foreground">
-                        <span className="w-6 h-6 rounded-md bg-[#fff3c6] dark:bg-white/10 text-black dark:text-foreground flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
-                            <Settings className="w-3.5 h-3.5" />
+
+                <Link href="/settings" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
+                            <Settings className="w-[14px] h-[14px]" strokeWidth={1.5} />
                         </span>
                         <span>Settings</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-black/60 dark:text-foreground/70 transition-transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
             </div>
-
         </div>
     );
 }

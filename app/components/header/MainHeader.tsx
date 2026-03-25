@@ -40,23 +40,23 @@ export function MainHeader() {
     return (
         <>
             {/* ── Main header row ── */}
-            <div className="bg-background/80 dark:bg-card/80 text-foreground py-1 md:py-2 border-b border-border/50 backdrop-blur-md shadow-sm relative z-40 transition-colors">
-                <div className="w-full max-w-[1780px] mx-auto px-3 md:px-6 flex items-center gap-2 md:gap-4">
+            <div className="bg-black/60 text-white py-[11px] border-b border-white/10 backdrop-blur-md shadow-sm relative z-40 transition-colors">
+                <div className="w-full max-w-[1780px] mx-auto px-4 md:px-6 flex items-center gap-3 md:gap-4">
 
                     {/* Hamburger (mobile) */}
                     <button
                         onClick={() => setIsMenuOpen(true)}
-                        className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-border/50 bg-secondary/50 text-foreground hover:bg-secondary transition-colors shrink-0"
+                        className="md:hidden h-9 w-9 -ml-1 flex items-center justify-center rounded-md border border-white/20 bg-black/40 text-white hover:bg-black/60 transition-colors shrink-0"
                         aria-label="Open menu"
                     >
                         <LayoutGrid className="w-5 h-5" />
                     </button>
 
-                    {/* Logo */}
+                    {/* Logo - Matching Landing Page */}
                     <div className="flex-1 md:flex-none flex md:block justify-center">
                         <Link href="/" className="flex items-center gap-0 group" aria-label="CampusMarket Home">
-                            <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
-                                Hive
+                            <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                                Campus Hive
                             </span>
                         </Link>
                     </div>
@@ -67,17 +67,17 @@ export function MainHeader() {
                     </div>
 
                     {/* Right actions */}
-                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-secondary/20 backdrop-blur-lg border border-border/50 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm">
+                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-black/40 backdrop-blur-lg border border-white/10 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm text-white">
 
                         {/* Saved Items */}
                         <Link
                             href="/saved"
-                            className="flex items-center justify-center p-1 rounded-lg hover:bg-secondary/50 transition-colors text-foreground/70 relative group"
+                            className="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors text-white/90 relative group"
                             title="Saved Items"
                         >
-                            <Heart className="w-5 h-5 text-foreground shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                            <Heart className="w-5 h-5 text-white shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
                             {savedItems.length > 0 && (
-                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-primary text-primary-foreground text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background">
+                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-[#FFD700] text-black text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent">
                                     {savedItems.length}
                                 </span>
                             )}
@@ -87,37 +87,37 @@ export function MainHeader() {
                         <div className="relative z-40 hidden sm:flex">
                             <button
                                 onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                className="flex items-center justify-center p-1 rounded-lg hover:bg-secondary/50 transition-colors text-foreground/70 relative group"
+                                className="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors text-white/90 relative group"
                                 title="Notifications"
                             >
-                                <Bell className="w-4 h-4 text-foreground shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
-                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
+                                <Bell className="w-4 h-4 text-white shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent animate-pulse">
                                     3
                                 </span>
                             </button>
                             <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
                         </div>
 
-                        <div className="w-px h-6 bg-border/40 mx-1"></div>
+                        <div className="w-px h-6 bg-white/20 mx-1"></div>
 
                         {/* Account — visible on mobile too */}
                         <div className="pl-1">
                             <button
                                 onClick={() => setIsAccountOpen(!isAccountOpen)}
-                                className="flex items-center gap-2 text-foreground hover:text-foreground transition-colors group p-1 rounded-lg hover:bg-secondary/50 text-left"
+                                className="flex items-center gap-2 text-white hover:text-white transition-colors group p-1 rounded-lg hover:bg-white/10 text-left"
                             >
-                                <div className="bg-secondary p-1 rounded-md group-hover:bg-secondary/80 transition-colors">
-                                    <User className="w-3.5 h-3.5 text-foreground group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
+                                <div className="bg-white/10 p-1 rounded-md group-hover:bg-white/20 transition-colors border border-white/10">
+                                    <User className="w-3.5 h-3.5 text-white group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
                                 </div>
                                 <div className="hidden sm:flex flex-col leading-tight pr-1">
-                                    <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold group-hover:text-foreground transition-colors">
+                                    <span className="text-[9px] uppercase tracking-widest text-[#FFD700]/90 font-bold transition-colors">
                                         {user ? user.role : "Guest"}
                                     </span>
-                                    <span className="text-[11px] font-bold font-heading">
+                                    <span className="text-[12px] font-bold font-heading text-white tracking-wide">
                                         {user ? user.name.split(' ')[0] : "Account"}
                                     </span>
                                 </div>
-                                <ChevronDown className="w-3.5 h-3.5 text-foreground hidden sm:block mr-1 transition-colors" />
+                                <ChevronDown className="w-3.5 h-3.5 text-white/70 hidden sm:block mr-1 transition-colors group-hover:text-white" />
                             </button>
                         </div>
                         <AccountDropdown isOpen={isAccountOpen} />
@@ -127,7 +127,7 @@ export function MainHeader() {
 
             {/* ── Mobile search bar (below header) ── */}
             {!isSettingsPage && !isAuthPage && (
-                <div className="block md:hidden bg-gradient-to-r from-secondary/80 via-secondary/40 to-background border-b border-border/50 px-3 py-1 text-foreground">
+                <div className="block md:hidden bg-gradient-to-r from-black/80 via-black/60 to-black/80 border-b border-white/10 px-3 py-1">
                     <MobileSearch />
                 </div>
             )}
