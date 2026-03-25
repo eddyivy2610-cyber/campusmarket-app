@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { readStoredHeroBanners } from "../../lib/heroBanners";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function Hero() {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -41,7 +40,7 @@ export function Hero() {
     return (
         <div className="w-full lg:flex-1">
             {/* Main Banner Carousel */}
-            <div className="w-full aspect-[1170/600] max-w-[1260px] h-auto relative overflow-hidden rounded-[28px] border border-[#efe3cf] bg-white shadow-[0_24px_60px_rgba(50,40,20,0.08)]">
+            <div className="w-full aspect-[1170/600] max-w-[1260px] h-auto relative overflow-hidden rounded-[28px] border border-transparent bg-white dark:bg-card shadow-[0_24px_60px_rgba(50,40,20,0.08)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)]">
                 <div
                     className="flex w-full h-full transition-transform duration-700 ease-out"
                     style={{ transform: `translateX(-${currentSlide * 100}%)` }}
