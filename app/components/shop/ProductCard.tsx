@@ -135,7 +135,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                 </h3>
 
                 <div className="flex items-end gap-1.5 mt-1.5">
-                    <span className="font-price font-bold text-sm md:text-base text-amber-800">
+                    <span className="font-price font-bold text-sm md:text-base text-amber-800 dark:text-amber-300">
                         ₦{formatPrice(product.price)}
                     </span>
                 </div>
@@ -172,5 +172,4 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
         </motion.div>
     );
 }
-
 

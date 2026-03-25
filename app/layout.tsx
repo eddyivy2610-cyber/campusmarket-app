@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        style={{ ...fontVars}}
+        style={{ ...fontVars }}
         className={`${poppinsFont.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}
       >
         <ThemeProvider>
