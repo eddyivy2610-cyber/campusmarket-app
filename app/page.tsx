@@ -6,10 +6,11 @@ import { CategoriesSidebar } from "./components/home/CategoriesSidebar";
 import { ProductGrid } from "./components/home/ProductGrid";
 import { QuickActions } from "./components/home/QuickActions";
 import { Footer } from "./components/sections/Footer";
+import { SubHeroCategories } from "./components/home/SubHeroCategories";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#faf7ef] text-foreground selection:bg-primary/20">
+    <div className="min-h-screen bg-[#faf7ef] dark:bg-background text-foreground selection:bg-primary/20">
         <div className="max-w-[1780px] mx-auto px-4 md:px-8 overflow-visible">
 
           <div className="flex gap-5 lg:gap-6 items-start overflow-visible">
@@ -29,7 +30,7 @@ export default function Home() {
               <section className="w-full pt-4 pb-2">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-3 h-5 bg-[#FFD700]/80 rounded-none shadow-sm" />
-                  <h2 className="text-sm md:text-base font-bold text-black uppercase tracking-wider">
+                  <h2 className="text-sm md:text-base font-bold text-black dark:text-foreground uppercase tracking-wider">
                     Recommended
                   </h2>
                 </div>
@@ -38,7 +39,7 @@ export default function Home() {
                     <Link
                       key={product.id}
                       href={`/listings/${product.id}`}
-                      className="relative aspect-square rounded-xl overflow-hidden border border-[#efe3cf] bg-white shadow-[0_8px_18px_rgba(40,30,10,0.06)]"
+                      className="relative aspect-square rounded-xl overflow-hidden border border-[#efe3cf] dark:border-border/70 bg-white dark:bg-card shadow-[0_8px_18px_rgba(40,30,10,0.06)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
                     >
                       <Image
                         src={product.image}
@@ -50,6 +51,7 @@ export default function Home() {
                   ))}
                 </div>
               </section>
+              <SubHeroCategories />
 
               {/* Catalogue */}
               <section className="w-full pt-2 pb-8 md:pt-3 md:pb-10">
