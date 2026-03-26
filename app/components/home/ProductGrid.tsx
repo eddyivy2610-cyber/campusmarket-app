@@ -14,8 +14,8 @@ export function ProductGrid() {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const [visibleCount, setVisibleCount] = useState(HOME_PAGE_SIZE);
 
-    const exploreItems = useMemo(() => {
-        return Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
+    const buildExploreItems = () =>
+        Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
             const base = PRODUCTS[index % PRODUCTS.length];
             return {
                 ...base,
@@ -23,7 +23,8 @@ export function ProductGrid() {
                 originalPrice: Math.round(base.price * 1.2),
             };
         });
-    }, []);
+
+    const [exploreItems, setExploreItems] = useState(buildExploreItems);
 
     const visibleItems = useMemo(() => exploreItems.slice(0, visibleCount), [exploreItems, visibleCount]);
     const hasMore = visibleCount < exploreItems.length;
@@ -31,6 +32,16 @@ export function ProductGrid() {
     const itemVariants: Variants = {
         hidden: { opacity: 0, scale: 0.95, y: 20 },
         visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+    };
+
+    const shuffleItems = () => {
+        const shuffled = [...exploreItems];
+        for (let i = shuffled.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setExploreItems(shuffled);
+        setVisibleCount(HOME_PAGE_SIZE);
     };
 
     useEffect(() => {
@@ -77,6 +88,20 @@ export function ProductGrid() {
                 {hasMore && (
                     <div ref={sentinelRef} className="mt-8 flex justify-center pb-8">
                         <div className="w-7 h-7 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    </div>
+                )}
+
+                {!hasMore && (
+                    <div className="mt-10 flex flex-col items-center gap-3 pb-8">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                            You are all caught up for now
+                        </p>
+                        <button
+                            onClick={shuffleItems}
+                            className="px-5 py-2 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest shadow-sm hover:bg-primary/90 transition-colors"
+                        >
+                            Refresh
+                        </button>
                     </div>
                 )}
             </section>

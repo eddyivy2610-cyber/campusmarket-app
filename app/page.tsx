@@ -379,10 +379,9 @@ export default function LandingPage() {
                 >
                   <img
                     src={CAT_IMAGES[cat.name] || "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&q=80"}
-                    alt={cat.name}
+                    alt=""
                   />
                   <div className="lp-cat-info">
-                    <span className="lp-cat-icon">{cat.icon}</span>
                     <span className="lp-cat-name">{cat.name}</span>
                   </div>
                 </div>

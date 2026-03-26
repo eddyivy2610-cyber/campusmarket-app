@@ -31,7 +31,7 @@ function ProfileList({ title, profiles }: { title: string; profiles: ProfileItem
         <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold font-heading text-lg">{title}</h3>
-                <Link href="#" className="text-xs font-semibold text-primary hover:underline">
+                <Link href="/coming-soon" className="text-xs font-semibold text-primary hover:underline">
                     View All
                 </Link>
             </div>

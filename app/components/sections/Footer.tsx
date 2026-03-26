@@ -1,10 +1,18 @@
 "use client";
 
-import { Facebook, Twitter, Instagram, Linkedin, MapPin, Mail, Phone, Clock } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, MapPin, Mail, Phone, Clock, CheckCircle2, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export function Footer() {
+    const [showSubscribeNotice, setShowSubscribeNotice] = useState(false);
+
+    useEffect(() => {
+        if (!showSubscribeNotice) return;
+        const timer = setTimeout(() => setShowSubscribeNotice(false), 2600);
+        return () => clearTimeout(timer);
+    }, [showSubscribeNotice]);
     return (
         <footer className="w-full bg-black text-white pt-14 pb-8 border-t border-white/10 font-heading">
             <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12 space-y-10">
@@ -19,10 +27,10 @@ export function Footer() {
                             The premier marketplace and community hub for university students.
                         </p>
                         <div className="flex gap-4">
-                            <Link href="#" className="text-white/70 hover:text-yellow-300 transition-colors"><Facebook className="w-5 h-5" /></Link>
-                            <Link href="#" className="text-white/70 hover:text-yellow-300 transition-colors"><Twitter className="w-5 h-5" /></Link>
-                            <Link href="#" className="text-white/70 hover:text-yellow-300 transition-colors"><Instagram className="w-5 h-5" /></Link>
-                            <Link href="#" className="text-white/70 hover:text-yellow-300 transition-colors"><Linkedin className="w-5 h-5" /></Link>
+                            <Link href="/coming-soon" className="text-white/70 hover:text-yellow-300 transition-colors"><Facebook className="w-5 h-5" /></Link>
+                            <Link href="/coming-soon" className="text-white/70 hover:text-yellow-300 transition-colors"><Twitter className="w-5 h-5" /></Link>
+                            <Link href="/coming-soon" className="text-white/70 hover:text-yellow-300 transition-colors"><Instagram className="w-5 h-5" /></Link>
+                            <Link href="/coming-soon" className="text-white/70 hover:text-yellow-300 transition-colors"><Linkedin className="w-5 h-5" /></Link>
                         </div>
 
                         <div className="pt-6 mt-4 border-t border-white/10">
@@ -109,7 +117,13 @@ export function Footer() {
                             Campus news, marketplace tips, and exclusive deals - straight to your inbox.
                         </p>
                     </div>
-                    <form className="flex flex-col sm:flex-row gap-2 sm:items-center sm:shrink-0">
+                    <form
+                        className="flex flex-col sm:flex-row gap-2 sm:items-center sm:shrink-0"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            setShowSubscribeNotice(true);
+                        }}
+                    >
                         <input type="text" placeholder="Your name" className="px-3 py-2 rounded-lg bg-black/40 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-yellow-300/60 text-white transition-colors w-full sm:w-36" />
                         <input type="email" placeholder="Your email" className="px-3 py-2 rounded-lg bg-black/40 border border-white/20 placeholder:text-white/50 text-sm focus:outline-none focus:border-yellow-300/60 text-white transition-colors w-full sm:w-44" />
                         <button className="bg-yellow-300 text-black font-bold px-5 py-2 rounded-lg hover:bg-yellow-200 transition-colors text-sm shadow-sm whitespace-nowrap">
@@ -126,6 +140,25 @@ export function Footer() {
                     </div>
                 </div>
             </div>
+            {showSubscribeNotice && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="w-full max-w-sm rounded-2xl bg-card border border-border/60 shadow-xl p-5 text-center">
+                        <div className="mx-auto mb-3 h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <h3 className="text-sm font-bold text-foreground mb-1">Subscription Confirmed</h3>
+                        <p className="text-xs text-muted-foreground mb-4">
+                            You will now receive updates from Hive.
+                        </p>
+                        <button
+                            onClick={() => setShowSubscribeNotice(false)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </footer>
     );
 }

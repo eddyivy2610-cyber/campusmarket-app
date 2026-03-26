@@ -81,7 +81,7 @@ export function RelatedProducts({ vendorName, vendorListings, similarItems }: Re
             <ProductScroller
                 title={`More from ${vendorName}`}
                 items={vendorListings}
-                viewAllHref="#"
+            viewAllHref="/coming-soon"
                 badge={
                     <div className="w-7 h-7 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
                         <LayoutGrid className="w-3.5 h-3.5 opacity-70" />
@@ -92,7 +92,7 @@ export function RelatedProducts({ vendorName, vendorListings, similarItems }: Re
             <ProductScroller
                 title="Similar Items"
                 items={similarItems}
-                viewAllHref="#"
+            viewAllHref="/coming-soon"
                 badge={
                     <div className="w-7 h-7 rounded-lg bg-amber-500/5 flex items-center justify-center text-amber-500 shrink-0 border border-amber-500/10">
                         <Sparkles className="w-3.5 h-3.5 fill-current opacity-70" />
