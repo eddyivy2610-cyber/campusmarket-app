@@ -354,17 +354,27 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                         {viewAs === 'private' ? (
                             <>
-                                <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
-                                <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
-                                    Dashboard
-                                </button>
-                                </Link>
+                                {profile.accountType === "Pro" ? (
+                                    <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
+                                        <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                            Dashboard
+                                        </button>
+                                    </Link>
+                                ) : (
+                                    <Link href="/messages" className="flex-1 md:flex-none w-full md:w-auto">
+                                        <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                            Messages
+                                        </button>
+                                    </Link>
+                                )}
                             </>
                         ) : (
                             <>
-                                <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
-                                    Message
-                                </button>
+                                <Link href="/messages" className="flex-1 md:flex-none w-full md:w-auto">
+                                    <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                        Messages
+                                    </button>
+                                </Link>
                                 <button
                                     className="flex-1 md:flex-none flex items-center justify-center bg-[#fff3c6] text-black font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-[#FFD700]/30 hover:bg-[#FFD700]/20 active:scale-95 transition-all"
                                     aria-label="Follow"

@@ -10,6 +10,7 @@ import {
     EyeOff,
     Share2,
     ChevronDown,
+    Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -131,6 +132,7 @@ const getStatusText = (status: string) => {
 
 export function DashboardProductsTable() {
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
     const [editingListing, setEditingListing] = useState<DashboardProductRow | null>(null);
     const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
         status: null,
@@ -185,6 +187,19 @@ export function DashboardProductsTable() {
                 return "bg-secondary text-muted-foreground";
         }
     };
+    const getStatusDotClass = (status: string) => {
+        switch (status) {
+            case "Available":
+                return "bg-emerald-500";
+            case "In Review":
+            case "Preorder":
+                return "bg-slate-400";
+            case "Sold Out":
+                return "bg-rose-500";
+            default:
+                return "bg-muted-foreground/40";
+        }
+    };
 
     const toggleFilterMenu = (column: FilterKey) => {
         setActiveFilterColumn((prev) => (prev === column ? null : column));
@@ -227,17 +242,154 @@ export function DashboardProductsTable() {
 
     return (
         <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
-            <div className="p-3 md:p-4 flex w-full items-center justify-end border-b border-border/40">
-                <Link
-                    href="/dashboard/products/add"
-                    className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Add Listing</span>
-                </Link>
+            <div className="p-4 md:p-5 border-b border-border/40">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold font-heading">Products</span>
+                    </div>
+                    <button
+                        className="h-9 w-9 rounded-full border border-border/60 bg-secondary/40 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                        aria-label="Search products"
+                    >
+                        <Search className="w-4 h-4" />
+                    </button>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                    <Link
+                        href="/dashboard/products/add"
+                        className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add Listing</span>
+                        <span className="sm:hidden">Create New</span>
+                    </Link>
+                </div>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 md:hidden">
+                    <select
+                        value={filters.status ?? ""}
+                        onChange={(e) => applyFilter("status", e.target.value || null)}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
+                    >
+                        <option value="">Status</option>
+                        {STATUS_OPTIONS.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={filters.price ?? ""}
+                        onChange={(e) => applyFilter("price", e.target.value || null)}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
+                    >
+                        <option value="">Price</option>
+                        {PRICE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2" data-lenis-prevent>
+            <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                {filteredProducts.map((prod) => {
+                    const isOpen = expandedId === prod.id;
+                    return (
+                        <div key={prod.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                            <button
+                                onClick={() => setExpandedId(isOpen ? null : prod.id)}
+                                className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl overflow-hidden border border-border/40 bg-secondary/50 shrink-0">
+                                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="min-w-0 text-left">
+                                        <p className="text-sm font-semibold text-foreground truncate">{prod.name}</p>
+                                        <p className="text-[11px] text-muted-foreground">â‚¦{(prod.price / 1000).toFixed(0)}k</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(prod.status)}`} aria-hidden />
+                                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                </div>
+                            </button>
+                            <AnimatePresence>
+                                {isOpen && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="px-4 pb-3"
+                                    >
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Tracking</p>
+                                                <p className="font-semibold text-foreground/80">#{prod.id.split("-")[1] || prod.id}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">In Stock</p>
+                                                <p className="font-semibold text-foreground/80">{prod.views}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Total Order</p>
+                                                <p className="font-semibold text-foreground/80">{prod.orders + prod.views}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Category</p>
+                                                <p className="font-semibold text-foreground/80">{prod.category}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 flex items-center gap-2">
+                                            <button
+                                                onClick={() => toggleDropdown(prod.id)}
+                                                className="flex-1 rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                            >
+                                                Details
+                                            </button>
+                                        </div>
+                                        <AnimatePresence>
+                                            {openDropdownId === prod.id && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 6 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 6 }}
+                                                    transition={{ duration: 0.18, ease: "easeOut" }}
+                                                    className="mt-2 w-full bg-popover border border-border rounded-xl shadow-xl z-50 py-1.5 text-left flex flex-col gap-0.5 px-1"
+                                                >
+                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
+                                                        <Share2 className="w-3.5 h-3.5" />
+                                                        Share
+                                                    </button>
+                                                    <button
+                                                        className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all"
+                                                        onClick={() => {
+                                                            setEditingListing(prod);
+                                                            setOpenDropdownId(null);
+                                                        }}
+                                                    >
+                                                        <Edit className="w-3.5 h-3.5" />
+                                                        Edit Content
+                                                    </button>
+                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
+                                                        <EyeOff className="w-3.5 h-3.5" />
+                                                        Hide Listing
+                                                    </button>
+                                                    <div className="h-px w-full bg-border/40 my-0.5" />
+                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Delete
+                                                    </button>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">

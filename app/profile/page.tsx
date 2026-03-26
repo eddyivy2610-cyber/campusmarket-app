@@ -1,5 +1,7 @@
+"use client";
+
 /**
- * @BACKEND: PROFILE PAGE — Currently redirects to a static route.
+ * @BACKEND: PROFILE PAGE â€” Client redirect based on mock account type.
  *
  * Replace with:
  *   - GET /api/users/me → fetch authenticated user's profile
@@ -7,9 +9,23 @@
  *   - If not authenticated, redirect to /login
  */
 
-import { redirect } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProfileRedirect() {
-    /* @BACKEND: Replace this redirect with actual profile rendering using authenticated user data */
-    redirect("/profile/campus-market");
+    const router = useRouter();
+    const { user, isLoading } = useAuth();
+
+    useEffect(() => {
+        if (isLoading) return;
+        if (!user) {
+            router.replace("/login");
+            return;
+        }
+        const target = user.role === "pro" ? "/profile/campus-market" : "/profile/luckyjohn";
+        router.replace(target);
+    }, [isLoading, router, user]);
+
+    return null;
 }

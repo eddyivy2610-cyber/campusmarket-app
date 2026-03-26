@@ -91,13 +91,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <aside className={`bg-card border-r border-border/50 hidden lg:flex flex-col shrink-0 transition-all duration-300 ease-in-out ${isLeftSidebarCollapsed ? 'w-0 overflow-hidden border-r-0' : 'w-[210px] xl:w-[230px]'}`}>
                 {/* HIVE Logo Area (Top left) */}
                     <div className="h-[60px] flex items-center px-4 md:px-6 gap-3 shrink-0">
-                        <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-sm ring-1 ring-primary/30 shrink-0">
-                            H
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <span className="text-sm font-bold tracking-widest uppercase leading-none truncate">HIVE</span>
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Admin Center</span>
-                        </div>
+                        <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                            Hive
+                        </span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Admin Center</span>
                     </div>
 
                     {/* Navigation */}
@@ -382,13 +379,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         {/* Logo / Header */}
                         <div className="h-[65px] flex items-center justify-between px-6 border-b border-border/50 shrink-0 bg-secondary/5">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-sm ring-1 ring-primary/30 shrink-0">
-                                    H
-                                </div>
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-sm font-bold tracking-widest uppercase leading-none truncate">HIVE</span>
-                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Admin Center</span>
-                                </div>
+                                <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                                    Hive
+                                </span>
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Admin Center</span>
                             </div>
                             <button onClick={() => setIsLeftSidebarModalOpen(false)} className="h-8 w-8 rounded-lg bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground">
                                 <X className="w-4 h-4" />

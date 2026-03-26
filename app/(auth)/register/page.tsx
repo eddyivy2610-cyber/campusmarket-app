@@ -18,7 +18,6 @@ import { Step3StudentStatus } from "@/components/auth/steps/Step3StudentStatus";
 import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Footer } from "@/components/sections/Footer";
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -161,7 +160,6 @@ export default function RegisterPage() {
                     </div>
                 </div>
             </div>
-            <Footer />
-        </div>
+                    </div>
     );
 }

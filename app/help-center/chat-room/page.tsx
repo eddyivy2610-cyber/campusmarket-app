@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Footer } from "../../components/sections/Footer";
 import { Headset, Send, ShieldCheck, Wrench, Wallet } from "lucide-react";
 import { BackToHomeBar } from "../../components/common/BackToHomeBar";
 
@@ -133,7 +132,6 @@ export default function HelpCenterChatRoomPage() {
                     </section>
                 </div>
             </main>
-            <Footer />
-        </div>
+                    </div>
     );
 }

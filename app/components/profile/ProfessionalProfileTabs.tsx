@@ -9,7 +9,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
     Info,
     Star,
@@ -38,7 +38,7 @@ interface ProfessionalProfileTabsProps {
 }
 
 export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfileTabsProps) {
-    const [activeTab, setActiveTab] = useState(profile.type === 'vendor' ? "Listings" : "About");
+    const isProAccount = profile.accountType === "Pro";
     const [reviewRating, setReviewRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState("");
@@ -46,7 +46,6 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
     const buyerTabs = [
         { name: "About", icon: User },
-        { name: "Listings", icon: Store },
         { name: "Reviews", icon: Star },
     ];
 
@@ -57,7 +56,21 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
     ];
 
     const isLuckyJohn = profile.handle === 'luckyjohn';
-    const tabs = (profile.type === 'vendor' ? vendorTabs : buyerTabs);
+    const tabs = useMemo(() => {
+        if (!isProAccount) {
+            return buyerTabs;
+        }
+        return vendorTabs;
+    }, [isProAccount]);
+
+    const defaultTab = tabs[0]?.name ?? "About";
+    const [activeTab, setActiveTab] = useState(defaultTab);
+
+    useEffect(() => {
+        if (!tabs.some((tab) => tab.name === activeTab)) {
+            setActiveTab(defaultTab);
+        }
+    }, [activeTab, tabs, defaultTab]);
 
     return (
         <div className="w-full space-y-8 font-heading">
@@ -193,71 +206,63 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     )}
 
                     {activeTab === "Listings" && (
-                        !profile.isVerified ? (
+                        isProAccount ? (
+                            <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />
+                        ) : (
                             <ProUpgradePrompt
                                 title="Unlock Seller Listings"
                                 featureName="your seller listings"
-                                description="Upgrade to a Pro account to display your items to the Campus Hive community."
+                                description="Upgrade to a Pro account to display your items to the Hive community."
                             />
-                        ) : (
-                            <ProfessionalListingsArea viewAs={viewAs} sellerId={profile.id} />
                         )
                     )}
 
 
                     {activeTab === "Reviews" && (
-                        !profile.isVerified ? (
-                            <ProUpgradePrompt
-                                title="Unlock Customer Reviews"
-                                featureName="customer reviews"
-                                description="Upgrade to a Pro account to receive and manage feedback."
-                            />
-                        ) : (
-                            <div className="space-y-6">
-                                {/* Condensed Single Textbox Review Input */}
-                                <div className="relative group">
-                                    <input
-                                        type="text"
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        placeholder="Leave a review..."
-                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
-                                    />
-                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
-                                        <div className="flex items-center gap-0.5 pr-1">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
-                                                    onClick={() => setReviewRating(s)}
-                                                    onMouseEnter={() => setHoverRating(s)}
-                                                    onMouseLeave={() => setHoverRating(0)}
-                                                    className="p-0.5 transition-transform hover:scale-125"
-                                                >
-                                                    <Star
-                                                        className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
-                                                            ? 'text-amber-400 fill-amber-400'
-                                                            : 'text-muted-foreground/20'
-                                                            }`}
-                                                    />
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button
-                                            disabled={reviewRating === 0 || !comment.trim()}
-                                            className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
-                                        >
-                                            Go
-                                        </button>
+                        <div className="space-y-6">
+                            {/* Condensed Single Textbox Review Input */}
+                            <div className="relative group">
+                                <input
+                                    type="text"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Leave a review..."
+                                    className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
+                                />
+                                <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
+                                    <div className="flex items-center gap-0.5 pr-1">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => setReviewRating(s)}
+                                                onMouseEnter={() => setHoverRating(s)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                                className="p-0.5 transition-transform hover:scale-125"
+                                            >
+                                                <Star
+                                                    className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
+                                                        ? 'text-amber-400 fill-amber-400'
+                                                        : 'text-muted-foreground/20'
+                                                        }`}
+                                                />
+                                            </button>
+                                        ))}
                                     </div>
-                                </div>
-
-                                <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
-                                    <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
-                                    <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
+                                    <button
+                                        disabled={reviewRating === 0 || !comment.trim()}
+                                        className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
+                                    >
+                                        Go
+                                    </button>
                                 </div>
                             </div>
-                        )
+
+                            <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
+                                <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
+                                <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
+                            </div>
+                        </div>
                     )}
                 </motion.div>
             </AnimatePresence>

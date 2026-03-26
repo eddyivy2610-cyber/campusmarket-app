@@ -11,7 +11,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-10 pb-10 border-b border-white/10">
                     <div className="space-y-4">
                         <div className="flex items-center gap-0">
-                            <span className="text-lg font-extrabold font-sans tracking-tight text-white leading-none">
+                            <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
                                 Hive
                             </span>
                         </div>
@@ -32,7 +32,14 @@ export function Footer() {
                                     { id: 1, name: "Abdurrahman Kabir.", role: "Project Manager", initials: "AK", color: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400" },
                                     { id: 2, name: "Al-Imam Ahmed.", role: "Backend & System Engineer", initials: "AA", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400" },
                                     { id: 3, name: "John Lucky.", role: "Frontend Developer", initials: "JL", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" },
-                                ].map((member) => (
+                                ].map((member, index, array) => {
+                                    const isFirst = index === 0;
+                                    const isLast = index === array.length - 1;
+                                    // Use specific positions on mobile to prevent cut off
+                                    const tooltipPosition = isFirst ? "left-0" : isLast ? "right-0" : "left-1/2 -translate-x-1/2";
+                                    const arrowPosition = isFirst ? "left-4" : isLast ? "right-4" : "left-1/2 -translate-x-1/2";
+                                    
+                                    return (
                                     <button
                                         key={member.id}
                                         className="group relative w-10 h-10 rounded-full ring-2 ring-black bg-black/40 shadow-sm hover:z-10 hover:scale-110 focus:z-10 focus:scale-110 transition-all duration-300 -ml-3 flex items-center justify-center cursor-pointer first:ml-0"
@@ -40,15 +47,15 @@ export function Footer() {
                                         <div className={`w-full h-full rounded-full flex items-center justify-center font-bold text-xs ${member.color}`}>
                                             {member.initials}
                                         </div>
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-200 pointer-events-none w-max z-20 translate-y-2 group-hover:translate-y-0 group-focus:translate-y-0">
+                                        <div className={`absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all duration-200 pointer-events-none w-max z-20 translate-y-2 group-hover:translate-y-0 group-focus:translate-y-0 ${tooltipPosition}`}>
                                             <div className="bg-white text-black text-xs px-3 py-2 rounded-lg shadow-xl flex flex-col items-center">
                                                 <span className="font-bold whitespace-nowrap">{member.name}</span>
                                                 <span className="text-[10px] text-black/70 whitespace-nowrap mt-0.5">{member.role}</span>
-                                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-white"></div>
+                                                <div className={`absolute top-full border-[5px] border-transparent border-t-white ${arrowPosition}`}></div>
                                             </div>
                                         </div>
                                     </button>
-                                ))}
+                                )})}
                             </div>
                         </div>
                     </div>
@@ -58,7 +65,7 @@ export function Footer() {
                             <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-3">Quick Links</h3>
                             <div className="flex flex-col gap-2">
                                 {[
-                                    { label: "Home", href: "/" },
+                                    { label: "Home", href: "/home" },
                                     { label: "Marketplace", href: "/listings" },
                                     { label: "About Us", href: "/about-us" },
                                     { label: "Contact Support", href: "/help-support" },

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus, User, Search, MoreHorizontal, ShieldOff, Mail, Calendar } from 'lucide-react';
+import { UserPlus, User, Search, MoreHorizontal, ShieldOff, Mail, Calendar, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -18,6 +18,7 @@ export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [expandedId, setExpandedId] = useState<number | null>(null);
 
     const handleViewDetails = (user: any) => {
         setSelectedUser(user);
@@ -38,6 +39,20 @@ export default function UsersPage() {
                 return "bg-secondary text-muted-foreground";
         }
     };
+    const getStatusDotClass = (status: string) => {
+        switch (status) {
+            case "Active":
+                return "bg-emerald-500";
+            case "Pending":
+                return "bg-slate-400";
+            case "Suspended":
+                return "bg-amber-500";
+            case "Banned":
+                return "bg-rose-500";
+            default:
+                return "bg-muted-foreground/40";
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -52,7 +67,65 @@ export default function UsersPage() {
                     </button>
                 </div>
 
-                <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {startUsers.map((user) => {
+                        const isOpen = expandedId === user.id;
+                        return (
+                            <div key={user.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                <button
+                                    onClick={() => setExpandedId(isOpen ? null : user.id)}
+                                    className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 shrink-0">
+                                            {user.avatar}
+                                        </div>
+                                        <div className="min-w-0 text-left">
+                                            <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">ID: CPM-{user.id.toString().padStart(4, '0')}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(user.status)}`} aria-hidden />
+                                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                    </div>
+                                </button>
+                                {isOpen && (
+                                    <div className="px-4 pb-3">
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Email</p>
+                                                <p className="font-semibold text-foreground/80">{user.email}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Role</p>
+                                                <p className="font-semibold text-foreground/80">{user.role}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Joined</p>
+                                                <p className="font-semibold text-foreground/80">{user.date}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Status</p>
+                                                <p className="font-semibold text-foreground/80">{user.status}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <button
+                                                onClick={() => handleViewDetails(user)}
+                                                className="w-full rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                            >
+                                                Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="border-b border-border/50 text-[13px] font-bold text-muted-foreground/70 tracking-wide uppercase">

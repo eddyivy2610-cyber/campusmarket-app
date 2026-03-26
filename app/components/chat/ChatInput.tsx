@@ -23,8 +23,8 @@ export function ChatInput({ onSend, onShareListing, isBuyer = false }: ChatInput
     };
 
     return (
-        <div className="w-full bg-white dark:bg-card px-4 md:px-6 py-3 md:py-4 border-t border-border/30">
-            <div className="flex items-center gap-2 md:gap-3 bg-[#f3f6fc] dark:bg-secondary/40 border-0 rounded-2xl md:rounded-[18px] pl-4 pr-1 md:py-2.5 py-1.5 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20">
+        <div className="w-full bg-transparent max-md:-mx-2 border-0">
+            <div className="flex items-center gap-2 md:gap-3 bg-[#f3f6fc] dark:bg-card border-0 rounded-full md:rounded-[18px] pl-4 pr-1 md:py-2.5 py-2 shadow-md transition-all focus-within:ring-2 focus-within:ring-primary/20">
                 {/* Text field */}
                 <input
                     type="text"
@@ -55,9 +55,9 @@ export function ChatInput({ onSend, onShareListing, isBuyer = false }: ChatInput
                     <button
                         onClick={() => handleSend()}
                         disabled={!input.trim()}
-                        className="w-8 h-8 md:w-10 md:h-10 bg-[#4154F1] text-white rounded-[10px] md:rounded-xl flex items-center justify-center hover:bg-[#3444c1] transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ml-1"
+                        className="w-10 h-10 md:w-10 md:h-10 bg-[#4154F1] text-white rounded-full md:rounded-xl flex items-center justify-center hover:bg-[#3444c1] transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ml-1"
                     >
-                        <Send className="w-3.5 h-3.5 md:w-4 md:h-4 ml-0.5" />
+                        <Send className="w-4 h-4 md:w-4 md:h-4 ml-0.5" />
                     </button>
                 </div>
             </div>

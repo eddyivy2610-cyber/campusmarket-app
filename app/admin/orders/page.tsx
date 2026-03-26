@@ -10,6 +10,7 @@ import {
     Search,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     MoreVertical,
     Clock,
     AlertCircle
@@ -21,6 +22,7 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<DashboardOrder[]>(
         DASHBOARD_ORDERS.filter(o => o.status === "Pending Admin Verification")
     );
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const handleVerify = (orderId: string) => {
         setOrders(prev => prev.filter(o => o.id !== orderId));
@@ -87,7 +89,72 @@ export default function AdminOrdersPage() {
 
             {/* Orders Table */}
             <div className="bg-card border border-border/50 rounded-[28px] overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {orders.length > 0 ? (
+                        orders.map((order) => {
+                            const isOpen = expandedId === order.id;
+                            return (
+                                <div key={order.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                    <button
+                                        onClick={() => setExpandedId(isOpen ? null : order.id)}
+                                        className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                    >
+                                        <div className="min-w-0 text-left">
+                                            <p className="text-sm font-semibold text-foreground truncate">Order {order.id}</p>
+                                            <p className="text-[11px] text-muted-foreground">{order.productName}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-slate-400" aria-hidden />
+                                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                        </div>
+                                    </button>
+                                    {isOpen && (
+                                        <div className="px-4 pb-3">
+                                            <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Customer</p>
+                                                    <p className="font-semibold text-foreground/80">{order.customer}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Amount</p>
+                                                    <p className="font-semibold text-foreground/80">â‚¦{order.amount.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                                    <p className="font-semibold text-foreground/80">{order.date}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Evidence</p>
+                                                    <p className="font-semibold text-foreground/80">Seller Confirmed</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => handleVerify(order.id)}
+                                                    className="flex-1 px-3 py-2 rounded-lg bg-emerald-500 text-white text-[11px] font-bold uppercase tracking-widest"
+                                                >
+                                                    Verify
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleReject(order.id)}
+                                                    className="flex-1 px-3 py-2 rounded-lg border border-border/60 text-rose-500 text-[11px] font-bold uppercase tracking-widest"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="rounded-2xl border border-border/60 bg-background/70 p-6 text-center text-muted-foreground text-sm">
+                            No orders currently awaiting verification.
+                        </div>
+                    )}
+                </div>
+
+                <div className="overflow-x-auto hidden md:block">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-secondary/5 border-b border-border/50 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">

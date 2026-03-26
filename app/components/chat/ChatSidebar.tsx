@@ -48,7 +48,7 @@ export function NegotiationHistory({ negotiations, participant }: NegotiationHis
                         <ShoppingBag className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-foreground leading-none tracking-tight">Campus Hive</p>
+                        <p className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">Hive</p>
                         <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">Campus. Connect. Trade.</p>
                     </div>
                 </div>

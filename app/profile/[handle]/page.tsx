@@ -5,7 +5,6 @@ import { ProfessionalProfileHeader } from "@/components/profile/ProfessionalProf
 import { ProfessionalProfileTabs } from "@/components/profile/ProfessionalProfileTabs";
 import { useParams } from "next/navigation";
 import { Breadcrumb } from "@/components/common/Breadcrumb";
-import { Footer } from "@/components/sections/Footer";
 import { ProfessionalListingsArea } from "@/components/profile/ProfessionalListingsArea";
 import { Eye, User, Store } from "lucide-react";
 
@@ -78,7 +77,6 @@ export default function ProfilePage() {
                 </div>
             </main>
 
-            <Footer />
-        </div>
+                    </div>
     );
 }

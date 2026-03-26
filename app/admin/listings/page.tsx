@@ -11,6 +11,7 @@ import {
     Calendar,
     Tag,
     User,
+    ChevronDown,
     ChevronLeft,
     ChevronRight,
     Search
@@ -28,6 +29,7 @@ const listingsData = [
 export default function AllListingsPage() {
     const [selectedListing, setSelectedListing] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [expandedId, setExpandedId] = useState<number | null>(null);
 
     const handleViewDetails = (listing: any) => {
         setSelectedListing(listing);
@@ -48,6 +50,20 @@ export default function AllListingsPage() {
                 return "bg-secondary text-muted-foreground";
         }
     };
+    const getStatusDotClass = (status: string) => {
+        switch (status) {
+            case "Active":
+                return "bg-emerald-500";
+            case "Pending":
+                return "bg-amber-500";
+            case "Flagged":
+                return "bg-rose-500";
+            case "Removed":
+                return "bg-slate-400";
+            default:
+                return "bg-muted-foreground/40";
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -66,7 +82,60 @@ export default function AllListingsPage() {
                     </div>
                 </div>
 
-                <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {listingsData.map((listing) => {
+                        const isOpen = expandedId === listing.id;
+                        return (
+                            <div key={listing.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                <button
+                                    onClick={() => setExpandedId(isOpen ? null : listing.id)}
+                                    className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                >
+                                    <div className="min-w-0 text-left">
+                                        <p className="text-sm font-semibold text-foreground truncate">{listing.title}</p>
+                                        <p className="text-[11px] text-muted-foreground">â‚¦{listing.price.toLocaleString()}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(listing.status)}`} aria-hidden />
+                                        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                    </div>
+                                </button>
+                                {isOpen && (
+                                    <div className="px-4 pb-3">
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Seller</p>
+                                                <p className="font-semibold text-foreground/80">{listing.seller}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Status</p>
+                                                <p className="font-semibold text-foreground/80">{listing.status}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Reports</p>
+                                                <p className="font-semibold text-foreground/80">{listing.reports}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                                <p className="font-semibold text-foreground/80">{listing.date}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <button
+                                                onClick={() => handleViewDetails(listing)}
+                                                className="w-full rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                            >
+                                                View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block">
                     <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr className="border-b border-border/50 text-[11px] font-bold text-muted-foreground/50 tracking-widest uppercase">

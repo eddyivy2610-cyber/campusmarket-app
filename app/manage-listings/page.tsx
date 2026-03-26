@@ -1,6 +1,5 @@
 "use client";
 
-import { Footer } from "../components/sections/Footer";
 import { ListingsToolbar } from "../components/manage-listings/ListingsToolbar";
 import { ListingsTable } from "../components/manage-listings/ListingsTable";
 import { BulkActionBar } from "../components/manage-listings/BulkActionBar";
@@ -43,7 +42,6 @@ export default function ManageListingsPage() {
                 onClearSelection={() => setSelectedItems([])}
             />
 
-            <Footer />
-        </main>
+                    </main>
     );
 }

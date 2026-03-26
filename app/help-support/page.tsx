@@ -1,5 +1,4 @@
 import { PhoneCall, Mail } from "lucide-react";
-import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 
 export default function HelpSupportPage() {
@@ -54,7 +53,6 @@ export default function HelpSupportPage() {
                 </div>
             </main>
 
-            <Footer />
-        </div>
+                    </div>
     );
 }

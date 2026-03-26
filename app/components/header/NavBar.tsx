@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ExploreDropdown } from "./ExploreDropdown";
 
 const NAV_ITEMS = [
-    { label: "Home", href: "/" },
+    { label: "Home", href: "/home" },
     { label: "Listings", href: "/listings" },
     { label: "Vendors", href: "/profile/campus-market" },
     { label: "Blog", href: "/blog" },

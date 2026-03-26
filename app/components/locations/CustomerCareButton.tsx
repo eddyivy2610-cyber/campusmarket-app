@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 export function CustomerCareButton() {
     const pathname = usePathname();
 
-    if (pathname?.startsWith("/inbox") || pathname?.startsWith("/admin")) {
+    if (pathname?.startsWith("/inbox") || pathname?.startsWith("/admin") || pathname?.startsWith("/messages")) {
         return null;
     }
 

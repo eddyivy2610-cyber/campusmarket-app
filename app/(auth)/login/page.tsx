@@ -14,7 +14,6 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Footer } from "@/components/sections/Footer";
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -126,7 +125,6 @@ export default function LoginPage() {
                     </div>
                 </div>
             </div>
-            <Footer />
-        </div>
+                    </div>
     );
 }

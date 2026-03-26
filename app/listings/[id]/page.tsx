@@ -7,7 +7,6 @@ import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
-import { Footer } from "../../components/sections/Footer";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
 import { ChevronLeft } from "lucide-react";
 
@@ -30,8 +29,7 @@ export default function ListingPage() {
                     <h1 className="text-xl font-bold mb-4 uppercase tracking-tighter">Listing Not Found</h1>
                     <button onClick={() => router.back()} className="text-primary font-bold uppercase tracking-widest text-[10px]">Go Back</button>
                 </div>
-                <Footer />
-            </div>
+                            </div>
         );
     }
 
@@ -93,7 +91,6 @@ export default function ListingPage() {
                 </div>
             </main>
 
-            <Footer />
-        </div>
+                    </div>
     );
 }

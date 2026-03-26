@@ -40,11 +40,6 @@ const QUICK_ACTIONS = [
         icon: MessageCircle,
         tone: "border-[#efe3cf] text-[#1f1f1f] bg-white",
     },
-    {
-        title: "Settings",
-        icon: SettingsIcon,
-        tone: "border-[#efe3cf] text-[#1f1f1f] bg-white",
-    },
 ];
 
 const TOP_ITEMS = [
@@ -435,7 +430,7 @@ export default function DashboardOverview() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className={`rounded-2xl border border-border/50 bg-card ${CARD_SHADOW} p-5 flex flex-col h-[320px]`}>
+                <div className={`rounded-2xl border border-border/50 bg-card ${CARD_SHADOW} p-5 flex flex-col h-[320px] hidden md:flex`}>
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
                         <div className="flex flex-col">
                             <h2 className="text-[11px] font-black text-foreground uppercase tracking-wider">Quick Actions</h2>
@@ -462,7 +457,7 @@ export default function DashboardOverview() {
                 </div>
 
                 {/* Latest Activity */}
-                <div className={`rounded-2xl border border-border/50 bg-card ${CARD_SHADOW} p-5 h-[320px] flex flex-col`}>
+                <div className={`rounded-2xl border border-border/50 bg-card ${CARD_SHADOW} p-5 h-[320px] flex flex-col order-3 md:order-none`}>
                     <div className="flex items-center justify-between mb-6 flex-shrink-0">
                         <div className="flex flex-col">
                             <h2 className="text-[11px] font-black text-foreground uppercase tracking-wider">Latest Activity</h2>

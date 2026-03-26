@@ -2,7 +2,6 @@ import React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "../common/Breadcrumb";
-import { Footer } from "../sections/Footer";
 import { ProfileSettings } from "./sections/ProfileSettings";
 import { SecuritySettings } from "./sections/SecuritySettings";
 import { PreferencesSettings } from "./sections/PreferencesSettings";
@@ -78,8 +77,7 @@ export function SettingsSectionPage({ sectionId }: { sectionId: SectionId }) {
             </main>
 
             <div className="hidden lg:block">
-                <Footer />
-            </div>
+                            </div>
         </div>
     );
 }

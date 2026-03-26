@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, MoreVertical, Flag, Ban, Trash2, ExternalLink, Settings } from "lucide-react";
+import { ChevronLeft, MoreVertical, Flag, Ban, Trash2, ExternalLink, Settings, Headset } from "lucide-react";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatParticipant } from "../../data/chat";
@@ -66,19 +66,33 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
                             {[
                                 { icon: <ExternalLink className="w-3.5 h-3.5" />, label: "View Profile", href: `/profile/${participant.id}` },
                                 { icon: <Settings className="w-3.5 h-3.5" />, label: "Settings", href: "/dashboard/settings" },
+                                { icon: <Headset className="w-3.5 h-3.5" />, label: "Help Center", href: "/help-support" },
                                 { icon: <Ban className="w-3.5 h-3.5" />, label: "Block User", danger: true },
                                 { icon: <Flag className="w-3.5 h-3.5" />, label: "Report Conversation", danger: true },
                                 { icon: <Trash2 className="w-3.5 h-3.5" />, label: "Clear Chat History", danger: true },
-                            ].map((item) => (
-                                <button
-                                    key={item.label}
-                                    onClick={() => setMenuOpen(false)}
-                                    className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-bold hover:bg-secondary/50 transition-colors ${item.danger ? "text-red-500" : "text-foreground"}`}
-                                >
-                                    {item.icon}
-                                    {item.label}
-                                </button>
-                            ))}
+                            ].map((item) => {
+                                const btnClass = `flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-bold hover:bg-secondary/50 transition-colors ${item.danger ? "text-red-500" : "text-foreground"}`;
+                                return item.href ? (
+                                    <Link
+                                        key={item.label}
+                                        href={item.href}
+                                        onClick={() => setMenuOpen(false)}
+                                        className={btnClass}
+                                    >
+                                        {item.icon}
+                                        {item.label}
+                                    </Link>
+                                ) : (
+                                    <button
+                                        key={item.label}
+                                        onClick={() => setMenuOpen(false)}
+                                        className={btnClass}
+                                    >
+                                        {item.icon}
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
                         </motion.div>
                     )}
                 </AnimatePresence>

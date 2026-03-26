@@ -195,7 +195,7 @@ function DashboardMessagesInner() {
                             />
                         </div>
 
-                        <div className="p-4 bg-card border-t border-border/40 shrink-0">
+                        <div className="p-3 md:p-4 bg-white dark:bg-card border-t border-border/0 pb-4 md:pb-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] md:shadow-none z-20 relative">
                             <ChatInput 
                                 onSend={sendMessage} 
                                 onShareListing={() => {}} 

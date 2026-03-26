@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { Footer } from "../components/sections/Footer";
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
     return (
@@ -9,7 +8,6 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Global Footer */}
-            <Footer />
-        </div>
+                    </div>
     );
 }

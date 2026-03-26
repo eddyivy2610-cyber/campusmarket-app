@@ -33,6 +33,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { CATEGORIES } from "../../data/products";
+import { useAuth } from "../../context/AuthContext";
 
 interface HamburgerMenuProps {
     isOpen: boolean;
@@ -59,6 +60,7 @@ const IconMap: Record<string, LucideIcon> = {
 export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: HamburgerMenuProps) {
     const [categoriesOpen, setCategoriesOpen] = useState(false);
     const router = useRouter();
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         document.body.style.overflow = isOpen ? "hidden" : "unset";
@@ -85,9 +87,9 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 className={`relative w-full max-w-[85vw] sm:max-w-[360px] bg-background border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out font-heading ${isOpen ? "translate-x-0" : "-translate-x-full"} h-full overflow-hidden`}
             >
                 <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-secondary/30 shrink-0">
-                    <Link href="/" onClick={onClose} className="flex items-center gap-0 group">
-                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
-                            HIVE
+                    <Link href="/home" onClick={onClose} className="flex items-center gap-0 group" aria-label="Hive Home">
+                        <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                            Hive
                         </span>
                     </Link>
                     <button
@@ -101,34 +103,36 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-4">
                         <button
-                            onClick={() => nav("/register")}
+                            onClick={() => nav(user ? "/profile/campus-market" : "/register")}
                             className="w-full flex items-center justify-between p-4 bg-primary text-white rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
                         >
                             <div className="flex items-center gap-3">
                                 <User className="w-5 h-5" />
                                 <div className="text-left">
                                     <p className="font-semibold uppercase tracking-widest text-[11px]">Join Campus Hive</p>
-                                    <p className="text-[10px] text-white/70 font-medium">Log in or Sign up</p>
+                                    <p className="text-[10px] text-white/70 font-medium">
+                                        {user ? `${user.name.split(" ")[0]} - ${user.role}` : "Log in or Sign up"}
+                                    </p>
                                 </div>
                             </div>
                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
 
-                    <Section label="My Account">
-                        <NavRow icon={Heart} label="Saved Items" onClick={() => nav("/saved")} />
-                        <NavRow icon={Store} label="My Profile" accent onClick={() => nav("/profile/campus-hive")} />
-                        <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
+                    <Section label="Navigation">
+                        <NavRow icon={Home} label="Home" onClick={() => nav("/home")} />
+                        <NavRow icon={BookOpen} label="About" onClick={() => nav("/about-us")} />
+                        <NavRow icon={MessageSquare} label="Contact" onClick={() => nav("/contact-us")} />
+                        <NavRow icon={LifeBuoy} label="Help" onClick={() => nav("/help-support")} />
                         <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
 
-                    <Section label="Navigation">
-                        <NavRow icon={Home} label="Home" onClick={() => nav("/")} />
-                        <NavRow icon={Tag} label="Listings" onClick={() => nav("/listings")} />
-                        <NavRow icon={Store} label="Vendors" onClick={() => nav("/profile/campus-hive")} />
-                        <NavRow icon={BookOpen} label="Blog" onClick={() => nav("/blog")} />
-                        <NavRow icon={LifeBuoy} label="Help & Support" onClick={() => nav("/help-support")} />
-                    </Section>
+                    {user && (
+                        <Section label="Account">
+                            <NavRow icon={User} label="My Profile" onClick={() => nav("/profile/campus-market")} />
+                            <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
+                        </Section>
+                    )}
 
                     <Section label="Shop by Category">
                         <button
@@ -171,6 +175,21 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     
                 </div>
+
+                {user && (
+                    <div className="shrink-0 border-t border-border/60 p-3">
+                        <button
+                            onClick={() => { logout(); onClose(); }}
+                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group bg-primary/10 text-primary hover:bg-primary/15"
+                        >
+                            <div className="flex items-center gap-3">
+                                <User className="w-5 h-5 text-primary shrink-0" />
+                                <span className="text-sm font-semibold">Logout</span>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-primary/60 group-hover:translate-x-0.5 transition-all" />
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

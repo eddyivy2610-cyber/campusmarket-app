@@ -20,6 +20,7 @@ export interface Profile {
     bio: string;
     rating: number;
     avatar: string;
+    accountType: "Buyer" | "Pro";
     type: 'buyer' | 'vendor';
     isStudent: boolean;
     isVerified: boolean;
@@ -65,18 +66,41 @@ export interface Profile {
     };
 }
 
+const createProfile = (overrides: Partial<Profile>): Profile => ({
+    id: "unknown",
+    name: "Unknown User",
+    handle: "unknown",
+    bio: "",
+    rating: 0,
+    avatar: "",
+    accountType: "Buyer",
+    type: "buyer",
+    isStudent: false,
+    isVerified: false,
+    transactions: 0,
+    recommendedCount: 0,
+    notRecommendedCount: 0,
+    totalSales: 0,
+    joinedDate: "",
+    joinedDateFull: "",
+    location: "",
+    tags: [],
+    ...overrides,
+});
+
 export const PROFILES: Profile[] = [
-    {
+    createProfile({
         id: "vendor-1",
         name: "Campus Hive Official",
         handle: "campus-market",
         bio: "Your one-stop shop for all campus essentials. High quality, student prices.",
         rating: 4.9,
         avatar: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=200&q=80",
-        type: 'vendor',
+        accountType: "Pro",
+        type: "vendor",
         isStudent: false,
         isVerified: true,
-        verifiedTier: 'gold',
+        verifiedTier: "gold",
         transactions: 156,
         recommendedCount: 48,
         notRecommendedCount: 2,
@@ -96,30 +120,31 @@ export const PROFILES: Profile[] = [
         businessInfo: {
             extendedBio: "Campus Hive is the premier platform for student-to-student commerce at Ahmadu Bello University. We curate the best deals and ensure a safe trading environment for everyone.",
             policies: "7-day return policy for faulty electronics. Meetups only in public campus areas.",
-            hours: "Mon - Sat: 9:00 AM - 6:00 PM"
+            hours: "Mon - Sat: 9:00 AM - 6:00 PM",
         },
         achievements: [
-            { name: 'Top Seller', icon: 'Trophy', color: 'text-blue-600 bg-blue-500/10', description: 'completed 100 negotiations', type: 'Achievement' },
-            { name: 'Verified Student', icon: 'Shield', color: 'text-blue-600 bg-blue-500/10', description: 'verified with id', type: 'System' },
-            { name: 'Early Adopter', icon: 'Zap', color: 'text-purple-600 bg-purple-500/10', description: 'joined during beta phase', type: 'Legacy' },
-            { name: 'Trusted Buyer', icon: 'Star', color: 'text-green-600 bg-green-500/10', description: '50+ positive feedback', type: 'Achievement' },
-            { name: 'Popular', icon: 'Star', color: 'text-yellow-600 bg-yellow-500/10', description: '100+ followers', type: 'Achievement' },
+            { name: "Top Seller", icon: "Trophy", color: "text-blue-600 bg-blue-500/10", description: "completed 100 negotiations", type: "Achievement" },
+            { name: "Verified Student", icon: "Shield", color: "text-blue-600 bg-blue-500/10", description: "verified with id", type: "System" },
+            { name: "Early Adopter", icon: "Zap", color: "text-purple-600 bg-purple-500/10", description: "joined during beta phase", type: "Legacy" },
+            { name: "Trusted Buyer", icon: "Star", color: "text-green-600 bg-green-500/10", description: "50+ positive feedback", type: "Achievement" },
+            { name: "Popular", icon: "Star", color: "text-yellow-600 bg-yellow-500/10", description: "100+ followers", type: "Achievement" },
         ],
         socialLinks: {
             whatsapp: "https://wa.me/1234567890",
             instagram: "https://instagram.com/campusmarket",
             twitter: "https://twitter.com/campusmarket",
-            linkedin: "https://linkedin.com/company/campusmarket"
-        }
-    },
-    {
+            linkedin: "https://linkedin.com/company/campusmarket",
+        },
+    }),
+    createProfile({
         id: "lucky-john-1",
         name: "Lucky John",
         handle: "luckyjohn",
         bio: "Just a regular student making the most out of campus life. Lover of books, tech, and good music.",
         rating: 4.5,
         avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80",
-        type: 'buyer',
+        accountType: "Buyer",
+        type: "buyer",
         isStudent: true,
         isVerified: false,
         transactions: 12,
@@ -132,6 +157,6 @@ export const PROFILES: Profile[] = [
         department: "Computer Science",
         lastSeen: "Active 5 mins ago",
         tags: ["student", "books", "tech"],
-        savedListings: []
-    }
+        savedListings: [],
+    }),
 ];

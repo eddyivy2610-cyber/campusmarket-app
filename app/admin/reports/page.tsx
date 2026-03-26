@@ -59,6 +59,7 @@ export default function AdminReportsPage() {
     const [selectedReport, setSelectedReport] = useState<any>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const filteredReports = useMemo(() => {
         return MOCK_REPORTS.filter(r => 
@@ -96,7 +97,68 @@ export default function AdminReportsPage() {
                 </div>
 
                 {/* Table Container */}
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {filteredReports.map((report) => {
+                        const isOpen = expandedId === report.id;
+                        return (
+                            <div key={report.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                <button
+                                    onClick={() => setExpandedId(isOpen ? null : report.id)}
+                                    className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                >
+                                    <div className="min-w-0 text-left">
+                                        <p className="text-sm font-semibold text-foreground truncate">#{report.id}</p>
+                                        <p className="text-[11px] text-muted-foreground">{report.against.name}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span
+                                            className={cn(
+                                                "w-2.5 h-2.5 rounded-full",
+                                                report.status === "Pending" ? "bg-amber-500" :
+                                                report.status === "In Review" ? "bg-blue-500" :
+                                                "bg-emerald-500"
+                                            )}
+                                            aria-hidden
+                                        />
+                                        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                                    </div>
+                                </button>
+                                {isOpen && (
+                                    <div className="px-4 pb-3">
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Reporter</p>
+                                                <p className="font-semibold text-foreground/80">{report.reporter.name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Status</p>
+                                                <p className="font-semibold text-foreground/80">{report.status}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Category</p>
+                                                <p className="font-semibold text-foreground/80">{report.category}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Priority</p>
+                                                <p className="font-semibold text-foreground/80">{report.priority}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3">
+                                            <button
+                                                onClick={() => handleViewReport(report)}
+                                                className="w-full rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                            >
+                                                View Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="overflow-x-auto custom-scrollbar hidden md:block">
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="border-b border-border/40">

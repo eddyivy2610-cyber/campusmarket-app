@@ -20,6 +20,7 @@ type FilterKey = "status" | "amount";
 export function DashboardOrdersTable() {
     const [orders, setOrders] = useState<DashboardOrder[]>(DASHBOARD_ORDERS);
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
         status: null,
         amount: null,
@@ -150,10 +151,112 @@ export function DashboardOrdersTable() {
                 return "bg-secondary text-muted-foreground";
         }
     };
+    const getStatusDotClass = (status: OrderStatus) => {
+        switch (status) {
+            case "Completed":
+            case "Active":
+                return "bg-emerald-500";
+            case "Pending":
+            case "Pending Admin Verification":
+                return "bg-slate-400";
+            case "Failed":
+            case "Cancelled":
+                return "bg-rose-500";
+            default:
+                return "bg-muted-foreground/40";
+        }
+    };
 
     return (
         <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
-            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2" data-lenis-prevent>
+            <div className="p-4 md:p-5 border-b border-border/40">
+                <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold font-heading">Orders</span>
+                    <button
+                        className="h-9 w-9 rounded-full border border-border/60 bg-secondary/40 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                        aria-label="Search orders"
+                    >
+                        <Search className="w-4 h-4" />
+                    </button>
+                </div>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 md:hidden">
+                    <select
+                        value={filters.status ?? ""}
+                        onChange={(e) => applyFilter("status", e.target.value || null)}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
+                    >
+                        <option value="">Status</option>
+                        {STATUS_OPTIONS.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={filters.amount ?? ""}
+                        onChange={(e) => applyFilter("amount", e.target.value || null)}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
+                    >
+                        <option value="">Amount</option>
+                        {AMOUNT_OPTIONS.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                {pageOrders.map((order) => {
+                    const isOpen = expandedId === order.id;
+                    return (
+                        <div key={order.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                            <button
+                                onClick={() => setExpandedId(isOpen ? null : order.id)}
+                                className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                            >
+                                <div className="min-w-0 text-left">
+                                    <p className="text-sm font-semibold text-foreground truncate">{order.productName}</p>
+                                    <p className="text-[11px] text-muted-foreground">{order.customer}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(order.status as OrderStatus)}`} aria-hidden />
+                                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                </div>
+                            </button>
+                            {isOpen && (
+                                <div className="px-4 pb-3">
+                                    <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                        <div>
+                                            <p className="uppercase tracking-widest text-[9px]">Order ID</p>
+                                            <p className="font-semibold text-foreground/80">{order.id}</p>
+                                        </div>
+                                        <div>
+                                            <p className="uppercase tracking-widest text-[9px]">Amount</p>
+                                            <p className="font-semibold text-foreground/80">â‚¦{(order.amount / 1000).toFixed(0)}k</p>
+                                        </div>
+                                        <div>
+                                            <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                            <p className="font-semibold text-foreground/80">{order.date}</p>
+                                        </div>
+                                        <div>
+                                            <p className="uppercase tracking-widest text-[9px]">Status</p>
+                                            <p className="font-semibold text-foreground/80">{order.status}</p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}
+                                            className="w-full rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                        >
+                                            Details
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">

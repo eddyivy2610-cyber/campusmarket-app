@@ -41,9 +41,9 @@ export function AuthLayout({
             <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 lg:p-16 relative overflow-hidden bg-secondary/20 border-r border-border/50 min-h-screen">
                 <div className="relative z-10 w-full max-w-sm">
                     {/* Logo Section */}
-                    <Link href="/" className="flex items-center gap-0 mb-8 group" aria-label="Campus Hive Home">
-                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
-                            HIVE
+                    <Link href="/home" className="flex items-center gap-0 mb-8 group" aria-label="Hive Home">
+                        <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                            Hive
                         </span>
                     </Link>
 
@@ -97,7 +97,7 @@ export function AuthLayout({
 
                         {/* Back to Home */}
                         <Link
-                            href="/"
+                            href="/home"
                             className="flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
                         >
                             <div className="p-2 rounded-full border border-border group-hover:border-primary/30 group-hover:bg-primary/5 transition-all">
@@ -154,8 +154,8 @@ export function AuthLayout({
                 {/* ── BOTTOM BRANDING — pinned on mobile ── */}
                 <div className="flex-shrink-0 pb-6 pt-4 border-t border-border/50 flex items-center justify-center md:hidden">
                     <div className="flex items-center gap-0 opacity-30">
-                        <span className="text-[13px] md:text-[16px] font-extrabold font-sans leading-none tracking-[0.2em] uppercase text-foreground">
-                            HIVE
+                        <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                            Hive
                         </span>
                     </div>
                 </div>

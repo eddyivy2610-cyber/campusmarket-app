@@ -58,9 +58,15 @@ export default function LandingPage() {
         }
 
         .lp-logo {
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 700;
           color: #FFD700;
+          font-family: sans-serif;
+          white-space: nowrap;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        @media (min-width: 768px) {
+          .lp-logo { font-size: 22px; }
         }
 
         .lp-nav-links {
@@ -321,7 +327,7 @@ export default function LandingPage() {
 
         {/* NAVBAR */}
         <nav className="lp-nav">
-          <div className="lp-logo">Campus Hive</div>
+          <div className="lp-logo">Hive</div>
 
           <ul className="lp-nav-links" ref={navLinksRef}>
             <li onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Home</li>

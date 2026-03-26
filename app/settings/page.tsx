@@ -9,7 +9,6 @@
  */
 
 import React from "react";
-import { Footer } from "../components/sections/Footer";
 import Link from "next/link";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { groupSettingsSections } from "../components/settings/settingsSections";
@@ -66,8 +65,7 @@ export default function SettingsHubPage() {
             </main>
 
             <div className="hidden lg:block">
-                <Footer />
-            </div>
+                            </div>
         </div>
     );
 }

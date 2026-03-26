@@ -28,6 +28,7 @@ const MOCK_LOGS = [
 
 export default function LogsPage() {
     const [timeFilter, setTimeFilter] = useState<"Day" | "Week" | "Month">("Day");
+    const [expandedId, setExpandedId] = useState<number | null>(null);
 
     return (
         <div className="space-y-6 pb-10">
@@ -87,7 +88,57 @@ export default function LogsPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {MOCK_LOGS.map((log) => {
+                        const isOpen = expandedId === log.id;
+                        const dotClass =
+                            log.type === "Admin Action" ? "bg-rose-500" :
+                            log.type === "Report" ? "bg-amber-500" :
+                            log.type === "System" ? "bg-blue-500" :
+                            "bg-muted-foreground/40";
+                        return (
+                            <div key={log.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                <button
+                                    onClick={() => setExpandedId(isOpen ? null : log.id)}
+                                    className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                >
+                                    <div className="min-w-0 text-left">
+                                        <p className="text-sm font-semibold text-foreground truncate">{log.text}</p>
+                                        <p className="text-[11px] text-muted-foreground">{log.user}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`} aria-hidden />
+                                        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                                    </div>
+                                </button>
+                                {isOpen && (
+                                    <div className="px-4 pb-3">
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Type</p>
+                                                <p className="font-semibold text-foreground/80">{log.type}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Time</p>
+                                                <p className="font-semibold text-foreground/80">{log.time}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                                <p className="font-semibold text-foreground/80">{log.date}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">User</p>
+                                                <p className="font-semibold text-foreground/80">{log.user}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="overflow-x-auto custom-scrollbar hidden md:block">
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="border-b border-border/60 bg-secondary/20">

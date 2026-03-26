@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { BadgeCheck, Megaphone, ShieldCheck, WalletCards } from "lucide-react";
 import Image from "next/image";
-import { Footer } from "../../components/sections/Footer";
 import { BackToHomeBar } from "../../components/common/BackToHomeBar";
 import { saveHeroBanner } from "../../lib/heroBanners";
 
@@ -166,7 +165,6 @@ export default function PromotionRequestPage() {
                     </form>
                 </div>
             </main>
-            <Footer />
-        </div>
+                    </div>
     );
 }

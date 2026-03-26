@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import { CalendarClock, MapPin, PlusCircle, Send, Wallet } from "lucide-react";
-import { Footer } from "../components/sections/Footer";
 import { BackToHomeBar } from "../components/common/BackToHomeBar";
 
 type ServiceAd = {
@@ -147,7 +146,6 @@ export default function ServicesPage() {
                     </section>
                 </div>
             </main>
-            <Footer />
-        </div>
+                    </div>
     );
 }

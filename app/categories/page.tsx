@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useMemo, useEffect } from "react";
-import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
@@ -118,7 +117,6 @@ function CategoriesPageInner() {
                 </div>
             </div>
 
-            <Footer />
-        </main>
+                    </main>
     );
 }

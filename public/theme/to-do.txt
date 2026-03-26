@@ -1,0 +1,8 @@
+FIXES
+1. Remove Footer from all pages Except Landing Page and Homepage.
+2. The Account Dropdown on mobile is cut off. i think this is due to the width being fixed to the parent container. add a diffrent style for mobile and leave the desktop as it is.
+3. On Mobile, Place the Logo header and Hamburger menu close to each other as if they are one unit. Leaning to the left. then use the hamburger style from the landing page.
+4. Remove the Help button from the Chat page. Then place the help link to the three dot at the conversation page.
+5. Increase the scale of the chat input field on mobile. remove the horizontal rule above it and arrange it to fit the footer sectiion of the chat page.
+6. The Hamburger Menu Links are not updated. They are still pointing to the old links.. for navigation links [Home, About, Contact, Help, Logout], clear the current.
+7. The Team Section tootips is cut off by the edge of the screen on mobile. (for item at the edge of the screen, the tooltip should appear on the other side)

@@ -1,6 +1,5 @@
 "use client";
 
-import { Footer } from "../components/sections/Footer";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { Heart, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -67,7 +66,6 @@ export default function SavedPage() {
                 )}
             </div>
 
-            <Footer />
-        </main>
+                    </main>
     );
 }
