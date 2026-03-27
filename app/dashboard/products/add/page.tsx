@@ -4,8 +4,6 @@ import { useMemo, useState } from "react";
 import { PhoneCall, Mail, ShieldCheck } from "lucide-react";
 import { CATEGORIES } from "../../../data/products";
 
-type SpecItem = { id: string; key: string; value: string };
-
 export default function AddListingPage() {
     const [formData, setFormData] = useState({
         category: "",
@@ -15,7 +13,7 @@ export default function AddListingPage() {
         condition: "",
         description: "",
         tags: "",
-        specs: [{ id: "spec-1", key: "Brand", value: "" }, { id: "spec-2", key: "Model", value: "" }],
+        specs: [],
         negotiable: false,
         minPrice: "",
         confirmHonesty: false,
@@ -30,24 +28,10 @@ export default function AddListingPage() {
         listingsInQueue: 3,
     }), [formData]);
 
-    const setField = (key: keyof typeof formData, value: string | boolean | SpecItem[]) => {
+    const setField = (key: keyof typeof formData, value: string | boolean) => {
         setFormData((prev) => ({
             ...prev,
             [key]: value,
-        }));
-    };
-
-    const updateSpec = (id: string, field: "key" | "value", value: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            specs: prev.specs.map((spec) => (spec.id === id ? { ...spec, [field]: value } : spec)),
-        }));
-    };
-
-    const addSpec = () => {
-        setFormData((prev) => ({
-            ...prev,
-            specs: [...prev.specs, { id: `spec-${Date.now()}`, key: "", value: "" }],
         }));
     };
 
@@ -134,15 +118,13 @@ export default function AddListingPage() {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-semibold uppercase tracking-[0.4em] text-muted-foreground">Images</label>
-                                    <div className="grid gap-3 md:grid-cols-3">
-                                        {[1, 2, 3].map((slot) => (
-                                            <label key={slot} className="aspect-[1/1.1] rounded-[var(--radius)] border border-dashed border-border/60 bg-secondary/20 flex flex-col items-center justify-center text-[11px] text-muted-foreground">
-                                                <span>Add photo</span>
-                                                <input type="file" className="hidden" />
-                                            </label>
-                                        ))}
-                                    </div>
+                                    <label className="text-[10px] font-semibold uppercase tracking-[0.4em] text-muted-foreground">Tags (comma separated)</label>
+                                    <input
+                                        value={formData.tags}
+                                        onChange={(e) => setField("tags", e.target.value)}
+                                        placeholder="apple, macbook, electronics"
+                                        className="w-full rounded-[var(--radius)] border border-border/60 px-4 py-3 text-sm"
+                                    />
                                 </div>
                             </div>
 
@@ -158,41 +140,13 @@ export default function AddListingPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-semibold uppercase tracking-[0.4em] text-muted-foreground">Tags (comma separated)</label>
-                                <input
-                                    value={formData.tags}
-                                    onChange={(e) => setField("tags", e.target.value)}
-                                    placeholder="apple, macbook, electronics"
-                                    className="w-full rounded-[var(--radius)] border border-border/60 px-4 py-3 text-sm"
-                                />
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-base font-semibold">Specifications</p>
-                                        <p className="text-xs text-muted-foreground">Highlight key specs that show up on the listing card.</p>
-                                    </div>
-                                    <button type="button" onClick={addSpec} className="text-sm font-semibold uppercase tracking-[0.4em] text-primary">
-                                        Add spec
-                                    </button>
-                                </div>
-                                <div className="space-y-2">
-                                    {formData.specs.map((spec) => (
-                                        <div key={spec.id} className="grid grid-cols-2 gap-3">
-                                            <input
-                                                value={spec.key}
-                                                onChange={(e) => updateSpec(spec.id, "key", e.target.value)}
-                                                placeholder="Spec name"
-                                                className="rounded-[var(--radius)] border border-border/60 px-3 py-2 text-sm"
-                                            />
-                                            <input
-                                                value={spec.value}
-                                                onChange={(e) => updateSpec(spec.id, "value", e.target.value)}
-                                                placeholder="Spec value"
-                                                className="rounded-[var(--radius)] border border-border/60 px-3 py-2 text-sm"
-                                            />
-                                        </div>
+                                <label className="text-[10px] font-semibold uppercase tracking-[0.4em] text-muted-foreground">Images</label>
+                                <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
+                                    {[1, 2, 3, 4, 5].map((slot) => (
+                                        <label key={slot} className="aspect-[1/1.1] rounded-[var(--radius)] border border-dashed border-border/60 bg-secondary/20 flex flex-col items-center justify-center text-[11px] text-muted-foreground">
+                                            <span>Add photo</span>
+                                            <input type="file" className="hidden" />
+                                        </label>
                                     ))}
                                 </div>
                             </div>
@@ -269,3 +223,4 @@ export default function AddListingPage() {
         </div>
     );
 }
+

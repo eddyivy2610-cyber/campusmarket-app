@@ -1,6 +1,6 @@
 "use client";
 
-import { PRODUCTS } from "../../data/products";
+import { getAllListings } from "../../data/listings";
 import { ProductCard } from "../shop/ProductCard";
 import { motion, Variants } from "framer-motion";
 import { useMemo, useEffect, useRef, useState } from "react";
@@ -11,15 +11,16 @@ const HOME_PAGE_SIZE = 20;
 const EXPLORE_POOL_SIZE = 120;
 
 export function ProductGrid() {
+    const listings = getAllListings();
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const [visibleCount, setVisibleCount] = useState(HOME_PAGE_SIZE);
 
     const buildExploreItems = () =>
         Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
-            const base = PRODUCTS[index % PRODUCTS.length];
+            const base = listings[index % listings.length];
             return {
                 ...base,
-                id: 100000 + index,
+                exploreKey: `explore-${index}`,
                 originalPrice: Math.round(base.price * 1.2),
             };
         });
@@ -72,7 +73,7 @@ export function ProductGrid() {
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                     {visibleItems.map((product) => (
-                        <InViewMount key={product.id} placeholder={<SkeletonProductCard />}>
+                        <InViewMount key={(product as { exploreKey?: string }).exploreKey || product.id} placeholder={<SkeletonProductCard />}>
                             <motion.div
                                 variants={itemVariants}
                                 initial="hidden"

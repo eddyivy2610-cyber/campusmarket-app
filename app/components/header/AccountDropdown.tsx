@@ -15,7 +15,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
     return (
         <div
-           className={`absolute top-full left-0 right-0 w-full md:w-64 md:left-auto md:right-0 max-h-[60vh] overflow-y-auto bg-white dark:bg-card text-foreground font-heading rounded-2xl border border-border shadow-[0_18px_40px_rgba(0,0,0,0.15)] transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
+           className={`absolute top-full left-0 right-0 w-full md:left-0 md:right-0 max-h-[60vh] overflow-y-auto bg-white dark:bg-card text-foreground font-heading rounded-2xl border border-border shadow-[0_18px_40px_rgba(0,0,0,0.15)] transition-all duration-200 ease-in-out z-50 origin-top ${isOpen
                 ? 'opacity-100 translate-y-2 visible'
                 : 'opacity-0 translate-y-0 invisible'
                 } max-sm:fixed max-sm:inset-x-4 max-sm:top-16 max-sm:w-auto`}
@@ -24,12 +24,9 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                 <div className="flex flex-col gap-2">
                     <Link
                         href={user ? "/profile/campus-market" : "/register"}
-                        className="w-full py-2.5 bg-[#FFD700] text-black text-[11px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#F0C900] transition-all active:scale-95 shadow-sm flex items-center justify-between px-3"
+                        className="w-full py-2 bg-[#FFD700] text-black text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-[#F0C900] transition-all active:scale-95 shadow-sm flex items-center justify-center px-3 text-center"
                     >
-                        <span>Join Campus Hive</span>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-black/70">
-                            {user ? `${user.name.split(" ")[0]} • ${user.role}` : "Log in or Sign up"}
-                        </span>
+                        <span>Join Hive</span>
                     </Link>
 
                     {!user ? (
@@ -56,30 +53,30 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
             {/* Menu Links */}
             <div className="p-1.5 space-y-0.5">
-                <Link href="/profile/campus-market" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
-                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
-                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
-                            <User className="w-[14px] h-[14px]" strokeWidth={1.5} />
+                <Link href="/profile/campus-market" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
+                            <User className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
                         </span>
                         <span>My Profile</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
 
-                <Link href="/messages" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
-                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
-                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
-                            <MessageSquare className="w-[14px] h-[14px]" strokeWidth={1.5} />
+                <Link href="/messages" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
+                            <MessageSquare className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
                         </span>
                         <span>Messages</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
 
-                <Link href="/settings" className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-all duration-200 group">
-                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
-                        <span className="w-7 h-7 rounded-lg bg-card/60 border border-border flex items-center justify-center text-foreground transition-colors group-hover:bg-white group-hover:border-[#FFD700]">
-                            <Settings className="w-[14px] h-[14px]" strokeWidth={1.5} />
+                <Link href="/settings" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                    <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
+                        <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
+                            <Settings className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
                         </span>
                         <span>Settings</span>
                     </div>

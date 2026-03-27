@@ -9,9 +9,10 @@ interface Step3Props {
     updateFormData: (data: any) => void;
     onNext: () => void;
     onBack: () => void;
+    onFinishBuyer: () => void;
 }
 
-export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }: Step3Props) {
+export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, onFinishBuyer }: Step3Props) {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -31,6 +32,12 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
         setIsLoading(true);
         await new Promise((resolve) => setTimeout(resolve, 800));
         setIsLoading(false);
+
+        if (isNotStudent) {
+            onFinishBuyer();
+            return;
+        }
+
         onNext();
     };
 
@@ -82,7 +89,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                             </div>
                             <div>
                                 <p className={`font-semibold text-sm ${isNotStudent ? 'text-primary' : 'text-foreground'}`}>No, I'm not</p>
-                                <p className="text-[10px] text-muted-foreground">Register as an external user</p>
+                                <p className="text-[10px] text-muted-foreground">Register as a buyer only</p>
                             </div>
                         </div>
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isNotStudent ? 'border-primary bg-primary' : 'border-border'}`}>
@@ -105,7 +112,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                         {isStudent && (
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 text-left block">
-                                    Department / Faculty
+                                    School / College Name
                                 </label>
                                 <input
                                     type="text"
@@ -114,7 +121,7 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack }:
                                         updateFormData({ department: e.target.value });
                                         if (errors.department) setErrors({ ...errors, department: "" });
                                     }}
-                                    placeholder="e.g. Computer Science"
+                                    placeholder="e.g. College of Engineering"
                                     className={`w-full border-b ${errors.department ? 'border-red-500/60' : 'border-border'} bg-transparent pb-2 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
                                 />
                                 {errors.department && <p className="text-[11px] font-semibold text-red-500">{errors.department}</p>}

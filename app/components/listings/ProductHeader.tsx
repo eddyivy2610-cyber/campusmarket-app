@@ -3,18 +3,20 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, Heart, Star, ExternalLink } from "lucide-react";
+import { Heart, Star, ExternalLink, MapPin, Tag, Handshake } from "lucide-react";
 import { Product } from "../../data/products";
 import { Profile } from "../../data/profiles";
+import { useRouter } from "next/navigation";
 
 interface ProductHeaderProps {
     product: Product;
     vendor: Profile;
-    onOfferOpen: () => void;
 }
 
-export function ProductHeader({ product, vendor, onOfferOpen }: ProductHeaderProps) {
-    const [quantity, setQuantity] = useState(1);
+export function ProductHeader({ product, vendor }: ProductHeaderProps) {
+    const [isOfferOpen, setIsOfferOpen] = useState(false);
+    const [offerNote, setOfferNote] = useState("");
+    const router = useRouter();
 
     const rating = useMemo(() => {
         const total = product.recommendedCount + product.notRecommendedCount;
@@ -50,36 +52,76 @@ export function ProductHeader({ product, vendor, onOfferOpen }: ProductHeaderPro
                 {shortDescription}
             </p>
 
-            <div className="text-2xl md:text-[28px] font-black font-price text-amber-800">
+            <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {product.location && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-secondary/40 px-2 py-1">
+                        <MapPin className="w-3 h-3" /> {product.location}
+                    </span>
+                )}
+                {product.tags?.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-secondary/40 px-2 py-1">
+                        <Tag className="w-3 h-3" /> {product.tags.slice(0, 3).join(", ")}
+                    </span>
+                )}
+                {product.negotiable && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2 py-1">
+                        <Handshake className="w-3 h-3" /> Negotiable
+                        {product.minPrice ? ` • Min ₦${product.minPrice.toLocaleString()}` : ""}
+                    </span>
+                )}
+            </div>
+
+            <div className="text-2xl md:text-[28px] font-black font-price text-amber-800 dark:text-amber-300">
                 {formattedPrice}
             </div>
 
             <div className="flex items-center gap-2">
-                <div className="h-10 rounded border border-border/60 bg-background flex items-center">
-                    <button
-                        onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                        className="w-9 h-full grid place-items-center text-foreground/70 hover:text-foreground"
-                    >
-                        <Minus className="w-4 h-4" />
-                    </button>
-                    <div className="w-9 text-center text-sm font-semibold">{quantity}</div>
-                    <button
-                        onClick={() => setQuantity((prev) => prev + 1)}
-                        className="w-9 h-full grid place-items-center text-foreground/70 hover:text-foreground"
-                    >
-                        <Plus className="w-4 h-4" />
-                    </button>
-                </div>
                 <button
-                    onClick={onOfferOpen}
+                    onClick={() => setIsOfferOpen((prev) => !prev)}
+                    aria-expanded={isOfferOpen}
                     className="flex-1 h-10 rounded bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90"
                 >
-                    Make Offer
+                    Make Inquiry
                 </button>
                 <button className="w-10 h-10 rounded border border-border/60 grid place-items-center hover:bg-secondary/50">
                     <Heart className="w-4 h-4" />
                 </button>
             </div>
+
+            {isOfferOpen && (
+                <div className="rounded-lg border border-border/60 bg-background p-3 space-y-3 font-sans">
+                    <div className="space-y-1.5">
+                        <textarea
+                            value={offerNote}
+                            onChange={(e) => setOfferNote(e.target.value)}
+                            placeholder="Type your offer message to start a chat..."
+                            className="w-full min-h-[96px] rounded-md border border-border/60 bg-secondary/30 p-3 text-xs font-medium outline-none focus:border-primary/60"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setIsOfferOpen(false)}
+                            className="flex-1 h-9 rounded-md border border-border/60 bg-secondary/40 text-[10px] font-bold uppercase tracking-widest hover:bg-secondary/60"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => {
+                                const message = offerNote.trim();
+                                if (!message) return;
+                                setIsOfferOpen(false);
+                                const query = `&message=${encodeURIComponent(message)}`;
+                                router.push(`/chat?user=${vendor.id}&listing=${product.id}${query}`);
+                                setOfferNote("");
+                            }}
+                            disabled={!offerNote.trim()}
+                            className="flex-[2] h-9 rounded-md bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Send
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="border border-border/60 rounded-md overflow-hidden bg-background">
                 <div className="flex items-center justify-between gap-3 p-3">

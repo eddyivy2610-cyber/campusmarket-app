@@ -8,6 +8,7 @@ import { SellerDetails } from "@/components/auth/seller/SellerDetails";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Sparkles, Building2, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SellerRegisterPage() {
     const [step, setStep] = useState(0); // 0: Guidelines, 1: Business Name, 2: ID, 3: Details
@@ -19,6 +20,7 @@ export default function SellerRegisterPage() {
         agreedToSellerTerms: false,
     });
     const router = useRouter();
+    const { user } = useAuth();
 
     const updateFormData = (data: Partial<typeof formData>) => {
         setFormData((prev) => ({ ...prev, ...data }));
@@ -31,7 +33,7 @@ export default function SellerRegisterPage() {
         // Show success message and redirect
         setStep(4); // Success state
         setTimeout(() => {
-            router.push("/");
+            router.push(user ? "/home" : "/login");
         }, 3000);
     };
 
@@ -114,7 +116,7 @@ export default function SellerRegisterPage() {
                         </div>
                         <div className="flex items-center justify-center gap-2 text-primary font-bold animate-pulse uppercase tracking-[0.2em] text-xs pt-4">
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Returning to homepage...</span>
+                            <span>{user ? "Returning to homepage..." : "Redirecting to login..."}</span>
                         </div>
                     </div>
                 );

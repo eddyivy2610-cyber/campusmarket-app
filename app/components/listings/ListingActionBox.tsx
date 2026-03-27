@@ -31,7 +31,7 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
                 <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 border-b border-border/40">
                     <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Asking Price</p>
                     <div className="flex items-end gap-3">
-                        <div className="text-2xl font-black text-amber-800 font-price tracking-tight">
+                        <div className="text-2xl font-black text-amber-800 dark:text-amber-300 font-price tracking-tight">
                             {formattedPrice}
                         </div>
                     </div>
@@ -39,7 +39,7 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
                         <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-md">
                             Great Deal
                         </span>
-                        <span className="text-[11px] font-bold text-amber-800/80">
+                        <span className="text-[11px] font-bold text-amber-800/80 dark:text-amber-300/80">
                             Usually ₦{marketPriceMax}
                         </span>
                     </div>
@@ -145,5 +145,7 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
         </div>
     );
 }
+
+
 
 

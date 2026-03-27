@@ -66,8 +66,16 @@ export default function ListingPage() {
                     {/* Content Grid */}
                     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-12">
                         {/* Left Column: Media, Details, Related (Desktop) */}
-                        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-12 order-1 lg:order-none">
+                        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 md:gap-12 order-1 lg:order-none">
                             <ProductGallery images={product.images} />
+
+                            {/* Primary Purchase Panel (Mobile) */}
+                            <div className="block lg:hidden">
+                                <ProductHeader
+                                    product={product}
+                                    vendor={vendor}
+                                />
+                            </div>
 
                             {/* Related Products: Bottom on Mobile, Middle on Desktop */}
                             <div className="pt-8 md:pt-12 mt-8 md:mt-12 border-t border-border/40 order-3 lg:order-none">
@@ -80,11 +88,10 @@ export default function ListingPage() {
                         </div>
 
                         {/* Right Column: Primary Purchase Panel */}
-                        <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit order-2 lg:order-none">
+                        <div className="hidden lg:block lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit order-2 lg:order-none">
                             <ProductHeader
                                 product={product}
                                 vendor={vendor}
-                                onOfferOpen={() => router.push(`/chat?user=${vendor.id}&listing=${product.id}`)}
                             />
                         </div>
                     </div>

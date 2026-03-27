@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ShoppingCart, Store, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 interface Step4Props {
     formData: any;
@@ -18,7 +19,7 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
 
     const handleFinish = async (intent: 'buy' | 'sell') => {
         if (!agreed) {
-            setError("You must agree to the Privacy Policy to proceed");
+            setError("You must agree to the Terms of Service to continue");
             return;
         }
 
@@ -93,7 +94,10 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         </div>
                     </div>
                     <span className="text-[11px] text-muted-foreground leading-relaxed">
-                        I agree to the <span className="text-primary font-semibold hover:underline">Privacy Policy</span> and <span className="text-primary font-semibold hover:underline">Terms of Service</span>.
+                        I agree to the{" "}
+                        <Link href="/terms-of-service" className="text-primary font-semibold hover:underline">
+                            Terms of Service
+                        </Link>.
                     </span>
                 </label>
                 {error && <p className="text-[11px] font-semibold text-red-500 animate-pulse">{error}</p>}

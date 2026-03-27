@@ -7,10 +7,6 @@ import {
     X,
     Heart,
     Star,
-    MapPin,
-    Calendar,
-    MessageSquare,
-    ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -76,11 +72,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
         5,
         Math.max(1, Math.round((product.recommendedCount / (totalReviews || 1)) * 5))
     );
-
-    const goToMessages = () => {
-        onClose();
-        router.push(`/messages?user=${product.sellerId}&listing=${product.id}`);
-    };
+    const shortDescription = (product.description || "").split("\n")[0]?.slice(0, 140) || "No description provided for this listing yet.";
 
     const goToListing = () => {
         onClose();
@@ -106,7 +98,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 18 }}
                         transition={{ type: "spring", damping: 24, stiffness: 290 }}
-                        className="relative w-full max-w-sm sm:max-w-[420px] bg-card rounded-[24px] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] max-h-[88vh] flex flex-col"
+                        className="relative w-full max-w-sm sm:max-w-[420px] bg-card rounded-[24px] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] max-h-[88vh] flex flex-col font-sans"
                         onWheel={(e) => e.stopPropagation()}
                     >
                         <div className="absolute top-4 inset-x-4 z-20 flex items-start justify-between pointer-events-none">
@@ -164,47 +156,28 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                                 <div className="flex items-start justify-between gap-3">
                                     <h2 className="text-base font-bold font-heading leading-tight text-foreground">{product.title}</h2>
                                     <div className="text-right shrink-0">
-                                        <p className="text-lg font-price font-bold text-amber-800">N{formatPrice(product.price)}</p>
+                                        <p className="text-lg font-price font-bold text-amber-800 dark:text-amber-300">₦{formatPrice(product.price)}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-1.5 text-[9px] font-bold uppercase tracking-widest">
-                                    <span className="px-2 py-1 rounded-lg border border-border/40 bg-secondary/60 text-foreground">
-                                        {product.condition || "Condition not set"}
-                                    </span>
-                                    <span className="px-2 py-1 rounded-lg border border-border/40 bg-secondary/60 text-foreground flex items-center gap-1">
-                                        <MapPin className="w-3 h-3" /> {product.location || "Campus"}
-                                    </span>
-                                    {product.postedDate && (
-                                        <span className="px-2 py-1 rounded-lg border border-border/40 bg-secondary/60 text-foreground flex items-center gap-1">
-                                            <Calendar className="w-3 h-3" /> {product.postedDate}
-                                        </span>
-                                    )}
-                                </div>
-
-                                <div className="p-3 bg-secondary/30 border border-border/40 rounded-2xl">
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                        <div className="flex items-center gap-0.5">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <Star
-                                                    key={s}
-                                                    className={`w-3.5 h-3.5 ${s <= starRating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"}`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <span className="text-[10px] font-bold text-muted-foreground">
-                                            ({totalReviews} reviews)
-                                        </span>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-3.5 h-3.5 ${s <= starRating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"}`}
+                                            />
+                                        ))}
                                     </div>
-                                    <p className="text-[11px] font-semibold text-foreground/80">
-                                        {product.recommendedCount} recommended this listing
-                                    </p>
+                                    <span className="text-[10px] font-bold text-muted-foreground">
+                                        ({totalReviews} reviews)
+                                    </span>
                                 </div>
 
                                 <div className="space-y-2 bg-secondary/20 p-4 rounded-2xl border border-border/30">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Overview</p>
                                     <p className="text-xs text-foreground/80 leading-relaxed font-medium line-clamp-4">
-                                        {product.description || "No description provided for this listing yet."}
+                                        {shortDescription}
                                     </p>
                                 </div>
 
@@ -213,17 +186,10 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
 
                         <div className="p-3 border-t border-border/50 bg-card flex gap-2">
                             <button
-                                onClick={goToMessages}
+                                onClick={goToListing}
                                 className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 bg-primary text-white hover:scale-[1.01] active:scale-[0.98] transition-all"
                             >
-                                <MessageSquare className="w-4 h-4" /> Message Seller
-                            </button>
-
-                            <button
-                                onClick={goToListing}
-                                className="h-11 px-3 rounded-xl border border-border text-foreground text-[10px] font-bold uppercase tracking-widest hover:bg-secondary transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4" />
+                                View Full
                             </button>
 
                             <button

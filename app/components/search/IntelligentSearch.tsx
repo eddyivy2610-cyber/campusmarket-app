@@ -12,25 +12,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-    Search, X, Clock, TrendingUp, ChevronRight,
-    MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench,
-    MoreHorizontal
+    Search, X, Clock, ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { searchProducts, searchProfiles } from "../../lib/searchUtils";
-import { PRODUCTS, Product, CATEGORIES } from "../../data/products";
+import { PRODUCTS, Product } from "../../data/products";
 import { PROFILES, Profile } from "../../data/profiles";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { AnimatePresence, motion } from "framer-motion";
-
-const IconMap: { [key: string]: any } = {
-    MonitorSmartphone, BookOpen, Home, Shirt, Sparkles,
-    Dumbbell, Music, Package, Bike, Calendar, AlertCircle, Wrench,
-    MoreHorizontal
-};
 
 export function IntelligentSearch() {
     const router = useRouter();
@@ -141,7 +132,7 @@ export function IntelligentSearch() {
                         {query.trim().length === 0 ? (
                             // Default State: Recent & Trending
                             <div className="p-4">
-                                {recentSearches.length > 0 && (
+                                {recentSearches.length > 0 ? (
                                     <div className="mb-6">
                                         <div className="flex items-center justify-between mb-2 px-2">
                                             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Recent Searches</h3>
@@ -160,40 +151,11 @@ export function IntelligentSearch() {
                                             ))}
                                         </div>
                                     </div>
-                                )}
-
-                                <div>
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">Popular Categories</h3>
-                                    <div className="grid grid-cols-5 gap-2">
-                                        {CATEGORIES.filter(c => ["Fashion", "Electronics", "Personal Care", "Services"].includes(c.name)).map(cat => {
-                                            const Icon = IconMap[cat.lucideIcon || "Package"];
-                                            return (
-                                                <Link
-                                                    key={cat.name}
-                                                    href={cat.href || `/categories?category=${encodeURIComponent(cat.name)}`}
-                                                    onClick={() => setIsOpen(false)}
-                                                    className="flex flex-col items-center justify-center p-3 hover:bg-secondary/50 rounded-xl transition-colors text-center group border border-transparent hover:border-primary/20"
-                                                >
-                                                    <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                                        <Icon className="w-5 h-5" />
-                                                    </div>
-                                                    <span className="text-[10px] font-bold text-foreground truncate w-full">{cat.name}</span>
-                                                </Link>
-                                            );
-                                        })}
-                                        {/* Others Category */}
-                                        <Link
-                                            href="/categories"
-                                            onClick={() => setIsOpen(false)}
-                                            className="flex flex-col items-center justify-center p-3 hover:bg-secondary/50 rounded-xl transition-colors text-center group border border-transparent hover:border-primary/20"
-                                        >
-                                            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                                <MoreHorizontal className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-bold text-foreground truncate w-full">Others</span>
-                                        </Link>
+                                ) : (
+                                    <div className="py-6 text-center text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
+                                        No recent searches yet
                                     </div>
-                                </div>
+                                )}
                             </div>
                         ) : (
                             // Search Results State

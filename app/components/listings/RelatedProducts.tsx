@@ -40,13 +40,13 @@ function ProductScroller({ title, items, badge, viewAllHref }: {
                 </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                 {items.length > 0 ? (
                     items.map((item) => (
                         <Link
                             key={item.id}
                             href={`/listings/${item.id}`}
-                            className="group flex-shrink-0 w-[140px] space-y-2.5"
+                            className="group space-y-2.5"
                         >
                             <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary border border-border/30 shadow-sm transition-transform group-hover:scale-[1.02]">
                                 <Image src={item.image} alt={item.title} fill className="object-cover" />
@@ -77,7 +77,7 @@ function ProductScroller({ title, items, badge, viewAllHref }: {
 
 export function RelatedProducts({ vendorName, vendorListings, similarItems }: RelatedProductsProps) {
     return (
-        <div className="space-y-12">
+        <div className="space-y-12 font-sans">
             <ProductScroller
                 title={`More from ${vendorName}`}
                 items={vendorListings}

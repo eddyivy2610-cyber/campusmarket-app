@@ -11,6 +11,7 @@ import { AccountStatusSettings } from "./sections/AccountStatusSettings";
 import { SignOutSettings } from "./sections/SignOutSettings";
 import { SwitchAccountSettings } from "./sections/SwitchAccountSettings";
 import { Breadcrumb } from "../common/Breadcrumb";
+import { HelpSettings } from "./sections/HelpSettings";
 
 type SectionId = "profile" | "business" | "payment" | "security" | "preferences" | "help" | "account-status" | "logout" | "switch-account";
 
@@ -92,7 +93,7 @@ export function SettingsLayout() {
                         {activeSection === "logout" && <SignOutSettings />}
                         {activeSection === "switch-account" && <SwitchAccountSettings />}
                         {activeSection === "payment" && <SectionPlaceholder title="My Payment Options" />}
-                        {activeSection === "help" && <SectionPlaceholder title="Help & Support" />}
+                        {activeSection === "help" && <HelpSettings />}
                     </main>
                 </div>
             </div>

@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
+    const [buyerComplete, setBuyerComplete] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -47,9 +48,18 @@ export default function RegisterPage() {
             // Redirect to seller onboarding
             router.push("/register/seller");
         } else {
-            // Redirect to home
-            router.push("/");
+            setBuyerComplete(true);
+            setTimeout(() => {
+                router.replace("/login");
+            }, 1200);
         }
+    };
+
+    const finishBuyerToLogin = async () => {
+        setStep(4);
+        setBuyerComplete(true);
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        router.replace("/login");
     };
 
     const renderStep = () => {
@@ -78,6 +88,7 @@ export default function RegisterPage() {
                         updateFormData={updateFormData}
                         onNext={nextStep}
                         onBack={prevStep}
+                        onFinishBuyer={finishBuyerToLogin}
                     />
                 );
             case 4:
@@ -98,7 +109,9 @@ export default function RegisterPage() {
         1: { title: "Create your account", subtitle: "Let's get started with your email and password" },
         2: { title: "Profile Information", subtitle: "Tell us about yourself" },
         3: { title: "Student Status", subtitle: "Help us personalize your experience" },
-        4: { title: "Final Choice", subtitle: "How will you use Campus Hive?" },
+        4: buyerComplete
+            ? { title: "Account Ready", subtitle: "You're set to browse as a buyer" }
+            : { title: "Final Choice", subtitle: "How will you use Campus Hive?" },
     };
 
     return (
@@ -118,7 +131,7 @@ export default function RegisterPage() {
                     <div className="flex w-full items-center justify-center bg-background px-8 py-10 md:w-1/2 md:px-14">
                         <div className="w-full max-w-[420px] font-heading">
                             <div className="mb-4">
-                                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground/60">
+                                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground/60 font-sans">
                                     Step {step} of 4
                                 </span>
                                 <div className="mt-2 flex gap-2">
@@ -152,7 +165,18 @@ export default function RegisterPage() {
                                         exit={{ x: -20, opacity: 0 }}
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
-                                        {renderStep()}
+                                        {step === 4 && buyerComplete ? (
+                                            <div className="space-y-3">
+                                                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                                                    Registration complete. You can now sign in as a buyer.
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Redirecting you to login...
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            renderStep()
+                                        )}
                                     </motion.div>
                                 </AnimatePresence>
                             </div>
