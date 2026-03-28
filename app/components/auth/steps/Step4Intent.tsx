@@ -1,33 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShoppingCart, Store, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, Store, ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 
 interface Step4Props {
     formData: any;
     updateFormData: (data: any) => void;
-    onFinish: (intent: 'buy' | 'sell') => void;
+    onFinish: (intent: 'buy' | 'sell') => Promise<void> | void;
     onBack: () => void;
 }
 
 export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step4Props) {
     const [isLoading, setIsLoading] = useState(false);
-    const [agreed, setAgreed] = useState(formData.agreedToTerms || false);
-    const [error, setError] = useState("");
 
     const handleFinish = async (intent: 'buy' | 'sell') => {
-        if (!agreed) {
-            setError("You must agree to the Terms of Service to continue");
-            return;
-        }
-
         setIsLoading(true);
-        updateFormData({ platformIntent: intent, agreedToTerms: true });
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        setIsLoading(false);
-        onFinish(intent);
+        updateFormData({ platformIntent: intent });
+        try {
+            await onFinish(intent);
+        } catch (err) {
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -75,34 +70,6 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                 </button>
             </div>
 
-            {/* Terms & Conditions */}
-            <div className="pt-4 space-y-4">
-                <label className="flex items-start gap-3 cursor-pointer group px-2 text-left">
-                    <div className="relative flex items-center mt-0.5">
-                        <input
-                            type="checkbox"
-                            checked={agreed}
-                            onChange={(e) => {
-                                setAgreed(e.target.checked);
-                                setError("");
-                            }}
-                            className="peer h-5 w-5 opacity-0 absolute cursor-pointer"
-                        />
-                        <div className={`h-5 w-5 border rounded-md transition-all ${agreed ? 'bg-primary border-primary' : 'border-border peer-hover:border-primary/50'
-                            } flex items-center justify-center text-white`}>
-                            {agreed && <CheckCircle2 className="w-3.5 h-3.5" />}
-                        </div>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground leading-relaxed">
-                        I agree to the{" "}
-                        <Link href="/terms-of-service" className="text-primary font-semibold hover:underline">
-                            Terms of Service
-                        </Link>.
-                    </span>
-                </label>
-                {error && <p className="text-[11px] font-semibold text-red-500 animate-pulse">{error}</p>}
-            </div>
-
             {isLoading && (
                 <div className="flex flex-col items-center gap-2 py-4">
                     <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -120,6 +87,14 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to step 3
+                </button>
+                <button
+                    onClick={onBack}
+                    disabled={isLoading}
+                    className="md:hidden mt-3 w-full flex items-center justify-center gap-2 rounded-md border border-border/40 bg-secondary/70 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground hover:border-primary/70 hover:text-primary transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Go back
                 </button>
             </div>
         </div>

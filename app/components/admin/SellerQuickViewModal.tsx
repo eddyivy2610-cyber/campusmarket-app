@@ -71,10 +71,12 @@ export default function SellerQuickViewModal({ isOpen, onClose, applicant, onApp
                                             <p className="text-sm font-semibold">{applicant.name}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-bold text-muted-foreground uppercase">Department</p>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase">School</p>
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <BookOpen className="w-3.5 h-3.5 text-primary" />
-                                                <p className="text-sm font-semibold">{applicant.department}</p>
+                                                <p className="text-sm font-semibold">
+                                                    {applicant.schoolName || applicant.department || "Not specified"}
+                                                </p>
                                             </div>
                                         </div>
                                         <div>

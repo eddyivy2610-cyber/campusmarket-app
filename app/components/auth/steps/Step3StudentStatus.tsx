@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { GraduationCap, Briefcase, ArrowLeft, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 interface Step3Props {
     formData: any;
@@ -22,7 +23,8 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, o
     const handleNext = async () => {
         const newErrors: { [key: string]: string } = {};
         if (formData.isStudent === undefined) newErrors.isStudent = "Please select your status";
-        if (isStudent && !formData.department) newErrors.department = "Department/Faculty is required";
+        if (isStudent && !formData.schoolName) newErrors.schoolName = "School name is required";
+        if (isNotStudent && !formData.agreedToTerms) newErrors.agreedToTerms = "You must agree to the Terms of Service";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -112,19 +114,19 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, o
                         {isStudent && (
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70 text-left block">
-                                    School / College Name
+                                    School Name
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.department || ""}
+                                    value={formData.schoolName || ""}
                                     onChange={(e) => {
-                                        updateFormData({ department: e.target.value });
-                                        if (errors.department) setErrors({ ...errors, department: "" });
+                                        updateFormData({ schoolName: e.target.value });
+                                        if (errors.schoolName) setErrors({ ...errors, schoolName: "" });
                                     }}
-                                    placeholder="e.g. College of Engineering"
-                                    className={`w-full border-b ${errors.department ? 'border-red-500/60' : 'border-border'} bg-transparent pb-2 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
+                                    placeholder="e.g. University of Lagos"
+                                    className={`w-full border-b ${errors.schoolName ? "border-red-500/60" : "border-border"} bg-transparent pb-2 text-sm font-medium outline-none placeholder:text-muted-foreground/40 focus:border-primary/60`}
                                 />
-                                {errors.department && <p className="text-[11px] font-semibold text-red-500">{errors.department}</p>}
+                                {errors.schoolName && <p className="text-[11px] font-semibold text-red-500">{errors.schoolName}</p>}
                             </div>
                         )}
 
@@ -146,6 +148,34 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, o
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <div className="space-y-2">
+                <label className="flex items-start gap-3 cursor-pointer group px-2 text-left">
+                    <div className="relative flex items-center mt-0.5">
+                        <input
+                            type="checkbox"
+                            checked={!!formData.agreedToTerms}
+                            onChange={(e) => {
+                                updateFormData({ agreedToTerms: e.target.checked });
+                                if (errors.agreedToTerms) setErrors({ ...errors, agreedToTerms: "" });
+                            }}
+                            className="peer h-5 w-5 opacity-0 absolute cursor-pointer"
+                        />
+                        <div className={`h-5 w-5 border rounded-md transition-all ${formData.agreedToTerms ? 'bg-primary border-primary' : 'border-border peer-hover:border-primary/50'
+                            } flex items-center justify-center text-white`}>
+                            {formData.agreedToTerms && <div className="w-3 h-3 bg-white rounded-full" />}
+                        </div>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground leading-relaxed">
+                        I agree to the{" "}
+                        <Link href="/terms-of-service" className="text-primary font-semibold hover:underline">
+                            Terms of Service
+                        </Link>{" "}
+                        and Privacy Policy.
+                    </span>
+                </label>
+                {errors.agreedToTerms && <p className="text-[11px] font-semibold text-red-500">{errors.agreedToTerms}</p>}
+            </div>
 
             <div className="flex gap-4 mt-8 pt-4 border-t border-border/30">
                 <button
@@ -170,6 +200,13 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, o
                     )}
                 </button>
             </div>
+            <button
+                onClick={onBack}
+                className="md:hidden mt-4 w-full border border-border/40 rounded-md py-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground flex items-center justify-center gap-2 hover:border-primary/70 hover:text-primary transition-colors"
+            >
+                <ArrowLeft className="w-4 h-4" />
+                Go back
+            </button>
         </div>
     );
 }

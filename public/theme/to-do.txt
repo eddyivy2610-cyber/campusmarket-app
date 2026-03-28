@@ -1,8 +1,61 @@
-FIXES
-1. Remove Footer from all pages Except Landing Page and Homepage.
-2. The Account Dropdown on mobile is cut off. i think this is due to the width being fixed to the parent container. add a diffrent style for mobile and leave the desktop as it is.
-3. On Mobile, Place the Logo header and Hamburger menu close to each other as if they are one unit. Leaning to the left. then use the hamburger style from the landing page.
-4. Remove the Help button from the Chat page. Then place the help link to the three dot at the conversation page.
-5. Increase the scale of the chat input field on mobile. remove the horizontal rule above it and arrange it to fit the footer sectiion of the chat page.
-6. The Hamburger Menu Links are not updated. They are still pointing to the old links.. for navigation links [Home, About, Contact, Help, Logout], clear the current.
-7. The Team Section tootips is cut off by the edge of the screen on mobile. (for item at the edge of the screen, the tooltip should appear on the other side)
+Frontend Integration: Where to Begin
+Assuming Backend APIs Ready on Render + Next.js Frontend Already Built
+PART 1: YOUR CURRENT STATE
+Component	Status
+Backend API	✅ Deployed on Render 
+API Endpoints	✅ All endpoints ready
+Frontend Project	✅ Next.js project already built
+What's Left	🔄 Connect frontend to backend APIs
+PART 2: FIRST THINGS FIRST
+Step 1: Get Your API Base URL
+Locate your deployed backend URL from Render:
+
+text
+https://your-app-name.onrender.com/api/v1
+Save this — you'll need it everywhere.
+
+Step 2: Create Environment File
+In your Next.js project root, create .env.local:
+
+text
+NEXT_PUBLIC_API_URL=https://your-app-name.onrender.com/api/v1
+The NEXT_PUBLIC_ prefix makes it accessible on the frontend.
+
+Step 3: Verify API is Reachable
+Before writing any code, test if your backend is responding:
+
+Open browser console or terminal:
+
+bash
+curl https://your-app-name.onrender.com/api/v1/health
+Or visit in browser: https://your-app-name.onrender.com/api/v1/health
+
+Expected: { "status": "ok" }
+
+PART 3: WHAT TO CONNECT FIRST (PRIORITY ORDER)
+Priority 1: Authentication (Login & Registration)
+Why first: Everything else requires a logged-in user
+
+Files to modify:
+
+pages/login.js or app/login/page.js
+
+pages/register.js or app/register/page.js
+
+Any auth context/provider file
+
+What to replace:
+
+Mock login functions → Real API calls to /auth/login
+
+Mock registration → Real API calls to /auth/register
+
+Token storage (localStorage or cookies) with real tokens from response
+
+Test after:
+
+Can you register a new user?
+
+Can you log in?
+
+Does token persist after page refresh?

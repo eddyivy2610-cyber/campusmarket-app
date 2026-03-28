@@ -127,7 +127,11 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                         <DetailItem label="Student Status" value="Yes - Active" />
                                         <DetailItem label="Phone" value="+234 801 234 5678" />
                                         <DetailItem label="Location" value="Zaria, Nigeria" />
-                                        <DetailItem label="Department" value="Computer Science" icon={<GraduationCap className="w-3.5 h-3.5" />} />
+                                        <DetailItem
+                                            label="School"
+                                            value={user.schoolName || user.department || "University of Lagos"}
+                                            icon={<GraduationCap className="w-3.5 h-3.5" />}
+                                        />
                                     </div>
                                 </div>
 

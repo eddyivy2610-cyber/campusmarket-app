@@ -1,14 +1,3 @@
-/**
- * @BACKEND: REGISTRATION PAGE — Multi-step user registration form, currently client-side only.
- *
- * Replace with:
- *   - POST /api/auth/register  → create new user account with all form data
- *   - POST /api/auth/verify-email → email verification step
- *   - Upload profile image to file storage (S3/Cloudinary)
- *   - Handle validation errors from the server (duplicate email, weak password, etc.)
- *   - Auto-login after successful registration or redirect to login
- */
-
 "use client";
 
 import React, { useState } from "react";
@@ -18,9 +7,12 @@ import { Step3StudentStatus } from "@/components/auth/steps/Step3StudentStatus";
 import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { apiPost } from "@/lib/apiClient";
+
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [buyerComplete, setBuyerComplete] = useState(false);
+    const [registerError, setRegisterError] = useState("");
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -29,10 +21,16 @@ export default function RegisterPage() {
         displayName: "",
         profileImage: null,
         isStudent: undefined,
-        department: "",
+        schoolName: "",
         bio: "",
         platformIntent: null,
         agreedToTerms: false,
+        // Seller fields
+        businessProfile: {
+            name: "",
+            description: "",
+            tags: [] as string[],
+        },
     });
     const router = useRouter();
 
@@ -43,23 +41,102 @@ export default function RegisterPage() {
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
 
-    const handleFinish = (intent: 'buy' | 'sell') => {
+    const validateStudentInfo = () => {
+        if (formData.isStudent === true && !formData.schoolName?.trim()) {
+            setRegisterError("School name is required for students.");
+            return false;
+        }
+        return true;
+    };
+
+    const buildRegisterPayload = (role: "buyer" | "seller") => {
+        const payload: any = {
+            email: formData.email,
+            password: formData.password,
+            profile: {
+                displayName: formData.displayName || formData.fullName,
+                bio: formData.bio || "Hey I'm using Campus Hive!",
+                avatar: formData.profileImage || null,
+            },
+            personalDetails: {
+                fullName: formData.fullName,
+            },
+            studentStatus: {
+                isStudent: formData.isStudent === true,
+                ...(formData.isStudent === true && formData.schoolName && {
+                    schoolName: formData.schoolName,
+                }),
+            },
+            role,
+            agreedToTerms: formData.agreedToTerms ?? true,
+            provider: "email",
+        };
+
+        // Add business profile for sellers
+        if (role === "seller") {
+            payload.businessProfile = {
+                name: formData.businessProfile?.name || formData.displayName || formData.fullName,
+                description: formData.businessProfile?.description || "",
+                tags: formData.businessProfile?.tags || [],
+            };
+        }
+
+        return payload;
+    };
+
+    const handleFinish = async (intent: 'buy' | 'sell') => {
         if (intent === 'sell') {
-            // Redirect to seller onboarding
-            router.push("/register/seller");
+            if (formData.isStudent !== true) {
+                setRegisterError("Only students can register as sellers.");
+                return;
+            }
+            if (!validateStudentInfo()) {
+                return;
+            }
+            setRegisterError("");
+            try {
+                await apiPost("api/auth/register", buildRegisterPayload("seller"));
+                // Redirect to seller onboarding or dashboard
+                router.push("/vendor/register");
+            } catch (err: any) {
+                console.error("Seller registration error:", err);
+                setRegisterError(err?.message || "Registration failed. Please try again.");
+            }
         } else {
-            setBuyerComplete(true);
-            setTimeout(() => {
-                router.replace("/login");
-            }, 1200);
+            if (!validateStudentInfo()) {
+                return;
+            }
+            setRegisterError("");
+            try {
+                await apiPost("api/auth/register", buildRegisterPayload("buyer"));
+                setBuyerComplete(true);
+                setTimeout(() => {
+                    router.replace("/login");
+                }, 1200);
+            } catch (err: any) {
+                console.error("Buyer registration error:", err);
+                setRegisterError(err?.message || "Registration failed");
+                setBuyerComplete(false);
+            }
         }
     };
 
     const finishBuyerToLogin = async () => {
         setStep(4);
-        setBuyerComplete(true);
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        router.replace("/login");
+        if (!validateStudentInfo()) {
+            return;
+        }
+        setRegisterError("");
+        updateFormData({ agreedToTerms: true });
+        try {
+            await apiPost("api/auth/register", buildRegisterPayload("buyer"));
+            setBuyerComplete(true);
+            await new Promise((resolve) => setTimeout(resolve, 1200));
+            router.replace("/login");
+        } catch (err: any) {
+            setRegisterError(err?.message || "Registration failed");
+            setBuyerComplete(false);
+        }
     };
 
     const renderStep = () => {
@@ -167,6 +244,11 @@ export default function RegisterPage() {
                                     >
                                         {step === 4 && buyerComplete ? (
                                             <div className="space-y-3">
+                                                {registerError && (
+                                                    <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600">
+                                                        {registerError}
+                                                    </div>
+                                                )}
                                                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                                                     Registration complete. You can now sign in as a buyer.
                                                 </div>
@@ -184,6 +266,6 @@ export default function RegisterPage() {
                     </div>
                 </div>
             </div>
-                    </div>
+        </div>
     );
 }

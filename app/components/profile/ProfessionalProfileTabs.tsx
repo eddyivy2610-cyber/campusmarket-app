@@ -130,7 +130,13 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                             </h3>
                                             <div className="space-y-4">
                                                 {[
-                                                    { label: "School Department", value: profile.department || "Computer Science" },
+                                                    {
+                                                        label: "School",
+                                                        value:
+                                                            profile.schoolName ||
+                                                            profile.department ||
+                                                            "University of Lagos",
+                                                    },
                                                     { label: "Date Joined", value: profile.joinedDateFull },
                                                     { label: "Joined (relative)", value: profile.joinedDate }
                                                 ].map((item) => (

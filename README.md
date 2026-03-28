@@ -14,6 +14,34 @@ pnpm dev
 bun dev
 ```
 
+## Run Frontend + Backend Together
+
+Install backend dependencies:
+
+```bash
+npm run backend:install
+```
+
+Run both servers:
+
+```bash
+npm run dev:all
+```
+
+PNPM:
+
+```bash
+pnpm backend:install
+pnpm dev:all
+```
+
+Yarn:
+
+```bash
+yarn backend:install
+yarn dev:all
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

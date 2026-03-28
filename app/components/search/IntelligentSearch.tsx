@@ -11,15 +11,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-    Search, X, Clock, ChevronRight
-} from "lucide-react";
+import { Search, X, Clock, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { searchProducts, searchProfiles } from "../../lib/searchUtils";
-import { PRODUCTS, Product } from "../../data/products";
-import { PROFILES, Profile } from "../../data/profiles";
+import type { Product } from "../../data/types";
+import type { Profile } from "../../data/profiles";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -30,8 +28,11 @@ export function IntelligentSearch() {
     const [profileResults, setProfileResults] = useState<Profile[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const searchRequestId = useRef(0);
 
     useClickOutside(wrapperRef, () => setIsOpen(false));
 
@@ -43,19 +44,50 @@ export function IntelligentSearch() {
         }
     }, []);
 
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setQuery(value);
         setIsOpen(true);
 
-        if (value.trim().length > 0) {
-            const products = searchProducts(value, PRODUCTS);
-            const profiles = searchProfiles(value, PROFILES);
-            setProductResults(products);
-            setProfileResults(profiles);
-        } else {
+        const trimmed = value.trim();
+        const currentRequestId = ++searchRequestId.current;
+
+        if (trimmed.length === 0) {
             setProductResults([]);
             setProfileResults([]);
+            setIsSearching(false);
+            setSearchError(null);
+            return;
+        }
+
+        setIsSearching(true);
+        setSearchError(null);
+
+        try {
+            const [products, profiles] = await Promise.all([
+                searchProducts(trimmed),
+                searchProfiles(trimmed),
+            ]);
+
+            if (searchRequestId.current !== currentRequestId) {
+                return;
+            }
+
+            setProductResults(products);
+            setProfileResults(profiles);
+        } catch (error) {
+            if (searchRequestId.current !== currentRequestId) {
+                return;
+            }
+
+            console.error("Search failed", error);
+            setProductResults([]);
+            setProfileResults([]);
+            setSearchError("Search is currently unavailable. Please try again.");
+        } finally {
+            if (searchRequestId.current === currentRequestId) {
+                setIsSearching(false);
+            }
         }
     };
 
@@ -107,7 +139,15 @@ export function IntelligentSearch() {
                 {query && (
                     <button
                         type="button"
-                        onClick={() => { setQuery(""); setProductResults([]); setProfileResults([]); inputRef.current?.focus(); }}
+                        onClick={() => {
+                            setQuery("");
+                            setProductResults([]);
+                            setProfileResults([]);
+                            setSearchError(null);
+                            setIsSearching(false);
+                            searchRequestId.current += 1;
+                            inputRef.current?.focus();
+                        }}
                         className="p-2 text-black/50 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
                     >
                         <X className="w-4 h-4" />
@@ -160,7 +200,15 @@ export function IntelligentSearch() {
                         ) : (
                             // Search Results State
                             <div className="py-2">
-                                {(profileResults.length > 0 || productResults.length > 0) ? (
+                                {searchError ? (
+                                    <div className="p-4 text-center text-xs font-semibold text-red-500">
+                                        {searchError}
+                                    </div>
+                                ) : isSearching ? (
+                                    <div className="p-4 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground/70">
+                                        Searching for "{query.trim()}"...
+                                    </div>
+                                ) : (profileResults.length > 0 || productResults.length > 0) ? (
                                     <>
                                         {profileResults.length > 0 && (
                                             <>

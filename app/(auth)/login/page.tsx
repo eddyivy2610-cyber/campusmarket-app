@@ -1,12 +1,4 @@
-/**
- * @BACKEND: LOGIN PAGE - Currently simulates authentication with a setTimeout.
- *
- * Replace with:
- *   - POST /api/auth/login -> authenticate user with email + password
- *   - Store JWT/session token on success
- *   - Handle error responses (invalid credentials, account locked, etc.)
- *   - Redirect based on user role (buyer -> home, seller -> dashboard)
- */
+
 
 "use client";
 
@@ -14,6 +6,8 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { apiPost } from "@/lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +15,7 @@ export default function LoginPage() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const router = useRouter();
+    const { login } = useAuth();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,10 +25,37 @@ export default function LoginPage() {
         }
 
         setIsLoading(true);
-        /* @BACKEND: Replace with POST /api/auth/login - send { email, password }, receive JWT token */
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setIsLoading(false);
-        router.push("/");
+        try {
+            const response: any = await apiPost("api/auth/login", {
+                email: formData.email,
+                password: formData.password,
+            });
+
+            const token = response?.token || response?.data?.token;
+            if (token) {
+                localStorage.setItem("campus_token", token);
+            }
+
+            const userData =
+                response?.user ||
+                response?.data?.user ||
+                response?.data;
+
+            if (userData) {
+                login({
+                    id: userData._id || userData.userId || "user",
+                    name: userData.profile?.displayName || userData.name || formData.email,
+                    email: userData.email || formData.email,
+                    role: userData.role === "seller" ? "pro" : "user",
+                });
+            }
+
+            router.push("/home");
+        } catch (err: any) {
+            setError(err?.message || "Login failed");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

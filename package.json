@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backend:install": "cd campus-market-backend && pnpm install",
+    "backend:dev": "cd campus-market-backend && pnpm dev",
+    "dev:all": "concurrently -n web,api -c cyan,green \"npm run dev\" \"npm run backend:dev\""
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -27,6 +30,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",

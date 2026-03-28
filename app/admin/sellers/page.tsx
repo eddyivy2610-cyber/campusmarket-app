@@ -11,7 +11,7 @@ const INITIAL_APPLICANTS = [
         name: 'Sarah Connor',
         email: 'sarah.connor@university.edu',
         status: 'Pending',
-        department: 'Computer Science',
+        schoolName: 'Computer Science',
         date: '2023-10-27',
         businessName: 'Sarah\'s Tech Solutions',
         businessCategory: 'Electronics',
@@ -23,7 +23,7 @@ const INITIAL_APPLICANTS = [
         name: 'John Wick',
         email: 'john.wick@university.edu',
         status: 'Pending',
-        department: 'Architecture',
+        schoolName: 'Architecture',
         date: '2023-10-26',
         businessName: 'Continental Supplies',
         businessCategory: 'Services',
@@ -35,7 +35,7 @@ const INITIAL_APPLICANTS = [
         name: 'Ellen Ripley',
         email: 'ellen.ripley@university.edu',
         status: 'Approved',
-        department: 'Engineering',
+        schoolName: 'Engineering',
         date: '2023-10-25',
         businessName: 'Nostromo Tools',
         businessCategory: 'Hostel Items',
@@ -47,7 +47,7 @@ const INITIAL_APPLICANTS = [
         name: 'Marty McFly',
         email: 'marty.mcfly@university.edu',
         status: 'Rejected',
-        department: 'History',
+        schoolName: 'History',
         date: '2023-10-24',
         businessName: 'Outatime Records',
         businessCategory: 'Fashion',
@@ -124,8 +124,8 @@ export default function SellerApprovalsPage() {
                                                 <p className="font-semibold text-foreground/80">{applicant.status}</p>
                                             </div>
                                             <div>
-                                                <p className="uppercase tracking-widest text-[9px]">Department</p>
-                                                <p className="font-semibold text-foreground/80">{applicant.department}</p>
+                                                <p className="uppercase tracking-widest text-[9px]">School</p>
+                                                <p className="font-semibold text-foreground/80">{applicant.schoolName}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Date</p>
@@ -173,7 +173,7 @@ export default function SellerApprovalsPage() {
                             <tr>
                                 <th className="px-6 py-5">Applicant Name</th>
                                 <th className="px-6 py-5">Verification</th>
-                                <th className="px-6 py-5">Department</th>
+                                <th className="px-6 py-5">School</th>
                                 <th className="px-6 py-5">Date Applied</th>
                                 <th className="px-6 py-5">Status</th>
                                 <th className="px-6 py-5 text-right">Actions</th>
@@ -196,7 +196,7 @@ export default function SellerApprovalsPage() {
                                             ID Uploaded
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-muted-foreground font-medium">{applicant.department}</td>
+                                    <td className="px-6 py-4 text-muted-foreground font-medium">{applicant.schoolName}</td>
                                     <td className="px-6 py-4 text-muted-foreground font-medium">{applicant.date}</td>
                                     <td className="px-6 py-4">
                                         <StatusBadge status={applicant.status} />

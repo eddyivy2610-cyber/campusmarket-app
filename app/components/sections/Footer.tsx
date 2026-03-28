@@ -98,7 +98,7 @@ export function Footer() {
                         <div>
                             <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-3">Contact Us</h3>
                             <ul className="flex flex-col gap-2 text-sm text-white/70">
-                                <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-yellow-300 shrink-0 mt-0.5" /><span>Computer Science Department, Phase 2, ABU Zaria.</span></li>
+                                <li className="flex items-start gap-2"><MapPin className="w-4 h-4 text-yellow-300 shrink-0 mt-0.5" /><span>Ahmadu Bello University, Phase 2, ABU Zaria.</span></li>
                                 <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-yellow-300 shrink-0" /><span>campusmarket@gmail.com</span></li>
                                 <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-yellow-300 shrink-0" /><span>(234)-815-524-6233</span></li>
                                 <li className="flex items-center gap-2"><Clock className="w-4 h-4 text-yellow-300 shrink-0" /><span>Mon-Fri: 9am-5pm</span></li>
