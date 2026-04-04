@@ -4,44 +4,7 @@ import { Star, Mail, Calendar, Package, TrendingUp, Store, MoreHorizontal } from
 import { cn } from '@/lib/utils';
 import React from 'react';
 
-const vendors = [
-    {
-        id: 1,
-        name: 'Sarah Connor',
-        email: 'sarah.c@university.edu',
-        joined: '15 Sep, 2023',
-        status: 'Active',
-        rating: 4.8,
-        sales: 156,
-        listings: 24,
-        avatar: 'S',
-        badge: 'Top Seller'
-    },
-    {
-        id: 2,
-        name: 'John Wick',
-        email: 'john.w@campus.edu',
-        joined: '20 Nov, 2023',
-        status: 'Active',
-        rating: 4.9,
-        sales: 89,
-        listings: 12,
-        avatar: 'J',
-        badge: 'Verified'
-    },
-    {
-        id: 3,
-        name: 'Ellen Ripley',
-        email: 'ripley.e@muni.edu',
-        joined: '10 Jan, 2024',
-        status: 'Active',
-        rating: 4.5,
-        sales: 42,
-        listings: 8,
-        avatar: 'R',
-        badge: 'Rising Star'
-    }
-];
+const vendors: any[] = [];
 
 export default function VendorsPage() {
     return (

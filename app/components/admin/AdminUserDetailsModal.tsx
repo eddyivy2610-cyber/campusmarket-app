@@ -36,7 +36,9 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
     const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
     if (!user) return null;
 
-    const isSeller = user.role === "Vendor" || user.type === "Vendor Candidate" || user.isSeller;
+    const isSeller = user.role === "seller" || user.role === "Vendor" || user.isSeller;
+    const displayName = user.profile?.displayName || user.name || "Unnamed User";
+    const joinedDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : (user.joined || user.date || "N/A");
 
     return (
         <AnimatePresence>
@@ -65,7 +67,7 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                 <div className="p-2 bg-primary/10 rounded-xl text-primary">
                                     <User className="w-5 h-5" />
                                 </div>
-                                <h2 className="text-lg font-bold font-heading">User Profile: {user.name}</h2>
+                                <h1 className="text-lg font-bold font-heading truncate max-w-[200px] md:max-w-none">User Profile: {displayName}</h1>
                             </div>
                             <button
                                 onClick={onClose}
@@ -80,13 +82,13 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                             
                             {/* Top Profile Summary */}
                             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-                                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary border-2 border-primary/20 shadow-inner shrink-0">
-                                    {user.avatar || user.name.charAt(0)}
+                                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary border-2 border-primary/20 shadow-inner shrink-0 overflow-hidden">
+                                    {user.profile?.avatar ? <img src={user.profile.avatar} className="w-full h-full object-cover" /> : displayName.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="space-y-1 flex flex-col items-center sm:items-start">
                                     <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-                                        <h3 className="text-xl font-bold text-foreground">{user.name}</h3>
-                                        <StatusBadge status={user.status || "Active"} />
+                                        <h3 className="text-xl font-bold text-foreground">{displayName}</h3>
+                                        <StatusBadge status={user.accountStatus || "Active"} />
                                     </div>
                                     <p className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
                                         <Mail className="w-3.5 h-3.5" />
@@ -95,11 +97,11 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                     <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1 pt-1">
                                         <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-1.5">
                                             <Calendar className="w-3.5 h-3.5" />
-                                            Joined {user.joined || user.date || "N/A"}
+                                            Joined {joinedDate}
                                         </span>
                                         <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5" />
-                                            Last login: Today
+                                            Last login: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "Just now"}
                                         </span>
                                     </div>
                                 </div>
@@ -112,24 +114,23 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                         <Shield className="w-3 h-3" /> Account Details
                                     </h3>
                                     <div className="space-y-3.5">
-                                        <DetailItem label="User ID" value={`USR-${user.id || '0000'}-ABCDE`} />
-                                        <DetailItem label="User Type" value={user.role || user.type || "Student"} />
+                                        <DetailItem label="User ID" value={`CPM-${user._id?.slice(-8).toUpperCase() || '00000000'}`} />
+                                        <DetailItem label="User Type" value={user.role || "buyer"} />
                                         <DetailItem 
                                             label="Badges" 
                                             value={
                                                 <div className="flex items-center gap-1.5 pt-0.5">
-                                                    <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded text-[10px] font-bold">🛒 [50]</span>
-                                                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded text-[10px] font-bold">✓ Verified</span>
-                                                    <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold">🎓</span>
+                                                    {user.isVerified && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded text-[10px] font-bold">✓ Verified</span>}
+                                                    {user.studentStatus?.isStudent && <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold">🎓 Student</span>}
                                                 </div>
                                             } 
                                         />
-                                        <DetailItem label="Student Status" value="Yes - Active" />
-                                        <DetailItem label="Phone" value="+234 801 234 5678" />
-                                        <DetailItem label="Location" value="Zaria, Nigeria" />
+                                        <DetailItem label="Full Name" value={user.personalDetails?.fullName || "Not provided"} />
+                                        <DetailItem label="Phone" value={user.personalDetails?.phones?.[0] || user.phone || "No phone added"} />
+                                        <DetailItem label="Location" value={user.personalDetails?.address || "No address provided"} />
                                         <DetailItem
-                                            label="School"
-                                            value={user.schoolName || user.department || "University of Lagos"}
+                                            label="School / Institution"
+                                            value={user.studentStatus?.schoolName || user.schoolName || "Not specified"}
                                             icon={<GraduationCap className="w-3.5 h-3.5" />}
                                         />
                                     </div>
@@ -143,10 +144,10 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                     
                                     {isSeller ? (
                                         <div className="space-y-3.5">
-                                            <DetailItem label="Listings" value="24 total (18 active, 4 sold, 2 pending)" />
-                                            <DetailItem label="Orders" value="52 completed (12 this month)" />
-                                            <DetailItem label="Reviews" value="4.8 ★ (142 reviews)" />
-                                            <DetailItem label="Reports" value="0 against user, 1 filed by user" />
+                                            <DetailItem label="Listings" value={`${user.activeListingsCount || 0} active, ${user.soldItems || 0} sold`} />
+                                            <DetailItem label="Rating" value={`${user.rating?.average || 0} ★ (${user.rating?.count || 0} reviews)`} />
+                                            <DetailItem label="Followers" value={user.followers || 0} />
+                                            <DetailItem label="Reports" value="0 against user" />
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center py-8 text-center bg-secondary/20 rounded-2xl border border-dashed border-border">
@@ -172,7 +173,7 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
                                         onClick={() => setIsSuspendModalOpen(true)}
                                     />
                                     <ActionButton icon={<UserCheck className="w-3.5 h-3.5" />} label="Verify Documents" color="hover:bg-primary/10 hover:text-primary" />
-                                    <ActionButton icon={<Award className="w-3.5 h-3.5" />} label="Remove Badges" color="hover:bg-indigo-500/10 hover:text-indigo-500" />
+                                    <ActionButton icon={<Award className="w-3.5 h-3.5" />} label="Add Badge" color="hover:bg-indigo-500/10 hover:text-indigo-500" />
                                     <ActionButton icon={<Trash2 className="w-3.5 h-3.5" />} label="Delete Account" color="hover:bg-red-500 hover:text-white" isDanger />
                                 </div>
                             </div>

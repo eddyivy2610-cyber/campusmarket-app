@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
     History, 
     Search, 
@@ -12,23 +12,45 @@ import {
     MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiGet } from "@/lib/apiClient";
 
-const MOCK_LOGS = [
-    { id: 1, text: "User 'Alex M.' viewed 'MacBook Pro' (Admin)", type: "View", user: "Alex M.", time: "10:45 AM", date: "Today" },
-    { id: 2, text: "User 'Sarah K.' sent a message to 'Apple Store'", type: "Message", user: "Sarah K.", time: "10:41 AM", date: "Today" },
-    { id: 3, text: "User 'John D.' updated their profile photo", type: "Update", user: "John D.", time: "10:33 AM", date: "Today" },
-    { id: 4, text: "User 'Emma L.' added 'iPhone 14' to favorites", type: "Favorite", user: "Emma L.", time: "10:27 AM", date: "Today" },
-    { id: 5, text: "User 'Chris P.' registered a new seller account", type: "Registration", user: "Chris P.", time: "10:20 AM", date: "Today" },
-    { id: 6, text: "User 'Lily R.' reported a listing: 'Fake Watch'", type: "Report", user: "Lily R.", time: "10:13 AM", date: "Today" },
-    { id: 7, text: "User 'Mike B.' completed their first purchase", type: "Purchase", user: "Mike B.", time: "10:00 AM", date: "Today" },
-    { id: 8, text: "User 'Anna W.' joined the 'General' community", type: "Join", user: "Anna W.", time: "09:45 AM", date: "Today" },
-    { id: 9, text: "Admin 'SuperUser' suspended 'Scammer99'", type: "Admin Action", user: "SuperUser", time: "09:30 AM", date: "Today" },
-    { id: 10, text: "System clear-out: Expired listings removed (42)", type: "System", user: "System", time: "04:00 AM", date: "Today" },
-];
+const MOCK_LOGS: any[] = [];
 
 export default function LogsPage() {
     const [timeFilter, setTimeFilter] = useState<"Day" | "Week" | "Month">("Day");
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [logs, setLogs] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [typeFilter, setTypeFilter] = useState<string>("all");
+    const [fromDate, setFromDate] = useState<string>("");
+    const [toDate, setToDate] = useState<string>("");
+    const [userSearch, setUserSearch] = useState<string>("");
+
+    useEffect(() => {
+        const fetchLogs = async () => {
+            try {
+                const params = new URLSearchParams();
+                params.set("limit", "200");
+                if (typeFilter !== "all") params.set("type", typeFilter);
+                if (fromDate) params.set("from", fromDate);
+                if (toDate) params.set("to", toDate);
+                const response: any = await apiGet(`/api/admin/logs?${params.toString()}`);
+                setLogs(response?.data || []);
+            } catch (err) {
+                console.error("Failed to fetch logs", err);
+                setLogs([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchLogs();
+    }, [typeFilter, fromDate, toDate]);
+
+    const displayLogs = (logs.length > 0 ? logs : MOCK_LOGS).filter((log: any) => {
+        if (!userSearch.trim()) return true;
+        const name = log.userId?.profile?.displayName || log.user || "";
+        return name.toLowerCase().includes(userSearch.toLowerCase());
+    });
 
     return (
         <div className="space-y-6 pb-10">
@@ -77,10 +99,37 @@ export default function LogsPage() {
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
                             <input 
                                 type="text"
-                                placeholder="Filter logs..."
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                                placeholder="Filter by user..."
                                 className="h-9 pl-10 pr-4 bg-background border border-border rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all w-[200px] text-foreground placeholder:text-muted-foreground/50"
                             />
                         </div>
+                        <select
+                            value={typeFilter}
+                            onChange={(e) => setTypeFilter(e.target.value)}
+                            className="h-9 px-3 bg-background border border-border rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all"
+                        >
+                            <option value="all">All Types</option>
+                            <option value="account_creation">Account Creation</option>
+                            <option value="verification_pending">Verification Pending</option>
+                            <option value="verification_approved">Verification Approved</option>
+                            <option value="verification_rejected">Verification Rejected</option>
+                            <option value="admin_action">Admin Action</option>
+                            <option value="system">System</option>
+                        </select>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="h-9 px-2 bg-background border border-border rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                        />
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="h-9 px-2 bg-background border border-border rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                        />
                         <button className="h-9 px-3 flex items-center gap-2 rounded-xl bg-background border border-border/50 text-[10px] font-bold uppercase tracking-widest hover:bg-secondary/50 transition-all">
                             <Download size={14} />
                             Export
@@ -89,7 +138,12 @@ export default function LogsPage() {
                 </div>
 
                 <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-                    {MOCK_LOGS.map((log) => {
+                    {isLoading && (
+                        <div className="rounded-2xl border border-border/60 bg-background/70 p-4 text-xs text-muted-foreground">
+                            Loading logs...
+                        </div>
+                    )}
+                    {displayLogs.map((log) => {
                         const isOpen = expandedId === log.id;
                         const dotClass =
                             log.type === "Admin Action" ? "bg-rose-500" :
@@ -97,14 +151,14 @@ export default function LogsPage() {
                             log.type === "System" ? "bg-blue-500" :
                             "bg-muted-foreground/40";
                         return (
-                            <div key={log.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                            <div key={log._id || log.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
                                 <button
                                     onClick={() => setExpandedId(isOpen ? null : log.id)}
                                     className="w-full flex items-center justify-between gap-3 px-4 py-3"
                                 >
                                     <div className="min-w-0 text-left">
-                                        <p className="text-sm font-semibold text-foreground truncate">{log.text}</p>
-                                        <p className="text-[11px] text-muted-foreground">{log.user}</p>
+                                        <p className="text-sm font-semibold text-foreground truncate">{log.message || log.text}</p>
+                                        <p className="text-[11px] text-muted-foreground">{log.userId?.profile?.displayName || log.user || "System"}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`} aria-hidden />
@@ -120,15 +174,15 @@ export default function LogsPage() {
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Time</p>
-                                                <p className="font-semibold text-foreground/80">{log.time}</p>
+                                                <p className="font-semibold text-foreground/80">{log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : log.time}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Date</p>
-                                                <p className="font-semibold text-foreground/80">{log.date}</p>
+                                                <p className="font-semibold text-foreground/80">{log.createdAt ? new Date(log.createdAt).toLocaleDateString() : log.date}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">User</p>
-                                                <p className="font-semibold text-foreground/80">{log.user}</p>
+                                                <p className="font-semibold text-foreground/80">{log.userId?.profile?.displayName || log.user || "System"}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -150,8 +204,8 @@ export default function LogsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
-                            {MOCK_LOGS.map((log) => (
-                                <tr key={log.id} className="hover:bg-secondary/30 transition-colors group">
+                            {displayLogs.map((log) => (
+                                <tr key={log._id || log.id} className="hover:bg-secondary/30 transition-colors group">
                                     <td className="px-6 py-4">
                                         <span className={cn(
                                             "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-tighter border",
@@ -164,19 +218,19 @@ export default function LogsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <p className="text-[13px] font-bold text-foreground/80 group-hover:text-foreground transition-colors">{log.text}</p>
+                                        <p className="text-[13px] font-bold text-foreground/80 group-hover:text-foreground transition-colors">{log.message || log.text}</p>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex justify-center">
                                             <div className="px-2.5 py-1 rounded-md bg-secondary text-foreground/70 text-[11px] font-bold border border-border/50">
-                                                {log.user}
+                                                {log.userId?.profile?.displayName || log.user || "System"}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex flex-col items-end">
-                                            <span className="text-xs font-bold text-foreground/70">{log.time}</span>
-                                            <span className="text-[9px] font-medium text-muted-foreground/40 uppercase">{log.date}</span>
+                                            <span className="text-xs font-bold text-foreground/70">{log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : log.time}</span>
+                                            <span className="text-[9px] font-medium text-muted-foreground/40 uppercase">{log.createdAt ? new Date(log.createdAt).toLocaleDateString() : log.date}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

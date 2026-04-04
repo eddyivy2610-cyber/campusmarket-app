@@ -55,7 +55,6 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
         { name: "About", icon: Briefcase },
     ];
 
-    const isLuckyJohn = profile.handle === 'luckyjohn';
     const tabs = useMemo(() => {
         if (!isProAccount) {
             return buyerTabs;
@@ -112,86 +111,78 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                     {/* Unified About Section */}
                     {activeTab === "About" && (
                         <div className="max-w-3xl space-y-12">
-                            {isLuckyJohn ? (
-                                <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                                <div className="space-y-4">
                                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                        <Info className="w-3 h-3" /> About {profile.name}
+                                        <User className="w-3 h-3" /> ~profile
                                     </h3>
+                                    <div className="space-y-4">
+                                        {[
+                                            {
+                                                label: profile.userStatus === 'student' ? "Student from" : 
+                                                       profile.userStatus === 'alumni' ? "Alumni from" : 
+                                                       "Community Member",
+                                                value: profile.userStatus === 'community' ? "Community Member" : profile.location,
+                                            },
+                                            { label: "Date Joined", value: profile.joinedDateFull },
+                                            { label: "Verified Member", value: profile.isVerified ? "Yes (Verified via Email)" : "No" }
+                                        ].map((item) => (
+                                            <div key={item.label} className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
+                                                {item.label !== "Community Member" && (
+                                                    <span className="font-bold text-sm text-foreground/90">{item.value}</span>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {/* Social Links */}
+                                        {(profile.socialLinks?.whatsapp || profile.socialLinks?.instagram || profile.socialLinks?.twitter || profile.socialLinks?.linkedin) && (
+                                            <div className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-2">Social Links</span>
+                                                <div className="flex items-center gap-3">
+                                                    {profile.socialLinks?.whatsapp && (
+                                                        <IconTooltip content="WhatsApp" position="top">
+                                                            <a href={profile.socialLinks?.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500/10 text-green-600 rounded-xl hover:bg-green-500/20 transition-colors">
+                                                                <Phone className="w-4 h-4" />
+                                                            </a>
+                                                        </IconTooltip>
+                                                    )}
+                                                    {profile.socialLinks?.instagram && (
+                                                        <IconTooltip content="Instagram" position="top">
+                                                            <a href={profile.socialLinks?.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-500/10 text-pink-600 rounded-xl hover:bg-pink-500/20 transition-colors">
+                                                                <Instagram className="w-4 h-4" />
+                                                            </a>
+                                                        </IconTooltip>
+                                                    )}
+                                                    {profile.socialLinks?.twitter && (
+                                                        <IconTooltip content="Twitter" position="top">
+                                                            <a href={profile.socialLinks?.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-500/10 text-blue-600 rounded-xl hover:bg-blue-500/20 transition-colors">
+                                                                <Twitter className="w-4 h-4" />
+                                                            </a>
+                                                        </IconTooltip>
+                                                    )}
+                                                    {profile.socialLinks?.linkedin && (
+                                                        <IconTooltip content="LinkedIn" position="top">
+                                                            <a href={profile.socialLinks?.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl hover:bg-indigo-500/20 transition-colors">
+                                                                <Linkedin className="w-4 h-4" />
+                                                            </a>
+                                                        </IconTooltip>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary underline underline-offset-8 decoration-2 mb-6 inline-block">Bio / About</h3>
                                     <p className="text-sm font-medium leading-relaxed text-muted-foreground">
                                         {profile.bio}
                                     </p>
                                 </div>
-                            ) : (
-                                profile.businessInfo && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                                        <div className="space-y-4">
-                                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 flex items-center gap-2">
-                                                <User className="w-3 h-3" /> ~profile
-                                            </h3>
-                                            <div className="space-y-4">
-                                                {[
-                                                    {
-                                                        label: "School",
-                                                        value:
-                                                            profile.schoolName ||
-                                                            profile.department ||
-                                                            "University of Lagos",
-                                                    },
-                                                    { label: "Date Joined", value: profile.joinedDateFull },
-                                                    { label: "Joined (relative)", value: profile.joinedDate }
-                                                ].map((item) => (
-                                                    <div key={item.label} className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-0.5">{item.label}</span>
-                                                        <span className="font-bold text-sm text-foreground/90">{item.value}</span>
-                                                    </div>
-                                                ))}
 
-                                                {/* Social Links */}
-                                                {(profile.socialLinks?.whatsapp || profile.socialLinks?.instagram || profile.socialLinks?.twitter || profile.socialLinks?.linkedin) && (
-                                                    <div className="border-l-2 border-[#FFD700]/20 pl-4 py-1">
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 block mb-2">Social Links</span>
-                                                        <div className="flex items-center gap-3">
-                                                            {profile.socialLinks.whatsapp && (
-                                                                <IconTooltip content="WhatsApp" position="top">
-                                                                    <a href={profile.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500/10 text-green-600 rounded-xl hover:bg-green-500/20 transition-colors">
-                                                                        <Phone className="w-4 h-4" />
-                                                                    </a>
-                                                                </IconTooltip>
-                                                            )}
-                                                            {profile.socialLinks.instagram && (
-                                                                <IconTooltip content="Instagram" position="top">
-                                                                    <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-500/10 text-pink-600 rounded-xl hover:bg-pink-500/20 transition-colors">
-                                                                        <Instagram className="w-4 h-4" />
-                                                                    </a>
-                                                                </IconTooltip>
-                                                            )}
-                                                            {profile.socialLinks.twitter && (
-                                                                <IconTooltip content="Twitter" position="top">
-                                                                    <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-500/10 text-blue-600 rounded-xl hover:bg-blue-500/20 transition-colors">
-                                                                        <Twitter className="w-4 h-4" />
-                                                                    </a>
-                                                                </IconTooltip>
-                                                            )}
-                                                            {profile.socialLinks.linkedin && (
-                                                                <IconTooltip content="LinkedIn" position="top">
-                                                                    <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-indigo-500/10 text-indigo-600 rounded-xl hover:bg-indigo-500/20 transition-colors">
-                                                                        <Linkedin className="w-4 h-4" />
-                                                                    </a>
-                                                                </IconTooltip>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary underline underline-offset-8 decoration-2 mb-6 inline-block">Extended Bio</h3>
-                                            <p className="text-sm font-medium leading-relaxed text-muted-foreground">
-                                                {profile.businessInfo?.extendedBio}
-                                            </p>
-                                        </div>
-
+                                {isProAccount && profile.businessInfo && (
+                                    <>
                                         <div className="space-y-4">
                                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Return Policies</h3>
                                             <p className="text-xs font-semibold leading-relaxed p-4 bg-[#fff3c6] border border-[#FFD700]/20 rounded-2xl text-black/70">
@@ -205,9 +196,9 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                                 <span className="text-xs font-bold text-black">{profile.businessInfo?.hours}</span>
                                             </div>
                                         </div>
-                                    </div>
-                                )
-                            )}
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
 

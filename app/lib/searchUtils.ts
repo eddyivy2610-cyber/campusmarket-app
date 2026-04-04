@@ -1,8 +1,7 @@
 import { apiGet } from "./apiClient";
-import type { Product } from "../data/types";
-import type { Profile } from "../data/profiles";
+import { mapUserToProfile, type Profile } from "../data/profiles";
 
-type SearchType = "products" | "profiles";
+type SearchType = "profiles";
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -59,8 +58,7 @@ const performSearch = async <T>(
   }
 };
 
-export const searchProducts = (query: string) =>
-  performSearch<Product>(query, "products");
-
-export const searchProfiles = (query: string) =>
-  performSearch<Profile>(query, "profiles");
+export const searchProfiles = async (query: string): Promise<Profile[]> => {
+    const rawProfiles = await performSearch<any>(query, "profiles");
+    return rawProfiles.map((p: any) => mapUserToProfile(p));
+};

@@ -6,30 +6,7 @@ import React, { useState } from 'react';
 
 import AdminUserDetailsModal from '@/components/admin/AdminUserDetailsModal';
 
-const pendingUsers = [
-    {
-        id: 1,
-        name: 'Michael Olusegun',
-        email: 'michael.o@university.edu',
-        date: '23 Feb, 2024',
-        type: 'Student',
-        avatar: 'M',
-        school: 'Engineering',
-        idPreview: 'https://images.unsplash.com/photo-1621243804936-775306a86c99?w=300&h=200&fit=crop',
-        role: 'Student'
-    },
-    {
-        id: 2,
-        name: 'Sarah Kimani',
-        email: 'sarah.k@campus.edu',
-        date: '22 Feb, 2024',
-        type: 'Vendor Candidate',
-        avatar: 'S',
-        school: 'Arts',
-        idPreview: 'https://images.unsplash.com/photo-1632333526746-618e9508273d?w=300&h=200&fit=crop',
-        role: 'Vendor Candidate'
-    }
-];
+const pendingUsers: any[] = [];
 
 export default function PendingUsersPage() {
     const [selectedUser, setSelectedUser] = useState<any>(null);

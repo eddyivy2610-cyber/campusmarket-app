@@ -1,12 +1,6 @@
 ﻿import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
-const recentActivities = [
-    { id: 1, item: 'Vintage Leather Jacket', type: 'Listing', date: '2 mins ago', status: 'Pending', user: 'AlexRider' },
-    { id: 2, item: 'Calculus Textbook', type: 'Report', date: '15 mins ago', status: 'Review', user: 'JennyP' },
-    { id: 3, item: 'Gaming Monitor', type: 'Listing', date: '1 hour ago', status: 'Active', user: 'TechGuy' },
-    { id: 4, item: 'Spam Account', type: 'User Report', date: '2 hours ago', status: 'Resolved', user: 'ModTeam' },
-    { id: 5, item: 'Handmade Pottery', type: 'Listing', date: '3 hours ago', status: 'Pending', user: 'ArtisanClay' },
-];
+const recentActivities: any[] = [];
 
 const RecentActivityTable = () => {
     return (

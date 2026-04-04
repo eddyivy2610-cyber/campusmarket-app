@@ -1,79 +1,80 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Check, X, Eye, FileText, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, X, Eye, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import StatusBadge from '@/components/admin/StatusBadge';
 import SellerQuickViewModal from '@/components/admin/SellerQuickViewModal';
-
-const INITIAL_APPLICANTS = [
-    {
-        id: 1,
-        name: 'Sarah Connor',
-        email: 'sarah.connor@university.edu',
-        status: 'Pending',
-        schoolName: 'Computer Science',
-        date: '2023-10-27',
-        businessName: 'Sarah\'s Tech Solutions',
-        businessCategory: 'Electronics',
-        businessDescription: 'Affordable laptop repairs and software installation for students.',
-        studentIdCard: 'https://images.unsplash.com/photo-1544717297-fa95b35c76d5?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-        id: 2,
-        name: 'John Wick',
-        email: 'john.wick@university.edu',
-        status: 'Pending',
-        schoolName: 'Architecture',
-        date: '2023-10-26',
-        businessName: 'Continental Supplies',
-        businessCategory: 'Services',
-        businessDescription: 'High-quality drafting materials and architectural model building services.',
-        studentIdCard: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-        id: 3,
-        name: 'Ellen Ripley',
-        email: 'ellen.ripley@university.edu',
-        status: 'Approved',
-        schoolName: 'Engineering',
-        date: '2023-10-25',
-        businessName: 'Nostromo Tools',
-        businessCategory: 'Hostel Items',
-        businessDescription: 'Heavy-duty tools and storage solutions for engineering dorms.',
-        studentIdCard: 'https://images.unsplash.com/photo-1554126807-6b10f6f6692a?auto=format&fit=crop&q=80&w=800'
-    },
-    {
-        id: 4,
-        name: 'Marty McFly',
-        email: 'marty.mcfly@university.edu',
-        status: 'Rejected',
-        schoolName: 'History',
-        date: '2023-10-24',
-        businessName: 'Outatime Records',
-        businessCategory: 'Fashion',
-        businessDescription: 'Vintage 80s wear and accessories for the retro lover.',
-        studentIdCard: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=800'
-    },
-];
+import { apiGet, apiPatch } from '@/lib/apiClient';
 
 export default function SellerApprovalsPage() {
-    const [applicants, setApplicants] = useState(INITIAL_APPLICANTS);
+    const [applicants, setApplicants] = useState<any[]>([]);
     const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
+    const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected">("pending");
+
+    const mapVerification = (verification: any) => {
+        const user = verification?.userId || {};
+        const profile = user?.profile || {};
+        const personal = user?.personalDetails || {};
+        const student = user?.studentStatus || {};
+        const business = user?.businessProfile || {};
+
+        return {
+            id: verification._id,
+            name: profile.displayName || personal.fullName || user.email || "Unknown",
+            email: user.email || "Not provided",
+            status: verification.status ? verification.status[0].toUpperCase() + verification.status.slice(1) : "Pending",
+            schoolName: student.schoolName || "Not specified",
+            date: verification.createdAt ? new Date(verification.createdAt).toLocaleDateString("en-US") : "Unknown",
+            businessName: business.name || "Not specified",
+            businessCategory: business.category || "General",
+            businessDescription: business.description || "",
+            studentIdCard: verification?.document?.frontImageUrl || student.idCardImage || ""
+        };
+    };
+
+    useEffect(() => {
+        const fetchVerifications = async () => {
+            setIsLoading(true);
+            setLoadError("");
+            try {
+                const response: any = await apiGet(`api/verification/all?status=${statusFilter}`);
+                const data = response?.data || [];
+                setApplicants(data.map(mapVerification));
+            } catch (e: any) {
+                setLoadError(e?.message || "Failed to load verification queue.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchVerifications();
+    }, [statusFilter]);
 
     const handleReview = (applicant: any) => {
         setSelectedApplicant(applicant);
         setIsModalOpen(true);
     };
 
-    const handleApprove = (id: number) => {
-        setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: 'Approved' } : a));
+    const handleApprove = async (id: string) => {
+        try {
+            await apiPatch(`api/verification/review/${id}`, { status: "approved" });
+            setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: 'Approved' } : a));
+        } catch (e) {
+            console.error("Approve failed", e);
+        }
     };
 
-    const handleReject = (id: number, reason: string) => {
-        console.log(`Rejecting applicant ${id} for reason: ${reason}`);
-        setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: 'Rejected' } : a));
+    const handleReject = async (id: string, reason: string) => {
+        try {
+            await apiPatch(`api/verification/review/${id}`, { status: "rejected", rejectionReason: reason || "Rejected" });
+            setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: 'Rejected' } : a));
+        } catch (e) {
+            console.error("Reject failed", e);
+        }
     };
     const getStatusDotClass = (status: string) => {
         switch (status) {
@@ -97,7 +98,34 @@ export default function SellerApprovalsPage() {
                 </div>
             </div>
 
+            <div className="flex items-center gap-2">
+                {(["pending", "approved", "rejected"] as const).map((status) => (
+                    <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className={`px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-widest transition-all ${
+                            statusFilter === status
+                                ? "bg-primary text-black border-primary"
+                                : "border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                        {status}
+                    </button>
+                ))}
+            </div>
+
             <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
+                {isLoading && (
+                    <div className="p-6 flex items-center gap-2 text-muted-foreground text-xs font-semibold uppercase tracking-widest">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Loading verification queue...
+                    </div>
+                )}
+                {!!loadError && !isLoading && (
+                    <div className="p-6 text-xs font-semibold text-red-500">
+                        {loadError}
+                    </div>
+                )}
+
                 <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
                     {applicants.map((applicant) => {
                         const isOpen = expandedId === applicant.id;
@@ -143,7 +171,7 @@ export default function SellerApprovalsPage() {
                                             >
                                                 Full Review
                                             </button>
-                                            {applicant.status === "Pending" && (
+                                            {applicant.status === "Pending" && statusFilter === "pending" && (
                                                 <>
                                                     <button
                                                         onClick={() => handleApprove(applicant.id)}
@@ -210,7 +238,7 @@ export default function SellerApprovalsPage() {
                                             >
                                                 <Eye size={18} />
                                             </button>
-                                            {applicant.status === 'Pending' && (
+                                            {applicant.status === 'Pending' && statusFilter === "pending" && (
                                                 <>
                                                     <button
                                                         onClick={() => handleApprove(applicant.id)}

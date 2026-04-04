@@ -32,6 +32,8 @@ import { Profile } from "../../data/profiles";
 import { StudentCapOverlay, AchievementBadge } from "./BadgeSystem";
 import Link from "next/link";
 import { IconTooltip } from "../common/IconTooltip";
+import { useAuth } from "../../context/AuthContext";
+import { PendingApprovalModal } from "../modals/PendingApprovalModal";
 
 interface ProfessionalProfileHeaderProps {
     profile: Profile;
@@ -40,6 +42,8 @@ interface ProfessionalProfileHeaderProps {
 
 export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfileHeaderProps) {
     const isHost = viewAs === "private";
+    const { user } = useAuth();
+    const [showPending, setShowPending] = React.useState(false);
     const avatarInputRef = React.useRef<HTMLInputElement>(null);
     const coverInputRef = React.useRef<HTMLInputElement>(null);
     const [previewAvatar, setPreviewAvatar] = React.useState<string | null>(null);
@@ -152,6 +156,8 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
     return (
         <div className="w-full space-y-6 font-heading">
+            <PendingApprovalModal isOpen={showPending} onClose={() => setShowPending(false)} />
+            
             {/* Hidden Photo Inputs */}
             <input
                 type="file"
@@ -168,7 +174,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                 className="hidden"
             />
 
-            {/* Main Header Card - overflow-hidden removed so dropdown isn't clipped */}
+            {/* Main Header Card */}
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -176,7 +182,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="bg-card border border-border/50 rounded-[24px] shadow-sm relative flex flex-col"
             >
-                {/* TOP AREA: overflow-hidden + rounded-t-[24px] so cover photo still clips correctly */}
+                {/* TOP AREA */}
                 <div className="relative w-full overflow-hidden rounded-t-[24px] p-5 md:p-7">
                     {/* Cover Photo Background */}
                     <div className="absolute inset-0 z-0">
@@ -269,24 +275,28 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                         {profile.name}
                                     </h1>
                                     {profile.isVerified && (
-                                        <IconTooltip content="Pro Member" position="top">
+                                        <IconTooltip content="Verified Member" position="top">
                                             <BadgeCheck className="w-6 h-6" style={{ color: "#ffffff", fill: verificationColor }} strokeWidth={2} />
                                         </IconTooltip>
                                     )}
                                 </div>
                                 <div className="flex flex-col items-center text-center">
-                                    <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
-                                        {profile.type === 'vendor' ? "PRO MEMBER FROM" : "MEMBER FROM"}
-                                    </span>
-                                    <span className={`text-xs md:text-sm font-bold ${isCoverLight ? "text-black/80" : "text-white/90"}`}>
-                                        {profile.location}
-                                    </span>
+                                     <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                         {profile.userStatus === 'student' ? "Student from" : 
+                                          profile.userStatus === 'alumni' ? "Alumni from" : 
+                                          profile.type === 'vendor' ? "Verified Member" :
+                                          "Community Member"}
+                                     </span>
+                                    {profile.userStatus !== "community" && (
+                                        <span className={`text-xs md:text-sm font-bold ${isCoverLight ? "text-black/80" : "text-white/90"}`}>
+                                            {profile.location}
+                                        </span>
+                                    )}
                                     <span className={`text-[9px] md:text-[10px] font-bold mt-0.5 ${isCoverLight ? "text-black/50" : "text-white/50"}`}>
                                         Joined {profile.joinedDate}
                                     </span>
                                 </div>
                             </div>
-
                         </div>
 
                         {/* Column 3: Stats Board */}
@@ -349,17 +359,26 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     </div>
                 </div>
 
-                {/* BOTTOM AREA: Settings & Tools Section */}
+                {/* BOTTOM AREA */}
                 <div className="px-6 py-5 md:px-8 md:py-6 bg-card dark:bg-card/50 border-t border-border/50 flex flex-col md:flex-row items-center justify-center md:justify-between gap-4 relative min-h-[90px] md:min-h-0">
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
                         {viewAs === 'private' ? (
                             <>
-                                {profile.accountType === "Pro" ? (
-                                    <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
-                                        <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                {profile.accountType === "Pro" || profile.type === "vendor" ? (
+                                    user?.sellerStatus !== "approved" && user?.role !== "pro" ? (
+                                        <button 
+                                            onClick={() => user?.sellerStatus === "pending" ? setShowPending(true) : window.location.assign('/register/seller')}
+                                            className="w-full flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5"
+                                        >
                                             Dashboard
                                         </button>
-                                    </Link>
+                                    ) : (
+                                        <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
+                                            <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                                Dashboard
+                                            </button>
+                                        </Link>
+                                    )
                                 ) : (
                                     <Link href="/messages" className="flex-1 md:flex-none w-full md:w-auto">
                                         <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">

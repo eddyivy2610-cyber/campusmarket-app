@@ -4,47 +4,7 @@ import React, { useState } from 'react';
 import AdminUserDetailsModal from '@/components/admin/AdminUserDetailsModal';
 import { Star, Mail, Calendar, Package, TrendingUp, Store, Eye, MoreHorizontal } from 'lucide-react';
 
-const vendors = [
-    {
-        id: 1,
-        name: 'Sarah Connor',
-        email: 'sarah.c@university.edu',
-        joined: '15 Sep, 2023',
-        status: 'Active',
-        rating: 4.8,
-        sales: 156,
-        listings: 24,
-        avatar: 'S',
-        badge: 'Top Seller',
-        role: 'Vendor'
-    },
-    {
-        id: 2,
-        name: 'John Wick',
-        email: 'john.w@campus.edu',
-        joined: '20 Nov, 2023',
-        status: 'Active',
-        rating: 4.9,
-        sales: 89,
-        listings: 12,
-        avatar: 'J',
-        badge: 'Verified',
-        role: 'Vendor'
-    },
-    {
-        id: 3,
-        name: 'Ellen Ripley',
-        email: 'ripley.e@muni.edu',
-        joined: '10 Jan, 2024',
-        status: 'Active',
-        rating: 4.5,
-        sales: 42,
-        listings: 8,
-        avatar: 'R',
-        badge: 'Rising Star',
-        role: 'Vendor'
-    }
-];
+const vendors: any[] = [];
 
 export default function VendorsPage() {
     const [selectedUser, setSelectedUser] = useState<any>(null);

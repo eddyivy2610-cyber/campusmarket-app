@@ -15,8 +15,7 @@ import { Search, X, Clock, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { searchProducts, searchProfiles } from "../../lib/searchUtils";
-import type { Product } from "../../data/types";
+import { searchProfiles } from "../../lib/searchUtils";
 import type { Profile } from "../../data/profiles";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { AnimatePresence, motion } from "framer-motion";
@@ -24,7 +23,6 @@ import { AnimatePresence, motion } from "framer-motion";
 export function IntelligentSearch() {
     const router = useRouter();
     const [query, setQuery] = useState("");
-    const [productResults, setProductResults] = useState<Product[]>([]);
     const [profileResults, setProfileResults] = useState<Profile[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -53,7 +51,6 @@ export function IntelligentSearch() {
         const currentRequestId = ++searchRequestId.current;
 
         if (trimmed.length === 0) {
-            setProductResults([]);
             setProfileResults([]);
             setIsSearching(false);
             setSearchError(null);
@@ -64,16 +61,12 @@ export function IntelligentSearch() {
         setSearchError(null);
 
         try {
-            const [products, profiles] = await Promise.all([
-                searchProducts(trimmed),
-                searchProfiles(trimmed),
-            ]);
+            const profiles = await searchProfiles(trimmed);
 
             if (searchRequestId.current !== currentRequestId) {
                 return;
             }
 
-            setProductResults(products);
             setProfileResults(profiles);
         } catch (error) {
             if (searchRequestId.current !== currentRequestId) {
@@ -81,7 +74,6 @@ export function IntelligentSearch() {
             }
 
             console.error("Search failed", error);
-            setProductResults([]);
             setProfileResults([]);
             setSearchError("Search is currently unavailable. Please try again.");
         } finally {
@@ -132,7 +124,7 @@ export function IntelligentSearch() {
                     value={query}
                     onChange={handleSearch}
                     onFocus={() => setIsOpen(true)}
-                    placeholder="Search for products, brands and more..."
+                    placeholder="Search for students, shops & more..."
                     className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-black/50 dark:placeholder:text-white/70 text-black dark:text-white font-heading w-full pl-5"
                 />
 
@@ -141,7 +133,6 @@ export function IntelligentSearch() {
                         type="button"
                         onClick={() => {
                             setQuery("");
-                            setProductResults([]);
                             setProfileResults([]);
                             setSearchError(null);
                             setIsSearching(false);
@@ -208,7 +199,7 @@ export function IntelligentSearch() {
                                     <div className="p-4 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground/70">
                                         Searching for "{query.trim()}"...
                                     </div>
-                                ) : (profileResults.length > 0 || productResults.length > 0) ? (
+                                ) : (profileResults.length > 0) ? (
                                     <>
                                         {profileResults.length > 0 && (
                                             <>
@@ -253,52 +244,15 @@ export function IntelligentSearch() {
                                             </>
                                         )}
 
-                                        {productResults.length > 0 && (
-                                            <>
-                                                <div className="px-4 py-2 border-b border-border/40 bg-secondary/20 border-t">
-                                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Products</h3>
-                                                </div>
-                                                <ul>
-                                                    {productResults.slice(0, 5).map(product => (
-                                                        <li key={product.id}>
-                                                            <Link
-                                                                href={`/shop/${product.id}`}
-                                                                className="flex items-center gap-4 px-4 py-3 hover:bg-secondary/50 transition-colors group"
-                                                                onClick={() => addToRecent(query)}
-                                                            >
-                                                                <div className="relative w-12 h-10 rounded-lg overflow-hidden bg-secondary">
-                                                                    <Image
-                                                                        src={product.image}
-                                                                        alt={product.title}
-                                                                        fill
-                                                                        className="object-cover"
-                                                                    />
-                                                                </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <h4 className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">{product.title}</h4>
-                                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                        <span>{product.category}</span>
-                                                                        <span className="w-1 h-1 rounded-full bg-border" />
-                                                                        <span>{product.condition}</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <span className="font-bold text-primary text-sm">₦{product.price.toLocaleString()}</span>
-                                                                </div>
-                                                                <ChevronRight className="w-4 h-4 text-black/80 group-hover:text-black transition-colors" />
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                <div className="p-2 border-t border-border/40">
-                                                    <button
-                                                        onClick={() => handleSelect(query)}
-                                                        className="w-full py-2 text-center text-sm font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors"
-                                                    >
-                                                        See all {productResults.length + profileResults.length} results
-                                                    </button>
-                                                </div>
-                                            </>
+                                        {profileResults.length >= 3 && (
+                                            <div className="p-2 border-t border-border/40">
+                                                <button
+                                                    onClick={() => handleSelect(query)}
+                                                    className="w-full py-2 text-center text-sm font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                                >
+                                                    See all {profileResults.length} results
+                                                </button>
+                                            </div>
                                         )}
                                     </>
                                 ) : (
@@ -313,7 +267,7 @@ export function IntelligentSearch() {
                                         </p>
                                         <div className="flex flex-wrap justify-center gap-2">
                                             <span className="text-xs text-muted-foreground">Try searching for:</span>
-                                            {['Laptop', 'Phone', 'Desk', 'Notes'].map(term => (
+                                            {['ABU students', 'Unilag shops', 'Trusted vendors'].map(term => (
                                                 <button
                                                     key={term}
                                                     onClick={() => { setQuery(term); handleSelect(term); }}

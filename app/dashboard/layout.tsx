@@ -48,8 +48,10 @@ const MOBILE_QUICK_ACTIONS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const isPro = user?.role === "pro";
+    const isStudentVerified = user?.studentVerified === true;
+    const canAccessPro = isPro && isStudentVerified;
     const isMessagesRoute = pathname.startsWith("/messages");
     const [selectedYear] = useState(new Date().getFullYear());
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -131,6 +133,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const userInitials = user?.name ? user.name.charAt(0).toUpperCase() : "U";
     const userTier = user?.tier || "new";
+    if (user && !canAccessPro) {
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center px-6 py-16 bg-background text-foreground font-heading">
+                <div className="max-w-md w-full rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Verification Required</p>
+                    <h1 className="mt-2 text-xl font-bold">Your student verification is pending</h1>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                        You can browse listings and message sellers, but seller tools like Dashboard, Listings, and Ratings are locked until your student ID is approved.
+                    </p>
+                    <div className="mt-6 flex items-center justify-center gap-2">
+                        <Link href="/home" className="px-4 py-2 rounded-lg bg-primary text-black text-xs font-bold uppercase tracking-widest">
+                            Go Home
+                        </Link>
+                        <button
+                            onClick={refreshUser}
+                            className="px-4 py-2 rounded-lg border border-border text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                        >
+                            Refresh Status
+                        </button>
+                        <Link href="/settings" className="px-4 py-2 rounded-lg border border-border text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground">
+                            Account Settings
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={`dashboard-scope flex flex-col ${isMessagesRoute ? "h-screen overflow-hidden" : "min-h-screen"} w-full bg-background text-foreground font-heading transition-colors duration-500`}>
             {/* Dashboard Header - Part of flex flow for messages to auto-size height */}

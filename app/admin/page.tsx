@@ -3,18 +3,43 @@
 import StatCard from '@/components/admin/StatCard';
 import AdminOverviewCharts from '@/components/admin/AdminOverviewCharts';
 import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/apiClient";
 
 export default function AdminDashboard() {
-    const userActivities = [
-        { text: "User 'Alex M.' viewed 'MacBook Pro' (Admin)", time: "Just now" },
-        { text: "User 'Sarah K.' sent a message to 'Apple Store'", time: "4m ago" },
-        { text: "User 'John D.' updated their profile photo", time: "12m ago" },
-        { text: "User 'Emma L.' added 'iPhone 14' to favorites", time: "18m ago" },
-        { text: "User 'Chris P.' registered a new seller account", time: "25m ago" },
-        { text: "User 'Lily R.' reported a listing: 'Fake Watch'", time: "32m ago" },
-        { text: "User 'Mike B.' completed their first purchase", time: "45m ago" },
-        { text: "User 'Anna W.' joined the 'General' community", time: "1h ago" },
-    ];
+    const userActivities: any[] = [];
+    const [newUsersCount, setNewUsersCount] = useState<number | null>(null);
+    const [activeUsersCount, setActiveUsersCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            try {
+                const response: any = await apiGet("/api/user");
+                const users = response?.data || [];
+                const tenDaysAgo = new Date();
+                tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+
+                const newUsers = users.filter((u: any) => {
+                    const created = u?.createdAt ? new Date(u.createdAt) : null;
+                    return created && created >= tenDaysAgo;
+                });
+
+                const activeUsers = users.filter((u: any) => {
+                    const lastLogin = u?.lastLoginAt ? new Date(u.lastLoginAt) : null;
+                    return lastLogin && lastLogin >= tenDaysAgo;
+                });
+
+                setNewUsersCount(newUsers.length);
+                setActiveUsersCount(activeUsers.length);
+            } catch (err) {
+                console.error("Failed to load admin stats", err);
+                setNewUsersCount(0);
+                setActiveUsersCount(0);
+            }
+        };
+
+        fetchUserStats();
+    }, []);
 
     return (
         <div className="space-y-6 md:space-y-8 pb-10">
@@ -34,23 +59,19 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6">
                     <StatCard
                         label="Views"
-                        value="7,265"
-                        trend={{ value: "+11.01%", isPositive: true }}
+                        value="—"
                     />
                     <StatCard
                         label="Visits"
-                        value="3,671"
-                        trend={{ value: "-0.03%", isPositive: false }}
+                        value="—"
                     />
                     <StatCard
                         label="New Users"
-                        value="256"
-                        trend={{ value: "+15.03%", isPositive: true }}
+                        value={newUsersCount === null ? "—" : newUsersCount}
                     />
                     <StatCard
                         label="Active Users"
-                        value="2,318"
-                        trend={{ value: "+6.08%", isPositive: true }}
+                        value={activeUsersCount === null ? "—" : activeUsersCount}
                     />
                 </div>
             </div>

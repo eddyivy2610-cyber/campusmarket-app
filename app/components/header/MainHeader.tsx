@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Bell, LayoutGrid, Heart, ChevronDown } from "lucide-react";
+import { Bell, Heart, ChevronDown, Star } from "lucide-react";
 import { useState, useRef } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import Link from "next/link";
@@ -36,11 +36,15 @@ export function MainHeader() {
     useClickOutside(accountRef, () => setIsAccountOpen(false));
 
     const handleAccountClick = () => {
+        setIsAccountOpen(!isAccountOpen);
+    };
+
+    const handleNotificationsClick = () => {
         if (typeof window !== "undefined" && window.innerWidth < 768) {
-            router.push("/profile/campus-market");
+            router.push("/notifications");
             return;
         }
-        setIsAccountOpen(!isAccountOpen);
+        setIsNotificationOpen(!isNotificationOpen);
     };
 
     if (isAdminPage || isAuthPage || isDashboardPage) return null;
@@ -76,8 +80,7 @@ export function MainHeader() {
                     </div>
 
                     {/* Right actions */}
-                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-black/40 backdrop-blur-lg border border-white/10 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm text-white">
-
+                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-black/40 backdrop-blur-lg border border-white/10 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm text-white min-w-[200px] md:min-w-[230px]">
                         {/* Saved Items */}
                         <Link
                             href="/saved"
@@ -93,9 +96,9 @@ export function MainHeader() {
                         </Link>
 
                         {/* Notifications */}
-                        <div className="relative z-40 hidden sm:flex">
+                        <div className="relative z-40">
                             <button
-                                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                                onClick={handleNotificationsClick}
                                 className="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors text-white/90 relative group"
                                 title="Notifications"
                             >
@@ -115,23 +118,20 @@ export function MainHeader() {
                                 onClick={handleAccountClick}
                                 className="flex items-center gap-2 text-white hover:text-white transition-colors group p-1 rounded-lg hover:bg-white/10 text-left"
                             >
-                                <div className="bg-white/10 p-1 rounded-md group-hover:bg-white/20 transition-colors border border-white/10">
-                                    <User className="w-3.5 h-3.5 text-white group-hover:text-[#FFD700] transition-colors shrink-0" strokeWidth={2} />
-                                </div>
-                                <div className="hidden sm:flex flex-col leading-tight pr-1">
-                                    <span className="text-[9px] uppercase tracking-widest text-[#FFD700]/90 font-bold transition-colors">
-                                        {user ? user.role : "Guest"}
-                                    </span>
-                                    <span className="text-[12px] font-bold font-heading text-white tracking-wide">
-                                        {user ? user.name.split(' ')[0] : "Account"}
+                                <div className="flex flex-col leading-tight pr-1">
+                                    {user?.studentVerified && (
+                                        <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-[#FFD700]/90 font-bold transition-colors">
+                                            <Star className="w-3 h-3 text-[#FFD700]" />
+                                        </span>
+                                    )}
+                                    <span className="text-[11px] md:text-[12px] font-bold font-heading text-white tracking-wide truncate max-w-[80px] md:max-w-[120px]">
+                                        {user ? user.name : "Account"}
                                     </span>
                                 </div>
                                 <ChevronDown className="w-3.5 h-3.5 text-white/70 hidden sm:block mr-1 transition-colors group-hover:text-white" />
                             </button>
                         </div>
-                        <div className="hidden md:block">
-                            <AccountDropdown isOpen={isAccountOpen} />
-                        </div>
+                        <AccountDropdown isOpen={isAccountOpen} />
                     </div>
                 </div>
             </div>

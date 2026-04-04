@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Sparkles, Building2, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { apiPost } from "@/lib/apiClient";
 
 export default function SellerRegisterPage() {
     const [step, setStep] = useState(0); // 0: Guidelines, 1: Business Name, 2: ID, 3: Details
@@ -19,8 +20,9 @@ export default function SellerRegisterPage() {
         businessDescription: "",
         agreedToSellerTerms: false,
     });
+    const [submitError, setSubmitError] = useState("");
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, login } = useAuth();
 
     const updateFormData = (data: Partial<typeof formData>) => {
         setFormData((prev) => ({ ...prev, ...data }));
@@ -29,12 +31,41 @@ export default function SellerRegisterPage() {
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
 
-    const handleSubmit = () => {
-        // Show success message and redirect
-        setStep(4); // Success state
-        setTimeout(() => {
-            router.push(user ? "/home" : "/login");
-        }, 3000);
+    const handleSubmit = async () => {
+        setSubmitError("");
+        if (!user) {
+            router.push("/login?next=/register/seller");
+            return;
+        }
+        
+        try {
+            if (formData.studentIdCard) {
+                await apiPost("api/verification/submit", {
+                    userId: user.id,
+                    role: "student",
+                    documentType: "student_id",
+                    frontImageUrl: formData.studentIdCard,
+                });
+            }
+            await apiPost("api/users/seller/apply", {
+                businessProfile: {
+                    name: formData.businessName,
+                    description: formData.businessDescription,
+                    category: formData.businessCategory,
+                    tags: []
+                }
+            });
+            
+            login({ ...user, sellerStatus: "pending" });
+            
+            setStep(4);
+            setTimeout(() => {
+                router.push("/home");
+            }, 3000);
+        } catch (err: any) {
+            setSubmitError(err?.message || "Failed to submit application. Please try again.");
+            console.error(err);
+        }
     };
 
     const renderStep = () => {
@@ -95,12 +126,19 @@ export default function SellerRegisterPage() {
                 );
             case 3:
                 return (
-                    <SellerDetails
-                        formData={formData}
-                        updateFormData={updateFormData}
-                        onSubmit={handleSubmit}
-                        onBack={prevStep}
-                    />
+                    <div className="space-y-4">
+                        {submitError && (
+                            <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600">
+                                {submitError}
+                            </div>
+                        )}
+                        <SellerDetails
+                            formData={formData}
+                            updateFormData={updateFormData}
+                            onSubmit={handleSubmit}
+                            onBack={prevStep}
+                        />
+                    </div>
                 );
             case 4:
                 return (

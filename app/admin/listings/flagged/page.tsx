@@ -15,10 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import AdminListingDetailModal from '@/components/admin/AdminListingDetailModal';
 
-const flaggedListings = [
-    { id: 1, title: 'Vintage Leather Jacket', seller: 'CampusHive', date: '26 Oct, 2023', reports: 5, status: 'Flagged', category: 'Fashion', price: 1000, reason: "Multiple copyright reports" },
-    { id: 2, title: 'Organic Chemistry Textbook', seller: 'Michael O.', date: '25 Oct, 2023', reports: 2, status: 'Flagged', category: 'Books', price: 8500, reason: "Price manipulation suspect" },
-];
+const flaggedListings: any[] = [];
 
 export default function FlaggedListingsPage() {
     const [selectedListing, setSelectedListing] = useState<any>(null);

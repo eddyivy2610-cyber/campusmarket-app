@@ -1,7 +1,7 @@
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { CATEGORIES, PRODUCTS } from '@/data/products';
+import { CATEGORIES } from '@/data/products';
 
 const COLORS = [
     '#3b82f6',
@@ -19,12 +19,8 @@ const COLORS = [
 ];
 
 const TopCategoriesChart = () => {
-    const chartData = CATEGORIES.map((category) => ({
-        name: category.name,
-        value: PRODUCTS.filter((product) => product.category === category.name).length,
-    }));
-
-    const legendItems = chartData.slice().sort((a, b) => b.value - a.value).slice(0, 4);
+    const chartData: any[] = [];
+    const legendItems: any[] = [];
 
     return (
         <div className="bg-card p-5 rounded-xl border border-border flex flex-col">
@@ -42,7 +38,7 @@ const TopCategoriesChart = () => {
                             paddingAngle={5}
                             dataKey="value"
                         >
-                            {CATEGORIES.map((_, index) => (
+                            {chartData.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
                             ))}
                         </Pie>

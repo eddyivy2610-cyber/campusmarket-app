@@ -6,7 +6,10 @@ import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
 import { PRODUCTS, Product } from "../data/products";
-import { Eye, Store, User } from "lucide-react";
+import { Eye, Store, User, Loader2, Users } from "lucide-react";
+import { searchProfiles } from "../lib/searchUtils";
+import { ProfileSearchResult } from "../components/profile/ProfileSearchResult";
+import type { Profile } from "../data/profiles";
 
 type ViewAs = "private" | "public";
 
@@ -30,6 +33,8 @@ function ShopPageInner() {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
     const [viewAs, setViewAs] = useState<ViewAs>("public");
+    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [isSearchingProfiles, setIsSearchingProfiles] = useState(false);
 
     useEffect(() => {
         if (categoryParam) {
@@ -38,6 +43,27 @@ function ShopPageInner() {
             setSelectedCategories([]);
         }
     }, [categoryParam]);
+
+    // Fetch dynamic profiles from API
+    useEffect(() => {
+        const fetchProfiles = async () => {
+            if (!qParam) {
+                setProfiles([]);
+                return;
+            }
+            try {
+                setIsSearchingProfiles(true);
+                const results = await searchProfiles(qParam);
+                setProfiles(results);
+            } catch (err) {
+                console.error("[ShopPage] Profile search failed", err);
+            } finally {
+                setIsSearchingProfiles(false);
+            }
+        };
+
+        fetchProfiles();
+    }, [qParam]);
 
     const filteredProducts = useMemo(() => {
         return PRODUCTS.filter((product: Product) => {
@@ -48,17 +74,15 @@ function ShopPageInner() {
         });
     }, [qParam, selectedCategories, priceRange]);
 
-    // Infer category purely from search results
     const inferredCategory = useMemo(() => {
         if (filteredProducts.length > 0) {
             return filteredProducts[0].category;
         }
-        return null; // Don't show dynamic filters if no results
+        return null;
     }, [filteredProducts]);
 
     return (
-        <main className="min-h-screen bg-background text-foreground font-heading selection:bg-primary/20">
-
+        <main className="min-h-screen bg-background text-foreground font-heading">
             <div className="bg-secondary/10 border-b border-border/50">
                 <div className="max-w-[1780px] mx-auto px-4 md:px-8 flex items-center justify-between">
                     <Breadcrumb
@@ -68,7 +92,6 @@ function ShopPageInner() {
                         ]}
                     />
 
-                    {/* View As Toggle */}
                     <div className="flex items-center gap-2 py-2">
                         <Eye className="w-3.5 h-3.5 text-muted-foreground/60" />
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 hidden sm:block">
@@ -100,15 +123,39 @@ function ShopPageInner() {
                 </div>
             </div>
 
-            <div className="max-w-[1780px] mx-auto px-4 md:px-8 py-6 md:py-10">
-                <div className="mb-6 flex flex-col gap-2">
-                    <h1 className="text-2xl md:text-3xl font-bold font-heading text-foreground">
-                        {qParam ? `Results for "${qParam}"` : "All Search Results"}
+            <div className="max-w-[1780px] mx-auto px-4 md:px-8 py-10">
+                <div className="mb-10 flex flex-col gap-2">
+                    <h1 className="text-3xl md:text-4xl font-bold font-heading text-foreground">
+                        {qParam ? `Results for "${qParam}"` : "All Listings"}
                     </h1>
                     <p className="text-sm text-muted-foreground font-body">
-                        Showing {filteredProducts.length} items
+                        Found {filteredProducts.length} items {profiles.length > 0 && `& ${profiles.length} profiles`}
                     </p>
                 </div>
+
+                {/* Profiles Section (Dynamic from API) */}
+                {qParam && (profiles.length > 0 || isSearchingProfiles) && (
+                    <div className="mb-12">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Users className="w-5 h-5 text-primary" />
+                            <h2 className="text-xl font-bold font-heading uppercase tracking-wider">People & Vendors</h2>
+                        </div>
+                        
+                        {isSearchingProfiles ? (
+                            <div className="flex items-center gap-3 py-8 text-muted-foreground italic">
+                                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                <span>Searching profiles...</span>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {profiles.map(p => (
+                                    <ProfileSearchResult key={p.id} profile={p} />
+                                ))}
+                            </div>
+                        )}
+                        <div className="mt-8 border-b border-border/40" />
+                    </div>
+                )}
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     <ShopSidebar
@@ -127,7 +174,6 @@ function ShopPageInner() {
                     />
                 </div>
             </div>
-
-                    </main>
+        </main>
     );
 }

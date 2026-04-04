@@ -9,18 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import AdminReportDetailModal from "@/components/admin/AdminReportDetailModal";
 
-const MOCK_REPORTS = [
-    {
-        id: "REP-2025-002",
-        category: "Harassment",
-        priority: "High",
-        status: "In Review",
-        submittedAt: "45 mins ago",
-        reporter: { name: "Sarah K.", avatar: "S" },
-        against: { name: "Mike Johnson", type: "Buyer" },
-        reason: "Inappropriate language in chat",
-    },
-];
+const MOCK_REPORTS: any[] = [];
 
 export default function InReviewReportsPage() {
     const [selectedReport, setSelectedReport] = useState<any>(null);

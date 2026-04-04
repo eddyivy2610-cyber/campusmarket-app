@@ -19,12 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import AdminListingDetailModal from '@/components/admin/AdminListingDetailModal';
 
-const listingsData = [
-    { id: 1, title: 'Vintage Leather Jacket', seller: 'CampusHive', date: '26 Oct, 2023', reports: 5, status: 'Active', category: 'Fashion', price: 1000 },
-    { id: 2, title: 'MacBook Pro 2021', seller: 'John Doe', date: '27 Oct, 2023', reports: 0, status: 'Active', category: 'Electronics', price: 450000 },
-    { id: 3, title: 'Organic Chemistry Textbook', seller: 'Michael O.', date: '25 Oct, 2023', reports: 2, status: 'Flagged', category: 'Books', price: 8500 },
-    { id: 4, title: 'iPhone 12 - 128GB', seller: 'Sarah K.', date: '24 Oct, 2023', reports: 0, status: 'Active', category: 'Electronics', price: 320000 },
-];
+const listingsData: any[] = [];
 
 export default function AllListingsPage() {
     const [selectedListing, setSelectedListing] = useState<any>(null);

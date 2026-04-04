@@ -16,11 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import AdminListingDetailModal from '@/components/admin/AdminListingDetailModal';
 
-const pendingListings = [
-    { id: 1, title: 'MacBook Pro 2021', price: 450000, seller: 'John Doe', time: '2 hours ago', category: 'Electronics', condition: 'Like New', reports: 0, status: 'Pending' },
-    { id: 2, title: 'iPhone 12 - 128GB', price: 320000, seller: 'Sarah K.', time: '5 hours ago', category: 'Electronics', condition: 'Good', reports: 0, status: 'Pending', flag: 'High Risk' },
-    { id: 3, title: 'Textbook: Organic Chemistry', price: 8500, seller: 'Michael O.', time: '1 day ago', category: 'Books', condition: 'Used - Good', reports: 0, status: 'Pending' },
-];
+const pendingListings: any[] = [];
 
 export default function NewListingsPage() {
     const [selectedItems, setSelectedItems] = useState<number[]>([]);

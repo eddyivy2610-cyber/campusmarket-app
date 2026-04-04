@@ -9,8 +9,8 @@ interface SellerQuickViewModalProps {
     isOpen: boolean;
     onClose: () => void;
     applicant: any;
-    onApprove: (id: number) => void;
-    onReject: (id: number, reason: string) => void;
+    onApprove: (id: string) => void;
+    onReject: (id: string, reason: string) => void;
 }
 
 export default function SellerQuickViewModal({ isOpen, onClose, applicant, onApprove, onReject }: SellerQuickViewModalProps) {
@@ -45,7 +45,7 @@ export default function SellerQuickViewModal({ isOpen, onClose, applicant, onApp
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold font-heading">Review Seller Application</h2>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">ID: #{applicant.id}</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">ID: #{String(applicant.id).slice(-6)}</p>
                                 </div>
                             </div>
                             <button

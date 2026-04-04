@@ -23,7 +23,7 @@ export default function ProfileRedirect() {
             router.replace("/login");
             return;
         }
-        const target = user.role === "pro" ? "/profile/campus-market" : "/profile/luckyjohn";
+        const target = `/profile/${user.handle}`;
         router.replace(target);
     }, [isLoading, router, user]);
 

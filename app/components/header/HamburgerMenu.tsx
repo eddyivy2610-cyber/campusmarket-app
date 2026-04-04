@@ -103,15 +103,17 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-4">
                         <button
-                            onClick={() => nav(user ? "/profile/campus-market" : "/register")}
+                            onClick={() => nav(user ? `/profile/${user.handle}` : "/register")}
                             className="w-full flex items-center justify-between p-4 bg-primary text-white rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
                         >
                             <div className="flex items-center gap-3">
                                 <User className="w-5 h-5" />
                                 <div className="text-left">
-                                    <p className="font-semibold uppercase tracking-widest text-[11px]">Join Campus Hive</p>
-                                    <p className="text-[10px] text-white/70 font-medium">
-                                        {user ? `${user.name.split(" ")[0]} - ${user.role}` : "Log in or Sign up"}
+                                    <p className="font-semibold uppercase tracking-widest text-[11px] truncate max-w-[140px]">
+                                        {user ? user.name : "Join Campus Hive"}
+                                    </p>
+                                    <p className="text-[10px] text-white/70 font-medium capitalize">
+                                        {user ? `${user.role} Account` : "Log in or Sign up"}
                                     </p>
                                 </div>
                             </div>
@@ -121,6 +123,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     <Section label="Navigation">
                         <NavRow icon={Home} label="Home" onClick={() => nav("/home")} />
+                        <NavRow icon={Bell} label="Notifications" onClick={() => nav("/notifications")} />
                         <NavRow icon={BookOpen} label="About" onClick={() => nav("/about-us")} />
                         <NavRow icon={MessageSquare} label="Contact" onClick={() => nav("/contact-us")} />
                         <NavRow icon={LifeBuoy} label="Help" onClick={() => nav("/help-support")} />
@@ -129,7 +132,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     {user && (
                         <Section label="Account">
-                            <NavRow icon={User} label="My Profile" onClick={() => nav("/profile/campus-market")} />
+                            <NavRow icon={User} label="My Profile" onClick={() => nav(`/profile/${user.handle}`)} />
                             <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
                         </Section>
                     )}

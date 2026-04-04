@@ -1,24 +1,36 @@
 "use client";
 
-import { UserPlus, User, Search, MoreHorizontal, ShieldOff, Mail, Calendar, ChevronDown } from 'lucide-react';
+import { UserPlus, User, Search, MoreHorizontal, ShieldOff, Mail, Calendar, ChevronDown, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { apiGet } from '@/lib/apiClient';
 
 import AdminUserDetailsModal from '@/components/admin/AdminUserDetailsModal';
 
-const startUsers = [
-    { id: 1, name: 'Alex Mordern', email: 'alex@email.com', date: '20 Jan, 2022', status: 'Active', role: 'Regular', avatar: 'A' },
-    { id: 2, name: 'Sarah Konnor', email: 'sarah@email.com', date: '22 Feb, 2022', status: 'Suspended', role: 'Vendor', avatar: 'S' },
-    { id: 3, name: 'Bob Bansen', email: 'bob@email.com', date: '12 Mar, 2022', status: 'Banned', role: 'Regular', avatar: 'B' },
-    { id: 4, name: 'John Doe', email: 'john@email.com', date: '05 Apr, 2022', status: 'Pending', role: 'Vendor', avatar: 'S' },
-];
-
 export default function UsersPage() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response: any = await apiGet("/api/user");
+                if (response?.data) {
+                    setUsers(response.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch users", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     const handleViewDetails = (user: any) => {
         setSelectedUser(user);
@@ -26,33 +38,57 @@ export default function UsersPage() {
     };
 
     const getStatusStyles = (status: string) => {
-        switch (status) {
-            case "Active":
+        const s = (status || "Pending").toLowerCase();
+        switch (s) {
+            case "active":
                 return "bg-[#10B981] text-white";
-            case "Pending":
+            case "pending":
                 return "bg-slate-200 text-slate-500";
-            case "Suspended":
+            case "suspended":
                 return "bg-amber-100 text-amber-600";
-            case "Banned":
+            case "banned":
                 return "bg-red-100 text-red-600";
             default:
                 return "bg-secondary text-muted-foreground";
         }
     };
     const getStatusDotClass = (status: string) => {
-        switch (status) {
-            case "Active":
+        const s = (status || "Pending").toLowerCase();
+        switch (s) {
+            case "active":
                 return "bg-emerald-500";
-            case "Pending":
+            case "pending":
                 return "bg-slate-400";
-            case "Suspended":
+            case "suspended":
                 return "bg-amber-500";
-            case "Banned":
+            case "banned":
                 return "bg-rose-500";
             default:
                 return "bg-muted-foreground/40";
         }
     };
+
+    const formatDate = (dateStr: string) => {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return dateStr;
+        }
+    };
+
+    const filteredUsers = users.filter(u => 
+        (u.profile?.displayName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (u.email || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -60,54 +96,82 @@ export default function UsersPage() {
             <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
                 {/* Custom Header Bar */}
                 <div className="p-3 md:p-4 flex w-full items-center justify-between border-b border-border/40">
-                    <h1 className="text-sm font-bold tracking-tight text-foreground uppercase px-2">All Users</h1>
+                    <div className="flex items-center gap-4 flex-1">
+                        <h1 className="text-sm font-bold tracking-tight text-foreground uppercase px-2">All Users</h1>
+                        <div className="relative max-w-xs hidden md:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search by name or email..."
+                                className="pl-9 pr-4 py-1.5 w-full bg-secondary/20 border border-transparent focus:border-primary/20 rounded-lg text-xs outline-none transition-all"
+                            />
+                        </div>
+                    </div>
                     <button className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-sm">
                         <UserPlus className="w-4 h-4" />
                         <span className="hidden sm:inline uppercase tracking-widest text-[10px]">Add User</span>
                     </button>
                 </div>
 
+                {/* Mobile Search - Only visible on small screens */}
+                <div className="md:hidden px-4 pt-4">
+                     <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                        <input 
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search users..."
+                            className="pl-9 pr-4 py-2.5 w-full bg-secondary/20 border border-transparent rounded-xl text-xs outline-none"
+                        />
+                    </div>
+                </div>
+
                 <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-                    {startUsers.map((user) => {
-                        const isOpen = expandedId === user.id;
+                    {filteredUsers.map((user) => {
+                        const isOpen = expandedId === user._id;
                         return (
-                            <div key={user.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                            <div key={user._id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
                                 <button
-                                    onClick={() => setExpandedId(isOpen ? null : user.id)}
+                                    onClick={() => setExpandedId(isOpen ? null : user._id)}
                                     className="w-full flex items-center justify-between gap-3 px-4 py-3"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 shrink-0">
-                                            {user.avatar}
+                                            {user.profile?.avatar ? <img src={user.profile.avatar} className="w-full h-full object-cover rounded-full" /> : (user.profile?.displayName || user.email || "?").charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0 text-left">
-                                            <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">ID: CPM-{user.id.toString().padStart(4, '0')}</p>
+                                            <p className="text-sm font-semibold text-foreground truncate">{user.profile?.displayName || "Unnamed User"}</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">
+                                                ID: CPM-{user._id?.slice(-6)?.toUpperCase() || "------"}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(user.status)}`} aria-hidden />
+                                        <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(user.accountStatus)}`} aria-hidden />
                                         <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                                     </div>
                                 </button>
                                 {isOpen && (
                                     <div className="px-4 pb-3">
                                         <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                                            <div>
+                                            <div className="col-span-2">
                                                 <p className="uppercase tracking-widest text-[9px]">Email</p>
-                                                <p className="font-semibold text-foreground/80">{user.email}</p>
+                                                <p className="font-semibold text-foreground/80 break-all">{user.email}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Role</p>
-                                                <p className="font-semibold text-foreground/80">{user.role}</p>
+                                                <p className="font-semibold text-foreground/80 capitalize">{user.role}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Joined</p>
-                                                <p className="font-semibold text-foreground/80">{user.date}</p>
+                                                <p className="font-semibold text-foreground/80">{formatDate(user.createdAt)}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Status</p>
-                                                <p className="font-semibold text-foreground/80">{user.status}</p>
+                                                <p className="font-semibold text-foreground/80 capitalize">{user.accountStatus || "active"}</p>
                                             </div>
                                         </div>
                                         <div className="mt-3">
@@ -115,7 +179,7 @@ export default function UsersPage() {
                                                 onClick={() => handleViewDetails(user)}
                                                 className="w-full rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
                                             >
-                                                Details
+                                                View Complete Profile
                                             </button>
                                         </div>
                                     </div>
@@ -137,16 +201,18 @@ export default function UsersPage() {
                             </tr>
                         </thead>
                         <tbody className="text-sm">
-                            {startUsers.map((user) => (
-                                <tr key={user.id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
+                            {filteredUsers.map((user) => (
+                                <tr key={user._id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
                                     <td className="py-4 pl-4 md:pl-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20">
-                                                {user.avatar}
+                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary border border-primary/20 shrink-0">
+                                                {user.profile?.avatar ? <img src={user.profile.avatar} className="w-full h-full object-cover rounded-full" /> : (user.profile?.displayName || user.email || "?").charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-foreground group-hover:text-primary transition-colors">{user.name}</span>
-                                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">ID: CPM-{user.id.toString().padStart(4, '0')}</span>
+                                                <span className="font-bold text-foreground group-hover:text-primary transition-colors">{user.profile?.displayName || "Unnamed User"}</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">
+                                                    ID: CPM-{user._id?.slice(-6)?.toUpperCase() || "------"}
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
@@ -163,16 +229,16 @@ export default function UsersPage() {
                                             </span>
                                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
                                                 <Calendar size={10} />
-                                                Joined {user.date}
+                                                Joined {formatDate(user.createdAt)}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="py-4">
                                         <span className={cn(
                                             "px-4 py-1.5 text-[11px] font-bold rounded-md uppercase tracking-widest whitespace-nowrap",
-                                            getStatusStyles(user.status)
+                                            getStatusStyles(user.accountStatus)
                                         )}>
-                                            {user.status}
+                                            {user.accountStatus || "active"}
                                         </span>
                                     </td>
                                     <td className="py-4 text-center pr-4 md:pr-6">
@@ -189,9 +255,9 @@ export default function UsersPage() {
                     </table>
                 </div>
 
-                {/* Footer Pagination (Simplified, following Products table style) */}
+                {/* Footer Pagination */}
                 <div className="p-4 md:p-6 border-t border-border/40 flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">Showing {startUsers.length} entries</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">Showing {filteredUsers.length} entries</span>
                     <div className="flex items-center gap-2">
                         <button className="px-4 py-2 rounded-xl border border-border/50 bg-secondary/5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-secondary/20 transition-all">Prev</button>
                         <button className="w-8 h-8 rounded-xl bg-primary text-primary-foreground text-[10px] font-bold shadow-lg shadow-primary/20">1</button>

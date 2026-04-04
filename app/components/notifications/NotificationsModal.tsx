@@ -5,6 +5,7 @@ import { CheckCheck } from "lucide-react";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { mockNotifications } from "../../data/notifications";
 import Link from "next/link";
+import { useAuth } from "../../context/AuthContext";
 
 interface NotificationsModalProps {
     isOpen: boolean;
@@ -14,6 +15,18 @@ interface NotificationsModalProps {
 export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     useClickOutside(modalRef, onClose);
+    const { user } = useAuth();
+
+    const isStudentPending = !!user?.isStudent && !user?.studentVerified;
+    const pendingNotification = isStudentPending
+        ? {
+            id: "student-pending",
+            title: "Student Verification Pending",
+            message: "Your student ID is under review. Selling tools, dashboard, listings, and ratings are locked until approval.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
 
     const displayed = mockNotifications.slice(0, 3);
 
@@ -33,17 +46,47 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
 
             {/* List */}
             <div className="max-h-[240px] overflow-y-auto divide-y divide-border/30" data-lenis-prevent>
-                {displayed.length > 0 ? displayed.map((notif) => (
+                {pendingNotification && (
+                    <div
+                        key={pendingNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-primary/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 border border-background rounded-full" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {pendingNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{pendingNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{pendingNotification.message}</p>
+                            <Link
+                                href="/register/seller"
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                            >
+                                Resend verification
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {displayed.length > 0 ? displayed.map((notif: any) => (
                     <div
                         key={notif.id}
                         className={`flex gap-2.5 px-3 py-2.5 hover:bg-secondary/30 transition-colors cursor-pointer ${!notif.isRead ? "bg-primary/5" : ""}`}
                     >
                         {/* Thumbnail */}
                         <div className="shrink-0 relative">
-                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
                                 {notif.image
                                     ? <img src={notif.image} alt="" className="w-full h-full object-cover" />
-                                    : <div className="w-full h-full bg-secondary animate-pulse" />
+                                    : <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                                 }
                             </div>
                             {!notif.isRead && (

@@ -15,13 +15,11 @@ import {
     Clock,
     AlertCircle
 } from "lucide-react";
-import { DASHBOARD_ORDERS, DashboardOrder } from "../../data/dashboardOrders";
+import { DashboardOrder } from "../../data/dashboardOrders";
 import Link from "next/link";
 
 export default function AdminOrdersPage() {
-    const [orders, setOrders] = useState<DashboardOrder[]>(
-        DASHBOARD_ORDERS.filter(o => o.status === "Pending Admin Verification")
-    );
+    const [orders, setOrders] = useState<DashboardOrder[]>([]);
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const handleVerify = (orderId: string) => {

@@ -10,28 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import AdminReportDetailModal from "@/components/admin/AdminReportDetailModal";
 
-const MOCK_REPORTS = [
-    {
-        id: "REP-2025-001",
-        category: "Scam or fraud attempt",
-        priority: "High",
-        status: "Pending",
-        submittedAt: "10 mins ago",
-        reporter: { name: "Michael O.", avatar: "M" },
-        against: { name: "John Doe", type: "Vendor" },
-        reason: "Attempted off-platform payment",
-    },
-    {
-        id: "REP-2025-003",
-        category: "Fake item",
-        priority: "Medium",
-        status: "Pending",
-        submittedAt: "2 hours ago",
-        reporter: { name: "Amina T.", avatar: "A" },
-        against: { name: "Peter O.", type: "Vendor" },
-        reason: "Item received was counterfeit",
-    },
-];
+const MOCK_REPORTS: any[] = [];
 
 export default function PendingReportsPage() {
     const [selectedReport, setSelectedReport] = useState<any>(null);

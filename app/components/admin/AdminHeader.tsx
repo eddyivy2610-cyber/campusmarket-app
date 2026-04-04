@@ -6,12 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { clearAdminSession, getAdminSession } from "@/lib/adminAuth";
 
-const SEARCH_TARGETS = [
-    { label: "Settings", keywords: ["settings", "preferences", "config"], href: "/admin/settings" },
-    { label: "Controls", keywords: ["controls", "moderation", "rules"], href: "/admin/reports" },
-    { label: "Users", keywords: ["users", "accounts", "members"], href: "/admin/users" },
-    { label: "Dispute Center", keywords: ["dispute", "complaint", "feedback", "help center"], href: "/admin/dispute-center" },
-];
+const SEARCH_TARGETS: any[] = [];
 
 export function AdminHeader() {
     const router = useRouter();

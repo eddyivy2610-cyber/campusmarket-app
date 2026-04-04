@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { getAdminSession, clearAdminSession } from "@/lib/adminAuth";
+import { apiGet } from "@/lib/apiClient";
 
 const ADMIN_NAV_ITEMS = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
@@ -58,6 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const [adminActivities, setAdminActivities] = useState<any[]>([]);
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -67,6 +69,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setAdminLabel(session.username);
         }
     }, []);
+
+    useEffect(() => {
+        const fetchAdminActivities = async () => {
+            try {
+                const response: any = await apiGet("/api/admin/logs?type=admin_action&limit=10");
+                setAdminActivities(response?.data || []);
+            } catch (err) {
+                console.error("Failed to load admin activities", err);
+                setAdminActivities([]);
+            }
+        };
+        fetchAdminActivities();
+    }, []);
+
+    const formatRelativeTime = (dateStr?: string) => {
+        if (!dateStr) return "";
+        const diffMs = Date.now() - new Date(dateStr).getTime();
+        const seconds = Math.floor(diffMs / 1000);
+        if (seconds < 10) return "Just now";
+        if (seconds < 60) return `${seconds}s ago`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        const weeks = Math.floor(days / 7);
+        return `${weeks}w ago`;
+    };
 
     const currentPageName = useMemo(() => {
         const matched = ADMIN_NAV_ITEMS.find((item) => pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href)));
@@ -346,25 +377,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 {/* Vertical Connectivity Line */}
                                 <div className="absolute left-[7px] top-2 bottom-5 w-0.5 bg-border/40" />
 
-                                {[
-                                    { title: "You fixed a bug", time: "Just now", icon: CheckCircle, color: "bg-emerald-500" },
-                                    { title: "Received 5 new reports", time: "10m ago", icon: MessageSquareWarning, color: "bg-rose-500" },
-                                    { title: "System routine completed", time: "2h ago", icon: Zap, color: "bg-blue-500" },
-                                    { title: "User 'Alex' verified", time: "5h ago", icon: UserCheck, color: "bg-emerald-500" },
-                                    { title: "New listing approved", time: "Yest.", icon: Package, color: "bg-amber-500" },
-                                    { title: "Dispute #12 resolved", time: "2d ago", icon: CheckCircle, color: "bg-fuchsia-500" },
-                                    { title: "Database backup done", time: "3d ago", icon: FileText, color: "bg-slate-500" },
-                                ].map((activity, idx) => (
+                                {adminActivities.map((activity, idx) => (
                                     <div key={idx} className="relative pl-7 pb-5 last:pb-2 group">
                                         {/* Timeline Dot */}
-                                        <div className={`absolute left-0 top-1 w-4 h-4 rounded-full border-[3px] border-card z-10 transition-transform group-hover:scale-125 ${activity.color} shadow-sm shadow-black/20`} />
+                                        <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-[3px] border-card z-10 transition-transform group-hover:scale-125 bg-emerald-500 shadow-sm shadow-black/20" />
                                         
                                         <div className="flex flex-col gap-0.5 min-w-0">
-                                            <span className="text-[11px] font-bold text-foreground/80 group-hover:text-foreground transition-all leading-tight">{activity.title}</span>
-                                            <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">{activity.time}</span>
+                                            <span className="text-[11px] font-bold text-foreground/80 group-hover:text-foreground transition-all leading-tight">
+                                                {activity.message}
+                                            </span>
+                                            <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                                                {formatRelativeTime(activity.createdAt)}
+                                            </span>
                                         </div>
                                     </div>
                                 ))}
+                                {adminActivities.length === 0 && (
+                                    <div className="text-[10px] text-muted-foreground/60">No recent admin actions.</div>
+                                )}
                             </div>
                         </div>
                     </div>

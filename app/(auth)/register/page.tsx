@@ -8,6 +8,7 @@ import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/apiClient";
+import { Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
@@ -22,6 +23,7 @@ export default function RegisterPage() {
         profileImage: null,
         isStudent: undefined,
         schoolName: "",
+        studentIdCard: null as string | null,
         bio: "",
         platformIntent: null,
         agreedToTerms: false,
@@ -46,6 +48,10 @@ export default function RegisterPage() {
             setRegisterError("School name is required for students.");
             return false;
         }
+        if (formData.isStudent === true && !formData.studentIdCard) {
+            setRegisterError("Student ID is required for students.");
+            return false;
+        }
         return true;
     };
 
@@ -66,6 +72,9 @@ export default function RegisterPage() {
                 ...(formData.isStudent === true && formData.schoolName && {
                     schoolName: formData.schoolName,
                 }),
+                ...(formData.isStudent === true && formData.studentIdCard && {
+                    idCardImage: formData.studentIdCard,
+                }),
             },
             role,
             agreedToTerms: formData.agreedToTerms ?? true,
@@ -84,8 +93,8 @@ export default function RegisterPage() {
         return payload;
     };
 
-    const handleFinish = async (intent: 'buy' | 'sell') => {
-        if (intent === 'sell') {
+    const handleFinish = async (action: 'buy' | 'sell_now' | 'sell_later') => {
+        if (action.startsWith('sell')) {
             if (formData.isStudent !== true) {
                 setRegisterError("Only students can register as sellers.");
                 return;
@@ -93,31 +102,26 @@ export default function RegisterPage() {
             if (!validateStudentInfo()) {
                 return;
             }
-            setRegisterError("");
-            try {
-                await apiPost("api/auth/register", buildRegisterPayload("seller"));
-                // Redirect to seller onboarding or dashboard
-                router.push("/vendor/register");
-            } catch (err: any) {
-                console.error("Seller registration error:", err);
-                setRegisterError(err?.message || "Registration failed. Please try again.");
+        }
+
+        if (!validateStudentInfo()) {
+            return;
+        }
+
+        setRegisterError("");
+        try {
+            await apiPost("api/auth/register", buildRegisterPayload("buyer"));
+            setBuyerComplete(true);
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            if (action === 'sell_now') {
+                router.replace("/login?registered=true&next=" + encodeURIComponent("/register/seller"));
+            } else {
+                router.replace("/home");
             }
-        } else {
-            if (!validateStudentInfo()) {
-                return;
-            }
-            setRegisterError("");
-            try {
-                await apiPost("api/auth/register", buildRegisterPayload("buyer"));
-                setBuyerComplete(true);
-                setTimeout(() => {
-                    router.replace("/login");
-                }, 1200);
-            } catch (err: any) {
-                console.error("Buyer registration error:", err);
-                setRegisterError(err?.message || "Registration failed");
-                setBuyerComplete(false);
-            }
+        } catch (err: any) {
+            console.error("Registration error:", err);
+            setRegisterError(err?.message || "Registration failed. Please try again.");
+            setBuyerComplete(false);
         }
     };
 
@@ -131,8 +135,8 @@ export default function RegisterPage() {
         try {
             await apiPost("api/auth/register", buildRegisterPayload("buyer"));
             setBuyerComplete(true);
-            await new Promise((resolve) => setTimeout(resolve, 1200));
-            router.replace("/login");
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            router.replace("/home");
         } catch (err: any) {
             setRegisterError(err?.message || "Registration failed");
             setBuyerComplete(false);
@@ -169,6 +173,7 @@ export default function RegisterPage() {
                     />
                 );
             case 4:
+
                 return (
                     <Step4Intent
                         formData={formData}
@@ -187,7 +192,7 @@ export default function RegisterPage() {
         2: { title: "Profile Information", subtitle: "Tell us about yourself" },
         3: { title: "Student Status", subtitle: "Help us personalize your experience" },
         4: buyerComplete
-            ? { title: "Account Ready", subtitle: "You're set to browse as a buyer" }
+            ? { title: "Account Ready", subtitle: "Welcome to Campus Hive" }
             : { title: "Final Choice", subtitle: "How will you use Campus Hive?" },
     };
 
@@ -250,10 +255,10 @@ export default function RegisterPage() {
                                                     </div>
                                                 )}
                                                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                                                    Registration complete. You can now sign in as a buyer.
+                                                    Registration complete. Welcome to the Campus Market!
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Redirecting you to login...
+                                                    Redirecting you to home...
                                                 </p>
                                             </div>
                                         ) : (

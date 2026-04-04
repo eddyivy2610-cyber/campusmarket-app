@@ -1,16 +1,5 @@
 /**
- * @BACKEND: MOCK DATA — This entire file contains hardcoded user/vendor profiles for prototyping.
- *
- * Replace with:
- *   - GET /api/users/:id           → fetch user profile by ID
- *   - GET /api/users/me            → fetch current authenticated user's profile
- *   - PUT /api/users/me            → update profile (bio, social links, avatar, cover photo)
- *   - GET /api/users/:id/listings  → fetch a vendor's listings
- *   - GET /api/users/:id/reviews   → fetch reviews for a vendor
- *
- * The Profile interface below can be reused as the API response type.
- * Avatar and cover photo URLs should come from a file storage service.
- * The `isVerified` and `verifiedTier` fields should be managed server-side.
+Data Source: Real Database
  */
 
 export interface Profile {
@@ -23,6 +12,7 @@ export interface Profile {
     accountType: "Buyer" | "Pro";
     type: 'buyer' | 'vendor';
     isStudent: boolean;
+    userStatus: 'student' | 'alumni' | 'community';
     isVerified: boolean;
     verifiedTier?: 'bronze' | 'silver' | 'gold';
     transactions: number;
@@ -53,7 +43,7 @@ export interface Profile {
     };
     achievements?: Array<{
         name: string;
-        icon: string; // Store icon name as string to avoid serialization issues if needed, or use any
+        icon: string;
         color: string;
         type: string;
         description: string;
@@ -66,97 +56,70 @@ export interface Profile {
     };
 }
 
-const createProfile = (overrides: Partial<Profile>): Profile => ({
-    id: "unknown",
-    name: "Unknown User",
-    handle: "unknown",
-    bio: "",
-    rating: 0,
-    avatar: "",
-    accountType: "Buyer",
-    type: "buyer",
-    isStudent: false,
-    isVerified: false,
-    transactions: 0,
-    recommendedCount: 0,
-    notRecommendedCount: 0,
-    totalSales: 0,
-    joinedDate: "",
-    joinedDateFull: "",
-    location: "",
-    tags: [],
-    ...overrides,
-});
+/**
+ Profile Mapping
+ */
+export const mapUserToProfile = (userData: any): Profile => {
+    const profile = userData?.profile || {};
+    const personal = userData?.personalDetails || {};
+    const student = userData?.studentStatus || {};
+    const business = userData?.businessProfile || {};
+    const rating = userData?.rating || { average: 0, count: 0 };
+    const social = userData?.socialLinks || {};
 
-export const PROFILES: Profile[] = [
-    createProfile({
-        id: "vendor-1",
-        name: "Campus Hive Official",
-        handle: "campus-market",
-        bio: "Your one-stop shop for all campus essentials. High quality, student prices.",
-        rating: 4.9,
-        avatar: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=200&q=80",
-        accountType: "Pro",
-        type: "vendor",
-        isStudent: false,
-        isVerified: true,
-        verifiedTier: "gold",
-        transactions: 156,
-        recommendedCount: 48,
-        notRecommendedCount: 2,
-        totalSales: 156,
-        joinedDate: "Jan 2025",
-        joinedDateFull: "January 10, 2025",
-        location: "Zaria, Nigeria",
-        category: "Gadgets & Services",
-        activeListingsCount: 24,
-        soldItems: 156,
-        lastSeen: "Engaged in conversation, 3 minutes ago",
-        coverPhoto: "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1200&q=80",
-        responseRate: "95%",
-        responseTime: "2 hours",
-        followers: 1240,
-        tags: ["official", "trusted", "essentials"],
-        businessInfo: {
-            extendedBio: "Campus Hive is the premier platform for student-to-student commerce at Ahmadu Bello University. We curate the best deals and ensure a safe trading environment for everyone.",
-            policies: "7-day return policy for faulty electronics. Meetups only in public campus areas.",
-            hours: "Mon - Sat: 9:00 AM - 6:00 PM",
-        },
-        achievements: [
-            { name: "Top Seller", icon: "Trophy", color: "text-blue-600 bg-blue-500/10", description: "completed 100 negotiations", type: "Achievement" },
-            { name: "Verified Student", icon: "Shield", color: "text-blue-600 bg-blue-500/10", description: "verified with id", type: "System" },
-            { name: "Early Adopter", icon: "Zap", color: "text-purple-600 bg-purple-500/10", description: "joined during beta phase", type: "Legacy" },
-            { name: "Trusted Buyer", icon: "Star", color: "text-green-600 bg-green-500/10", description: "50+ positive feedback", type: "Achievement" },
-            { name: "Popular", icon: "Star", color: "text-yellow-600 bg-yellow-500/10", description: "100+ followers", type: "Achievement" },
-        ],
-        socialLinks: {
-            whatsapp: "https://wa.me/1234567890",
-            instagram: "https://instagram.com/campusmarket",
-            twitter: "https://twitter.com/campusmarket",
-            linkedin: "https://linkedin.com/company/campusmarket",
-        },
-    }),
-    createProfile({
-        id: "lucky-john-1",
-        name: "Lucky John",
-        handle: "luckyjohn",
-        bio: "Just a regular student making the most out of campus life. Lover of books, tech, and good music.",
-        rating: 4.5,
-        avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80",
-        accountType: "Buyer",
-        type: "buyer",
-        isStudent: true,
-        isVerified: false,
-        transactions: 12,
-        recommendedCount: 8,
+    const name = 
+        profile.displayName || 
+        personal.fullName || 
+        userData?.name || 
+        userData?.email?.split('@')[0] || 
+        "Unknown User";
+
+    const handle = 
+        profile.handle || 
+        (typeof name === 'string' ? name.toLowerCase().replace(/[^a-z0-9]/g, "") : "user");
+
+    return {
+        id: userData?._id || userData?.id || "unknown",
+        name,
+        handle,
+        bio: profile.bio || "Hey I'm using Campus Hive!",
+        rating: rating.average || 0,
+        avatar: profile.avatar || "",
+        accountType: userData?.role === "seller" ? "Pro" : "Buyer",
+        type: userData?.role === "seller" ? "vendor" : "buyer",
+        isStudent: student.isStudent || false,
+        userStatus: student.status || (student.isStudent ? "student" : "community"),
+        isVerified: student.isVerified || false,
+        verifiedTier: student.isVerified ? "bronze" : undefined,
+        transactions: userData?.loginCount || 0,
+        recommendedCount: rating.count || 0,
         notRecommendedCount: 0,
-        totalSales: 0,
-        joinedDate: "Feb 2025",
-        joinedDateFull: "February 5, 2025",
-        location: "University of Lagos",
-        department: "Computer Science",
-        lastSeen: "Active 5 mins ago",
-        tags: ["student", "books", "tech"],
-        savedListings: [],
-    }),
-];
+        totalSales: business.totalSalesAmount || 0,
+        joinedDate: userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString("en-US", { month: 'short', year: 'numeric' }) : "Recently",
+        joinedDateFull: userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' }) : "Recently joined",
+        location: student.status === "community" ? "" : (personal.stateOfOrigin || student.schoolName || "Campus"),
+        department: personal.department || "",
+        tags: business.tags || [],
+        coverPhoto: profile.coverImage || "",
+        category: business.category || "General",
+        activeListingsCount: business.activeListingsCount || 0,
+        soldItems: business.soldItemsCount || 0,
+        responseRate: business.responseRate || "100%",
+        responseTime: business.responseTime || "within hours",
+        followers: business.followersCount || 0,
+        businessInfo: {
+            extendedBio: business.description || profile.bio || "",
+            policies: business.policies || "Standard campus trading policies apply.",
+            hours: business.workingHours || "Always open",
+        },
+        achievements: userData?.achievements || [],
+        socialLinks: {
+            whatsapp: social.whatsapp || "",
+            instagram: social.instagram || "",
+            twitter: social.twitter || "",
+            linkedin: social.linkedin || "",
+        },
+    };
+};
+
+export const PROFILES: Profile[] = [];

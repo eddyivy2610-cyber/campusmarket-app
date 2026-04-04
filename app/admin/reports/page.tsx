@@ -12,48 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import AdminReportDetailModal from "@/components/admin/AdminReportDetailModal";
 
-const MOCK_REPORTS = [
-    {
-        id: "REP-2025-001",
-        category: "Scam or fraud attempt",
-        priority: "High",
-        status: "Pending",
-        submittedAt: "10 mins ago",
-        reporter: { name: "Michael O.", avatar: "M" },
-        against: { name: "John Doe", type: "Vendor" },
-        reason: "Attempted off-platform payment",
-    },
-    {
-        id: "REP-2025-002",
-        category: "Harassment",
-        priority: "High",
-        status: "In Review",
-        submittedAt: "45 mins ago",
-        reporter: { name: "Sarah K.", avatar: "S" },
-        against: { name: "Mike Johnson", type: "Buyer" },
-        reason: "Inappropriate language in chat",
-    },
-    {
-        id: "REP-2025-003",
-        category: "Fake item",
-        priority: "Medium",
-        status: "Pending",
-        submittedAt: "2 hours ago",
-        reporter: { name: "Amina T.", avatar: "A" },
-        against: { name: "Peter O.", type: "Vendor" },
-        reason: "Item received was counterfeit",
-    },
-    {
-        id: "REP-2025-004",
-        category: "Inappropriate photo",
-        priority: "Low",
-        status: "Resolved",
-        submittedAt: "1 day ago",
-        reporter: { name: "Grace E.", avatar: "G" },
-        against: { name: "Usman B.", type: "Vendor" },
-        reason: "Photo contains contact information",
-    },
-];
+const MOCK_REPORTS: any[] = [];
 
 export default function AdminReportsPage() {
     const [selectedReport, setSelectedReport] = useState<any>(null);

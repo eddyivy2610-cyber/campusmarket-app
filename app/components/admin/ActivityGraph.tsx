@@ -10,15 +10,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
-const data = [
-    { name: 'Mon', listings: 40, reports: 24, amt: 2400 },
-    { name: 'Tue', listings: 30, reports: 13, amt: 2210 },
-    { name: 'Wed', listings: 20, reports: 58, amt: 2290 },
-    { name: 'Thu', listings: 27, reports: 39, amt: 2000 },
-    { name: 'Fri', listings: 18, reports: 48, amt: 2181 },
-    { name: 'Sat', listings: 23, reports: 38, amt: 2500 },
-    { name: 'Sun', listings: 34, reports: 43, amt: 2100 },
-];
+const data: any[] = [];
 
 const ActivityGraph = () => {
     return (

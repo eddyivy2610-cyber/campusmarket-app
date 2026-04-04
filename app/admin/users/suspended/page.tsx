@@ -4,20 +4,7 @@ import { AlertTriangle, Clock, Mail, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React from 'react';
 
-const suspendedUsers = [
-    {
-        id: 2,
-        name: 'Bob Builder',
-        email: 'bob@example.com',
-        date: '20 Aug, 2023',
-        status: 'Suspended',
-        role: 'Seller',
-        avatar: 'B',
-        reason: 'Multiple policy violations (Spam listings)',
-        suspendedUntil: '20 Mar, 2024',
-        reportsCount: 5
-    }
-];
+const suspendedUsers: any[] = [];
 
 export default function SuspendedUsersPage() {
     return (
