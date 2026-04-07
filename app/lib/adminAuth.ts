@@ -49,3 +49,21 @@ export function signInAdmin(identity: string, password: string): { ok: boolean; 
 export function signOutAdmin(): void {
     clearAdminSession();
 }
+
+/**
+ * Validates and mimics an admin registration process.
+ * In a real-world scenario, this would create an account in the database.
+ */
+export function registerAdmin(data: { email: string; username: string; key: string }): { ok: boolean; error: string } {
+    if (!data.email || !data.username) {
+        return { ok: false, error: 'Email and Username are required.' };
+    }
+
+    // Example admin-key verification
+    if (data.key !== "hive-admin-2025") {
+        return { ok: false, error: 'Invalid admin registration key.' };
+    }
+
+    // Success simulation
+    return { ok: true, error: '' };
+}

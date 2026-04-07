@@ -84,7 +84,7 @@ export const mapUserToProfile = (userData: any): Profile => {
         handle,
         bio: profile.bio || "Hey I'm using Campus Hive!",
         rating: rating.average || 0,
-        avatar: profile.avatar || "",
+        avatar: (profile.avatar && profile.avatar !== "image") ? profile.avatar : "/placeholder.png",
         accountType: userData?.role === "seller" ? "Pro" : "Buyer",
         type: userData?.role === "seller" ? "vendor" : "buyer",
         isStudent: student.isStudent || false,

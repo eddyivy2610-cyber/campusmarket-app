@@ -44,7 +44,7 @@ export function NotificationItem({ type, message, timestamp, image, actionLabel,
             <div className="shrink-0 relative">
                 {image ? (
                     <div className="w-12 h-12 rounded-xl overflow-hidden border border-foreground/10 relative">
-                        <Image src={image} alt="Item" fill className="object-cover" />
+                        <Image src={(image && image !== "image") ? image : "/placeholder.png"} alt="Item" fill className="object-cover" />
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background flex items-center justify-center border border-foreground/10 shadow-sm z-10`}>
                             {getIcon()}
                         </div>

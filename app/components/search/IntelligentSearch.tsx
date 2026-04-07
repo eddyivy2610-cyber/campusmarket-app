@@ -216,7 +216,7 @@ export function IntelligentSearch() {
                                                             >
                                                                 <div className="w-10 h-10 rounded-full bg-secondary relative overflow-hidden shadow-sm border border-border/50">
                                                                     <Image
-                                                                        src={profile.avatar}
+                                                                        src={(profile.avatar && profile.avatar !== "image") ? profile.avatar : "/placeholder.png"}
                                                                         alt={profile.name}
                                                                         fill
                                                                         className="object-cover"

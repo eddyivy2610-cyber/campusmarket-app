@@ -125,7 +125,7 @@ export function MainHeader() {
                                         </span>
                                     )}
                                     <span className="text-[11px] md:text-[12px] font-bold font-heading text-white tracking-wide truncate max-w-[80px] md:max-w-[120px]">
-                                        {user ? user.name : "Account"}
+                                        {user ? user.name : "Guest"}
                                     </span>
                                 </div>
                                 <ChevronDown className="w-3.5 h-3.5 text-white/70 hidden sm:block mr-1 transition-colors group-hover:text-white" />
