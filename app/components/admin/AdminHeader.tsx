@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { clearAdminSession, getAdminSession } from "@/lib/adminAuth";
 
-const SEARCH_TARGETS: any[] = [];
+interface SearchTarget {
+    label: string;
+    keywords: string[];
+    href: string;
+}
+
+const SEARCH_TARGETS: SearchTarget[] = [];
 
 export function AdminHeader() {
     const router = useRouter();
@@ -23,16 +29,16 @@ export function AdminHeader() {
     const matches = useMemo(() => {
         const normalized = query.trim().toLowerCase();
         if (!normalized) return [];
-        return SEARCH_TARGETS.filter((target) =>
-            target.keywords.some((keyword) => keyword.includes(normalized) || normalized.includes(keyword))
+        return SEARCH_TARGETS.filter((target: SearchTarget) =>
+            target.keywords.some((keyword: string) => keyword.includes(normalized) || normalized.includes(keyword))
         );
     }, [query]);
 
     const handleSearch = (value: string) => {
         const normalized = value.trim().toLowerCase();
         if (!normalized) return;
-        const target = SEARCH_TARGETS.find((entry) =>
-            entry.keywords.some((keyword) => keyword.includes(normalized) || normalized.includes(keyword))
+        const target = SEARCH_TARGETS.find((entry: SearchTarget) =>
+            entry.keywords.some((keyword: string) => keyword.includes(normalized) || normalized.includes(keyword))
         );
         if (target) {
             router.push(target.href);
