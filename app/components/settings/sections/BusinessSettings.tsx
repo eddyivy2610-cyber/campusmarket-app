@@ -5,10 +5,10 @@ import { AchievementBadge } from "../../profile/BadgeSystem";
 import { PROFILES } from "../../../data/profiles";
 
 export function BusinessSettings() {
-    const profile = PROFILES[0];
-    const badges = profile.achievements || [];
+    const profile = PROFILES[0] || {} as any;
+    const badges = profile?.achievements || [];
     const badgeSlots = Array.from({ length: 9 }, (_, index) => badges[index] || null);
-    const [isBusinessAccount, setIsBusinessAccount] = useState(profile.type === "vendor");
+    const [isBusinessAccount, setIsBusinessAccount] = useState(profile?.type === "vendor");
 
     return (
         <div className="space-y-6">
