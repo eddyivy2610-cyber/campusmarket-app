@@ -26,7 +26,7 @@ const AdminOverviewCharts = () => {
                 const users = response?.data || [];
 
                 const now = new Date();
-                const months: { key: string; label: string; end: Date }[] = [];
+                const months: { key: string; label: string; tooltipLabel: string; end: Date }[] = [];
                 for (let i = 11; i >= 0; i -= 1) {
                     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                     const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
