@@ -2,6 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Keep both domains and remotePatterns to avoid config mismatches across Next versions
+    domains: [
+      "images.unsplash.com",
+      "campusmarketng.vercel.app",
+      "myschool.ng",
+      "i.pravatar.cc",
+      "purepng.com",
+      "lh3.googleusercontent.com",
+      "res.cloudinary.com",
+    ],
     remotePatterns: [
       {
         protocol: "https",
