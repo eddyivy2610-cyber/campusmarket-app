@@ -35,7 +35,7 @@ export default function ProfilePage() {
             if (!handle) return;
             try {
                 setIsLoading(true);
-                const response = await apiGet<any>(`/api/auth/profile/${handle}`);
+                const response = await apiGet<any>(`/auth/profile/${handle}`);
                 
                 const profileData = response?.data || response?.user;
                 if (profileData) {

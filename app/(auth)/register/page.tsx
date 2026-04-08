@@ -9,11 +9,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/apiClient";
 import { Loader2 } from "lucide-react";
+import { AuthErrorModal } from "@/components/modals/AuthErrorModal";
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [buyerComplete, setBuyerComplete] = useState(false);
     const [registerError, setRegisterError] = useState("");
+    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -120,7 +122,9 @@ export default function RegisterPage() {
             }
         } catch (err: any) {
             console.error("Registration error:", err);
-            setRegisterError(err?.message || "Registration failed. Please try again.");
+            const msg = err?.message || "Registration failed. Please try again.";
+            setRegisterError(msg);
+            setIsErrorModalOpen(true);
             setBuyerComplete(false);
         }
     };
@@ -133,12 +137,14 @@ export default function RegisterPage() {
         setRegisterError("");
         updateFormData({ agreedToTerms: true });
         try {
-            await apiPost("api/auth/register", buildRegisterPayload("buyer"));
+            await apiPost("auth/register", buildRegisterPayload("buyer"));
             setBuyerComplete(true);
             await new Promise((resolve) => setTimeout(resolve, 1500));
             router.replace("/home");
         } catch (err: any) {
-            setRegisterError(err?.message || "Registration failed");
+            const msg = err?.message || "Registration failed";
+            setRegisterError(msg);
+            setIsErrorModalOpen(true);
             setBuyerComplete(false);
         }
     };
@@ -271,6 +277,12 @@ export default function RegisterPage() {
                     </div>
                 </div>
             </div>
+            
+            <AuthErrorModal 
+                isOpen={isErrorModalOpen} 
+                onClose={() => setIsErrorModalOpen(false)} 
+                message={registerError} 
+            />
         </div>
     );
 }

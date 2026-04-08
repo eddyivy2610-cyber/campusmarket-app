@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshUser = async () => {
         if (!user?.id) return null;
         try {
-            const response: any = await apiGet(`api/user/${user.id}`);
+            const response: any = await apiGet(`users/${user.id}`);
             const userData = response?.data || response;
             const refreshed: User = {
                 id: userData._id || userData.userId || user.id,

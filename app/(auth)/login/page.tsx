@@ -33,7 +33,7 @@ export default function LoginPage() {
         setIsLoading(true);
         setError("");
         try {
-            const response: any = await apiPost("api/auth/login", {
+            const response: any = await apiPost("auth/login", {
                 email: formData.email,
                 password: formData.password,
             });
@@ -82,7 +82,7 @@ export default function LoginPage() {
                 providerId: "google_" + Date.now()
             };
 
-            const response: any = await apiPost("api/auth/google-login", mockGoogleData);
+            const response: any = await apiPost("auth/google-login", mockGoogleData);
             
             const userData = response?.user || response?.data?.user;
             if (userData) {

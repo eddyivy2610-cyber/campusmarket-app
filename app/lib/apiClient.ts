@@ -5,14 +5,25 @@ type ApiError = Error & {
   data?: unknown;
 };
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_BASE = BASE_URL.endsWith("/api") 
+  ? BASE_URL 
+  : `${BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL}/api`;
 
 const normalizeUrl = (path: string) => {
   if (/^https?:\/\//i.test(path)) return path;
+  
   const prefix = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
-  const suffix = path.startsWith("/") ? path : `/${path}`;
-  return `${prefix}${suffix}`;
+  let normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  
+  // If the path already starts with /api and the prefix also ends with /api, 
+  // remove the /api from the prefix temporarily for assembly
+  if (normalizedPath.startsWith("/api/") && prefix.endsWith("/api")) {
+    const basePrefix = prefix.slice(0, -4);
+    return `${basePrefix}${normalizedPath}`;
+  }
+  
+  return `${prefix}${normalizedPath}`;
 };
 
 const apiRequest = async <T>(
