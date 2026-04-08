@@ -66,6 +66,9 @@ export function RecommendedCarousel({ products }: RecommendedCarouselProps) {
         return () => cancelAnimationFrame(rafId);
     }, [canAutoScroll, isPageVisible]);
 
+    // No products yet — hide the entire section to avoid dead prefetch links
+    if (items.length === 0) return null;
+
     return (
         <section className="w-full pt-4 pb-2">
             <div className="flex items-center gap-2 mb-3">

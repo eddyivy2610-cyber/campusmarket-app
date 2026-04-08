@@ -15,8 +15,9 @@ export function ProductGrid() {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const [visibleCount, setVisibleCount] = useState(HOME_PAGE_SIZE);
 
-    const buildExploreItems = () =>
-        Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
+    const buildExploreItems = () => {
+        if (listings.length === 0) return [];
+        return Array.from({ length: EXPLORE_POOL_SIZE }, (_, index) => {
             const base = listings[index % listings.length];
             return {
                 ...base,
@@ -24,6 +25,7 @@ export function ProductGrid() {
                 originalPrice: Math.round(base.price * 1.2),
             };
         });
+    };
 
     const [exploreItems, setExploreItems] = useState(buildExploreItems);
 
@@ -60,6 +62,27 @@ export function ProductGrid() {
         observer.observe(sentinelRef.current);
         return () => observer.disconnect();
     }, [hasMore, exploreItems.length]);
+
+    // Empty state — no listings in DB yet
+    if (exploreItems.length === 0) {
+        return (
+            <div className="flex flex-col gap-10 md:gap-16 w-full">
+                <section>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-3.5 h-6 bg-[#FFD700]/80 rounded-none shadow-sm" />
+                        <h2 className="text-sm md:text-base font-bold text-[#1f1f1f] dark:text-foreground uppercase tracking-wider">
+                            More to Explore
+                        </h2>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                        <span className="text-4xl">🛍️</span>
+                        <p className="text-sm font-semibold text-muted-foreground">No listings yet</p>
+                        <p className="text-xs text-muted-foreground/70">Be the first to sell something on Campus Hive!</p>
+                    </div>
+                </section>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-10 md:gap-16 w-full">
@@ -109,4 +132,3 @@ export function ProductGrid() {
         </div>
     );
 }
-
