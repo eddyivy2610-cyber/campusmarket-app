@@ -10,7 +10,7 @@ export function CommunityHero() {
         <section className="relative w-full h-[200px] md:h-[260px] rounded-3xl overflow-hidden bg-gray-900 border border-border flex items-center shadow-lg">
             {/* Background Image */}
             <Image
-                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=2000"
+                src=""
                 alt="Community Background"
                 fill
                 priority

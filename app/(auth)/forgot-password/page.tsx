@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
                         step === "reset" ? "Please choose a strong new password." :
                             "Your password has been successfully reset. You can now log in."
             }
-            illustrationUrl="https://images.unsplash.com/photo-1541339907198-e08759dfc3ef?auto=format&fit=crop&q=80&w=800"
+            illustrationUrl=""
         >
             <div className="font-heading">
                 {error && <p className="text-xs font-bold text-red-500 mb-4 animate-shake text-center">{error}</p>}

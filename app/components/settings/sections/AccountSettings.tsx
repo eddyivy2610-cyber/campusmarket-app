@@ -24,7 +24,7 @@ export function AccountSettings() {
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
                             <img
-                                src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80"
+                                src=""
                                 alt="Profile"
                                 className="w-full h-full object-cover"
                             />

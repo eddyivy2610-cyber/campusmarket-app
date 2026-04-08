@@ -54,7 +54,7 @@ export function AuthLayout({
                         ) : illustrationUrl ? (
                             <div className="w-full h-full rounded-[32px] overflow-hidden bg-secondary/20">
                                 <img
-                                    src={"https://plus.unsplash.com/premium_vector-1727516525558-61f528f7cf66?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b25saW5lJTIwc2hvcHBpbmclMjBtb25leSUyMGlsbHVzdHJhdGlvbnN8ZW58MHx8MHx8fDA%3D"}
+                                    src={""}
                                     alt="Auth Illustration"
                                     className="w-full h-full object-cover"
                                 />

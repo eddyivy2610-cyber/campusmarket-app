@@ -116,7 +116,7 @@ export const PARTICIPANTS: Record<string, ChatParticipant> = {
     "vendor-1": {
         id: "vendor-1",
         name: "Campus Hive Official",
-        avatar: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=200&q=80",
+        avatar: "",
         memberSince: "Jan 2025",
         responseTime: "Within 1 hour",
         activeListings: 24,
@@ -125,7 +125,7 @@ export const PARTICIPANTS: Record<string, ChatParticipant> = {
     S2: {
         id: "S2",
         name: "Vintage Treasures",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80",
+        avatar: "",
         memberSince: "Mar 2024",
         responseTime: "Within 30 min",
         activeListings: 8,
@@ -139,21 +139,21 @@ export const CHAT_LISTINGS: Record<number, ChatListing> = {
         id: 1,
         title: "MacBook Pro 2021 - M1 Pro",
         price: 450000,
-        image: "https://images.unsplash.com/photo-1517336715481-d1ad7eaf1c9c?auto=format&fit=crop&w=400&q=80",
+        image: "",
         status: "available",
     },
     2: {
         id: 2,
         title: "Vintage Denim Jacket",
         price: 15000,
-        image: "https://images.unsplash.com/photo-1544441892-794166f1e3be?auto=format&fit=crop&w=800&q=80",
+        image: "",
         status: "available",
     },
     3: {
         id: 3,
         title: "Apple iPad Air 4th Gen",
         price: 350000,
-        image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=400&q=80",
+        image: "",
         status: "sold",
     },
 };

@@ -50,9 +50,9 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
 
     // Mock images if none provided
     const images = listing.images || [
-        "https://images.unsplash.com/photo-1517336712468-678082986230?w=800&q=80",
-        "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800&q=80",
-        "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800&q=80"
+        "",
+        "",
+        ""
     ];
 
     const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % images.length);

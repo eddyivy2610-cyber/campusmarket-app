@@ -41,7 +41,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "5 mins ago",
         exactTime: "Today 2:30pm",
         isRead: false,
-        image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?auto=format&fit=crop&q=80&w=150",
+        image: "",
         category: "orders",
         actions: ["View Order"],
         priority: "high"
@@ -55,7 +55,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "10 mins ago",
         exactTime: "Today 2:25pm",
         isRead: false,
-        image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=150",
+        image: "",
         category: "orders",
         priority: "high"
     },
@@ -70,7 +70,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "1 hour ago",
         exactTime: "Today 1:15pm",
         isRead: false,
-        image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150", // User avatar or Item
+        image: "", // User avatar or Item
         category: "messages",
         actions: ["Reply"]
     },
@@ -85,7 +85,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "3 hours ago",
         exactTime: "Today 11:00am",
         isRead: true,
-        image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=150",
+        image: "",
         category: "saved",
         actions: ["View Listing"]
     },
@@ -100,7 +100,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "1 day ago",
         exactTime: "Yesterday",
         isRead: true,
-        image: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=150",
+        image: "",
         category: "updates",
         actions: ["Try it now"]
     },
@@ -129,7 +129,7 @@ export const mockNotifications: Notification[] = [
         timestamp: "3 days ago",
         exactTime: "Sunday",
         isRead: true,
-        image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=150",
+        image: "",
         category: "orders",
         actions: ["Leave Review"]
     }

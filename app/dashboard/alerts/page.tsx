@@ -20,7 +20,7 @@ const BASE_ALERTS: {
             type: "match",
             message: "Good news! A 'MacBook Air M1' matching your alert was just listed by Sarah within your price range.",
             timestamp: "2 mins ago",
-            image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&q=80&w=200",
+            image: "",
             actionLabel: "View Listing"
         },
         {
@@ -28,7 +28,7 @@ const BASE_ALERTS: {
             type: "message",
             message: "New message from David regarding 'Calculus Textbook': 'Is this still available? I can meet at the library.'",
             timestamp: "1 hour ago",
-            image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200",
+            image: "",
             actionLabel: "Reply"
         },
         {
@@ -36,7 +36,7 @@ const BASE_ALERTS: {
             type: "price_drop",
             message: "Price Drop! The 'Sony WH-1000XM4' in your wishlist is now ₦15,000 cheaper.",
             timestamp: "3 hours ago",
-            image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=200",
+            image: "",
             actionLabel: "View Deal"
         },
         {
@@ -44,7 +44,7 @@ const BASE_ALERTS: {
             type: "sold",
             message: "Your item 'Graphics Tablet' has been marked as sold. Great job!",
             timestamp: "Yesterday",
-            image: "https://images.unsplash.com/photo-1585728867375-7b5879a7864c?auto=format&fit=crop&q=80&w=200",
+            image: "",
             isRead: true
         },
         {

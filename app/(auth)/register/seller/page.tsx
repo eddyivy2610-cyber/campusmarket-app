@@ -177,7 +177,7 @@ export default function SellerRegisterPage() {
             totalSteps={step === 4 ? undefined : 4}
             title={stepInfo[step as keyof typeof stepInfo].title}
             subtitle={stepInfo[step as keyof typeof stepInfo].subtitle}
-            illustrationUrl="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=800"
+            illustrationUrl=""
             showBack={step > 0 && step < 4}
             onBack={prevStep}
             isWide={step < 4}
