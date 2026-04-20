@@ -33,9 +33,6 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
         const newErrors: { [key: string]: string } = {};
         if (!formData.email) newErrors.email = "Email is required";
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email format";
-        else if (!/(gmail|yahoo)\./i.test(formData.email.split("@")[1] || "")) {
-            newErrors.email = "Use your Gmail or Yahoo for verification";
-        }
 
         if (!formData.password) newErrors.password = "Password is required";
         else if (formData.password.length < 8) newErrors.password = "Minimum 8 characters";
@@ -60,8 +57,7 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
                 return;
             }
 
-            // Send OTP
-            await apiPost("auth/send-otp-to-email", { email: formData.email });
+            // OTP Step is bypassed/suspended
             onNext();
         } catch (err: any) {
             setErrors({ email: err.message || "Failed to initiate registration" });
