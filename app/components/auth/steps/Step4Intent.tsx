@@ -51,11 +51,11 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                         }`}
                 >
                     <div className={`p-3 rounded-lg transition-colors ${formData.platformIntent === 'buy' ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground group-hover:text-primary'}`}>
-                        <ShoppingCart className="w-6 h-6" />
+                        {isLoading && formData.platformIntent === 'buy' ? <Loader2 className="w-6 h-6 animate-spin" /> : <ShoppingCart className="w-6 h-6" />}
                     </div>
                     <div>
                         <p className={`font-semibold uppercase tracking-widest text-xs ${formData.platformIntent === 'buy' ? 'text-primary' : 'text-foreground'}`}>Buy</p>
-                        <p className="text-[10px] text-muted-foreground font-medium">Find great deals</p>
+                        <p className="text-[10px] text-muted-foreground font-medium">{isLoading && formData.platformIntent === 'buy' ? "Setting up..." : "Find great deals"}</p>
                     </div>
                 </button>
 
@@ -94,14 +94,6 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                 </button>
             </div>
 
-            {isLoading && (
-                <div className="flex flex-col items-center gap-2 py-4">
-                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                    <p className="text-[10px] font-semibold text-primary animate-pulse italic uppercase tracking-widest">
-                        {formData.platformIntent === 'sell' ? "Redirecting to Seller verification..." : "Creating your buyer profile..."}
-                    </p>
-                </div>
-            )}
 
             {formData.platformIntent === 'sell' && !isLoading && (
                 <motion.div 
@@ -115,15 +107,19 @@ export function Step4Intent({ formData, updateFormData, onFinish, onBack }: Step
                     <div className="flex flex-col gap-2">
                         <button
                             onClick={() => handleFinish('sell_now')}
-                            className="w-full rounded-md bg-primary py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-primary/90 active:scale-95 shadow-md shadow-primary/20"
+                            disabled={isLoading}
+                            className="w-full rounded-md bg-primary py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-primary/90 active:scale-95 shadow-md shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-70"
                         >
-                            Proceed to Seller Registration
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            {isLoading ? "Setting up..." : "Proceed to Seller Registration"}
                         </button>
                         <button
                             onClick={() => handleFinish('sell_later')}
-                            className="w-full rounded-md border border-border bg-secondary py-2.5 text-xs font-bold uppercase tracking-widest text-foreground transition-all hover:bg-secondary/80 active:scale-95"
+                            disabled={isLoading}
+                            className="w-full rounded-md border border-border bg-secondary py-2.5 text-xs font-bold uppercase tracking-widest text-foreground transition-all hover:bg-secondary/80 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
                         >
-                            Later, continue to app
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            {isLoading ? "Finishing..." : "Later, continue to app"}
                         </button>
                     </div>
                 </motion.div>

@@ -153,8 +153,8 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="bg-background">
-            <div className="flex items-center justify-center px-4 pt-6 md:pt-10 min-h-[calc(100dvh-140px)] md:min-h-[calc(100dvh-80px)]">
+        <div className="bg-background min-h-screen flex flex-col">
+            <div className="flex flex-1 items-center justify-center px-4 py-8 md:py-10">
                 <div className="mx-auto flex w-full max-w-[1040px] flex-col overflow-hidden md:flex-row md:border md:border-border/40 md:rounded-xl md:shadow-sm md:min-h-[620px]">
                     <div className="hidden w-full items-center justify-center bg-[#cfe5eb] p-7 md:flex md:w-1/2 md:p-10">
                         <div className="w-full max-w-[420px]">
