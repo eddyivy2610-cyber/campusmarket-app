@@ -8,11 +8,12 @@ interface User {
     name: string;
     email: string;
     handle: string;
-    role: "user" | "pro";
+    role: "buyer" | "seller" | "admin";
     isStudent?: boolean;
     studentVerified?: boolean;
     tier?: "new" | "rising" | "trusted" | "elite";
-    sellerStatus?: "none" | "pending" | "approved" | "rejected";
+    sellerStatus: "none" | "pending" | "approved" | "rejected";
+    onboardingStep: "otp_verified" | "profile_completed" | "onboarding_choice" | "seller_pending" | "completed";
     avatar?: string;
     image?: string;
 }
@@ -61,15 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userData = response?.data || response;
             const refreshed: User = {
                 id: userData._id || userData.userId || user.id,
-                name: userData.profile?.displayName || userData.personalDetails?.fullName || userData.name || user.email,
+                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user.email,
                 email: userData.email || user.email,
                 handle: userData.profile?.handle || user.handle,
-                role: userData.role === "seller" ? "pro" : "user",
+                role: userData.role || "buyer",
                 isStudent: userData.studentStatus?.isStudent || false,
                 studentVerified: userData.studentStatus?.isVerified || false,
-                tier: user.tier,
-                sellerStatus: user.sellerStatus,
-                avatar: user.avatar,
+                tier: user.tier || "new",
+                sellerStatus: userData.sellerStatus || "none",
+                onboardingStep: userData.onboardingStep || "completed",
+                avatar: userData.profile?.avatar || user.avatar,
                 image: user.image,
             };
             setUser(refreshed);

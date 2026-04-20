@@ -2,39 +2,28 @@
 
 import React, { useState } from "react";
 import { Step1EmailPassword } from "@/components/auth/steps/Step1EmailPassword";
-import { Step2ProfileInfo } from "@/components/auth/steps/Step2ProfileInfo";
-import { Step3StudentStatus } from "@/components/auth/steps/Step3StudentStatus";
+import { Step2OTP } from "@/components/auth/steps/Step2OTP";
+import { Step3ProfileInfo } from "@/components/auth/steps/Step3ProfileInfo";
 import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/apiClient";
 import { Loader2 } from "lucide-react";
 import { AuthErrorModal } from "@/components/modals/AuthErrorModal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [buyerComplete, setBuyerComplete] = useState(false);
     const [registerError, setRegisterError] = useState("");
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+    const { login } = useAuth();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
         confirmPassword: "",
         fullName: "",
-        displayName: "",
-        profileImage: null,
-        isStudent: undefined,
-        schoolName: "",
-        studentIdCard: null as string | null,
-        bio: "",
-        platformIntent: null,
-        agreedToTerms: false,
-        // Seller fields
-        businessProfile: {
-            name: "",
-            description: "",
-            tags: [] as string[],
-        },
+        agreedToTerms: true,
     });
     const router = useRouter();
 
@@ -45,81 +34,31 @@ export default function RegisterPage() {
     const nextStep = () => setStep((prev) => prev + 1);
     const prevStep = () => setStep((prev) => prev - 1);
 
-    const validateStudentInfo = () => {
-        if (formData.isStudent === true && !formData.schoolName?.trim()) {
-            setRegisterError("School name is required for students.");
-            return false;
-        }
-        if (formData.isStudent === true && !formData.studentIdCard) {
-            setRegisterError("Student ID is required for students.");
-            return false;
-        }
-        return true;
-    };
-
-    const buildRegisterPayload = (role: "buyer" | "seller") => {
-        const payload: any = {
-            email: formData.email,
-            password: formData.password,
-            profile: {
-                displayName: formData.displayName || formData.fullName,
-                bio: formData.bio || "Hey I'm using Campus Hive!",
-                avatar: formData.profileImage || null,
-            },
-            personalDetails: {
-                fullName: formData.fullName,
-            },
-            studentStatus: {
-                isStudent: formData.isStudent === true,
-                ...(formData.isStudent === true && formData.schoolName && {
-                    schoolName: formData.schoolName,
-                }),
-                ...(formData.isStudent === true && formData.studentIdCard && {
-                    idCardImage: formData.studentIdCard,
-                }),
-            },
-            role,
-            agreedToTerms: formData.agreedToTerms ?? true,
-            provider: "email",
-        };
-
-        // Add business profile for sellers
-        if (role === "seller") {
-            payload.businessProfile = {
-                name: formData.businessProfile?.name || formData.displayName || formData.fullName,
-                description: formData.businessProfile?.description || "",
-                tags: formData.businessProfile?.tags || [],
-            };
-        }
-
-        return payload;
-    };
-
-    const handleFinish = async (action: 'buy' | 'sell_now' | 'sell_later') => {
-        if (action.startsWith('sell')) {
-            if (formData.isStudent !== true) {
-                setRegisterError("Only students can register as sellers.");
-                return;
-            }
-            if (!validateStudentInfo()) {
-                return;
-            }
-        }
-
-        if (!validateStudentInfo()) {
-            return;
-        }
-
+    const handleFinishRegistration = async () => {
         setRegisterError("");
         try {
-            await apiPost("api/auth/register", buildRegisterPayload("buyer"));
-            setBuyerComplete(true);
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            if (action === 'sell_now') {
-                router.replace("/login?registered=true&next=" + encodeURIComponent("/register/seller"));
-            } else {
-                router.replace("/home");
+            const response: any = await apiPost("auth/register", {
+                email: formData.email,
+                password: formData.password,
+                fullName: formData.fullName
+            });
+
+            if (response.status && response.status !== 200) {
+                throw new Error(response.message || "Registration failed");
             }
+
+            // Successfully registered as Buyer
+            setBuyerComplete(true);
+            
+            // Login the user locally
+            if (response.user && response.token) {
+                login(response.user);
+                localStorage.setItem("campus_token", response.token);
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            // Move to onboarding choice
+            setStep(4);
         } catch (err: any) {
             console.error("Registration error:", err);
             const msg = err?.message || "Registration failed. Please try again.";
@@ -129,23 +68,19 @@ export default function RegisterPage() {
         }
     };
 
-    const finishBuyerToLogin = async () => {
-        setStep(4);
-        if (!validateStudentInfo()) {
-            return;
-        }
-        setRegisterError("");
-        updateFormData({ agreedToTerms: true });
+    const handleOnboardingChoice = async (action: 'buy' | 'sell_now' | 'sell_later') => {
         try {
-            await apiPost("auth/register", buildRegisterPayload("buyer"));
-            setBuyerComplete(true);
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            router.replace("/home");
+            if (action === 'buy' || action === 'sell_later') {
+                await apiPost("onboarding/choice", { choice: "buy" });
+                router.replace("/home");
+            } else if (action === 'sell_now') {
+                await apiPost("onboarding/choice", { choice: "sell" });
+                // We'll redirect to a dedicated seller onboarding page to keep RegisterPage clean
+                router.push("/onboarding/seller");
+            }
         } catch (err: any) {
-            const msg = err?.message || "Registration failed";
-            setRegisterError(msg);
-            setIsErrorModalOpen(true);
-            setBuyerComplete(false);
+            console.error("Onboarding error:", err);
+            router.replace("/home"); // Fallback to home if onboarding fails
         }
     };
 
@@ -161,31 +96,28 @@ export default function RegisterPage() {
                 );
             case 2:
                 return (
-                    <Step2ProfileInfo
+                    <Step2OTP
                         formData={formData}
-                        updateFormData={updateFormData}
                         onNext={nextStep}
                         onBack={prevStep}
                     />
                 );
             case 3:
                 return (
-                    <Step3StudentStatus
+                    <Step3ProfileInfo
                         formData={formData}
                         updateFormData={updateFormData}
-                        onNext={nextStep}
+                        onNext={handleFinishRegistration}
                         onBack={prevStep}
-                        onFinishBuyer={finishBuyerToLogin}
                     />
                 );
             case 4:
-
                 return (
                     <Step4Intent
                         formData={formData}
                         updateFormData={updateFormData}
-                        onFinish={handleFinish}
-                        onBack={prevStep}
+                        onFinish={handleOnboardingChoice}
+                        onBack={() => router.replace("/home")} // Can't go back once registered
                     />
                 );
             default:
@@ -195,11 +127,9 @@ export default function RegisterPage() {
 
     const stepInfo = {
         1: { title: "Create your account", subtitle: "Let's get started with your email and password" },
-        2: { title: "Profile Information", subtitle: "Tell us about yourself" },
-        3: { title: "Student Status", subtitle: "Help us personalize your experience" },
-        4: buyerComplete
-            ? { title: "Account Ready", subtitle: "Welcome to Campus Hive" }
-            : { title: "Final Choice", subtitle: "How will you use Campus Hive?" },
+        2: { title: "Check your email", subtitle: "We've sent a verification code to you" },
+        3: { title: "Finish Setup", subtitle: "Enter your name to complete your profile" },
+        4: { title: "One Last Thing", subtitle: "How do you want to use Campus Market?" },
     };
 
     return (

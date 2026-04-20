@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
@@ -49,10 +49,24 @@ export function Step1EmailPassword({ formData, updateFormData, onNext }: Step1Pr
         }
 
         setIsLoading(true);
-        // Mimic backend check/verification
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setIsLoading(false);
-        onNext();
+        setErrors({});
+        try {
+            // First check if email/phone exists
+            const checkRes: any = await apiPost("auth/check-email-and-phone-exists", { email: formData.email });
+            if (checkRes.data?.emailExists) {
+                setErrors({ email: "Email already in use" });
+                setIsLoading(false);
+                return;
+            }
+
+            // Send OTP
+            await apiPost("auth/send-otp-to-email", { email: formData.email });
+            onNext();
+        } catch (err: any) {
+            setErrors({ email: err.message || "Failed to initiate registration" });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Header } from "../header/Header";
 import { FloatingActions } from "../locations/FloatingActions";
+import { OnboardingGuard } from "../auth/OnboardingGuard";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -12,16 +13,20 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const isLanding = pathname === "/";
 
     if (isDashboard || isMessages || isAdmin || isLanding) {
-        return <>{children}</>;
+        return (
+            <OnboardingGuard>
+                {children}
+            </OnboardingGuard>
+        );
     }
 
     return (
-        <>
+        <OnboardingGuard>
             <Header />
             <div className="pt-[96px] md:pt-[64px]">
                 {children}
             </div>
             <FloatingActions />
-        </>
+        </OnboardingGuard>
     );
 }
