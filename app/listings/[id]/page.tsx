@@ -1,45 +1,85 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { PRODUCTS, Product } from "../../data/products";
-import { PROFILES, Profile } from "../../data/profiles";
 import { ProductGallery } from "../../components/listings/ProductGallery";
 import { ProductHeader } from "../../components/listings/ProductHeader";
 import { RelatedProducts } from "../../components/listings/RelatedProducts";
 import { Breadcrumb } from "../../components/common/Breadcrumb";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
+import { listingService } from "../../lib/listingService";
 
 export default function ListingPage() {
     const params = useParams();
     const router = useRouter();
+    const [product, setProduct] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    let product = PRODUCTS.find((p: Product) => p.id === Number(params.id));
+    useEffect(() => {
+        const fetchProduct = async () => {
+            if (!params.id) return;
+            try {
+                setIsLoading(true);
+                const res = await listingService.getListingById(params.id as string);
+                setProduct(res.data);
+                setError(null);
+            } catch (err: any) {
+                console.error("[ListingPage] Failed to fetch product", err);
+                setError(err.message || "Failed to load listing");
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    // Fallback for mocked grid items on the homepage (deal-1, best-2, explore-3)
-    if (!product && typeof params.id === 'string' && (params.id.startsWith('deal-') || params.id.startsWith('best-') || params.id.startsWith('explore-'))) {
-        product = PRODUCTS[0];
-    }
-    const vendor = PROFILES.find((p: Profile) => p.id === product?.sellerId);
+        fetchProduct();
+    }, [params.id]);
 
-    if (!product || !vendor) {
+    if (isLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center">
-                <div className="flex-1 flex flex-col items-center justify-center p-4">
-                    <h1 className="text-xl font-bold mb-4 uppercase tracking-tighter">Listing Not Found</h1>
-                    <button onClick={() => router.back()} className="text-primary font-bold uppercase tracking-widest text-[10px]">Go Back</button>
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    <p className="text-sm font-medium text-muted-foreground animate-pulse uppercase tracking-[0.2em]">Loading Listing...</p>
                 </div>
-                            </div>
+            </div>
         );
     }
 
-    // Mock related items
-    const vendorListings = PRODUCTS.filter((p: Product) => p.sellerId === vendor.id && p.id !== product.id);
-    const similarItems = PRODUCTS.filter((p: Product) => p.category === product.category && p.id !== product.id && p.sellerId !== vendor.id);
+    if (error || !product) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+                <div className="max-w-md w-full text-center space-y-6 p-6">
+                    <h1 className="text-2xl font-bold uppercase tracking-tighter">Listing Not Found</h1>
+                    <p className="text-muted-foreground text-sm">
+                        The listing you're looking for might have been sold, removed, or doesn't exist.
+                    </p>
+                    <button 
+                        onClick={() => router.push("/listings")} 
+                        className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-primary/90 transition-all shadow-lg"
+                    >
+                        Browse Other Listings
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Map backend sellerId population to the vendor format expected by components
+    const vendor = {
+        id: product.sellerId?._id || product.sellerId,
+        name: product.sellerId?.profile?.displayName || "Unknown Seller",
+        avatar: product.sellerId?.profile?.avatar || "/placeholder-avatar.png",
+        studentVerified: product.sellerId?.studentStatus?.isVerified || false,
+    };
+
+    // For now, we'll keep empty placeholders for related items 
+    // until we have a recommended/similar API endpoint
+    const vendorListings: any[] = [];
+    const similarItems: any[] = [];
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-
             <main className="flex-1">
                 {/* Refined Breadcrumbs Bar */}
                 <div className="bg-secondary/10 border-b border-border/50">
@@ -67,7 +107,7 @@ export default function ListingPage() {
                     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-12">
                         {/* Left Column: Media, Details, Related (Desktop) */}
                         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 md:gap-12 order-1 lg:order-none">
-                            <ProductGallery images={product.images} />
+                            <ProductGallery images={product.images || [product.image]} />
 
                             {/* Primary Purchase Panel (Mobile) */}
                             <div className="block lg:hidden">
@@ -97,7 +137,6 @@ export default function ListingPage() {
                     </div>
                 </div>
             </main>
-
-                    </div>
+        </div>
     );
 }

@@ -15,36 +15,19 @@ import { useSaved } from "../../context/SavedContext";
 interface QuickViewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    product: {
-        id: number;
-        title: string;
-        price: number | string;
-        image: string;
-        images?: string[];
-        category: string;
-        recommendedCount: number;
-        notRecommendedCount: number;
-        location?: string;
-        seller?: string;
-        sellerId: string;
-        description?: string;
-        condition?: string;
-        brand?: string;
-        negotiable?: boolean;
-        postedDate?: string;
-        status?: string;
-        isUrgent?: boolean;
-        originalPrice?: number | string;
-    };
+    product: any;
 }
 
 export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps) {
     const { toggleSaved, isSaved } = useSaved();
     const router = useRouter();
 
+    const displayId = product._id || product.id;
+
     const imageList = useMemo(() => {
         if (product.images && product.images.length > 0) return product.images;
-        return [product.image];
+        if (product.image) return [product.image];
+        return ["/placeholder-product.png"];
     }, [product.image, product.images]);
 
     useEffect(() => {
@@ -63,20 +46,23 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
     }, [onClose]);
 
     const formatPrice = (price: number | string) => {
+        if (price === undefined || price === null) return "0";
         const n = typeof price === "string" ? parseFloat(price.replace(/,/g, "")) : price;
         return isNaN(n) ? price : n.toLocaleString();
     };
 
-    const totalReviews = product.recommendedCount + product.notRecommendedCount;
+    const recommendedCount = product.recommendedCount || 0;
+    const notRecommendedCount = product.notRecommendedCount || 0;
+    const totalReviews = recommendedCount + notRecommendedCount;
     const starRating = Math.min(
         5,
-        Math.max(1, Math.round((product.recommendedCount / (totalReviews || 1)) * 5))
+        Math.max(1, Math.round((recommendedCount / (totalReviews || 1)) * 5))
     );
     const shortDescription = (product.description || "").split("\n")[0]?.slice(0, 140) || "No description provided for this listing yet.";
 
     const goToListing = () => {
         onClose();
-        router.push(`/listings/${product.id}`);
+        router.push(`/listings/${displayId}`);
     };
 
     if (typeof document === "undefined") return null;
@@ -195,24 +181,24 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
                             <button
                                 onClick={() =>
                                     toggleSaved({
-                                        id: product.id,
+                                        id: displayId,
                                         title: product.title,
                                         price: product.price,
-                                        image: product.image,
+                                        image: imageList[0],
                                         category: product.category,
-                                        recommendedCount: product.recommendedCount,
-                                        notRecommendedCount: product.notRecommendedCount,
+                                        recommendedCount: recommendedCount,
+                                        notRecommendedCount: notRecommendedCount,
                                         location: product.location,
                                         sellerId: product.sellerId,
                                     })
                                 }
                                 className={`h-11 w-11 rounded-xl flex items-center justify-center border-2 transition-all ${
-                                    isSaved(product.id)
+                                    isSaved(displayId)
                                         ? "bg-red-50 border-red-200 text-red-500"
                                         : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
                                 }`}
                             >
-                                <Heart className={`w-5 h-5 ${isSaved(product.id) ? "fill-current" : ""}`} />
+                                <Heart className={`w-5 h-5 ${isSaved(displayId) ? "fill-current" : ""}`} />
                             </button>
                         </div>
                     </motion.div>
@@ -222,4 +208,3 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
         document.body
     );
 }
-

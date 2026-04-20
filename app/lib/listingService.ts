@@ -53,4 +53,10 @@ export const listingService = {
         // but for now we'll assume there's one or we'll filter active ones
         return apiGet<any>("/listing/user/all");
     },
+    /**
+     * Fetch a single listing by ID/Slug
+     */
+    getListingById: async (id: string) => {
+        return apiGet<any>(`/listing/single/${id}`);
+    },
 };

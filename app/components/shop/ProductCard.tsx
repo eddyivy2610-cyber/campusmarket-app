@@ -20,13 +20,15 @@ import { QuickViewModal } from "../modals/QuickViewModal";
 import Link from "next/link";
 
 interface ProductProps {
-    id: number;
+    id?: number | string;
+    _id?: string;
     title: string;
     price: number | string;
-    image: string;
+    image?: string;
+    images?: string[];
     category: string;
-    recommendedCount: number;
-    notRecommendedCount: number;
+    recommendedCount?: number;
+    notRecommendedCount?: number;
     location?: string;
     status?: string;
     seller?: string;
@@ -35,12 +37,17 @@ interface ProductProps {
     originalPrice?: number | string;
 }
 
-export function ProductCard({ product, isOwner = false, viewAs = "public" }: { product: ProductProps; isOwner?: boolean; viewAs?: "private" | "public" }) {
+export function ProductCard({ product, isOwner = false, viewAs = "public" }: { product: any; isOwner?: boolean; viewAs?: "private" | "public" }) {
     const effectiveIsOwner = viewAs === "private" ? true : isOwner;
     const { toggleSaved, isSaved } = useSaved();
     const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
+    // Dynamic resolution of ID and Image
+    const displayId = product._id || product.id;
+    const displayImage = product.image || (product.images && product.images.length > 0 ? product.images[0] : "/placeholder-product.png");
+
     const formatPrice = (price: number | string) => {
+        if (price === undefined || price === null) return "0";
         const numPrice = typeof price === "string" ? parseFloat(price.replace(/,/g, "")) : price;
         return isNaN(numPrice) ? price : numPrice.toLocaleString();
     };
@@ -57,7 +64,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
         >
             {/* Overlay Link for the whole card */}
             <Link
-                href={`/listings/${product.id}`}
+                href={`/listings/${displayId}`}
                 className="absolute inset-0 z-0"
                 aria-label={`View details for ${product.title}`}
             />
@@ -65,7 +72,7 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
             {/* Image */}
             <div className="aspect-square bg-secondary/30 relative overflow-hidden pointer-events-none rounded-2xl w-full">
                 <Image
-                    src={product.image}
+                    src={displayImage}
                     alt={product.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -108,20 +115,20 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                                     e.preventDefault();
                                     e.stopPropagation();
                                     toggleSaved({
-                                        id: product.id,
+                                        id: displayId,
                                         title: product.title,
                                         price: product.price,
-                                        image: product.image,
+                                        image: displayImage,
                                         category: product.category,
-                                        recommendedCount: product.recommendedCount,
-                                        notRecommendedCount: product.notRecommendedCount,
+                                        recommendedCount: product.recommendedCount || 0,
+                                        notRecommendedCount: product.notRecommendedCount || 0,
                                         location: product.location,
                                         sellerId: product.sellerId
                                     });
                                 }}
-                                className={`h-7 w-7 rounded-full flex items-center justify-center shadow-md transition-colors pointer-events-auto ${isSaved(product.id) ? "bg-red-50 text-red-500" : "bg-card text-foreground hover:bg-primary hover:text-white"}`}
+                                className={`h-7 w-7 rounded-full flex items-center justify-center shadow-md transition-colors pointer-events-auto ${isSaved(displayId) ? "bg-red-50 text-red-500" : "bg-card text-foreground hover:bg-primary hover:text-white"}`}
                             >
-                                <Heart className={`w-3.5 h-3.5 ${isSaved(product.id) ? "fill-current" : ""}`} />
+                                <Heart className={`w-3.5 h-3.5 ${isSaved(displayId) ? "fill-current" : ""}`} />
                             </motion.button>
                         </div>
                     </div>
