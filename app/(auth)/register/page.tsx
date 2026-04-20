@@ -58,7 +58,7 @@ export default function RegisterPage() {
 
             await new Promise((resolve) => setTimeout(resolve, 1500));
             // Move to onboarding choice
-            setStep(4);
+            setStep(3);
         } catch (err: any) {
             console.error("Registration error:", err);
             const msg = err?.message || "Registration failed. Please try again.";
@@ -96,14 +96,6 @@ export default function RegisterPage() {
                 );
             case 2:
                 return (
-                    <Step2OTP
-                        formData={formData}
-                        onNext={nextStep}
-                        onBack={prevStep}
-                    />
-                );
-            case 3:
-                return (
                     <Step3ProfileInfo
                         formData={formData}
                         updateFormData={updateFormData}
@@ -111,7 +103,7 @@ export default function RegisterPage() {
                         onBack={prevStep}
                     />
                 );
-            case 4:
+            case 3:
                 return (
                     <Step4Intent
                         formData={formData}
@@ -127,9 +119,8 @@ export default function RegisterPage() {
 
     const stepInfo = {
         1: { title: "Create your account", subtitle: "Let's get started with your email and password" },
-        2: { title: "Check your email", subtitle: "We've sent a verification code to you" },
-        3: { title: "Finish Setup", subtitle: "Enter your name to complete your profile" },
-        4: { title: "One Last Thing", subtitle: "How do you want to use Campus Market?" },
+        2: { title: "Finish Setup", subtitle: "Enter your name to complete your profile" },
+        3: { title: "One Last Thing", subtitle: "How do you want to use Campus Market?" },
     };
 
     return (
@@ -150,10 +141,10 @@ export default function RegisterPage() {
                         <div className="w-full max-w-[420px] font-heading">
                             <div className="mb-4">
                                 <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground/60 font-sans">
-                                    Step {step} of 4
+                                    Step {step} of 3
                                 </span>
                                 <div className="mt-2 flex gap-2">
-                                    {Array.from({ length: 4 }).map((_, idx) => (
+                                    {Array.from({ length: 3 }).map((_, idx) => (
                                         <div
                                             key={idx}
                                             className={`h-1.5 rounded-full transition-all ${idx + 1 === step
@@ -183,7 +174,7 @@ export default function RegisterPage() {
                                         exit={{ x: -20, opacity: 0 }}
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
-                                        {step === 4 && buyerComplete ? (
+                                        {step === 3 && buyerComplete ? (
                                             <div className="space-y-3">
                                                 {registerError && (
                                                     <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600">
