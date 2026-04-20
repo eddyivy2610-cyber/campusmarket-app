@@ -49,17 +49,21 @@ export default function LoginPage() {
                 response?.data;
 
             if (userData) {
-                login({
+                const mappedUser = {
                     id: userData._id || userData.userId || "user",
                     name: userData.profile?.displayName || userData.personalDetails?.fullName || userData.name || formData.email,
                     email: userData.email || formData.email,
                     handle: userData.profile?.handle || (userData.profile?.displayName || "").toLowerCase().replace(/[^a-z0-9]/g, ""),
-                    role: userData.role || "buyer",
-                    onboardingStep: userData.onboardingStep || "completed",
-                    sellerStatus: userData.sellerStatus || "none",
+                    role: (userData.role as "buyer" | "seller" | "admin") || "buyer",
+                    // Default to "completed" for any existing user that doesn't have a step set.
+                    // This prevents the OnboardingGuard from bouncing them back to /register.
+                    onboardingStep: (userData.onboardingStep as any) || "completed",
+                    sellerStatus: (userData.sellerStatus as any) || "none",
                     isStudent: userData.studentStatus?.isStudent || false,
                     studentVerified: userData.studentStatus?.isVerified || false,
-                });
+                    tier: "new" as const,
+                };
+                login(mappedUser);
             }
 
             const nextUrl = searchParams?.get("next") || "/home";

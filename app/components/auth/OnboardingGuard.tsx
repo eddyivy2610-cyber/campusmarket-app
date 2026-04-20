@@ -12,30 +12,18 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isLoading || !user) return;
 
-        // Skip guard for onboarding pages and public pages
-        const isPublicPage = ["/login", "/register", "/verify-email"].some(p => pathname.startsWith(p));
+        // Skip guard for onboarding pages and public/auth pages
+        const isPublicPage = ["/login", "/register", "/verify-email", "/forgot-password"].some(p => pathname.startsWith(p));
         const isOnboardingPage = pathname.startsWith("/onboarding");
-        
+
         if (isPublicPage || isOnboardingPage) return;
 
-        // Redirect based on onboarding step
-        switch (user.onboardingStep) {
-            case "otp_verified":
-                // They need to finish registration (provide name)
-                router.replace("/register");
-                break;
-            case "profile_completed":
-                // They need to choose Buy vs Sell
-                router.replace("/register"); // Step 4 in our refactored flow
-                break;
-            case "onboarding_choice":
-                // They chose Sell but didn't finish terms/ID upload
-                router.replace("/onboarding/seller");
-                break;
-            default:
-                // completed or seller_pending (already applied)
-                break;
+        // Only redirect if the user is genuinely stuck mid-seller-flow.
+        // "profile_completed" is the normal post-signup state — do NOT redirect.
+        if (user.onboardingStep === "onboarding_choice") {
+            router.replace("/onboarding/seller");
         }
+        // All other states (profile_completed, seller_pending, completed) are fine — allow access.
     }, [user, isLoading, pathname, router]);
 
     return <>{children}</>;

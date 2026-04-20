@@ -47,17 +47,31 @@ export default function RegisterPage() {
                 throw new Error(response.message || "Registration failed");
             }
 
-            // Successfully registered as Buyer
-            setBuyerComplete(true);
-            
-            // Login the user locally
-            if (response.user && response.token) {
-                login(response.user);
-                localStorage.setItem("campus_token", response.token);
+            const rawUser = response.user || response.data?.savedUser;
+            const token = response.token;
+
+            if (rawUser && token) {
+                // Map backend user doc to the AuthContext User shape
+                const mappedUser = {
+                    id: rawUser._id || rawUser.id,
+                    name: rawUser.personalDetails?.fullName || rawUser.profile?.displayName || formData.fullName,
+                    email: rawUser.email || formData.email,
+                    handle: rawUser.profile?.handle || "",
+                    role: rawUser.role || "buyer",
+                    sellerStatus: rawUser.sellerStatus || "none",
+                    onboardingStep: rawUser.onboardingStep || "profile_completed",
+                    avatar: rawUser.profile?.avatar,
+                    isStudent: rawUser.studentStatus?.isStudent || false,
+                    studentVerified: rawUser.studentStatus?.isVerified || false,
+                    tier: "new" as const,
+                };
+                login(mappedUser);
+                localStorage.setItem("campus_token", token);
             }
 
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            // Move to onboarding choice
+            // Show success briefly then move to intent step
+            setBuyerComplete(true);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             setStep(3);
         } catch (err: any) {
             console.error("Registration error:", err);
@@ -72,10 +86,25 @@ export default function RegisterPage() {
         try {
             if (action === 'buy' || action === 'sell_later') {
                 await apiPost("onboarding/choice", { choice: "buy" });
+                // Update local auth state immediately so OnboardingGuard sees 'completed' before redirect
+                const storedUser = localStorage.getItem("campus_user");
+                if (storedUser) {
+                    const parsed = JSON.parse(storedUser);
+                    const updated = { ...parsed, onboardingStep: "completed" };
+                    localStorage.setItem("campus_user", JSON.stringify(updated));
+                    login(updated);
+                }
                 router.replace("/home");
             } else if (action === 'sell_now') {
                 await apiPost("onboarding/choice", { choice: "sell" });
-                // We'll redirect to a dedicated seller onboarding page to keep RegisterPage clean
+                // Update local auth state so guard redirects to seller onboarding
+                const storedUser = localStorage.getItem("campus_user");
+                if (storedUser) {
+                    const parsed = JSON.parse(storedUser);
+                    const updated = { ...parsed, onboardingStep: "onboarding_choice" };
+                    localStorage.setItem("campus_user", JSON.stringify(updated));
+                    login(updated);
+                }
                 router.push("/onboarding/seller");
             }
         } catch (err: any) {
