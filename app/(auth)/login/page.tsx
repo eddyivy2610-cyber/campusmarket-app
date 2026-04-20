@@ -54,7 +54,9 @@ export default function LoginPage() {
                     name: userData.profile?.displayName || userData.personalDetails?.fullName || userData.name || formData.email,
                     email: userData.email || formData.email,
                     handle: userData.profile?.handle || (userData.profile?.displayName || "").toLowerCase().replace(/[^a-z0-9]/g, ""),
-                    role: userData.role === "seller" ? "pro" : "user",
+                    role: userData.role || "buyer",
+                    onboardingStep: userData.onboardingStep || "completed",
+                    sellerStatus: userData.sellerStatus || "none",
                     isStudent: userData.studentStatus?.isStudent || false,
                     studentVerified: userData.studentStatus?.isVerified || false,
                 });
@@ -91,7 +93,9 @@ export default function LoginPage() {
                     name: userData.profile?.displayName || userData.name,
                     email: userData.email,
                     handle: userData.profile?.handle,
-                    role: userData.role === "seller" ? "pro" : "user",
+                    role: userData.role || "buyer",
+                    onboardingStep: userData.onboardingStep || "completed",
+                    sellerStatus: userData.sellerStatus || "none",
                     isStudent: userData.studentStatus?.isStudent || false,
                     studentVerified: userData.studentStatus?.isVerified || false,
                 });

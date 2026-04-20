@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { apiPost } from "@/lib/apiClient";
 
 interface Step1Props {
     formData: any;

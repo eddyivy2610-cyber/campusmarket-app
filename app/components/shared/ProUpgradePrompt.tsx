@@ -12,7 +12,7 @@ interface ProUpgradePromptProps {
 }
 
 export function ProUpgradePrompt({
-    title = "Upgrade to Pro",
+    title = "Become a Seller",
     description,
     featureName = "this feature"
 }: ProUpgradePromptProps) {
@@ -36,15 +36,15 @@ export function ProUpgradePrompt({
                     <h3 className="text-xl font-bold font-heading mb-3">{title}</h3>
 
                     <p className="text-sm text-muted-foreground leading-relaxed mb-8">
-                        {description || `You need a Pro account to unlock ${featureName}. Upgrade your account to access advanced analytics, detailed listings, and priority support.`}
+                        {description || `You need a seller account to unlock ${featureName}. Apply to become a verified seller to access dashboard tools, detailed listings, and community trust.`}
                     </p>
 
                     <div className="space-y-3 w-full text-left mb-8">
                         {[
                             "Unlimited Listings & Variations",
-                            "Advanced Sales Analytics",
-                            "Priority Inbox Features",
-                            "Pro Verified Badge"
+                            "Dashboard Analytics",
+                            "Internal Messaging",
+                            "Verified Seller Badge"
                         ].map((benefit, i) => (
                             <div key={i} className="flex items-center gap-3 text-sm text-foreground/80 font-medium">
                                 <ShieldCheck className="w-4 h-4 text-primary" />
@@ -53,10 +53,10 @@ export function ProUpgradePrompt({
                         ))}
                     </div>
 
-                    <Link href="/register/seller" className="w-full">
+                    <Link href="/onboarding/seller" className="w-full">
                         <button className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2 group">
                             <Zap className="w-4 h-4 fill-white text-white" />
-                            Upgrade Now
+                            Apply Now
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-1" />
                         </button>
                     </Link>

@@ -60,7 +60,7 @@ export function QuickActions() {
                         const isSell = action.id === "sell";
                         const isPending = user?.sellerStatus === "pending";
                         const isStudentVerified = user?.studentVerified === true;
-                        const isApproved = (user?.sellerStatus === "approved" || user?.role === "pro") && isStudentVerified;
+                        const isApproved = user?.sellerStatus === "approved" && isStudentVerified;
                         const isStudent = !!user?.isStudent;
                         const isRestricted = !!user && isSell && isStudent && !isStudentVerified;
                         const shouldPromptSeller = isSell && user && !isApproved;
@@ -70,7 +70,7 @@ export function QuickActions() {
                             if (!user) {
                                 route = "/login";
                             } else if (!isApproved && !isPending) {
-                                route = "/register/seller";
+                                route = "/onboarding/seller";
                             }
                         }
 

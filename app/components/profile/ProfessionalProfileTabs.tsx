@@ -209,7 +209,7 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                             <ProUpgradePrompt
                                 title="Unlock Seller Listings"
                                 featureName="your seller listings"
-                                description="Upgrade to a Pro account to display your items to the Hive community."
+                                description="Apply for a seller account to display your items to the Hive community."
                             />
                         )
                     )}

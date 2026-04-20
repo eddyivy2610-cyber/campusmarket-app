@@ -49,9 +49,9 @@ const MOBILE_QUICK_ACTIONS = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const { user, refreshUser } = useAuth();
-    const isPro = user?.role === "pro";
-    const isStudentVerified = user?.studentVerified === true;
-    const canAccessPro = isPro && isStudentVerified;
+    const isSeller = user?.role === "seller";
+    const isApproved = user?.sellerStatus === "approved";
+    const canAccessDashboard = isSeller || isApproved;
     const isMessagesRoute = pathname.startsWith("/messages");
     const [selectedYear] = useState(new Date().getFullYear());
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const userInitials = user?.name ? user.name.charAt(0).toUpperCase() : "U";
     const userTier = user?.tier || "new";
-    if (user && !canAccessPro) {
+    if (user && !canAccessDashboard) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center px-6 py-16 bg-background text-foreground font-heading">
                 <div className="max-w-md w-full rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm">
@@ -397,7 +397,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <DashboardYearContext.Provider value={{ year: selectedYear, setYear: () => {} }}>
                     <main className={`flex-1 min-h-0 ${isMessagesRoute ? "overflow-hidden" : ""}`}>
                         {children}
-                        {isPro && <DashboardOnboarding />}
+                        {isSeller && <DashboardOnboarding />}
                     </main>
                 </DashboardYearContext.Provider>
             </div>

@@ -365,9 +365,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         {viewAs === 'private' ? (
                             <>
                                 {profile.accountType === "Pro" || profile.type === "vendor" ? (
-                                    user?.sellerStatus !== "approved" && user?.role !== "pro" ? (
+                                    user?.sellerStatus !== "approved" ? (
                                         <button 
-                                            onClick={() => user?.sellerStatus === "pending" ? setShowPending(true) : window.location.assign('/register/seller')}
+                                            onClick={() => user?.sellerStatus === "pending" ? setShowPending(true) : window.location.assign('/onboarding/seller')}
                                             className="w-full flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5"
                                         >
                                             Dashboard

@@ -9,7 +9,8 @@ import { BadgeCheck } from "lucide-react";
 
 export function AccountSettings() {
     const { user } = useAuth();
-    const isPro = user?.role === "pro";
+    const isSeller = user?.role === "seller";
+    const isApproved = user?.sellerStatus === "approved";
 
     return (
         <div className="max-w-2xl space-y-12">
@@ -67,38 +68,43 @@ export function AccountSettings() {
 
                 <div className={cn(
                     "p-6 border rounded-3xl space-y-4",
-                    isPro ? "bg-emerald-500/5 border-emerald-500/20" : "bg-primary/5 border-primary/20"
+                    isApproved ? "bg-emerald-500/5 border-emerald-500/20" : "bg-primary/5 border-primary/20"
                 )}>
                     <div className="flex items-center gap-3">
                         <div className={cn(
                             "p-2 rounded-xl",
-                            isPro ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
+                            isApproved ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
                         )}>
-                            {isPro ? <BadgeCheck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+                            {isApproved ? <BadgeCheck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
                         </div>
                         <div>
                             <h3 className="font-bold text-sm">
-                                {isPro ? "Pro Account Status" : "Upgrade to Pro Account"}
+                                {isApproved ? "Verified Seller" : isSeller ? "Application Pending" : "Become a Seller"}
                             </h3>
                             <p className="text-xs text-muted-foreground font-medium">
-                                {isPro
+                                {isApproved
                                     ? "Your account is verified and professional status is active."
-                                    : "Start selling your items to the campus community today."}
+                                    : isSeller 
+                                        ? "Your application is currently being reviewed."
+                                        : "Start selling your items to the campus community today."}
                             </p>
                         </div>
                     </div>
-                    {!isPro ? (
-                        <Link href="/register/seller">
+                    {!isSeller && !isApproved ? (
+                        <Link href="/onboarding/seller">
                             <button className="w-full py-3 bg-primary text-white rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                                Get Started
+                                Apply Now
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </Link>
                     ) : (
                         <div className="pt-2">
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-100/50 w-fit px-3 py-1 rounded-full uppercase tracking-wider">
-                                <BadgeCheck className="w-3 h-3" />
-                                Professional Verified
+                            <div className={cn(
+                                "flex items-center gap-2 text-[10px] font-bold w-fit px-3 py-1 rounded-full uppercase tracking-wider",
+                                isApproved ? "text-emerald-600 bg-emerald-100/50" : "text-amber-600 bg-amber-100/50"
+                            )}>
+                                {isApproved ? <BadgeCheck className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                                {isApproved ? "Verified Seller" : "Under Review"}
                             </div>
                         </div>
                     )}
