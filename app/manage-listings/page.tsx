@@ -3,14 +3,31 @@
 import { ListingsToolbar } from "../components/manage-listings/ListingsToolbar";
 import { ListingsTable } from "../components/manage-listings/ListingsTable";
 import { BulkActionBar } from "../components/manage-listings/BulkActionBar";
-import { useState } from "react";
-import { PRODUCTS, Product } from "../data/products";
+import { useState, useEffect } from "react";
+import { listingService } from "../lib/listingService";
+import { Loader2 } from "lucide-react";
 
 export default function ManageListingsPage() {
-    // In a real app, this would filter by the logged-in vendor's ID.
-    const [listings, setListings] = useState<Product[]>(PRODUCTS);
+    const [listings, setListings] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
+
+    useEffect(() => {
+        const fetchUserListings = async () => {
+            try {
+                setIsLoading(true);
+                const res = await listingService.getUserListings();
+                setListings(res.data || []);
+            } catch (err) {
+                console.error("[ManageListings] Failed to fetch listings", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserListings();
+    }, []);
 
     return (
         <main className="min-h-screen bg-background text-foreground font-heading">
@@ -29,11 +46,18 @@ export default function ManageListingsPage() {
                         setSearchQuery={setSearchQuery}
                     />
 
-                    <ListingsTable
-                        listings={listings}
-                        selectedItems={selectedItems}
-                        setSelectedItems={setSelectedItems}
-                    />
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                            <p className="text-sm text-muted-foreground animate-pulse">Loading your listings...</p>
+                        </div>
+                    ) : (
+                        <ListingsTable
+                            listings={listings}
+                            selectedItems={selectedItems}
+                            setSelectedItems={setSelectedItems}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -41,7 +65,6 @@ export default function ManageListingsPage() {
                 selectedCount={selectedItems.length}
                 onClearSelection={() => setSelectedItems([])}
             />
-
-                    </main>
+        </main>
     );
 }

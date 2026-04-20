@@ -5,11 +5,11 @@ import { Suspense, useState, useMemo, useEffect } from "react";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
-import { PRODUCTS, Product } from "../data/products";
 import { Eye, Store, User, Loader2, Users } from "lucide-react";
 import { searchProfiles } from "../lib/searchUtils";
 import { ProfileSearchResult } from "../components/profile/ProfileSearchResult";
 import type { Profile } from "../data/profiles";
+import { listingService } from "../lib/listingService";
 
 type ViewAs = "private" | "public";
 
@@ -30,6 +30,8 @@ function ShopPageInner() {
     const qParam = searchParams.get("q");
     const categoryParam = searchParams.get("category");
 
+    const [listings, setListings] = useState<any[]>([]);
+    const [isLoadingListings, setIsLoadingListings] = useState(true);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
     const [viewAs, setViewAs] = useState<ViewAs>("public");
@@ -43,6 +45,27 @@ function ShopPageInner() {
             setSelectedCategories([]);
         }
     }, [categoryParam]);
+
+    // Fetch dynamic listings from API
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                setIsLoadingListings(true);
+                const filters = {
+                    search: qParam || undefined,
+                    category: categoryParam || undefined,
+                };
+                const res = await listingService.getActiveListings(filters);
+                setListings(res.data || []);
+            } catch (err) {
+                console.error("[ShopPage] Listings fetch failed", err);
+            } finally {
+                setIsLoadingListings(false);
+            }
+        };
+
+        fetchListings();
+    }, [qParam, categoryParam]);
 
     // Fetch dynamic profiles from API
     useEffect(() => {
@@ -66,13 +89,12 @@ function ShopPageInner() {
     }, [qParam]);
 
     const filteredProducts = useMemo(() => {
-        return PRODUCTS.filter((product: Product) => {
-            const matchesSearch = !qParam || product.title.toLowerCase().includes(qParam.toLowerCase()) || product.description.toLowerCase().includes(qParam.toLowerCase()) || product.tags.some(t => t.toLowerCase().includes(qParam.toLowerCase()));
+        return listings.filter((product: any) => {
             const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
             const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-            return matchesSearch && matchesCategory && matchesPrice;
+            return matchesCategory && matchesPrice;
         });
-    }, [qParam, selectedCategories, priceRange]);
+    }, [listings, selectedCategories, priceRange]);
 
     const inferredCategory = useMemo(() => {
         if (filteredProducts.length > 0) {
