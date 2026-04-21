@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
     const [registerError, setRegisterError] = useState("");
+    const [onboardingWarning, setOnboardingWarning] = useState("");
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const { login } = useAuth();
     const [formData, setFormData] = useState({
@@ -76,34 +77,42 @@ export default function RegisterPage() {
     };
 
     const handleOnboardingChoice = async (action: 'buy' | 'sell_now' | 'skip') => {
-        try {
-            if (action === 'buy' || action === 'skip') {
+        setOnboardingWarning("");
+        if (action === 'buy' || action === 'skip') {
+            try {
                 await apiPost("onboarding/choice", { choice: "buy" });
-                // Update local auth state immediately so OnboardingGuard sees 'completed' before redirect
-                const storedUser = localStorage.getItem("campus_user");
-                if (storedUser) {
-                    const parsed = JSON.parse(storedUser);
-                    const updated = { ...parsed, onboardingStep: "completed" };
-                    localStorage.setItem("campus_user", JSON.stringify(updated));
-                    login(updated);
-                }
-                router.replace("/home");
-            } else if (action === 'sell_now') {
-                await apiPost("onboarding/choice", { choice: "sell" });
-                // Update local auth state so guard redirects to seller onboarding
-                const storedUser = localStorage.getItem("campus_user");
-                if (storedUser) {
-                    const parsed = JSON.parse(storedUser);
-                    const updated = { ...parsed, onboardingStep: "onboarding_choice" };
-                    localStorage.setItem("campus_user", JSON.stringify(updated));
-                    login(updated);
-                }
-                router.push("/register/seller");
+            } catch (err) {
+                console.warn("Onboarding choice sync failed (buy/skip). Continuing locally.", err);
+                setOnboardingWarning("We could not sync your onboarding choice right now. You're still signed in and can continue.");
             }
-        } catch (err: any) {
-            console.error("Onboarding error:", err);
-            router.replace("/home"); // Fallback to home if onboarding fails
+
+            const storedUser = localStorage.getItem("campus_user");
+            if (storedUser) {
+                const parsed = JSON.parse(storedUser);
+                const updated = { ...parsed, onboardingStep: "completed" };
+                localStorage.setItem("campus_user", JSON.stringify(updated));
+                login(updated);
+            }
+            router.replace("/home");
+            return;
         }
+
+        // action === "sell_now"
+        try {
+            await apiPost("onboarding/choice", { choice: "sell" });
+        } catch (err) {
+            console.warn("Onboarding choice sync failed (sell). Continuing to seller registration.", err);
+            setOnboardingWarning("We could not sync your onboarding choice right now. Continuing to seller registration.");
+        }
+
+        const storedUser = localStorage.getItem("campus_user");
+        if (storedUser) {
+            const parsed = JSON.parse(storedUser);
+            const updated = { ...parsed, onboardingStep: "onboarding_choice" };
+            localStorage.setItem("campus_user", JSON.stringify(updated));
+            login(updated);
+        }
+        router.push("/register/seller");
     };
 
     const renderStep = () => {
@@ -188,6 +197,11 @@ export default function RegisterPage() {
                             </p>
 
                             <div className="mt-6">
+                                {step === 3 && onboardingWarning && (
+                                    <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                                        {onboardingWarning}
+                                    </div>
+                                )}
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={step}
