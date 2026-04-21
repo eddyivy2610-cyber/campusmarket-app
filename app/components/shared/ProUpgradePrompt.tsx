@@ -53,7 +53,7 @@ export function ProUpgradePrompt({
                         ))}
                     </div>
 
-                    <Link href="/onboarding/seller" className="w-full">
+                    <Link href="/register/seller" className="w-full">
                         <button className="w-full bg-primary text-white font-bold uppercase tracking-widest text-xs py-4 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-2 group">
                             <Zap className="w-4 h-4 fill-white text-white" />
                             Apply Now

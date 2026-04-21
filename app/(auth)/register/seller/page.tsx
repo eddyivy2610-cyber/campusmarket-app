@@ -4,23 +4,20 @@ import React, { useState } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SellerRules } from "@/components/auth/seller/SellerRules";
 import { SellerIdentity } from "@/components/auth/seller/SellerIdentity";
-import { SellerDetails } from "@/components/auth/seller/SellerDetails";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Sparkles, Building2, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, Home, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiPost } from "@/lib/apiClient";
 
 export default function SellerRegisterPage() {
-    const [step, setStep] = useState(0); // 0: Guidelines, 1: Business Name, 2: ID, 3: Details
+    const [step, setStep] = useState(0); // 0: Guidelines, 1: ID, 2: Processing
     const [formData, setFormData] = useState({
-        businessName: "",
-        studentIdCard: null,
-        businessCategory: "",
-        businessDescription: "",
-        agreedToSellerTerms: false,
+        studentIdCardFile: null as File | null,
+        studentIdCardPreview: null as string | null,
     });
     const [submitError, setSubmitError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
     const { user, login } = useAuth();
 
@@ -38,93 +35,47 @@ export default function SellerRegisterPage() {
             return;
         }
         
+        if (!formData.studentIdCardFile) {
+            setSubmitError("Please upload your student ID to continue.");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
-            if (formData.studentIdCard) {
-                await apiPost("api/verification/submit", {
-                    userId: user.id,
-                    role: "student",
-                    documentType: "student_id",
-                    frontImageUrl: formData.studentIdCard,
-                });
-            }
-            await apiPost("api/users/seller/apply", {
-                businessProfile: {
-                    name: formData.businessName,
-                    description: formData.businessDescription,
-                    category: formData.businessCategory,
-                    tags: []
-                }
-            });
-            
-            login({ ...user, sellerStatus: "pending" });
-            
-            setStep(4);
+            const uploadData = new FormData();
+            uploadData.append("idImage", formData.studentIdCardFile);
+            await apiPost("onboarding/apply-seller", uploadData);
+
+            login({ ...user, sellerStatus: "pending", onboardingStep: "seller_pending" });
+
+            setStep(2);
             setTimeout(() => {
                 router.push("/home");
             }, 3000);
         } catch (err: any) {
             setSubmitError(err?.message || "Failed to submit application. Please try again.");
             console.error(err);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const renderStep = () => {
         switch (step) {
             case 0:
-                return <SellerRules onContinue={nextStep} />;
-            case 1:
                 return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">
-                                Step 1: Business Name
-                            </label>
-                            <p className="text-muted-foreground text-sm">
-                                What is the name of your brand?. This will be visible on all your listings.
-                            </p>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
-                                    <Building2 className="w-5 h-5" />
-                                </div>
-                                <input
-                                    type="text"
-                                    value={formData.businessName}
-                                    onChange={(e) => updateFormData({ businessName: e.target.value })}
-                                    placeholder="e.g. ABU Tech Hub"
-                                    className="w-full bg-secondary/30 border-2 border-border/50 focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all font-medium placeholder:text-muted-foreground/40 text-sm"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <button
-                                onClick={prevStep}
-                                className="hidden md:flex flex-1 bg-secondary text-foreground font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-border/50 hover:bg-secondary/80 active:scale-95 transition-all text-xs items-center justify-center gap-2"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back
-                            </button>
-                            <button
-                                onClick={nextStep}
-                                className="flex-[2] bg-primary text-white font-bold uppercase tracking-widest py-3.5 rounded-xl shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 group text-xs font-bold"
-                            >
-                                Next Step
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </div>
+                    <div className="space-y-4">
+                        <SellerRules onContinue={nextStep} />
+                        <button
+                            onClick={() => router.replace("/home")}
+                            className="w-full bg-secondary text-foreground font-bold uppercase tracking-widest py-3 rounded-xl border border-border/50 hover:bg-secondary/80 transition-all text-xs flex items-center justify-center gap-2"
+                        >
+                            <Home className="w-4 h-4" />
+                            Home
+                        </button>
                     </div>
                 );
-            case 2:
-                return (
-                    <SellerIdentity
-                        formData={formData}
-                        updateFormData={updateFormData}
-                        onNext={nextStep}
-                        onBack={prevStep}
-                    />
-                );
-            case 3:
+            case 1:
                 return (
                     <div className="space-y-4">
                         {submitError && (
@@ -132,15 +83,21 @@ export default function SellerRegisterPage() {
                                 {submitError}
                             </div>
                         )}
-                        <SellerDetails
+                        <SellerIdentity
                             formData={formData}
                             updateFormData={updateFormData}
-                            onSubmit={handleSubmit}
+                            onNext={handleSubmit}
                             onBack={prevStep}
                         />
+                        {isSubmitting && (
+                            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-primary">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Submitting ID...
+                            </div>
+                        )}
                     </div>
                 );
-            case 4:
+            case 2:
                 return (
                     <div className="text-center space-y-6 py-12 animate-in zoom-in duration-500">
                         <div className="w-24 h-24 bg-green-500/10 rounded-[32px] flex items-center justify-center mx-auto text-green-500">
@@ -149,12 +106,12 @@ export default function SellerRegisterPage() {
                         <div className="space-y-2">
                             <h2 className="text-3xl font-bold font-heading">Application Submitted!</h2>
                             <p className="text-muted-foreground max-w-sm mx-auto">
-                                Your application is under review. You'll be notified within 24 hours once approved.
+                                Your ID has been received and is now processing. We will notify you once review is complete.
                             </p>
                         </div>
                         <div className="flex items-center justify-center gap-2 text-primary font-bold animate-pulse uppercase tracking-[0.2em] text-xs pt-4">
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>{user ? "Returning to homepage..." : "Redirecting to login..."}</span>
+                            <span>Returning to homepage...</span>
                         </div>
                     </div>
                 );
@@ -165,22 +122,20 @@ export default function SellerRegisterPage() {
 
     const stepInfo = {
         0: { title: "Become a Seller", subtitle: "Start your selling journey on Campus Hive" },
-        1: { title: "Brand Identity", subtitle: "Give your business a name" },
-        2: { title: "Verification", subtitle: "Confirm your student status" },
-        3: { title: "Store Setup", subtitle: "Tell us about your business" },
-        4: { title: "Done!", subtitle: "Application successful" },
+        1: { title: "Verification", subtitle: "Confirm your student status" },
+        2: { title: "Done!", subtitle: "Application submitted" },
     };
 
     return (
         <AuthLayout
-            currentStep={step === 4 ? undefined : step + 1}
-            totalSteps={step === 4 ? undefined : 4}
+            currentStep={step === 2 ? undefined : step + 1}
+            totalSteps={step === 2 ? undefined : 2}
             title={stepInfo[step as keyof typeof stepInfo].title}
             subtitle={stepInfo[step as keyof typeof stepInfo].subtitle}
             illustrationUrl=""
-            showBack={step > 0 && step < 4}
+            showBack={step > 0 && step < 2}
             onBack={prevStep}
-            isWide={step < 4}
+            isWide={step < 2}
         >
             <AnimatePresence mode="wait">
                 <motion.div

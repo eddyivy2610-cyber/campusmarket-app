@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCheck } from "lucide-react";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { mockNotifications } from "../../data/notifications";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
+import { apiGet } from "@/lib/apiClient";
 
 interface NotificationsModalProps {
     isOpen: boolean;
@@ -16,13 +17,57 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
     const modalRef = useRef<HTMLDivElement>(null);
     useClickOutside(modalRef, onClose);
     const { user } = useAuth();
+    const [needsSellerCompletion, setNeedsSellerCompletion] = useState(false);
+
+    useEffect(() => {
+        const loadSellerCompletionState = async () => {
+            if (!user?.id || user.sellerStatus !== "approved") {
+                setNeedsSellerCompletion(false);
+                return;
+            }
+
+            try {
+                const response: any = await apiGet(`/api/user/${user.id}`);
+                const data = response?.data || response || {};
+                const profile = data?.profile || {};
+                const business = data?.businessProfile || {};
+                const missingDisplayName = !profile?.displayName;
+                const missingBusinessInfo = !business?.name || !business?.category || !business?.description;
+                setNeedsSellerCompletion(missingDisplayName || missingBusinessInfo);
+            } catch {
+                setNeedsSellerCompletion(true);
+            }
+        };
+
+        loadSellerCompletionState();
+    }, [user?.id, user?.sellerStatus]);
 
     const isStudentPending = !!user?.isStudent && !user?.studentVerified;
-    const pendingNotification = isStudentPending
+    const pendingNotification = (isStudentPending || user?.sellerStatus === "pending")
         ? {
             id: "student-pending",
             title: "Student Verification Pending",
             message: "Your student ID is under review. Selling tools, dashboard, listings, and ratings are locked until approval.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
+    const approvedNotification = user?.sellerStatus === "approved"
+        ? {
+            id: "seller-approved",
+            title: "Seller Application Approved",
+            message: needsSellerCompletion
+                ? "You are approved. Complete your seller application: Display Name, Business Name, Category, and Description."
+                : "You are approved to sell on Campus Market. Your seller tools are now active.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
+    const rejectedNotification = user?.sellerStatus === "rejected"
+        ? {
+            id: "seller-rejected",
+            title: "Seller Application Not Approved",
+            message: "Your verification was not approved. You can update your details and try again.",
             timestamp: "Now",
             isRead: false,
         }
@@ -71,6 +116,64 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                                 className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
                             >
                                 Resend verification
+                            </Link>
+                        </div>
+                    </div>
+                )}
+                {approvedNotification && (
+                    <div
+                        key={approvedNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-emerald-500/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {approvedNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{approvedNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{approvedNotification.message}</p>
+                            {needsSellerCompletion && (
+                                <Link
+                                    href="/register/seller/complete"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                                >
+                                    Complete application
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {rejectedNotification && (
+                    <div
+                        key={rejectedNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-red-500/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {rejectedNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{rejectedNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{rejectedNotification.message}</p>
+                            <Link
+                                href="/register/seller"
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                            >
+                                Try again
                             </Link>
                         </div>
                     </div>

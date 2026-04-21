@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Upload, FileText, X, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Image as ImageIcon, AlertCircle } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Upload, X, CheckCircle2, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 
 interface SellerIdentityProps {
     formData: any;
@@ -14,7 +14,15 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [preview, setPreview] = useState<string | null>(formData.studentIdCard || null);
+    const [preview, setPreview] = useState<string | null>(formData.studentIdCardPreview || null);
+
+    useEffect(() => {
+        return () => {
+            if (preview?.startsWith("blob:")) {
+                URL.revokeObjectURL(preview);
+            }
+        };
+    }, [preview]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -24,19 +32,23 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                setPreview(result);
-                updateFormData({ studentIdCard: result });
-                setError("");
-            };
-            reader.readAsDataURL(file);
+            if (!file.type.startsWith("image/")) {
+                setError("Only image files are supported for verification.");
+                return;
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            setPreview(objectUrl);
+            updateFormData({
+                studentIdCardFile: file,
+                studentIdCardPreview: objectUrl,
+            });
+            setError("");
         }
     };
 
     const handleNext = async () => {
-        if (!formData.studentIdCard) {
+        if (!formData.studentIdCardFile) {
             setError("Please upload your student ID to proceed");
             return;
         }
@@ -86,7 +98,7 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileChange}
-                            accept="image/*,.pdf"
+                            accept="image/*"
                             className="hidden"
                         />
 
@@ -98,7 +110,7 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setPreview(null);
-                                            updateFormData({ studentIdCard: null });
+                                            updateFormData({ studentIdCardFile: null, studentIdCardPreview: null });
                                         }}
                                         className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform shadow-xl"
                                     >
@@ -113,13 +125,19 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                                 </div>
                                 <div>
                                     <p className="font-bold uppercase tracking-widest text-xs text-foreground">Click to upload</p>
-                                    <p className="text-[9px] font-bold text-muted-foreground mt-1">PNG, JPG or PDF up to 5MB</p>
+                                    <p className="text-[9px] font-bold text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {error && (
+                <p className="text-xs font-semibold text-red-600 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                    {error}
+                </p>
+            )}
 
             <div className="flex gap-4 pt-2 border-t border-border/30 mt-6">
                 <button

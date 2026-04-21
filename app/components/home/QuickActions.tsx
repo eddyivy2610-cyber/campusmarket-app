@@ -69,7 +69,7 @@ export function QuickActions() {
                             } else if (isApproved) {
                                 route = "/dashboard/products/add"; // verified seller → listing form
                             } else {
-                                route = "/onboarding/seller"; // buyer / rejected → seller registration
+                                route = "/register/seller"; // buyer / rejected → seller registration
                             }
                         }
 

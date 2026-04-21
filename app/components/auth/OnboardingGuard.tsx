@@ -21,7 +21,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         // Only redirect if the user is genuinely stuck mid-seller-flow.
         // "profile_completed" is the normal post-signup state — do NOT redirect.
         if (user.onboardingStep === "onboarding_choice") {
-            router.replace("/onboarding/seller");
+            router.replace("/register/seller");
         }
         // All other states (profile_completed, seller_pending, completed) are fine — allow access.
     }, [user, isLoading, pathname, router]);

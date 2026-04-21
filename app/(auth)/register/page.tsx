@@ -2,19 +2,16 @@
 
 import React, { useState } from "react";
 import { Step1EmailPassword } from "@/components/auth/steps/Step1EmailPassword";
-import { Step2OTP } from "@/components/auth/steps/Step2OTP";
 import { Step3ProfileInfo } from "@/components/auth/steps/Step3ProfileInfo";
 import { Step4Intent } from "@/components/auth/steps/Step4Intent";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/apiClient";
-import { Loader2 } from "lucide-react";
 import { AuthErrorModal } from "@/components/modals/AuthErrorModal";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
     const [step, setStep] = useState(1);
-    const [buyerComplete, setBuyerComplete] = useState(false);
     const [registerError, setRegisterError] = useState("");
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const { login } = useAuth();
@@ -69,22 +66,18 @@ export default function RegisterPage() {
                 localStorage.setItem("campus_token", token);
             }
 
-            // Show success briefly then move to intent step
-            setBuyerComplete(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
             setStep(3);
         } catch (err: any) {
             console.error("Registration error:", err);
             const msg = err?.message || "Registration failed. Please try again.";
             setRegisterError(msg);
             setIsErrorModalOpen(true);
-            setBuyerComplete(false);
         }
     };
 
-    const handleOnboardingChoice = async (action: 'buy' | 'sell_now' | 'sell_later') => {
+    const handleOnboardingChoice = async (action: 'buy' | 'sell_now' | 'skip') => {
         try {
-            if (action === 'buy' || action === 'sell_later') {
+            if (action === 'buy' || action === 'skip') {
                 await apiPost("onboarding/choice", { choice: "buy" });
                 // Update local auth state immediately so OnboardingGuard sees 'completed' before redirect
                 const storedUser = localStorage.getItem("campus_user");
@@ -105,7 +98,7 @@ export default function RegisterPage() {
                     localStorage.setItem("campus_user", JSON.stringify(updated));
                     login(updated);
                 }
-                router.push("/onboarding/seller");
+                router.push("/register/seller");
             }
         } catch (err: any) {
             console.error("Onboarding error:", err);
@@ -203,23 +196,7 @@ export default function RegisterPage() {
                                         exit={{ x: -20, opacity: 0 }}
                                         transition={{ duration: 0.3, ease: "easeInOut" }}
                                     >
-                                        {step === 3 && buyerComplete ? (
-                                            <div className="space-y-3">
-                                                {registerError && (
-                                                    <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600">
-                                                        {registerError}
-                                                    </div>
-                                                )}
-                                                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                                                    Registration complete. Welcome to the Campus Market!
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Redirecting you to home...
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            renderStep()
-                                        )}
+                                        {renderStep()}
                                     </motion.div>
                                 </AnimatePresence>
                             </div>

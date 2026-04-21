@@ -91,7 +91,7 @@ export function AccountSettings() {
                         </div>
                     </div>
                     {!isSeller && !isApproved ? (
-                        <Link href="/onboarding/seller">
+                        <Link href="/register/seller">
                             <button className="w-full py-3 bg-primary text-white rounded-2xl text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2">
                                 Apply Now
                                 <ChevronRight className="w-4 h-4" />
