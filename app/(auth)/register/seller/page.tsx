@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { apiPatch, apiPost } from "@/lib/apiClient";
+import { apiPatch, apiPost, apiGet } from "@/lib/apiClient";
 
 const categories = [
     "Electronics",
@@ -82,7 +82,8 @@ export default function SellerRegisterPage() {
         setError("");
         setIsSubmitting(true);
         try {
-            await apiPatch(`/api/user/update/${user.id}`, {
+            // Step 1: Update business profile info on user record
+            await apiPatch(`/api/users/update/${user.id}`, {
                 profile: { displayName: formData.businessName.trim() },
                 businessProfile: {
                     name: formData.businessName.trim(),
@@ -92,6 +93,7 @@ export default function SellerRegisterPage() {
                 },
             });
 
+            // Step 2: Submit ID image & set sellerStatus = 'pending'
             const uploadData = new FormData();
             uploadData.append("idImage", idFile);
             await apiPost("onboarding/apply-seller", uploadData);

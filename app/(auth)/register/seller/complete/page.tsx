@@ -36,7 +36,7 @@ export default function CompleteSellerApplicationPage() {
             }
 
             try {
-                const response: any = await apiGet(`/api/user/${user.id}`);
+                const response: any = await apiGet(`/api/users/${user.id}`);
                 const data = response?.data || response || {};
                 setFormData({
                     businessName: data?.businessProfile?.name || data?.profile?.displayName || user.name || "",
@@ -84,7 +84,16 @@ export default function CompleteSellerApplicationPage() {
                 },
             };
 
-            await apiPatch(`/api/user/update/${user.id}`, payload);
+            // Step 1: Update business profile fields on the user record
+            await apiPatch(`/api/users/update/${user.id}`, payload);
+
+            // Step 2: Finalize seller – sets role='seller' & onboardingStep='completed' on backend
+            await apiPatch("onboarding/finalize-seller", {
+                displayName: formData.businessName.trim(),
+                category: formData.businessCategory.trim(),
+                description: formData.businessDescription.trim(),
+            });
+
             login({ ...user, name: formData.businessName.trim(), role: "seller", onboardingStep: "completed" });
             router.replace("/home");
         } catch (err: any) {

@@ -36,7 +36,7 @@ export function ProfileSettings() {
         const fetchUserData = async () => {
             if (!user?.id) return;
             try {
-                const response: any = await apiGet(`/api/user/${user.id}`);
+                const response: any = await apiGet(`/api/users/${user.id}`);
                 const data = response?.data;
                 if (data) {
                     const fullName = data.personalDetails?.fullName || "";
@@ -84,7 +84,7 @@ export function ProfileSettings() {
                 socialLinks: formData.socialLinks
             };
 
-            const response: any = await apiPatch(`/api/user/update/${user.id}`, payload);
+            const response: any = await apiPatch(`/api/users/update/${user.id}`, payload);
             
             if (response.success || response.data) {
                 setSuccessMsg("Profile updated successfully!");

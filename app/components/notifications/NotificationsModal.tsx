@@ -26,7 +26,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
             }
 
             try {
-                const response: any = await apiGet(`/api/user/${user.id}`);
+                const response: any = await apiGet(`/api/users/${user.id}`);
                 const data = response?.data || response || {};
                 const profile = data?.profile || {};
                 const business = data?.businessProfile || {};
