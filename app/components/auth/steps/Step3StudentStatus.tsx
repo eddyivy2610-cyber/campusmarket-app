@@ -8,7 +8,7 @@ import Link from "next/link";
 interface Step3Props {
     formData: any;
     updateFormData: (data: any) => void;
-    onNext: () => void;
+    onNext: () => Promise<void> | void;
     onBack: () => void;
     onFinishBuyer: () => void;
 }
@@ -35,10 +35,12 @@ export function Step3StudentStatus({ formData, updateFormData, onNext, onBack, o
         }
 
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setIsLoading(false);
-
-        onNext();
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            await onNext();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

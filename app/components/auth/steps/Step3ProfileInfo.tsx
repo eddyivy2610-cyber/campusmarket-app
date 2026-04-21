@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2, UserCheck } from "lucide-react";
 interface Step3Props {
     formData: any;
     updateFormData: (data: any) => void;
-    onNext: () => void;
+    onNext: () => Promise<void> | void;
     onBack: () => void;
 }
 
@@ -27,9 +27,12 @@ export function Step3ProfileInfo({ formData, updateFormData, onNext, onBack }: S
         }
 
         setIsLoading(true);
-        // Progress will happen in the RegisterPage handleFinish now
-        onNext();
-        setIsLoading(false);
+        try {
+            // Progress will happen in the RegisterPage handleFinish now
+            await onNext();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

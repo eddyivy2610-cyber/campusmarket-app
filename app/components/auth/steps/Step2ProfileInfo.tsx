@@ -6,7 +6,7 @@ import { User, Camera, ArrowLeft, Loader2, X } from "lucide-react";
 interface Step2Props {
     formData: any;
     updateFormData: (data: any) => void;
-    onNext: () => void;
+    onNext: () => Promise<void> | void;
     onBack: () => void;
 }
 
@@ -49,9 +49,12 @@ export function Step2ProfileInfo({ formData, updateFormData, onNext, onBack }: S
         }
 
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setIsLoading(false);
-        onNext();
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            await onNext();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

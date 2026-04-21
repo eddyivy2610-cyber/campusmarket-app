@@ -6,7 +6,7 @@ import { Upload, X, CheckCircle2, ArrowRight, ArrowLeft, Loader2 } from "lucide-
 interface SellerIdentityProps {
     formData: any;
     updateFormData: (data: any) => void;
-    onNext: () => void;
+    onNext: () => Promise<void> | void;
     onBack: () => void;
 }
 
@@ -54,9 +54,12 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
         }
 
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setIsLoading(false);
-        onNext();
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await onNext();
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

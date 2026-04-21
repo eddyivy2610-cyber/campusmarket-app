@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SellerRules } from "@/components/auth/seller/SellerRules";
 import { SellerIdentity } from "@/components/auth/seller/SellerIdentity";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Sparkles, Home, Loader2 } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiPost } from "@/lib/apiClient";
 
 export default function SellerRegisterPage() {
-    const [step, setStep] = useState(0); // 0: Guidelines, 1: ID, 2: Processing
+    const [step, setStep] = useState(1); // 1: Terms, 2: ID, 3: Processing
     const [formData, setFormData] = useState({
         studentIdCardFile: null as File | null,
         studentIdCardPreview: null as string | null,
@@ -34,7 +33,7 @@ export default function SellerRegisterPage() {
             router.push("/login?next=/register/seller");
             return;
         }
-        
+
         if (!formData.studentIdCardFile) {
             setSubmitError("Please upload your student ID to continue.");
             return;
@@ -48,7 +47,7 @@ export default function SellerRegisterPage() {
 
             login({ ...user, sellerStatus: "pending", onboardingStep: "seller_pending" });
 
-            setStep(2);
+            setStep(3);
             setTimeout(() => {
                 router.push("/home");
             }, 3000);
@@ -62,20 +61,9 @@ export default function SellerRegisterPage() {
 
     const renderStep = () => {
         switch (step) {
-            case 0:
-                return (
-                    <div className="space-y-4">
-                        <SellerRules onContinue={nextStep} />
-                        <button
-                            onClick={() => router.replace("/home")}
-                            className="w-full bg-secondary text-foreground font-bold uppercase tracking-widest py-3 rounded-xl border border-border/50 hover:bg-secondary/80 transition-all text-xs flex items-center justify-center gap-2"
-                        >
-                            <Home className="w-4 h-4" />
-                            Home
-                        </button>
-                    </div>
-                );
             case 1:
+                return <SellerRules onContinue={nextStep} />;
+            case 2:
                 return (
                     <div className="space-y-4">
                         {submitError && (
@@ -97,7 +85,7 @@ export default function SellerRegisterPage() {
                         )}
                     </div>
                 );
-            case 2:
+            case 3:
                 return (
                     <div className="text-center space-y-6 py-12 animate-in zoom-in duration-500">
                         <div className="w-24 h-24 bg-green-500/10 rounded-[32px] flex items-center justify-center mx-auto text-green-500">
@@ -121,33 +109,70 @@ export default function SellerRegisterPage() {
     };
 
     const stepInfo = {
-        0: { title: "Become a Seller", subtitle: "Start your selling journey on Campus Hive" },
-        1: { title: "Verification", subtitle: "Confirm your student status" },
-        2: { title: "Done!", subtitle: "Application submitted" },
+        1: { title: "Become a Seller", subtitle: "Start your selling journey on Campus Market" },
+        2: { title: "Identity Verification", subtitle: "Upload your ID to request seller access" },
+        3: { title: "Done!", subtitle: "Application submitted" },
     };
 
     return (
-        <AuthLayout
-            currentStep={step === 2 ? undefined : step + 1}
-            totalSteps={step === 2 ? undefined : 2}
-            title={stepInfo[step as keyof typeof stepInfo].title}
-            subtitle={stepInfo[step as keyof typeof stepInfo].subtitle}
-            illustrationUrl=""
-            showBack={step > 0 && step < 2}
-            onBack={prevStep}
-            isWide={step < 2}
-        >
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={step}
-                    initial={{ x: 20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: -20, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
-                    {renderStep()}
-                </motion.div>
-            </AnimatePresence>
-        </AuthLayout>
+        <div className="bg-background min-h-screen flex flex-col">
+            <div className="flex flex-1 items-center justify-center px-4 py-8 md:py-10">
+                <div className="mx-auto flex w-full max-w-[1040px] flex-col overflow-hidden md:flex-row md:border md:border-border/40 md:rounded-xl md:shadow-sm md:min-h-[620px]">
+                    <div className="hidden w-full items-center justify-center bg-[#cfe5eb] p-7 md:flex md:w-1/2 md:p-10">
+                        <div className="w-full max-w-[420px]">
+                            <img
+                                src="/mobile.png"
+                                alt="Shopping illustration"
+                                className="h-auto w-full object-contain"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex w-full items-center justify-center bg-background px-8 py-10 md:w-1/2 md:px-14">
+                        <div className="w-full max-w-[420px] font-heading">
+                            <div className="mb-4">
+                                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground/60 font-sans">
+                                    Step {step} of 3
+                                </span>
+                                <div className="mt-2 flex gap-2">
+                                    {Array.from({ length: 3 }).map((_, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`h-1.5 rounded-full transition-all ${idx + 1 === step
+                                                ? "w-8 bg-primary"
+                                                : idx + 1 < step
+                                                    ? "w-6 bg-primary/50"
+                                                    : "w-6 bg-secondary"
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                {stepInfo[step as keyof typeof stepInfo].title}
+                            </h1>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {stepInfo[step as keyof typeof stepInfo].subtitle}
+                            </p>
+
+                            <div className="mt-6">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={step}
+                                        initial={{ x: 20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        exit={{ x: -20, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    >
+                                        {renderStep()}
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
