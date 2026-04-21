@@ -30,9 +30,8 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                 const data = response?.data || response || {};
                 const profile = data?.profile || {};
                 const business = data?.businessProfile || {};
-                const missingDisplayName = !profile?.displayName;
                 const missingBusinessInfo = !business?.name || !business?.category || !business?.description;
-                setNeedsSellerCompletion(missingDisplayName || missingBusinessInfo);
+                setNeedsSellerCompletion(!profile?.displayName || missingBusinessInfo);
             } catch {
                 setNeedsSellerCompletion(true);
             }
@@ -56,7 +55,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
             id: "seller-approved",
             title: "Seller Application Approved",
             message: needsSellerCompletion
-                ? "You are approved. Complete your seller application: Display Name, Business Name, Category, and Description."
+                ? "You are approved. Complete your seller application: Business Name, Category, and Description."
                 : "You are approved to sell on Campus Market. Your seller tools are now active.",
             timestamp: "Now",
             isRead: false,

@@ -23,7 +23,6 @@ export default function CompleteSellerApplicationPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({
-        displayName: "",
         businessName: "",
         businessCategory: "",
         businessDescription: "",
@@ -40,8 +39,7 @@ export default function CompleteSellerApplicationPage() {
                 const response: any = await apiGet(`/api/user/${user.id}`);
                 const data = response?.data || response || {};
                 setFormData({
-                    displayName: data?.profile?.displayName || user.name || "",
-                    businessName: data?.businessProfile?.name || "",
+                    businessName: data?.businessProfile?.name || data?.profile?.displayName || user.name || "",
                     businessCategory: data?.businessProfile?.category || "",
                     businessDescription: data?.businessProfile?.description || "",
                 });
@@ -58,10 +56,6 @@ export default function CompleteSellerApplicationPage() {
     const handleSubmit = async () => {
         if (!user?.id) return;
 
-        if (!formData.displayName.trim()) {
-            setError("Display Name is required.");
-            return;
-        }
         if (!formData.businessName.trim()) {
             setError("Business Name is required.");
             return;
@@ -80,7 +74,7 @@ export default function CompleteSellerApplicationPage() {
         try {
             const payload = {
                 profile: {
-                    displayName: formData.displayName.trim(),
+                    displayName: formData.businessName.trim(),
                 },
                 businessProfile: {
                     name: formData.businessName.trim(),
@@ -91,7 +85,7 @@ export default function CompleteSellerApplicationPage() {
             };
 
             await apiPatch(`/api/user/update/${user.id}`, payload);
-            login({ ...user, name: formData.displayName.trim(), role: "seller", onboardingStep: "completed" });
+            login({ ...user, name: formData.businessName.trim(), role: "seller", onboardingStep: "completed" });
             router.replace("/home");
         } catch (err: any) {
             setError(err?.message || "Failed to save seller details.");
@@ -119,18 +113,6 @@ export default function CompleteSellerApplicationPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
-                            Display Name
-                        </label>
-                        <input
-                            value={formData.displayName}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
-                            placeholder="How buyers should see your name"
-                            className="h-11 w-full rounded-xl border border-border/60 bg-secondary/20 px-3 text-sm outline-none focus:border-primary/40"
-                        />
-                    </div>
-
                     <div>
                         <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
                             Business Name

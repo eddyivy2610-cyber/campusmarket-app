@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { apiGet, apiPatch, apiPost } from "@/lib/apiClient";
+import { apiPatch, apiPost } from "@/lib/apiClient";
 
 const categories = [
     "Electronics",
@@ -27,36 +27,22 @@ export default function SellerRegisterPage() {
     const [idFile, setIdFile] = useState<File | null>(null);
     const [idPreview, setIdPreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
-        displayName: "",
         businessName: "",
         businessCategory: "",
         businessDescription: "",
     });
 
     useEffect(() => {
-        const load = async () => {
-            if (!user?.id) {
-                router.replace("/login?next=/register/seller");
-                return;
-            }
+        if (!user?.id) {
+            router.replace("/login?next=/register/seller");
+            return;
+        }
 
-            try {
-                const response: any = await apiGet(`/api/user/${user.id}`);
-                const data = response?.data || response || {};
-                setFormData({
-                    displayName: data?.profile?.displayName || user.name || "",
-                    businessName: data?.businessProfile?.name || "",
-                    businessCategory: data?.businessProfile?.category || "",
-                    businessDescription: data?.businessProfile?.description || "",
-                });
-            } catch (err: any) {
-                setError(err?.message || "Failed to load your profile.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        load();
+        setFormData((prev) => ({
+            ...prev,
+            businessName: prev.businessName || user.name || "",
+        }));
+        setIsLoading(false);
     }, [router, user?.id, user?.name]);
 
     useEffect(() => {
@@ -87,7 +73,6 @@ export default function SellerRegisterPage() {
     const handleSubmit = async () => {
         if (!user?.id) return;
 
-        if (!formData.displayName.trim()) return setError("Display Name is required.");
         if (!formData.businessName.trim()) return setError("Business Name is required.");
         if (!formData.businessCategory.trim()) return setError("Business Category is required.");
         if (!formData.businessDescription.trim()) return setError("Business Description is required.");
@@ -98,7 +83,7 @@ export default function SellerRegisterPage() {
         setIsSubmitting(true);
         try {
             await apiPatch(`/api/user/update/${user.id}`, {
-                profile: { displayName: formData.displayName.trim() },
+                profile: { displayName: formData.businessName.trim() },
                 businessProfile: {
                     name: formData.businessName.trim(),
                     category: formData.businessCategory.trim(),
@@ -113,7 +98,7 @@ export default function SellerRegisterPage() {
 
             login({
                 ...user,
-                name: formData.displayName.trim(),
+                name: formData.businessName.trim(),
                 sellerStatus: "pending",
                 onboardingStep: "seller_pending",
             });
@@ -159,12 +144,6 @@ export default function SellerRegisterPage() {
                             </p>
 
                             <div className="mt-6 space-y-4">
-                                <input
-                                    value={formData.displayName}
-                                    onChange={(e) => setFormData((prev) => ({ ...prev, displayName: e.target.value }))}
-                                    placeholder="Display Name"
-                                    className="h-11 w-full rounded-xl border border-border/60 bg-secondary/20 px-3 text-sm outline-none focus:border-primary/40"
-                                />
                                 <input
                                     value={formData.businessName}
                                     onChange={(e) => setFormData((prev) => ({ ...prev, businessName: e.target.value }))}
