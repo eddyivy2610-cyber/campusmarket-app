@@ -21,6 +21,7 @@ export default function SellerRegisterPage() {
     const { user, login } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [error, setError] = useState("");
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [idFile, setIdFile] = useState<File | null>(null);
@@ -116,7 +117,10 @@ export default function SellerRegisterPage() {
                 sellerStatus: "pending",
                 onboardingStep: "seller_pending",
             });
-            router.replace("/home");
+            setShowSuccessToast(true);
+            setTimeout(() => {
+                router.replace("/home");
+            }, 1400);
         } catch (err: any) {
             setError(err?.message || "Failed to submit seller application.");
         } finally {
@@ -134,6 +138,11 @@ export default function SellerRegisterPage() {
 
     return (
         <div className="bg-background min-h-screen flex flex-col">
+            {showSuccessToast && (
+                <div className="fixed right-4 top-4 z-[120] rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs font-bold text-emerald-700 shadow-lg dark:text-emerald-300">
+                    Seller application submitted successfully.
+                </div>
+            )}
             <div className="flex flex-1 items-center justify-center px-4 py-8 md:py-10">
                 <div className="mx-auto flex w-full max-w-[1040px] flex-col overflow-hidden md:flex-row md:border md:border-border/40 md:rounded-xl md:shadow-sm md:min-h-[620px]">
                     <div className="hidden w-full items-center justify-center bg-[#cfe5eb] p-7 md:flex md:w-1/2 md:p-10">

@@ -38,10 +38,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         if (isPublicPage || isOnboardingPage) return;
         if (!user) return;
 
-        // Redirect only mid-seller-flow users to the seller registration path.
-        if (user.onboardingStep === "onboarding_choice") {
-            router.replace("/register/seller");
-        }
+        // Do not force seller registration on login.
+        // Seller onboarding is triggered only from explicit user actions (first-session modal or sell CTAs).
     }, [user, isLoading, pathname, router]);
 
     return <>{children}</>;
