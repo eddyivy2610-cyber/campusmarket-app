@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost } from "@/lib/apiClient";
@@ -13,6 +13,7 @@ export default function LoginPage() {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [showFirstSessionModal, setShowFirstSessionModal] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const { login } = useAuth();
@@ -66,6 +67,15 @@ export default function LoginPage() {
                 login(mappedUser);
             }
 
+            const shouldShowFirstSessionChoice =
+                localStorage.getItem("campus_first_session_choice_pending") === "true";
+
+            if (shouldShowFirstSessionChoice) {
+                localStorage.removeItem("campus_first_session_choice_pending");
+                setShowFirstSessionModal(true);
+                return;
+            }
+
             const nextUrl = searchParams?.get("next") || "/home";
             router.push(nextUrl);
         } catch (err: any) {
@@ -103,14 +113,32 @@ export default function LoginPage() {
                     isStudent: userData.studentStatus?.isStudent || false,
                     studentVerified: userData.studentStatus?.isVerified || false,
                 });
+                const shouldShowFirstSessionChoice =
+                    localStorage.getItem("campus_first_session_choice_pending") === "true";
+
+                if (shouldShowFirstSessionChoice) {
+                    localStorage.removeItem("campus_first_session_choice_pending");
+                    setShowFirstSessionModal(true);
+                    return;
+                }
+
                 const nextUrl = searchParams?.get("next") || "/home";
                 router.push(nextUrl);
             }
-        } catch (err: any) {
+        } catch {
             setError("Google login failed. Please try again.");
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleFirstSessionChoice = (choice: "buy" | "sell") => {
+        setShowFirstSessionModal(false);
+        if (choice === "sell") {
+            router.push("/register/seller");
+            return;
+        }
+        router.push("/home");
     };
 
     return (
@@ -244,6 +272,46 @@ export default function LoginPage() {
                     </div>
                 </div>
             </div>
+            {showFirstSessionModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => handleFirstSessionChoice("buy")}
+                        aria-label="Close"
+                    />
+                    <div className="relative w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl font-heading">
+                        <button
+                            type="button"
+                            onClick={() => handleFirstSessionChoice("buy")}
+                            className="absolute right-3 top-3 rounded-full p-2 text-muted-foreground hover:bg-secondary"
+                            aria-label="Close"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                        <h3 className="text-lg font-bold text-foreground">How do you want to use Campus Market?</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            This prompt appears only once after signup.
+                        </p>
+                        <div className="mt-6 space-y-3">
+                            <button
+                                type="button"
+                                onClick={() => handleFirstSessionChoice("buy")}
+                                className="w-full rounded-xl border border-border px-4 py-3 text-xs font-bold uppercase tracking-widest text-foreground hover:bg-secondary"
+                            >
+                                Continue as Buyer
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleFirstSessionChoice("sell")}
+                                className="w-full rounded-xl bg-primary px-4 py-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-primary/90"
+                            >
+                                Set Up Seller Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

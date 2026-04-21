@@ -37,18 +37,19 @@ export function SellerIdentity({ formData, updateFormData, onNext, onBack }: Sel
                 return;
             }
 
-            const objectUrl = URL.createObjectURL(file);
-            setPreview(objectUrl);
-            updateFormData({
-                studentIdCardFile: file,
-                studentIdCardPreview: objectUrl,
-            });
-            setError("");
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string;
+                setPreview(result);
+                updateFormData({ studentIdCard: result, studentIdFile: file });
+                setError("");
+            };
+            reader.readAsDataURL(file);
         }
     };
 
     const handleNext = async () => {
-        if (!formData.studentIdCardFile) {
+        if (!formData.studentIdFile) {
             setError("Please upload your student ID to proceed");
             return;
         }

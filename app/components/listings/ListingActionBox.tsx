@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShieldCheck, RotateCcw, Lightbulb, MapPin, Handshake, Store, AlertTriangle, PlusCircle } from "lucide-react";
 import { Product } from "../../data/products";
 import { Profile } from "../../data/profiles";
+import { useAuth } from "@/context/AuthContext";
 
 interface ListingActionBoxProps {
     product: Product;
@@ -13,6 +14,7 @@ interface ListingActionBoxProps {
 }
 
 export function ListingActionBox({ product, vendor, onOfferOpen }: ListingActionBoxProps) {
+    const { user } = useAuth();
     const formattedPrice = new Intl.NumberFormat("en-NG", {
         style: "currency",
         currency: "NGN",
@@ -21,6 +23,8 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
 
     // Mock market price for UI effect
     const marketPriceMax = new Intl.NumberFormat("en-NG", { maximumFractionDigits: 0 }).format(product.price * 1.25);
+    const canAddListing = user?.sellerStatus === "approved";
+    const sellCtaRoute = !user ? "/login" : canAddListing ? "/dashboard/products/add" : "/register/seller";
 
     return (
         <div className="flex flex-col gap-5 font-body">
@@ -133,14 +137,14 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
             </div>
 
             {/* 3. Call to Action: Sell */}
-            <button className="w-full group bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 rounded-2xl p-4 flex items-center justify-center gap-3 transition-all">
+            <Link href={sellCtaRoute} className="w-full group bg-gradient-to-r from-emerald-500/5 to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 rounded-2xl p-4 flex items-center justify-center gap-3 transition-all">
                 <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
                     <PlusCircle className="w-4.5 h-4.5" />
                 </div>
                 <span className="font-bold text-emerald-700 dark:text-emerald-400 text-[13px]">
                     Have one to sell? Post it now
                 </span>
-            </button>
+            </Link>
 
         </div>
     );
