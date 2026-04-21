@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCheck } from "lucide-react";
 import { useClickOutside } from "../../hooks/useClickOutside";
-import { mockNotifications } from "../../data/notifications";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
 import { apiGet } from "@/lib/apiClient";
@@ -73,7 +72,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
         }
         : null;
 
-    const displayed = mockNotifications.slice(0, 3);
+    const displayed: any[] = [];
 
     if (!isOpen) return null;
 
@@ -214,7 +213,9 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                         </div>
                     </div>
                 )) : (
-                    <div className="py-6 text-center text-muted-foreground text-xs">No recent notifications.</div>
+                    <div className="py-6 text-center text-muted-foreground text-xs">
+                        {user ? "No recent notifications." : "No notifications. Sign in to receive updates."}
+                    </div>
                 )}
             </div>
 

@@ -103,7 +103,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-4">
                         <button
-                            onClick={() => nav(user ? `/profile/${user.handle}` : "/register")}
+                            onClick={() => nav(user ? `/profile/${user.handle}` : "/login")}
                             className="w-full flex items-center justify-between p-4 bg-primary text-white rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
                         >
                             <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     <Section label="Navigation">
                         <NavRow icon={Home} label="Home" onClick={() => nav("/home")} />
-                        <NavRow icon={Bell} label="Notifications" onClick={() => nav("/notifications")} />
+                        <NavRow icon={Bell} label="Notifications" badge={notificationCount} onClick={() => nav("/notifications")} />
                         <NavRow icon={BookOpen} label="About" onClick={() => nav("/about-us")} />
                         <NavRow icon={MessageSquare} label="Contact" onClick={() => nav("/contact-us")} />
                         <NavRow icon={LifeBuoy} label="Help" onClick={() => nav("/help-support")} />

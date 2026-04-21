@@ -31,6 +31,7 @@ export function MainHeader() {
     const isActuallyLegal = ["/about-us", "/terms-of-service", "/safety-guidelines", "/community-rules", "/usage-policy"].includes(pathname);
     const isAdminPage = pathname?.startsWith("/admin");
     const { savedItems } = useSaved();
+    const notificationCount = 0;
 
     const accountRef = useRef<HTMLDivElement>(null);
     useClickOutside(accountRef, () => setIsAccountOpen(false));
@@ -40,6 +41,10 @@ export function MainHeader() {
     };
 
     const handleNotificationsClick = () => {
+        if (!user && typeof window !== "undefined" && window.innerWidth < 768) {
+            router.push("/login?next=%2Fnotifications");
+            return;
+        }
         if (typeof window !== "undefined" && window.innerWidth < 768) {
             router.push("/notifications");
             return;
@@ -103,9 +108,11 @@ export function MainHeader() {
                                 title="Notifications"
                             >
                                 <Bell className="w-4 h-4 text-white shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
-                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent animate-pulse">
-                                    3
-                                </span>
+                                {notificationCount > 0 && (
+                                    <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent animate-pulse">
+                                        {notificationCount}
+                                    </span>
+                                )}
                             </button>
                             <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
                         </div>
@@ -146,7 +153,7 @@ export function MainHeader() {
             <HamburgerMenu
                 isOpen={isMenuOpen}
                 onClose={() => setIsMenuOpen(false)}
-                notificationCount={3}
+                notificationCount={notificationCount}
             />
         </>
     );

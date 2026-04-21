@@ -10,20 +10,38 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
 
     useEffect(() => {
-        if (isLoading || !user) return;
+        if (isLoading) return;
 
-        // Skip guard for onboarding pages and public/auth pages
-        const isPublicPage = ["/login", "/register", "/verify-email", "/forgot-password"].some(p => pathname.startsWith(p));
+        const isPublicPage = ["/login", "/register", "/verify-email", "/forgot-password"].some((p) =>
+            pathname.startsWith(p)
+        );
         const isOnboardingPage = pathname.startsWith("/onboarding");
 
-        if (isPublicPage || isOnboardingPage) return;
+        const protectedPrefixes = [
+            "/settings",
+            "/messages",
+            "/profile",
+            "/saved",
+            "/notifications",
+            "/dashboard",
+            "/manage-listings",
+            "/cart",
+        ];
+        const isProtectedPage = protectedPrefixes.some((p) => pathname.startsWith(p));
 
-        // Only redirect if the user is genuinely stuck mid-seller-flow.
-        // "profile_completed" is the normal post-signup state — do NOT redirect.
+        if (!user && isProtectedPage) {
+            const next = encodeURIComponent(pathname);
+            router.replace(`/login?next=${next}`);
+            return;
+        }
+
+        if (isPublicPage || isOnboardingPage) return;
+        if (!user) return;
+
+        // Redirect only mid-seller-flow users to the seller registration path.
         if (user.onboardingStep === "onboarding_choice") {
             router.replace("/register/seller");
         }
-        // All other states (profile_completed, seller_pending, completed) are fine — allow access.
     }, [user, isLoading, pathname, router]);
 
     return <>{children}</>;

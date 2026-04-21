@@ -70,6 +70,11 @@ export default function NotificationsPage() {
                             </div>
                         </div>
                     ))}
+                    {mockNotifications.length === 0 && !isStudentPending && (
+                        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                            No notifications yet.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

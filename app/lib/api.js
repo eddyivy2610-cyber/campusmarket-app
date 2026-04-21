@@ -62,5 +62,7 @@ export async function getCurrentUser() {
 export async function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = '/';
+  localStorage.removeItem('campus_token');
+  localStorage.removeItem('campus_user');
+  window.location.href = '/home';
 }

@@ -54,7 +54,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
             {/* Menu Links */}
             <div className="p-1.5 space-y-0.5">
-                <Link href={user ? `/profile/${user.handle}` : "/register"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                <Link href={user ? `/profile/${user.handle}` : "/login?next=%2Fprofile"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
                     <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
                         <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
                             <User className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
@@ -64,7 +64,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
 
-                <Link href="/messages" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                <Link href={user ? "/messages" : "/login?next=%2Fmessages"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
                     <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
                         <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
                             <MessageSquare className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
@@ -74,7 +74,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
                 </Link>
 
-                <Link href="/settings" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                <Link href={user ? "/settings" : "/login?next=%2Fsettings"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
                     <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
                         <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
                             <Settings className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />

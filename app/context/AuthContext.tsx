@@ -53,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = () => {
         setUser(null);
         localStorage.removeItem("campus_user");
+        localStorage.removeItem("campus_token");
+        if (typeof window !== "undefined") {
+            window.location.replace("/home");
+        }
     };
 
     const refreshUser = async () => {
