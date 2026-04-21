@@ -17,7 +17,7 @@ const ACTIONS = [
     },
     {
         id: "sell",
-        title: "Sell on Campus Market",
+        title: "Sell on Campus Hive",
         icon: Store,
         route: "/dashboard/products/add",
     },

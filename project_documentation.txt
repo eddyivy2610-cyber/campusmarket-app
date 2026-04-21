@@ -1,9 +1,9 @@
-CAMPUS MARKET PROJECT DOCUMENTATION
+﻿Campus Hive PROJECT DOCUMENTATION
 ==================================
 
 OVERVIEW
 --------
-Campus Market is a specialized e-commerce platform designed for university students, 
+Campus Hive is a specialized e-commerce platform designed for university students, 
 enabling them to buy, sell, and trade within their campus community. The project 
 emphasizes trust, ease of use, and professional features for student entrepreneurs.
 
@@ -48,7 +48,7 @@ CORE SECTIONS & FEATURES
 6. COMMUNICATION HUB
    - Messages: A unified workspace for buyer-seller negotiations and support.
    - Alerts: Real-time notifications for price drops, new listings, and system updates.
-   - Usage: Staying connected and responsive within the campus marketplace.
+   - Usage: Staying connected and responsive within the Campus Hiveplace.
 
 7. HELP & SUPPORT
    - Help Center: FAQs, chat supportrooms, and resolution centers for disputes.

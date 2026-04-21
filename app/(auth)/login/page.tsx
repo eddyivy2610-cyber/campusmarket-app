@@ -289,7 +289,7 @@ export default function LoginPage() {
                         >
                             <X className="h-4 w-4" />
                         </button>
-                        <h3 className="text-lg font-bold text-foreground">How do you want to use Campus Market?</h3>
+                        <h3 className="text-lg font-bold text-foreground">How do you want to use Campus Hive?</h3>
                         <p className="mt-2 text-sm text-muted-foreground">
                             This prompt appears only once after signup.
                         </p>

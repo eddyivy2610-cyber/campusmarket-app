@@ -131,7 +131,7 @@ export default function SellerOnboardingPage() {
                                         <li>You are a legitimate student at your designated institution.</li>
                                         <li>All items listed are accurately described and owned by you.</li>
                                         <li>You will complete transactions in safe, designated areas.</li>
-                                        <li>Campus Market reserves the right to suspend accounts that violate safety protocols.</li>
+                                        <li>Campus Hive reserves the right to suspend accounts that violate safety protocols.</li>
                                     </ul>
                                     <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10 mt-4">
                                         <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />

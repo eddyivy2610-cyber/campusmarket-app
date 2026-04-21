@@ -44,7 +44,7 @@ export function Step3ProfileInfo({ formData, updateFormData, onNext, onBack }: S
                 <div className="space-y-1">
                     <h2 className="text-lg font-bold text-foreground">Tell us your name</h2>
                     <p className="text-xs text-muted-foreground max-w-[280px] leading-relaxed">
-                        Your real name helps build trust in the campus market community.
+                        Your real name helps build trust in the campus hive community.
                     </p>
                 </div>
             </div>

@@ -54,8 +54,8 @@ export function SellerRegistrationPromptModal({ isOpen, onClose, isPending, isSt
                             {isEligible
                                 ? (isPending
                                     ? "Your seller request is still under review. You can resubmit your verification if needed."
-                                    : "Start selling on Campus Market by completing student verification.")
-                                : "Only verified students can sell on Campus Market. You can still browse, message, and buy."}
+                                    : "Start selling on Campus Hive by completing student verification.")
+                                : "Only verified students can sell on Campus Hive. You can still browse, message, and buy."}
                         </p>
                     </div>
 

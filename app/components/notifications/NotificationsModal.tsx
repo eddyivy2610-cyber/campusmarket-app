@@ -56,7 +56,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
             title: "Seller Application Approved",
             message: needsSellerCompletion
                 ? "You are approved. Complete your seller application: Business Name, Category, and Description."
-                : "You are approved to sell on Campus Market. Your seller tools are now active.",
+                : "You are approved to sell on Campus Hive. Your seller tools are now active.",
             timestamp: "Now",
             isRead: false,
         }
