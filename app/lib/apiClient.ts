@@ -46,9 +46,20 @@ const apiRequest = async <T>(
   });
 
   const contentType = response.headers.get("content-type") || "";
-  const payload = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
+  const rawBody = await response.text();
+  const expectsJson = contentType.includes("application/json");
+
+  let payload: unknown = rawBody;
+  if (expectsJson && rawBody) {
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      // Keep raw text payload when server returns invalid JSON.
+      payload = rawBody;
+    }
+  } else if (expectsJson && !rawBody) {
+    payload = null;
+  }
 
   if (!response.ok) {
     const payloadMessage =
