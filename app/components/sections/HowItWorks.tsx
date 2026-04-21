@@ -69,7 +69,7 @@ export function HowItWorks() {
             <div className="max-w-[1780px] mx-auto px-4 md:px-12 relative z-10">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-4xl font-sans font-bold text-foreground mb-4 uppercase tracking-tighter">
-                        How <span className="text-primary italic">CampusMarket </span> Works
+                        How <span className="text-primary italic">Campus Hive </span> Works
                     </h2>
                     <p className="text-gray-500 text-sm font-medium">
                         Buy and sell within your campus in just three simple steps.

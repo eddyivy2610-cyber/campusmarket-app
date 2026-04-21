@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     // Keep both domains and remotePatterns to avoid config mismatches across Next versions
     domains: [
       "images.unsplash.com",
+      "campushiveng.vercel.app",
       "campusmarketng.vercel.app",
       "myschool.ng",
       "i.pravatar.cc",
@@ -16,6 +17,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "campushiveng.vercel.app",
       },
       {
         protocol: "https",

@@ -115,7 +115,7 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
                         {[
                             "Meet in public, well-lit campus zones like the library or student union.",
                             "Never pay in advance before physically inspecting the item.",
-                            "Keep all communications within the CampusMarket chat for your safety."
+                            "Keep all communications within the Campus Hive chat for your safety."
                         ].map((tip, i) => (
                             <li key={i} className="flex gap-3 text-[12px] font-bold text-muted-foreground leading-relaxed">
                                 <span className="text-orange-500 shrink-0 mt-0.5">•</span>

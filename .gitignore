@@ -5,4 +5,4 @@ build
 .env*
 *.local
 .vercel
-app/components/auth/seller/campusmarket.code-workspace
+app/components/auth/seller/campushive.code-workspace

@@ -48,7 +48,7 @@ export default function AdminSignUpPage() {
                     <Field
                         icon={Mail}
                         type="email"
-                        placeholder="admin@campusmarket.com"
+                        placeholder="admin@campushive.com"
                         value={form.email}
                         onChange={(v) => setForm((f) => ({ ...f, email: v }))}
                     />

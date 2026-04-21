@@ -32,10 +32,10 @@ export function clearAdminSession(): void {
 export function signInAdmin(identity: string, password: string): { ok: boolean; error: string; session?: AdminSession } {
     // Basic local validation for demo purposes
     // Use 'admin' / 'admin123' as default credentials if not set
-    if ((identity === 'admin' || identity === 'admin@campusmarket.com') && password === 'admin123') {
+    if ((identity === 'admin' || identity === 'admin@campushive.com') && password === 'admin123') {
         const session: AdminSession = {
             username: 'Admin',
-            email: 'admin@campusmarket.com',
+            email: 'admin@campushive.com',
             role: 'superuser',
             lastActive: Date.now()
         };

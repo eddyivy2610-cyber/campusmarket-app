@@ -162,7 +162,7 @@ export default function AddListingPage() {
                                     </span>
                                     <div>
                                         <p className="text-[11px] text-muted-foreground">Email</p>
-                                        <p className="text-sm font-semibold">support@campusmarket.ng</p>
+                                        <p className="text-sm font-semibold">support@campushive.ng</p>
                                     </div>
                                 </div>
                             </div>
