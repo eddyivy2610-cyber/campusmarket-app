@@ -41,7 +41,7 @@ export default function SellerApprovalsPage() {
             setIsLoading(true);
             setLoadError("");
             try {
-                const response: any = await apiGet(`api/verification/all?status=${statusFilter}`);
+                const response: any = await apiGet(`/api/verification/all?status=${statusFilter}`);
                 const data = response?.data || [];
                 setApplicants(data.map(mapVerification));
             } catch (e: any) {

@@ -29,7 +29,7 @@ export default function AdminSignInPage() {
         setIsSubmitting(true);
         await new Promise((r) => setTimeout(r, 250));
 
-        const result = signInAdmin(identity, password);
+        const result = await signInAdmin(identity, password);
         setIsSubmitting(false);
         if (!result.ok) {
             setError(result.error);

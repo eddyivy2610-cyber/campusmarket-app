@@ -1,4 +1,5 @@
 "use client";
+import { apiPost } from "./apiClient";
 
 // Simple admin authentication wrapper using localStorage
 // This is used for demonstration and client-side admin session persistence.
@@ -29,21 +30,43 @@ export function clearAdminSession(): void {
     localStorage.removeItem(ADMIN_SESSION_KEY);
 }
 
-export function signInAdmin(identity: string, password: string): { ok: boolean; error: string; session?: AdminSession } {
-    // Basic local validation for demo purposes
-    // Use 'admin' / 'admin123' as default credentials if not set
-    if ((identity === 'admin' || identity === 'admin@campushive.com') && password === 'admin123') {
-        const session: AdminSession = {
-            username: 'Admin',
-            email: 'admin@campushive.com',
-            role: 'superuser',
-            lastActive: Date.now()
-        };
-        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
-        return { ok: true, error: '', session };
+export async function signInAdmin(identity: string, password: string): Promise<{ ok: boolean; error: string; session?: AdminSession }> {
+    try {
+        // Real login call to backend
+        const response: any = await apiPost("/auth/login", { 
+            email: identity.includes("@") ? identity : undefined,
+            phone: !identity.includes("@") ? identity : undefined,
+            password 
+        });
+
+        if (response?.token && response?.user) {
+            const user = response.user;
+            
+            // Check if user has admin role
+            if (user.role !== "admin") {
+                return { ok: false, error: "Access denied. You do not have administrator privileges." };
+            }
+
+            const session: AdminSession = {
+                username: user.profile?.displayName || user.email.split("@")[0],
+                email: user.email,
+                role: user.role,
+                lastActive: Date.now()
+            };
+
+            // Store token in standard campus_token for apiClient to use
+            localStorage.setItem("campus_token", response.token);
+            // Store admin-specific session
+            localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+
+            return { ok: true, error: "", session };
+        }
+
+        return { ok: false, error: "Invalid credentials." };
+    } catch (err: any) {
+        console.error("Admin sign in failed:", err);
+        return { ok: false, error: err.message || "Failed to connect to the authentication server." };
     }
-    
-    return { ok: false, error: 'Invalid admin credentials. Use admin / admin123' };
 }
 
 export function signOutAdmin(): void {
