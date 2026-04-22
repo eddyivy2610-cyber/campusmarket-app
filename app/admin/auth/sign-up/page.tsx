@@ -23,7 +23,7 @@ export default function AdminSignUpPage() {
         setIsSubmitting(true);
         await new Promise((r) => setTimeout(r, 300));
 
-        const result = registerAdmin(form);
+        const result = await registerAdmin(form);
         setIsSubmitting(false);
         if (!result.ok) {
             setError(result.error);

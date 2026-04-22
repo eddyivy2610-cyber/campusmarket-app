@@ -32,23 +32,17 @@ export function clearAdminSession(): void {
 
 export async function signInAdmin(identity: string, password: string): Promise<{ ok: boolean; error: string; session?: AdminSession }> {
     try {
-        // Real login call to backend
-        const response: any = await apiPost("/auth/login", { 
-            email: identity.includes("@") ? identity : undefined,
-            phone: !identity.includes("@") ? identity : undefined,
+        // Real login call to dedicated admin auth backend
+        const response: any = await apiPost("/api/admin/auth/signin", { 
+            identity,
             password 
         });
 
         if (response?.token && response?.user) {
             const user = response.user;
             
-            // Check if user has admin role
-            if (user.role !== "admin") {
-                return { ok: false, error: "Access denied. You do not have administrator privileges." };
-            }
-
             const session: AdminSession = {
-                username: user.profile?.displayName || user.email.split("@")[0],
+                username: user.username,
                 email: user.email,
                 role: user.role,
                 lastActive: Date.now()
@@ -62,7 +56,7 @@ export async function signInAdmin(identity: string, password: string): Promise<{
             return { ok: true, error: "", session };
         }
 
-        return { ok: false, error: "Invalid credentials." };
+        return { ok: false, error: response?.message || "Invalid credentials." };
     } catch (err: any) {
         console.error("Admin sign in failed:", err);
         return { ok: false, error: err.message || "Failed to connect to the authentication server." };
@@ -74,19 +68,28 @@ export function signOutAdmin(): void {
 }
 
 /**
- * Validates and mimics an admin registration process.
- * In a real-world scenario, this would create an account in the database.
+ * Registers an admin account via the backend.
  */
-export function registerAdmin(data: { email: string; username: string; key: string }): { ok: boolean; error: string } {
-    if (!data.email || !data.username) {
-        return { ok: false, error: 'Email and Username are required.' };
-    }
+export async function registerAdmin(data: { email: string; username: string; password?: string; key: string }): Promise<{ ok: boolean; error: string }> {
+    try {
+        if (!data.email || !data.username) {
+            return { ok: false, error: 'Email and Username are required.' };
+        }
 
-    // Example admin-key verification
-    if (data.key !== "hive-admin-2025") {
-        return { ok: false, error: 'Invalid admin registration key.' };
-    }
+        const response: any = await apiPost("/api/admin/auth/signup", {
+            email: data.email,
+            username: data.username,
+            password: data.password,
+            adminKey: data.key
+        });
 
-    // Success simulation
-    return { ok: true, error: '' };
+        if (response?.admin) {
+            return { ok: true, error: '' };
+        }
+
+        return { ok: false, error: response?.message || "Registration failed." };
+    } catch (err: any) {
+        console.error("Admin registration failed:", err);
+        return { ok: false, error: err.message || "Failed to connect to the registration server." };
+    }
 }

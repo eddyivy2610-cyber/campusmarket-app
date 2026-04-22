@@ -47,7 +47,7 @@ const ADMIN_NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [isReady, setIsReady] = useState(true);
+    const [isReady, setIsReady] = useState(false);
     const [adminLabel, setAdminLabel] = useState("Admin");
 
     const [isLeftSidebarModalOpen, setIsLeftSidebarModalOpen] = useState(false); // For mobile menu
@@ -77,11 +77,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         const session = getAdminSession();
+        if (!session) {
+            router.replace(`/admin/auth/sign-in?next=${encodeURIComponent(pathname)}`);
+            return;
+        }
+
         if (session?.username) {
             setAdminLabel(session.username);
         }
+        setIsReady(true);
         fetchNotifications();
-    }, []);
+    }, [pathname, router]);
 
     const handleMarkAllAsRead = async () => {
         if (unreadNotificationsCount === 0) return;
