@@ -16,7 +16,7 @@ export default function PendingUsersPage() {
     const fetchPendingUsers = async () => {
         setIsLoading(true);
         try {
-            const response: any = await apiGet("/api/users?sellerStatus=pending");
+            const response: any = await apiGet("users?sellerStatus=pending");
             setUsers(response?.data || []);
         } catch (err) {
             console.error("Failed to fetch pending users", err);
@@ -42,9 +42,9 @@ export default function PendingUsersPage() {
         setUsers(users.filter(u => u._id !== userId));
 
         try {
-            await apiPost(`/api/onboarding/admin/approve/${userId}`, {});
+            await apiPost(`onboarding/admin/approve/${userId}`, {});
             // Refresh in background to stay in sync
-            const response: any = await apiGet("/api/users?sellerStatus=pending");
+            const response: any = await apiGet("users?sellerStatus=pending");
             setUsers(response?.data || []);
         } catch (err) {
             console.error("Approval failed", err);
@@ -62,8 +62,8 @@ export default function PendingUsersPage() {
         setUsers(users.filter(u => u._id !== userId));
 
         try {
-            await apiPost(`/api/onboarding/admin/reject/${userId}`, { reason });
-            const response: any = await apiGet("/api/users?sellerStatus=pending");
+            await apiPost(`onboarding/admin/reject/${userId}`, { reason });
+            const response: any = await apiGet("users?sellerStatus=pending");
             setUsers(response?.data || []);
         } catch (err) {
             console.error("Rejection failed", err);

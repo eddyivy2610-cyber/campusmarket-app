@@ -14,7 +14,7 @@ export default function VendorsPage() {
     const fetchSellers = async () => {
         setIsLoading(true);
         try {
-            const response: any = await apiGet("/api/users?role=seller");
+            const response: any = await apiGet("users?role=seller");
             setVendors(response?.data || []);
         } catch (err) {
             console.error("Failed to fetch sellers", err);

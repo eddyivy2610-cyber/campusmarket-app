@@ -33,7 +33,7 @@ export function clearAdminSession(): void {
 export async function signInAdmin(identity: string, password: string): Promise<{ ok: boolean; error: string; session?: AdminSession }> {
     try {
         // Real login call to dedicated admin auth backend
-        const response: any = await apiPost("/api/admin/auth/signin", { 
+        const response: any = await apiPost("admin/auth/signin", { 
             identity,
             password 
         });
@@ -76,7 +76,7 @@ export async function registerAdmin(data: { email: string; username: string; pas
             return { ok: false, error: 'Email and Username are required.' };
         }
 
-        const response: any = await apiPost("/api/admin/auth/signup", {
+        const response: any = await apiPost("admin/auth/signup", {
             email: data.email,
             username: data.username,
             password: data.password,

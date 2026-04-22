@@ -22,7 +22,7 @@ const AdminOverviewCharts = () => {
     useEffect(() => {
         const fetchTotals = async () => {
             try {
-                const response: any = await apiGet("/api/user");
+                const response: any = await apiGet("user");
                 const users = response?.data || [];
 
                 const now = new Date();

@@ -14,7 +14,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchUserStats = async () => {
             try {
-                const response: any = await apiGet("/api/users");
+                const response: any = await apiGet("users");
                 const users = response?.data || [];
                 const tenDaysAgo = new Date();
                 tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);

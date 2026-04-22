@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const fetchNotifications = async () => {
         try {
-            const response: any = await apiGet("/api/notifications");
+            const response: any = await apiGet("notifications");
             setNotifications(response?.data || []);
             setUnreadNotificationsCount(response?.unreadCount || 0);
         } catch (err) {
@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const handleMarkAllAsRead = async () => {
         if (unreadNotificationsCount === 0) return;
         try {
-            await apiGet("/api/notifications/read-all"); // Wait, I made it a PATCH in routes, but the requester might want to use apiGet if that's all available. Actually, I should use apiPatch if available, or fix the route. My route was router.patch("/read-all"). Let's check api client.
+            await apiPatch("notifications/read-all");
             fetchNotifications();
         } catch (err) {
             console.error("Failed to mark all as read", err);
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     useEffect(() => {
         const fetchAdminActivities = async () => {
             try {
-                const response: any = await apiGet("/api/admin/logs?limit=10");
+                const response: any = await apiGet("admin/logs?limit=10");
                 setAdminActivities(response?.data || []);
             } catch (err) {
                 console.error("Failed to load admin activities", err);
