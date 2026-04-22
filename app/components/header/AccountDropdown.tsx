@@ -1,7 +1,7 @@
 "use client";
 
 import {
-    Settings, User, MessageSquare, ChevronRight
+    Settings, User, MessageSquare, ChevronRight, LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../../context/AuthContext";
@@ -54,6 +54,30 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
 
             {/* Menu Links */}
             <div className="p-1.5 space-y-0.5">
+                {user?.role === "seller" && (
+                    <Link href="/dashboard" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-primary/5 dark:bg-primary/10 transition-all duration-200 group hover:border-primary/40 hover:bg-primary/10">
+                        <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-primary">
+                            <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-white">
+                                <LayoutDashboard className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
+                            </span>
+                            <span>Seller Dashboard</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-primary/50 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                )}
+
+                {(user?.role !== "seller" && user?.role !== "admin" && user?.sellerStatus !== "approved") && (
+                    <Link href="/register/seller" className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
+                        <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
+                            <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">
+                                <User className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />
+                            </span>
+                            <span>{user?.sellerStatus === "pending" ? "Verification Pending" : "Become a Seller"}</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-foreground/50 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                )}
+
                 <Link href={user ? `/profile/${user.handle}` : "/login?next=%2Fprofile"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent bg-white/60 dark:bg-transparent transition-all duration-200 group hover:border-[#FFD700]/40 hover:bg-[#fff9e6] dark:hover:bg-white/10">
                     <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground group-hover:text-black dark:group-hover:text-foreground">
                         <span className="w-7 h-7 rounded-lg bg-[#fff3c6] dark:bg-white/10 text-[#FFD700] flex items-center justify-center transition-colors group-hover:bg-[#FFD700] group-hover:text-black">

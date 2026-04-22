@@ -60,24 +60,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const refreshUser = async () => {
-        if (!user?.id) return null;
         try {
-            const response: any = await apiGet(`users/${user.id}`);
-            const userData = response?.data || response;
+            // Call the refresh-token endpoint to get latest data and a fresh JWT
+            const response: any = await apiGet("auth/refresh-token");
+            const userData = response?.user || response?.data || response;
+            const newToken = response?.token;
+
+            if (newToken) {
+                localStorage.setItem("campus_token", newToken);
+            }
+
             const refreshed: User = {
-                id: userData._id || userData.userId || user.id,
-                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user.email,
-                email: userData.email || user.email,
-                handle: userData.profile?.handle || user.handle,
+                id: userData._id || userData.userId || user?.id || "",
+                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user?.email || "",
+                email: userData.email || user?.email || "",
+                handle: userData.profile?.handle || user?.handle || "",
                 role: userData.role || "buyer",
                 isStudent: userData.studentStatus?.isStudent || false,
                 studentVerified: userData.studentStatus?.isVerified || false,
-                tier: user.tier || "new",
+                tier: user?.tier || "new",
                 sellerStatus: userData.sellerStatus || "none",
                 onboardingStep: userData.onboardingStep || "completed",
-                avatar: userData.profile?.avatar || user.avatar,
-                image: user.image,
+                avatar: userData.profile?.avatar || user?.avatar,
+                image: user?.image,
             };
+            
             setUser(refreshed);
             localStorage.setItem("campus_user", JSON.stringify(refreshed));
             return refreshed;
@@ -88,12 +95,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        if (!user?.id || !user.isStudent || user.studentVerified) return;
+        if (!user?.id) return;
+        
+        // Poll more frequently if user is pending verification or seller approval
+        const isPending = (!user.studentVerified && user.isStudent) || user.sellerStatus === "pending";
+        if (!isPending) return;
+
         const interval = setInterval(() => {
             refreshUser();
-        }, 60_000);
+        }, 30_000); // Poll every 30 seconds while pending
+        
         return () => clearInterval(interval);
-    }, [user?.id, user?.isStudent, user?.studentVerified]);
+    }, [user?.id, user?.isStudent, user?.studentVerified, user?.sellerStatus]);
 
     return (
         <AuthContext.Provider value={{ user, login, logout, isLoading, refreshUser }}>

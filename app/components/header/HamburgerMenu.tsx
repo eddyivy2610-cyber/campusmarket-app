@@ -130,10 +130,25 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                         <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
 
+                    {user && user.role === "seller" && (
+                        <Section label="Seller Tools">
+                            <NavRow icon={Store} label="Seller Dashboard" onClick={() => nav("/dashboard")} accent />
+                            <NavRow icon={Package} label="My Listings" onClick={() => nav("/dashboard/products")} />
+                            <NavRow icon={MessageSquare} label="Customer Messages" onClick={() => nav("/messages")} />
+                        </Section>
+                    )}
+
                     {user && (
                         <Section label="Account">
                             <NavRow icon={User} label="My Profile" onClick={() => nav(`/profile/${user.handle}`)} />
                             <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
+                            {user.role !== "seller" && user.role !== "admin" && user.sellerStatus !== "approved" && (
+                                <NavRow 
+                                    icon={Store} 
+                                    label={user.sellerStatus === "pending" ? "Verification Pending" : "Become a Seller"} 
+                                    onClick={() => nav("/register/seller")} 
+                                />
+                            )}
                         </Section>
                     )}
 
