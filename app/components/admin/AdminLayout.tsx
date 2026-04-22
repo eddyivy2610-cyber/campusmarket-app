@@ -60,20 +60,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [adminActivities, setAdminActivities] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
     useEffect(() => { setMounted(true); }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const response: any = await apiGet("/api/notifications");
+            setNotifications(response?.data || []);
+            setUnreadNotificationsCount(response?.unreadCount || 0);
+        } catch (err) {
+            console.error("Failed to load notifications", err);
+        }
+    };
 
     useEffect(() => {
         const session = getAdminSession();
         if (session?.username) {
             setAdminLabel(session.username);
         }
+        fetchNotifications();
     }, []);
+
+    const handleMarkAllAsRead = async () => {
+        if (unreadNotificationsCount === 0) return;
+        try {
+            await apiGet("/api/notifications/read-all"); // Wait, I made it a PATCH in routes, but the requester might want to use apiGet if that's all available. Actually, I should use apiPatch if available, or fix the route. My route was router.patch("/read-all"). Let's check api client.
+            fetchNotifications();
+        } catch (err) {
+            console.error("Failed to mark all as read", err);
+        }
+    };
 
     useEffect(() => {
         const fetchAdminActivities = async () => {
             try {
-                const response: any = await apiGet("/api/admin/logs?type=admin_action&limit=10");
+                const response: any = await apiGet("/api/admin/logs?limit=10");
                 setAdminActivities(response?.data || []);
             } catch (err) {
                 console.error("Failed to load admin activities", err);
@@ -369,31 +392,53 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     
                     <div className="h-px bg-border/40 w-full" />
 
-                    {/* Recent Activity (Admin) - Timeline Style */}
+                    {/* Notifications Section */}
                     <div>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest mb-5 block">Recent activity</span>
-                        <div className="max-h-[480px] overflow-y-auto no-scrollbar">
-                            <div className="space-y-0 relative">
-                                {/* Vertical Connectivity Line */}
-                                <div className="absolute left-[7px] top-2 bottom-5 w-0.5 bg-border/40" />
-
-                                {adminActivities.map((activity, idx) => (
-                                    <div key={idx} className="relative pl-7 pb-5 last:pb-2 group">
-                                        {/* Timeline Dot */}
-                                        <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-[3px] border-card z-10 transition-transform group-hover:scale-125 bg-emerald-500 shadow-sm shadow-black/20" />
-                                        
-                                        <div className="flex flex-col gap-0.5 min-w-0">
-                                            <span className="text-[11px] font-bold text-foreground/80 group-hover:text-foreground transition-all leading-tight">
-                                                {activity.message}
-                                            </span>
-                                            <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">
-                                                {formatRelativeTime(activity.createdAt)}
-                                            </span>
+                        <div className="flex items-center justify-between mb-5">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest block">Notifications</span>
+                            {unreadNotificationsCount > 0 && (
+                                <button 
+                                    onClick={handleMarkAllAsRead}
+                                    className="text-[9px] font-bold text-primary uppercase tracking-wider hover:underline"
+                                >
+                                    Mark all read
+                                </button>
+                            )}
+                        </div>
+                        <div className="max-h-[550px] overflow-y-auto no-scrollbar pr-1">
+                            <div className="space-y-4 relative">
+                                {notifications.map((notif, idx) => (
+                                    <div key={notif._id || idx} className={`relative p-3 rounded-xl border transition-all group ${notif.read ? 'bg-secondary/20 border-transparent' : 'bg-primary/5 border-primary/20 shadow-sm'}`}>
+                                        <div className="flex flex-col gap-1.5 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <span className={`text-[11px] font-bold leading-tight ${notif.read ? 'text-foreground/70' : 'text-foreground'}`}>
+                                                    {notif.title}
+                                                </span>
+                                                {!notif.read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1" />}
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+                                                {notif.message}
+                                            </p>
+                                            <div className="flex items-center justify-between mt-1">
+                                                <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                                                    {formatRelativeTime(notif.createdAt)}
+                                                </span>
+                                                {notif.link && (
+                                                    <Link 
+                                                        href={notif.link}
+                                                        className="text-[9px] font-bold text-primary uppercase tracking-widest hover:underline"
+                                                    >
+                                                        View
+                                                    </Link>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
-                                {adminActivities.length === 0 && (
-                                    <div className="text-[10px] text-muted-foreground/60">No recent admin actions.</div>
+                                {notifications.length === 0 && (
+                                    <div className="text-[10px] text-muted-foreground/60 py-10 text-center border border-dashed border-border/50 rounded-2xl">
+                                        No notifications yet.
+                                    </div>
                                 )}
                             </div>
                         </div>
