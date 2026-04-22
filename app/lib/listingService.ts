@@ -61,6 +61,13 @@ export const listingService = {
     },
 
     /**
+     * Fetch a single listing by ID or Slug
+     */
+    getListingById: async (id: string) => {
+        return apiGet<any>(`/listing/single/${id}`);
+    },
+
+    /**
      * Admin: Approve a listing
      */
     approveListing: async (id: string) => {

@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
+import { listingService } from "@/lib/listingService";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
     Plus,
     MoreHorizontal,
@@ -35,88 +38,7 @@ export interface DashboardProductRow {
     orders: number;
 }
 
-const DASHBOARD_PRODUCTS: DashboardProductRow[] = [
-    {
-        id: "39842-231",
-        name: "Macbook Pro 15'",
-        status: "Available",
-        category: "Electronics",
-        price: 2999000,
-        dateListed: "20 Jan, 2022",
-        review: 4.8,
-        sold: 145,
-        profit: 434855,
-        image: "",
-        messages: 8,
-        views: 124,
-        offers: 6,
-        orders: 4,
-    },
-    {
-        id: "39842-232",
-        name: "Macbook Pro 13'",
-        status: "In Review",
-        category: "Electronics",
-        price: 999000,
-        dateListed: "22 Feb, 2022",
-        review: 0.0,
-        sold: 0,
-        profit: 0,
-        image: "",
-        messages: 3,
-        views: 92,
-        offers: 1,
-        orders: 0,
-    },
-    {
-        id: "39842-233",
-        name: "iPhone 13 Mini",
-        status: "Sold Out",
-        category: "Electronics",
-        price: 450000,
-        dateListed: "22 Feb, 2022",
-        review: 4.5,
-        sold: 320,
-        profit: 144000,
-        image: "",
-        messages: 5,
-        views: 98,
-        offers: 2,
-        orders: 2,
-    },
-    {
-        id: "39842-234",
-        name: "iPhone 14",
-        status: "Preorder",
-        category: "Electronics",
-        price: 850000,
-        dateListed: "22 Feb, 2022",
-        review: 4.9,
-        sold: 10,
-        profit: 8500,
-        image: "",
-        messages: 6,
-        views: 80,
-        offers: 1,
-        orders: 1,
-    },
-    {
-        id: "39842-235",
-        name: "AirPods 2",
-        status: "Available",
-        category: "Electronics",
-        price: 150000,
-        dateListed: "22 Feb, 2022",
-        review: 4.2,
-        sold: 450,
-        profit: 67500,
-        image: "",
-        messages: 4,
-        views: 76,
-        offers: 5,
-        orders: 6,
-    },
-];
+
 
 const getStatusText = (status: string) => {
     switch (status) {
@@ -131,9 +53,11 @@ const getStatusText = (status: string) => {
 };
 
 export function DashboardProductsTable() {
+    const [products, setProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
-    const [editingListing, setEditingListing] = useState<DashboardProductRow | null>(null);
+    const [editingListing, setEditingListing] = useState<any | null>(null);
     const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
         status: null,
         price: null,
@@ -142,13 +66,31 @@ export function DashboardProductsTable() {
     });
     const [activeFilterColumn, setActiveFilterColumn] = useState<FilterKey | null>(null);
 
-    const STATUS_OPTIONS = useMemo(() => Array.from(new Set(DASHBOARD_PRODUCTS.map((p) => getStatusText(p.status)))), []);
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const res = await listingService.getUserListings();
+                if (res.success) {
+                    setProducts(res.data);
+                }
+            } catch (error) {
+                console.error("Fetch products error:", error);
+                toast.error("Failed to load your products");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    const STATUS_OPTIONS = useMemo(() => Array.from(new Set(products.map((p: any) => getStatusText(p.status)))), [products]);
     const PRICE_OPTIONS = ["<₦1.0M", "₦1.0M - ₦3.0M", ">₦3.0M"];
     const STOCK_OPTIONS = ["<50", "50-100", ">100"];
     const ORDERS_OPTIONS = ["<50", "50-100", ">100"];
 
     const filteredProducts = useMemo(() => {
-        return DASHBOARD_PRODUCTS.filter((product) => {
+        return products.filter((product) => {
             if (filters.status && getStatusText(product.status) !== filters.status) return false;
 
             if (filters.price) {
@@ -158,21 +100,15 @@ export function DashboardProductsTable() {
             }
 
             if (filters.stock) {
-                if (filters.stock === "<50" && product.views >= 50) return false;
-                if (filters.stock === "50-100" && (product.views < 50 || product.views > 100)) return false;
-                if (filters.stock === ">100" && product.views <= 100) return false;
-            }
-
-            if (filters.orders) {
-                const total = product.orders + product.views;
-                if (filters.orders === "<50" && total >= 50) return false;
-                if (filters.orders === "50-100" && (total < 50 || total > 100)) return false;
-                if (filters.orders === ">100" && total <= 100) return false;
+                const stock = product.views || 0; // Mocking stock with views for now
+                if (filters.stock === "<50" && stock >= 50) return false;
+                if (filters.stock === "50-100" && (stock < 50 || stock > 100)) return false;
+                if (filters.stock === ">100" && stock <= 100) return false;
             }
 
             return true;
         });
-    }, [filters]);
+    }, [filters, products]);
 
     const getStatusStyles = (status: string) => {
         switch (status) {
@@ -214,7 +150,7 @@ export function DashboardProductsTable() {
         if (activeFilterColumn !== column) return null;
         return (
             <div className="absolute left-0 top-full mt-1 z-30 w-[180px] rounded-2xl border border-border bg-popover p-2 shadow-xl normal-case tracking-normal">
-                {options.map((option) => (
+                {options.map((option: string) => (
                     <button
                         key={option}
                         onClick={() => applyFilter(column, option)}
@@ -239,6 +175,15 @@ export function DashboardProductsTable() {
         if (openDropdownId === id) setOpenDropdownId(null);
         else setOpenDropdownId(id);
     };
+
+    if (loading) {
+        return (
+            <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading Products...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
@@ -271,7 +216,7 @@ export function DashboardProductsTable() {
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
                     >
                         <option value="">Status</option>
-                        {STATUS_OPTIONS.map((option) => (
+                        {STATUS_OPTIONS.map((option: string) => (
                             <option key={option} value={option}>{option}</option>
                         ))}
                     </select>
@@ -281,7 +226,7 @@ export function DashboardProductsTable() {
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground/70"
                     >
                         <option value="">Price</option>
-                        {PRICE_OPTIONS.map((option) => (
+                        {PRICE_OPTIONS.map((option: string) => (
                             <option key={option} value={option}>{option}</option>
                         ))}
                     </select>
@@ -289,22 +234,28 @@ export function DashboardProductsTable() {
             </div>
 
             <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-                {filteredProducts.map((prod) => {
-                    const isOpen = expandedId === prod.id;
+                {filteredProducts.map((prod: any) => {
+                    const isOpen = expandedId === prod._id;
                     return (
-                        <div key={prod.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                        <div key={prod._id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
                             <button
-                                onClick={() => setExpandedId(isOpen ? null : prod.id)}
+                                onClick={() => setExpandedId(isOpen ? null : prod._id)}
                                 className="w-full flex items-center justify-between gap-3 px-4 py-3"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl overflow-hidden border border-border/40 bg-secondary/50 shrink-0">
-                                        <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl overflow-hidden border border-border/40 bg-secondary/50 shrink-0 flex items-center justify-center">
+                                        {prod.images?.[0] ? (
+                                            <img src={prod.images[0]} alt={prod.title} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Edit className="w-4 h-4 text-muted-foreground/40" />
+                                        )}
                                     </div>
                                     <div className="min-w-0 text-left">
-                                        <p className="text-sm font-semibold text-foreground truncate">{prod.name}</p>
-                                        <p className="text-[11px] text-muted-foreground">â‚¦{(prod.price / 1000).toFixed(0)}k</p>
+                                        <p className="text-sm font-semibold text-foreground truncate">{prod.title}</p>
+                                        <p className="text-[11px] text-muted-foreground">₦{prod.price.toLocaleString()}</p>
                                     </div>
+                                </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(prod.status)}`} aria-hidden />
@@ -326,12 +277,12 @@ export function DashboardProductsTable() {
                                                 <p className="font-semibold text-foreground/80">#{prod.id.split("-")[1] || prod.id}</p>
                                             </div>
                                             <div>
-                                                <p className="uppercase tracking-widest text-[9px]">In Stock</p>
-                                                <p className="font-semibold text-foreground/80">{prod.views}</p>
+                                                <p className="uppercase tracking-widest text-[9px]">Views</p>
+                                                <p className="font-semibold text-foreground/80">{prod.views || 0}</p>
                                             </div>
                                             <div>
-                                                <p className="uppercase tracking-widest text-[9px]">Total Order</p>
-                                                <p className="font-semibold text-foreground/80">{prod.orders + prod.views}</p>
+                                                <p className="uppercase tracking-widest text-[9px]">Status</p>
+                                                <p className="font-semibold text-foreground/80 uppercase">{prod.status}</p>
                                             </div>
                                             <div>
                                                 <p className="uppercase tracking-widest text-[9px]">Category</p>
@@ -347,7 +298,7 @@ export function DashboardProductsTable() {
                                             </button>
                                         </div>
                                         <AnimatePresence>
-                                            {openDropdownId === prod.id && (
+                                            {openDropdownId === prod._id && (
                                                 <motion.div
                                                     initial={{ opacity: 0, y: 6 }}
                                                     animate={{ opacity: 1, y: 0 }}
@@ -428,7 +379,7 @@ export function DashboardProductsTable() {
                     </thead>
                     <tbody className="text-sm">
                         {filteredProducts.map((prod, idx) => (
-                            <tr key={prod.id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
+                            <tr key={prod._id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
                                 <td className="py-3 pl-4 md:pl-6">
                                     <div className="flex items-center gap-3">
                                         <input
@@ -436,23 +387,27 @@ export function DashboardProductsTable() {
                                             className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 bg-blue-50/50"
                                         />
                                         <span className="font-medium text-foreground/80">
-                                            #{prod.id.split('-')[1] || prod.id}
+                                            #{prod.listingCode || prod._id.slice(-6)}
                                         </span>
                                     </div>
                                 </td>
                                 <td className="py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded overflow-hidden bg-secondary/50 border border-border/30 shrink-0">
-                                            <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                                        <div className="w-10 h-10 rounded overflow-hidden bg-secondary/50 border border-border/30 shrink-0 flex items-center justify-center">
+                                            {prod.images?.[0] ? (
+                                                <img src={prod.images[0]} alt={prod.title} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Edit className="w-4 h-4 text-muted-foreground/40" />
+                                            )}
                                         </div>
-                                        <span className="font-medium text-foreground whitespace-nowrap">{prod.name}</span>
+                                        <span className="font-medium text-foreground whitespace-nowrap truncate max-w-[200px]">{prod.title}</span>
                                     </div>
                                 </td>
-                                <td className="py-3 font-medium text-foreground/80">₦{(prod.price / 1000).toFixed(0)}k</td>
-                                <td className="py-3 font-medium text-foreground/80">{prod.views}</td>
+                                <td className="py-3 font-medium text-foreground/80">₦{prod.price.toLocaleString()}</td>
+                                <td className="py-3 font-medium text-foreground/80">{prod.views || 0}</td>
                                 <td className="py-3">
-                                    <span className="px-3 py-1.5 text-[12px] font-bold rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 whitespace-nowrap">
-                                        {prod.orders + prod.views}
+                                    <span className="px-3 py-1.5 text-[12px] font-bold rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 whitespace-nowrap uppercase">
+                                        {prod.category}
                                     </span>
                                 </td>
                                 <td className="py-3">
@@ -462,13 +417,13 @@ export function DashboardProductsTable() {
                                 </td>
                                 <td className="py-3 text-center relative pr-4 md:pr-6">
                                     <button
-                                        onClick={() => toggleDropdown(prod.id)}
+                                        onClick={() => toggleDropdown(prod._id)}
                                         className="text-[13px] font-medium text-foreground/80 hover:text-foreground transition-colors hover:bg-secondary/50 px-3 py-1.5 rounded-lg whitespace-nowrap"
                                     >
                                         Details
                                     </button>
                                     <AnimatePresence>
-                                        {openDropdownId === prod.id && (
+                                        {openDropdownId === prod._id && (
                                             <>
                                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
                                                 <motion.div
@@ -516,7 +471,7 @@ export function DashboardProductsTable() {
                 <span className="text-[13px] font-medium text-muted-foreground order-2 md:order-1">Showing {filteredProducts.length} entries</span>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 order-1 md:order-2">
                     <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Prev</button>
-                    {[1, 2, 3].map((page) => (
+                    {[1, 2, 3].map((page: number) => (
                         <button
                             key={page}
                             className={`w-8 h-8 rounded-lg border text-xs font-semibold transition-all ${page === 1
@@ -534,11 +489,13 @@ export function DashboardProductsTable() {
                 </div>
             </div>
 
-            <EditListingModal
-                listing={editingListing ?? DASHBOARD_PRODUCTS[0]}
-                isOpen={Boolean(editingListing)}
-                onClose={() => setEditingListing(null)}
-            />
+            {editingListing && (
+                <EditListingModal
+                    listing={editingListing}
+                    isOpen={Boolean(editingListing)}
+                    onClose={() => setEditingListing(null)}
+                />
+            )}
         </div>
     );
 }

@@ -9,16 +9,21 @@ import {
     MessageSquareText,
     ChevronLeft,
     ChevronRight,
-    Eye
+    Eye,
+    Loader2
 } from "lucide-react";
 
-import { DASHBOARD_ORDERS, DashboardOrder, OrderStatus } from "../../data/dashboardOrders";
+import { DashboardOrder, OrderStatus } from "../../data/dashboardOrders";
 import { OrderDetailModal } from "./OrderDetailModal";
+import { orderService } from "@/lib/orderService";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 type FilterKey = "status" | "amount";
 
 export function DashboardOrdersTable() {
-    const [orders, setOrders] = useState<DashboardOrder[]>(DASHBOARD_ORDERS);
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
@@ -26,8 +31,26 @@ export function DashboardOrdersTable() {
         amount: null,
     });
     const [activeFilterColumn, setActiveFilterColumn] = useState<FilterKey | null>(null);
-    const [selectedOrder, setSelectedOrder] = useState<DashboardOrder | null>(null);
+    const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                setLoading(true);
+                const res = await orderService.getSellerOrders();
+                if (res.success) {
+                    setOrders(res.data);
+                }
+            } catch (error) {
+                console.error("Fetch orders error:", error);
+                toast.error("Failed to load orders");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
 
     const STATUS_OPTIONS: OrderStatus[] = [
         "Pending",
@@ -47,9 +70,10 @@ export function DashboardOrdersTable() {
             if (statusFilter && order.status !== statusFilter) return false;
 
             if (amountFilter) {
-                if (amountFilter === "<₦100k" && order.amount >= 100000) return false;
-                if (amountFilter === "₦100k - ₦500k" && (order.amount < 100000 || order.amount > 500000)) return false;
-                if (amountFilter === ">₦500k" && order.amount <= 500000) return false;
+                const amount = order.totalAmount || 0;
+                if (amountFilter === "<₦100k" && amount >= 100000) return false;
+                if (amountFilter === "₦100k - ₦500k" && (amount < 100000 || amount > 500000)) return false;
+                if (amountFilter === ">₦500k" && amount <= 500000) return false;
             }
 
             return true;
@@ -64,7 +88,7 @@ export function DashboardOrdersTable() {
     // Select all handler
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            setSelectedRows(pageOrders.map(o => o.id));
+            setSelectedRows(pageOrders.map(o => o._id));
         } else {
             setSelectedRows([]);
         }
@@ -92,8 +116,8 @@ export function DashboardOrdersTable() {
     };
 
     const handleOrderAction = (orderId: string, action: "confirm" | "fail") => {
-        setOrders(prev => prev.map(o => {
-            if (o.id === orderId) {
+        setOrders((prev: any[]) => prev.map((o: any) => {
+            if (o._id === orderId) {
                 if (action === "confirm") {
                     return { ...o, status: "Pending Admin Verification", sellerConfirmed: true };
                 } else {
@@ -103,7 +127,7 @@ export function DashboardOrdersTable() {
             return o;
         }));
         // Update selected order view
-        setSelectedOrder(prev => prev ? (prev.id === orderId ? { 
+        setSelectedOrder((prev: any) => prev ? (prev._id === orderId ? { 
             ...prev, 
             status: action === "confirm" ? "Pending Admin Verification" : "Failed",
             sellerConfirmed: action === "confirm" ? true : prev.sellerConfirmed,
@@ -115,7 +139,7 @@ export function DashboardOrdersTable() {
         if (activeFilterColumn !== column) return null;
         return (
             <div className="absolute left-0 top-full mt-1 z-30 w-[180px] rounded-2xl border border-border bg-popover p-2 shadow-2xl normal-case tracking-normal">
-                {options.map((option) => (
+                {options.map((option: string) => (
                     <button
                         key={option}
                         onClick={() => applyFilter(column, option)}
@@ -167,6 +191,15 @@ export function DashboardOrdersTable() {
         }
     };
 
+    if (loading) {
+        return (
+            <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading Orders...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
             <div className="p-4 md:p-5 border-b border-border/40">
@@ -204,17 +237,17 @@ export function DashboardOrdersTable() {
             </div>
 
             <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-                {pageOrders.map((order) => {
+                {pageOrders.map((order: any) => {
                     const isOpen = expandedId === order.id;
                     return (
                         <div key={order.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
                             <button
-                                onClick={() => setExpandedId(isOpen ? null : order.id)}
+                                onClick={() => setExpandedId(isOpen ? null : order._id)}
                                 className="w-full flex items-center justify-between gap-3 px-4 py-3"
                             >
                                 <div className="min-w-0 text-left">
-                                    <p className="text-sm font-semibold text-foreground truncate">{order.productName}</p>
-                                    <p className="text-[11px] text-muted-foreground">{order.customer}</p>
+                                    <p className="text-sm font-semibold text-foreground truncate">{order.items?.[0]?.title || "Generic Product"}</p>
+                                    <p className="text-[11px] text-muted-foreground">{order.buyerId?.profile?.displayName || "Guest"}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`w-2.5 h-2.5 rounded-full ${getStatusDotClass(order.status as OrderStatus)}`} aria-hidden />
@@ -224,18 +257,18 @@ export function DashboardOrdersTable() {
                             {isOpen && (
                                 <div className="px-4 pb-3">
                                     <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                                        <div>
-                                            <p className="uppercase tracking-widest text-[9px]">Order ID</p>
-                                            <p className="font-semibold text-foreground/80">{order.id}</p>
-                                        </div>
-                                        <div>
-                                            <p className="uppercase tracking-widest text-[9px]">Amount</p>
-                                            <p className="font-semibold text-foreground/80">â‚¦{(order.amount / 1000).toFixed(0)}k</p>
-                                        </div>
-                                        <div>
-                                            <p className="uppercase tracking-widest text-[9px]">Date</p>
-                                            <p className="font-semibold text-foreground/80">{order.date}</p>
-                                        </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Order ID</p>
+                                                <p className="font-semibold text-foreground/80">{order.orderId}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Amount</p>
+                                                <p className="font-semibold text-foreground/80">₦{order.totalAmount.toLocaleString()}</p>
+                                            </div>
+                                            <div>
+                                                <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                                <p className="font-semibold text-foreground/80">{new Date(order.createdAt).toLocaleDateString()}</p>
+                                            </div>
                                         <div>
                                             <p className="uppercase tracking-widest text-[9px]">Status</p>
                                             <p className="font-semibold text-foreground/80">{order.status}</p>
@@ -262,7 +295,7 @@ export function DashboardOrdersTable() {
                         <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
                             <th className="pb-4 font-medium pl-4 md:pl-6 w-12">
                                 <div className="flex items-center">
-                                    <input
+                                        <input
                                         type="checkbox"
                                         className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 bg-blue-50/50 cursor-pointer"
                                         checked={selectedRows.length === pageOrders.length && pageOrders.length > 0}
@@ -292,23 +325,23 @@ export function DashboardOrdersTable() {
                         </tr>
                     </thead>
                     <tbody className="text-sm">
-                        {pageOrders.map((order) => (
-                            <tr key={order.id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group cursor-pointer" onClick={() => handleViewDetails(order)}>
+                        {pageOrders.map((order: any) => (
+                            <tr key={order._id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group cursor-pointer" onClick={() => handleViewDetails(order)}>
                                 <td className="py-3 pl-4 md:pl-6" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center">
                                         <input
                                             type="checkbox"
                                             className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 bg-blue-50/50 cursor-pointer"
-                                            checked={selectedRows.includes(order.id)}
-                                            onChange={() => handleSelectRow(order.id)}
+                                            checked={selectedRows.includes(order._id)}
+                                            onChange={() => handleSelectRow(order._id)}
                                         />
                                     </div>
                                 </td>
-                                <td className="py-3 font-medium text-foreground/80">{order.id}</td>
-                                <td className="py-3 font-medium text-foreground">{order.customer}</td>
-                                <td className="py-3 font-medium text-foreground/80">{order.productName}</td>
-                                <td className="py-3 font-medium text-foreground/80">{order.date}</td>
-                                <td className="py-3 font-medium text-foreground/80">₦{(order.amount / 1000).toFixed(0)}k</td>
+                                <td className="py-3 font-medium text-foreground/80">{order.orderId}</td>
+                                <td className="py-3 font-medium text-foreground">{order.buyerId?.profile?.displayName || "Guest"}</td>
+                                <td className="py-3 font-medium text-foreground/80">{order.items?.[0]?.title || "Generic Product"}</td>
+                                <td className="py-3 font-medium text-foreground/80">{new Date(order.createdAt).toLocaleDateString()}</td>
+                                <td className="py-3 font-medium text-foreground/80">₦{order.totalAmount.toLocaleString()}</td>
                                 <td className="py-3">
                                     <span className={`px-4 py-1.5 text-[12px] font-medium rounded-md whitespace-nowrap ${getStatusStyles(order.status as OrderStatus)}`}>
                                         {order.status}
