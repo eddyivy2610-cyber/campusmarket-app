@@ -36,11 +36,19 @@ export default function PendingUsersPage() {
 
     const handleApprove = async (userId: string) => {
         if (!confirm("Are you sure you want to approve this seller?")) return;
+        
+        // Optimistic UI update: remove user from state immediately
+        const previousUsers = [...users];
+        setUsers(users.filter(u => u._id !== userId));
+
         try {
             await apiPost(`/api/onboarding/admin/approve/${userId}`, {});
-            await fetchPendingUsers();
+            // Refresh in background to stay in sync
+            const response: any = await apiGet("/api/users?sellerStatus=pending");
+            setUsers(response?.data || []);
         } catch (err) {
             console.error("Approval failed", err);
+            setUsers(previousUsers); // Rollback on error
             alert("Failed to approve seller");
         }
     };
@@ -48,11 +56,18 @@ export default function PendingUsersPage() {
     const handleReject = async (userId: string) => {
         const reason = prompt("Enter rejection reason:");
         if (reason === null) return;
+        
+        // Optimistic UI update
+        const previousUsers = [...users];
+        setUsers(users.filter(u => u._id !== userId));
+
         try {
             await apiPost(`/api/onboarding/admin/reject/${userId}`, { reason });
-            await fetchPendingUsers();
+            const response: any = await apiGet("/api/users?sellerStatus=pending");
+            setUsers(response?.data || []);
         } catch (err) {
             console.error("Rejection failed", err);
+            setUsers(previousUsers); // Rollback on error
             alert("Failed to reject seller");
         }
     };
