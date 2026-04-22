@@ -36,7 +36,12 @@ const apiRequest = async <T>(
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;
 
-  const response = await fetch(normalizeUrl(path), {
+  const url = normalizeUrl(path);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[apiClient] ${options.method || 'GET'} ${url}`);
+  }
+
+  const response = await fetch(url, {
     ...options,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
