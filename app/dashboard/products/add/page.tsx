@@ -141,46 +141,6 @@ export default function AddListingPage() {
             <main className="flex-1 py-10 md:py-12 px-4 sm:px-6 xl:px-10">
                 <div className="max-w-6xl mx-auto space-y-6">
                     <section className="grid gap-6 lg:grid-cols-[240px,1fr]">
-                        <div className="border border-border/40 bg-card p-4 space-y-4 rounded-[var(--radius)] shadow-md">
-                            <div className="space-y-2">
-                                <h2 className="text-sm font-semibold">Need Help Listing?</h2>
-                                <p className="text-[11px] text-muted-foreground">Our listing team reviews drafts within 2 hours.</p>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <span className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                                        <PhoneCall className="w-4 h-4" />
-                                    </span>
-                                    <div>
-                                        <p className="text-[11px] text-muted-foreground">Phone</p>
-                                        <p className="text-sm font-semibold">+234 803 000 0000</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                                        <Mail className="w-4 h-4" />
-                                    </span>
-                                    <div>
-                                        <p className="text-[11px] text-muted-foreground">Email</p>
-                                        <p className="text-sm font-semibold">support@campushive.ng</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="rounded-[var(--radius)] border border-border/40 bg-secondary/30 p-3 space-y-1">
-                                <p className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground">Summary</p>
-                                <p className="text-lg font-bold">{summary.value}</p>
-                                <p className="text-xs text-muted-foreground">{summary.category}</p>
-                                <p className="text-[12px] text-muted-foreground">Listings in review queue: {summary.listingsInQueue}</p>
-                            </div>
-
-                            {error && (
-                                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold animate-in slide-in-from-top-2 duration-300">
-                                    {error}
-                                </div>
-                            )}
-                        </div>
-
                         <form onSubmit={handleSubmit} className="space-y-6 border border-border/40 bg-card rounded-[var(--radius)] p-6 shadow-xl">
                             <div>
                                 <p className="text-base font-semibold">Basic Listing Details</p>

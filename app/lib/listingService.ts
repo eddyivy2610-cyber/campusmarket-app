@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "./apiClient";
+import { apiGet, apiPost, apiPut } from "./apiClient";
 
 export interface CreateListingData {
     title: string;
@@ -54,9 +54,23 @@ export const listingService = {
         return apiGet<any>("/listing/user/all");
     },
     /**
-     * Fetch a single listing by ID/Slug
+     * Admin: Fetch all listings with status filter
      */
-    getListingById: async (id: string) => {
-        return apiGet<any>(`/listing/single/${id}`);
+    getAllAdminListings: async (status?: string) => {
+        return apiGet<any>(`/listing/admin/all${status ? `?status=${status}` : ""}`);
+    },
+
+    /**
+     * Admin: Approve a listing
+     */
+    approveListing: async (id: string) => {
+        return apiPut<any>(`/listing/admin/approve/${id}`, {});
+    },
+
+    /**
+     * Admin: Reject a listing
+     */
+    rejectListing: async (id: string, reason: string) => {
+        return apiPut<any>(`/listing/admin/reject/${id}`, { reason });
     },
 };

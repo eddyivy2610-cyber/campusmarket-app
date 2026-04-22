@@ -21,13 +21,14 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface ListingDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     listing: any;
     onApprove?: (id: string) => void;
-    onReject?: (id: string, reason: string, notes: string) => void;
+    onReject?: (id: string, reason: string) => void;
 }
 
 const REJECTION_REASONS = [
@@ -125,7 +126,7 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
                                 </span>
                                 <span className={cn(
                                     "px-3 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest shadow-lg",
-                                    listing.status === "Pending" ? "bg-amber-500 shadow-amber-500/20" : "bg-emerald-500 shadow-emerald-500/20"
+                                    listing.status?.toLowerCase() === "pending" ? "bg-amber-500 shadow-amber-500/20" : "bg-emerald-500 shadow-emerald-500/20"
                                 )}>
                                     {listing.status}
                                 </span>
@@ -139,7 +140,7 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
                                 <div className="space-y-1 pr-8">
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
                                         <Package size={12} />
-                                        Listing ID: LST-28492-AX
+                                        Listing ID: {listing.listingCode || listing._id?.slice(-8).toUpperCase()}
                                     </div>
                                     <h2 className="text-xl font-bold font-heading text-foreground leading-tight">{listing.title}</h2>
                                     <div className="text-lg font-bold text-primary self-start">₦{listing.price?.toLocaleString()}</div>
@@ -180,15 +181,15 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
                                 {activeTab === "details" && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-                                            <DetailItem label="Condition" value={listing.condition || "Like New"} />
-                                            <DetailItem label="Brand" value="Apple" />
-                                            <DetailItem label="Negotiable" value="Yes" />
-                                            <DetailItem label="Posted" value={listing.date || "2 hours ago"} />
+                                            <DetailItem label="Condition" value={listing.condition || "N/A"} />
+                                            <DetailItem label="Location" value={listing.location || "N/A"} />
+                                            <DetailItem label="Negotiable" value={listing.negotiable ? "Yes" : "No"} />
+                                            <DetailItem label="Posted" value={new Date(listing.createdAt).toLocaleDateString()} />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50">Description</label>
                                             <p className="text-sm text-foreground/80 leading-relaxed font-medium">
-                                                {listing.description || "MacBook Pro 14-inch with M1 Pro chip, 16GB RAM, and 512GB SSD. Excellent condition, includes original box and charger. Battery cycle count: 42."}
+                                                {listing.description}
                                             </p>
                                         </div>
                                     </div>
@@ -199,17 +200,17 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
                                         {/* Vendor Summary */}
                                         <div className="p-4 rounded-2xl bg-secondary/20 border border-border/50 flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg border-2 border-primary/20 shadow-inner">
-                                                {listing.seller?.charAt(0) || "J"}
+                                                {(listing.sellerId?.profile?.displayName || "U").charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-foreground">{listing.seller || "John Doe"}</span>
+                                                    <span className="font-bold text-foreground">{listing.sellerId?.profile?.displayName || "Unknown Vendor"}</span>
                                                     <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[9px] font-bold">
                                                         <Star size={8} className="fill-amber-500" />
                                                         4.8
                                                     </div>
                                                 </div>
-                                                <div className="text-[10px] font-bold text-muted-foreground opacity-50 uppercase tracking-widest mt-0.5">ID: USR-12345</div>
+                                                <div className="text-[10px] font-bold text-muted-foreground opacity-50 uppercase tracking-widest mt-0.5">ID: {listing.sellerId?._id?.slice(-8).toUpperCase() || "N/A"}</div>
                                             </div>
                                         </div>
 
@@ -261,10 +262,23 @@ export default function AdminListingDetailModal({ isOpen, onClose, listing, onAp
 
                             {/* Footer Actions */}
                             <div className="p-4 sm:p-6 border-t border-border/50 bg-muted/20 flex flex-col sm:flex-row gap-3 mt-auto">
-                                <button className="w-full sm:flex-1 py-3 px-4 rounded-xl border border-border/50 bg-white dark:bg-card text-[10px] font-bold uppercase tracking-widest hover:bg-muted transition-all active:scale-95 shadow-sm">
+                                <button 
+                                    onClick={() => {
+                                        if (!rejectionReason) {
+                                            toast.error("Please select a rejection reason");
+                                            setActiveTab("actions");
+                                            return;
+                                        }
+                                        onReject?.(listing._id, rejectionReason);
+                                    }}
+                                    className="w-full sm:flex-1 py-3 px-4 rounded-xl border border-border/50 bg-white dark:bg-card text-[10px] font-bold uppercase tracking-widest hover:bg-muted transition-all active:scale-95 shadow-sm"
+                                >
                                     Reject Item
                                 </button>
-                                <button className="w-full sm:flex-[1.5] py-3 px-4 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                                <button 
+                                    onClick={() => onApprove?.(listing._id)}
+                                    className="w-full sm:flex-[1.5] py-3 px-4 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                                >
                                     <CheckCircle size={14} />
                                     Approve Listing
                                 </button>
