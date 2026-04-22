@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { getAdminSession, clearAdminSession } from "@/lib/adminAuth";
-import { apiGet } from "@/lib/apiClient";
+import { apiGet, apiPatch } from "@/lib/apiClient";
 
 const ADMIN_NAV_ITEMS = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
