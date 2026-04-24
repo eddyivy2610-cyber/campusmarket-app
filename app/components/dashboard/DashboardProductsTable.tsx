@@ -45,6 +45,7 @@ const getStatusText = (status: string) => {
         case "Available":
             return "Active";
         case "In Review":
+        case "pending":
         case "Preorder":
             return "Pending";
         default:
@@ -115,6 +116,7 @@ export function DashboardProductsTable() {
             case "Available":
                 return "bg-[#10B981] text-white"; // Green Active
             case "In Review":
+            case "pending":
             case "Preorder":
                 return "bg-slate-200 text-slate-500"; // Grayish Pending
             case "Sold Out":
@@ -128,6 +130,7 @@ export function DashboardProductsTable() {
             case "Available":
                 return "bg-emerald-500";
             case "In Review":
+            case "pending":
             case "Preorder":
                 return "bg-slate-400";
             case "Sold Out":

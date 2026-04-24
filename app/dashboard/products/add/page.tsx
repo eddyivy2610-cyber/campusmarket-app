@@ -106,8 +106,9 @@ export default function AddListingPage() {
             await listingService.createListing(listingData);
             
             setSuccess(true);
+            setSuccess(true);
             setTimeout(() => {
-                router.push("/manage-listings");
+                router.push("/dashboard/products");
             }, 2000);
 
         } catch (err: any) {
@@ -129,7 +130,7 @@ export default function AddListingPage() {
                     </div>
                     <h1 className="text-2xl font-bold">Listing Submitted!</h1>
                     <p className="text-muted-foreground">
-                        Your listing is being reviewed and will be live shortly. Redirecting you to your dashboard...
+                        Your listing has been submitted for verification. It will appear on the marketplace once approved by an admin. Redirecting to your dashboard...
                     </p>
                 </div>
             </div>

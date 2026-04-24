@@ -24,7 +24,6 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
             "/saved",
             "/notifications",
             "/dashboard",
-            "/manage-listings",
             "/cart",
         ];
         const isProtectedPage = protectedPrefixes.some((p) => pathname.startsWith(p));

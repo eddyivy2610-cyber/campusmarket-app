@@ -19,11 +19,9 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
         const fetchListings = async () => {
             try {
                 setIsLoading(true);
-                // For visitors, show only active listings. 
-                // For the host (private view), show all their listings (including pending/rejected)
                 const endpoint = isHost 
-                    ? `${process.env.NEXT_PUBLIC_API_URL}/api/listings/user/all`
-                    : `${process.env.NEXT_PUBLIC_API_URL}/api/listings/active?sellerId=${sellerId}`;
+                    ? `${process.env.NEXT_PUBLIC_API_URL}/api/listing/user/all`
+                    : `${process.env.NEXT_PUBLIC_API_URL}/api/listing/active?sellerId=${sellerId}`;
                 
                 const response = await fetch(endpoint, {
                     headers: isHost ? {
@@ -32,6 +30,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                 });
                 
                 const data = await response.json();
+
                 if (data.success) {
                     setListings(data.data);
                 }
