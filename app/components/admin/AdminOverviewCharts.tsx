@@ -22,7 +22,7 @@ const AdminOverviewCharts = () => {
     useEffect(() => {
         const fetchTotals = async () => {
             try {
-                const response: any = await apiGet("user");
+                const response: any = await apiGet("users");
                 const users = response?.data || [];
 
                 const now = new Date();
@@ -132,7 +132,7 @@ const AdminOverviewCharts = () => {
                             axisLine={false} 
                             tickLine={false} 
                             tick={{ fontSize: 10, fill: "currentColor", fontWeight: 600 }}
-                            tickFormatter={(val) => `${val / 1000}k`}
+                            tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
                         />
                         <Tooltip 
                             cursor={{ stroke: "var(--color-primary)", strokeWidth: 1, strokeDasharray: "4 4", opacity: 0.3 }}

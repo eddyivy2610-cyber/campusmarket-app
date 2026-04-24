@@ -107,7 +107,11 @@ export default function ListingPage() {
                     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 md:gap-12">
                         {/* Left Column: Media, Details, Related (Desktop) */}
                         <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 md:gap-12 order-1 lg:order-none">
-                            <ProductGallery images={product.images || [product.image]} />
+                            <ProductGallery images={
+                                (product.images && product.images.length > 0) 
+                                    ? product.images 
+                                    : (product.image ? [product.image] : ["/placeholder-product.png"])
+                            } />
 
                             {/* Primary Purchase Panel (Mobile) */}
                             <div className="block lg:hidden">
