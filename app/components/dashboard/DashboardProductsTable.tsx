@@ -115,15 +115,15 @@ export function DashboardProductsTable() {
     const getStatusStyles = (status: string) => {
         switch (status) {
             case "Available":
-                return "bg-[#10B981] text-white"; // Green Active
+                return "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
             case "In Review":
             case "pending":
             case "Preorder":
-                return "bg-slate-200 text-slate-500"; // Grayish Pending
+                return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
             case "Sold Out":
-                return "bg-red-100 text-red-600";
+                return "bg-red-500/10 text-red-500 border border-red-500/20";
             default:
-                return "bg-secondary text-muted-foreground";
+                return "bg-secondary text-muted-foreground border border-border/50";
         }
     };
     const getStatusDotClass = (status: string) => {
@@ -327,7 +327,7 @@ export function DashboardProductsTable() {
             <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-4 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                        <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
+                        <tr className="border-b border-border/50 text-[11px] uppercase font-black text-muted-foreground/50 tracking-[0.1em] bg-muted/5 dark:bg-muted/2">
                             <th className="pb-4 font-medium pl-4 md:pl-6 w-[15%]">Tracking</th>
                             <th className="pb-4 font-medium w-[25%]">Product Name</th>
                             <th className="pb-4 font-medium w-[10%] relative">
@@ -390,7 +390,7 @@ export function DashboardProductsTable() {
                                 <td className="py-3 font-medium text-foreground/80">₦{prod.price.toLocaleString()}</td>
                                 <td className="py-3 font-medium text-foreground/80">{prod.views || 0}</td>
                                 <td className="py-3">
-                                    <span className="px-3 py-1.5 text-[12px] font-bold rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 whitespace-nowrap uppercase">
+                                    <span className="px-3 py-1.5 text-[11px] font-bold rounded-xl bg-primary/10 text-primary border border-primary/20 whitespace-nowrap uppercase tracking-wider">
                                         {prod.category}
                                     </span>
                                 </td>
