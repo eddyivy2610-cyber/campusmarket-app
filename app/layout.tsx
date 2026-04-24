@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SavedProvider } from "./context/SavedContext";
 import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketContext";
 import { FloatingActions } from "./components/locations/FloatingActions";
 import { SmoothScroll } from "./components/common/SmoothScroll";
 import { LayoutWrapper } from "./components/common/LayoutWrapper";
@@ -42,14 +43,16 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            <SavedProvider>
-              <SmoothScroll>
-                <LayoutWrapper>
-                  {children}
-                </LayoutWrapper>
-                <FloatingActions />
-              </SmoothScroll>
-            </SavedProvider>
+            <SocketProvider>
+              <SavedProvider>
+                <SmoothScroll>
+                  <LayoutWrapper>
+                    {children}
+                  </LayoutWrapper>
+                  <FloatingActions />
+                </SmoothScroll>
+              </SavedProvider>
+            </SocketProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
