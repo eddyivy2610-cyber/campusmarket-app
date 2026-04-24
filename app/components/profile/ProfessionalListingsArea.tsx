@@ -1,11 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { PackageOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PRODUCTS } from "../../data/products";
 import { ProductCard } from "../shop/ProductCard";
-
 
 interface ProfessionalListingsAreaProps {
     viewAs: "private" | "public";
@@ -14,16 +12,53 @@ interface ProfessionalListingsAreaProps {
 
 export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListingsAreaProps) {
     const isHost = viewAs === "private";
+    const [listings, setListings] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Derive displayed listings based on view
-    const sellerListings = PRODUCTS.filter(p => p.sellerId === sellerId);
-    const visibleListings = sellerListings;
+    useEffect(() => {
+        const fetchListings = async () => {
+            try {
+                setIsLoading(true);
+                // For visitors, show only active listings. 
+                // For the host (private view), show all their listings (including pending/rejected)
+                const endpoint = isHost 
+                    ? `${process.env.NEXT_PUBLIC_API_URL}/api/listings/user/all`
+                    : `${process.env.NEXT_PUBLIC_API_URL}/api/listings/active?sellerId=${sellerId}`;
+                
+                const response = await fetch(endpoint, {
+                    headers: isHost ? {
+                        "Authorization": `Bearer ${localStorage.getItem("campus_token")}`
+                    } : {}
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    setListings(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch listings:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
+        if (sellerId) {
+            fetchListings();
+        }
+    }, [sellerId, isHost]);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-4 border-[#FFD700] border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="w-full">
-            {/* Empty state for visitor when no active listings */}
-            {!isHost && visibleListings.length === 0 ? (
+            {/* Empty state when no listings found */}
+            {listings.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -33,16 +68,20 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                         <PackageOpen className="w-8 h-8" />
                     </div>
                     <div className="text-center space-y-1">
-                        <p className="text-sm font-bold text-foreground/60 uppercase tracking-widest">No Active Listings</p>
-                        <p className="text-xs text-muted-foreground font-medium">This seller hasn&apos;t posted anything yet.</p>
+                        <p className="text-sm font-bold text-foreground/60 uppercase tracking-widest">
+                            {isHost ? "No Listings Yet" : "No Active Listings"}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-medium">
+                            {isHost ? "Start selling to see your items here." : "This seller hasn't posted anything yet."}
+                        </p>
                     </div>
                 </motion.div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-1.5 md:gap-2.5">
                     <AnimatePresence mode="popLayout">
-                        {visibleListings.map((listing, idx) => (
+                        {listings.map((listing, idx) => (
                             <motion.div
-                                key={listing.id}
+                                key={listing._id}
                                 layout
                                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -54,10 +93,9 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                                 <ProductCard
                                     product={{
                                         ...listing,
-                                        price: listing.price,
-                                        category: listing.category,
-                                        recommendedCount: listing.recommendedCount,
-                                        notRecommendedCount: listing.notRecommendedCount
+                                        id: listing._id,
+                                        // ProductCard expects 'title' and 'image' or 'images'
+                                        // The listing object already has these from the backend
                                     }}
                                     viewAs={viewAs}
                                 />
