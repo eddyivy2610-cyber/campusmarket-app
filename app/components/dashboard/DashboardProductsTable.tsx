@@ -330,30 +330,42 @@ export function DashboardProductsTable() {
                         <tr className="border-b border-border/50 text-[11px] uppercase font-black text-muted-foreground/50 tracking-[0.1em] bg-muted/5 dark:bg-muted/2">
                             <th className="pb-4 font-medium pl-4 md:pl-6 w-[15%]">Tracking</th>
                             <th className="pb-4 font-medium w-[25%]">Product Name</th>
-                            <th className="pb-4 font-medium w-[10%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("price")}>
-                                    <span>Price</span>
+                            <th 
+                                className="pb-4 font-medium w-[10%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("price")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">Price</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("price", PRICE_OPTIONS)}
                             </th>
-                            <th className="pb-4 font-medium w-[10%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("stock")}>
-                                    <span>In Stock</span>
+                            <th 
+                                className="pb-4 font-medium w-[10%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("stock")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">In Stock</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("stock", STOCK_OPTIONS)}
                             </th>
-                            <th className="pb-4 font-medium w-[15%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("orders")}>
-                                    <span>Total Order</span>
+                            <th 
+                                className="pb-4 font-medium w-[15%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("orders")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">Total Order</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("orders", ORDERS_OPTIONS)}
                             </th>
-                            <th className="pb-4 font-medium w-[15%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("status")}>
-                                    <span>Status</span>
+                            <th 
+                                className="pb-4 font-medium w-[15%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("status")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">Status</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("status", STATUS_OPTIONS)}
@@ -435,7 +447,7 @@ export function DashboardProductsTable() {
                 </table>
             </div>
 
-            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4 rounded-b-[20px] bg-white dark:bg-card">
+            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4 rounded-b-[20px] bg-card">
                 <span className="text-[13px] font-medium text-muted-foreground order-2 md:order-1">Showing {filteredProducts.length} entries</span>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 order-1 md:order-2">
                     <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Prev</button>

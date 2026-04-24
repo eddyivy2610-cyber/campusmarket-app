@@ -39,7 +39,7 @@ function ConversationRow({ conv, active, onSelect }: { conv: Conversation; activ
     return (
         <button
             onClick={onSelect}
-            className={`w-full flex items-center gap-3.5 px-5 py-3.5 border-b border-transparent hover:bg-secondary/30 transition-colors text-left ${active ? "bg-[#f3f6fc] dark:bg-secondary/50 rounded-lg mx-2 w-[calc(100%-16px)]" : ""}`}
+            className={`w-full flex items-center gap-3.5 px-5 py-3.5 border-b border-transparent hover:bg-secondary/30 transition-colors text-left ${active ? "bg-secondary/40 rounded-lg mx-2 w-[calc(100%-16px)]" : ""}`}
         >
             {/* Avatar */}
             <div className="relative shrink-0">

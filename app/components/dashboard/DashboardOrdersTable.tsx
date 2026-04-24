@@ -164,15 +164,15 @@ export function DashboardOrdersTable() {
         switch (status) {
             case "Completed":
             case "Active":
-                return "bg-[#10B981] text-white";
+                return "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
             case "Pending":
             case "Pending Admin Verification":
-                return "bg-slate-200 text-slate-500";
+                return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
             case "Failed":
             case "Cancelled":
-                return "bg-red-100 text-red-600";
+                return "bg-red-500/10 text-red-500 border border-red-500/20";
             default:
-                return "bg-secondary text-muted-foreground";
+                return "bg-secondary text-muted-foreground border border-border/50";
         }
     };
     const getStatusDotClass = (status: OrderStatus) => {
@@ -193,7 +193,7 @@ export function DashboardOrdersTable() {
 
     if (loading) {
         return (
-            <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-full bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading Orders...</p>
             </div>
@@ -201,7 +201,7 @@ export function DashboardOrdersTable() {
     }
 
     return (
-        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
+        <div className="w-full bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
             <div className="p-4 md:p-5 border-b border-border/40">
                 <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-semibold font-heading">Orders</span>
@@ -292,7 +292,7 @@ export function DashboardOrdersTable() {
             <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                        <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
+                        <tr className="border-b border-border/50 text-[11px] uppercase font-black text-muted-foreground/50 tracking-[0.1em] bg-muted/5 dark:bg-muted/2">
                             <th className="pb-4 font-medium pl-4 md:pl-6 w-12">
                                 <div className="flex items-center">
                                         <input
@@ -307,16 +307,22 @@ export function DashboardOrdersTable() {
                             <th className="pb-4 font-medium w-[20%]">Customer</th>
                             <th className="pb-4 font-medium w-[20%]">Product Name</th>
                             <th className="pb-4 font-medium w-[10%]">Date</th>
-                            <th className="pb-4 font-medium w-[10%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("amount")}>
-                                    <span>Amount</span>
+                            <th 
+                                className="pb-4 font-medium w-[10%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("amount")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">Amount</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("amount", AMOUNT_OPTIONS)}
                             </th>
-                            <th className="pb-4 font-medium w-[15%] relative">
-                                <div className="inline-flex cursor-pointer items-center gap-1 group/filter hover:text-foreground transition-colors" onClick={() => toggleFilterMenu("status")}>
-                                    <span>Status</span>
+                            <th 
+                                className="pb-4 font-medium w-[15%] relative cursor-pointer group/th hover:bg-muted/10 transition-colors"
+                                onClick={() => toggleFilterMenu("status")}
+                            >
+                                <div className="inline-flex items-center gap-1 group/filter">
+                                    <span className="group-hover/th:text-foreground transition-colors">Status</span>
                                     <ChevronDown className="w-3.5 h-3.5 opacity-40 group-hover/filter:opacity-100 transition-opacity" />
                                 </div>
                                 {renderFilterMenu("status", STATUS_OPTIONS)}
@@ -347,12 +353,13 @@ export function DashboardOrdersTable() {
                                         {order.status}
                                     </span>
                                 </td>
-                                <td className="py-3 text-center relative pr-4 md:pr-6">
+                                <td className="py-3 text-right pr-4 md:pr-6">
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}
-                                        className="text-[13px] font-medium text-foreground/80 hover:text-foreground transition-colors hover:bg-secondary/50 px-3 py-1.5 rounded-lg whitespace-nowrap"
+                                        className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all active:scale-90 border border-transparent hover:border-border/50"
+                                        title="View Details"
                                     >
-                                        Details
+                                        <Eye className="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>
@@ -361,7 +368,7 @@ export function DashboardOrdersTable() {
                 </table>
             </div>
 
-            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4 bg-card rounded-b-[20px]">
                 <span className="text-[13px] font-medium text-muted-foreground order-2 md:order-1">Showing 1 to {showingTo} of {totalEntries} entries</span>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 order-1 md:order-2">
                     <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Prev</button>

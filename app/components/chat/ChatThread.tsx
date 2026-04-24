@@ -136,7 +136,7 @@ function MessageBubble({ msg, participantAvatar, participantName, userRole, onEn
         <div className={`flex flex-col gap-1 w-full mt-2 ${isMe ? "items-end" : "items-start"}`}>
             <div className={`max-w-[80%] md:max-w-[70%] px-4 py-3 rounded-2xl text-[13px] font-medium leading-relaxed shadow-sm ${isMe
                 ? "bg-[#4154F1] text-white rounded-br-sm"
-                : "bg-[#f3f6fc] dark:bg-secondary/50 text-foreground/90 rounded-bl-sm"}`}>
+                : "bg-muted/40 text-foreground/90 rounded-bl-sm"}`}>
                 {msg.text}
             </div>
             <div className={`flex items-center gap-1 mt-0.5 px-1 ${isMe ? "flex-row-reverse" : ""}`}>

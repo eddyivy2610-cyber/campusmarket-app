@@ -17,7 +17,7 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
     const menuRef = useRef<HTMLDivElement>(null);
 
     return (
-        <div className="shrink-0 bg-white dark:bg-card border-b border-border/30 px-6 py-4 flex items-center justify-between z-10 w-full">
+        <div className="shrink-0 bg-card border-b border-border/30 px-6 py-4 flex items-center justify-between z-10 w-full">
             {/* Left Box */}
             <div className="flex items-center gap-4">
                 {/* Back — mobile only */}

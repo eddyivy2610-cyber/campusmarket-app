@@ -138,7 +138,7 @@ function DashboardMessagesInner() {
     return (
         <div className="flex-1 min-h-0 flex bg-card overflow-hidden h-full">
             {/* ── LEFT: Inbox sidebar ───── */}
-            <div className={`w-full md:w-80 lg:w-[340px] shrink-0 flex flex-col border-r border-border/60 bg-white dark:bg-card ${mobileView === "thread" ? "hidden md:flex" : "flex"} h-full`}>
+            <div className={`w-full md:w-80 lg:w-[340px] shrink-0 flex flex-col border-r border-border/60 bg-card ${mobileView === "thread" ? "hidden md:flex" : "flex"} h-full`}>
                 
                 {/* Header & Search */}
                 <div className="p-5 md:p-6 pb-4 shrink-0 flex flex-col gap-5 border-b border-border/30">
@@ -156,7 +156,7 @@ function DashboardMessagesInner() {
                             placeholder="Search..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-4 pr-10 py-2.5 bg-[#f3f6fc] dark:bg-secondary/50 rounded-xl text-xs font-medium outline-none text-foreground placeholder:text-muted-foreground/60 transition-colors focus:ring-1 focus:ring-primary/20"
+                            className="w-full pl-4 pr-10 py-2.5 bg-muted/40 rounded-xl text-xs font-medium outline-none text-foreground placeholder:text-muted-foreground/60 transition-colors focus:ring-1 focus:ring-primary/20"
                         />
                         <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                     </div>
@@ -195,7 +195,7 @@ function DashboardMessagesInner() {
                             />
                         </div>
 
-                        <div className="p-3 md:p-4 bg-white dark:bg-card border-t border-border/0 pb-4 md:pb-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] md:shadow-none z-20 relative">
+                        <div className="p-3 md:p-4 bg-card border-t border-border/0 pb-4 md:pb-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] md:shadow-none z-20 relative">
                             <ChatInput 
                                 onSend={sendMessage} 
                                 onShareListing={() => {}} 

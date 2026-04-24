@@ -24,7 +24,7 @@ export function ChatInput({ onSend, onShareListing, isBuyer = false }: ChatInput
 
     return (
         <div className="w-full bg-transparent max-md:-mx-2 border-0">
-            <div className="flex items-center gap-2 md:gap-3 bg-[#f3f6fc] dark:bg-card border-0 rounded-full md:rounded-[18px] pl-4 pr-1 md:py-2.5 py-2 shadow-md transition-all focus-within:ring-2 focus-within:ring-primary/20">
+            <div className="flex items-center gap-2 md:gap-3 bg-muted/40 border-0 rounded-full md:rounded-[18px] pl-4 pr-1 md:py-2.5 py-2 shadow-md transition-all focus-within:ring-2 focus-within:ring-primary/20">
                 {/* Text field */}
                 <input
                     type="text"
