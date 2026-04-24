@@ -38,6 +38,7 @@ import { PendingApprovalModal } from "../modals/PendingApprovalModal";
 import { followService } from "../../lib/followService";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ProfilePhotoModal } from "./ProfilePhotoModal";
 
 interface ProfessionalProfileHeaderProps {
     profile: Profile;
@@ -57,6 +58,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
     const [isFollowing, setIsFollowing] = React.useState(false);
     const [followersCount, setFollowersCount] = React.useState(profile.followers || 0);
     const [isFollowingLoading, setIsFollowingLoading] = React.useState(false);
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (user && profile.id && viewAs === "public") {
@@ -201,14 +203,18 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
         <div className="w-full space-y-6 font-heading">
             <PendingApprovalModal isOpen={showPending} onClose={() => setShowPending(false)} />
             
+            {isHost && (
+                <ProfilePhotoModal
+                    isOpen={isAvatarModalOpen}
+                    onClose={() => setIsAvatarModalOpen(false)}
+                    currentImage={profile.avatar || null}
+                    userName={profile.name}
+                    userId={profile.id}
+                />
+            )}
+            
             {/* Hidden Photo Inputs */}
-            <input
-                type="file"
-                ref={avatarInputRef}
-                onChange={handleAvatarUpdate}
-                accept="image/*"
-                className="hidden"
-            />
+
             <input
                 type="file"
                 ref={coverInputRef}
@@ -286,7 +292,10 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         {/* Column 2: Central Profile Info */}
                         <div className="flex flex-col items-center text-center order-first md:order-none">
                             <div className="relative mb-3 md:mb-6 group/avatar">
-                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white/30 ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all group-hover:ring-white/50">
+                                <div 
+                                    className={`w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white/30 ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all ${isHost ? "cursor-pointer hover:ring-white/50 group-hover:scale-[1.02]" : ""}`}
+                                    onClick={() => isHost && setIsAvatarModalOpen(true)}
+                                >
                                     {previewAvatar || profile.avatar ? (
                                         <img
                                             src={previewAvatar || profile.avatar}
@@ -302,10 +311,10 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
                                 {isHost && (
                                     <button
-                                        onClick={() => avatarInputRef.current?.click()}
+                                        onClick={() => setIsAvatarModalOpen(true)}
                                         className="absolute -bottom-1 -right-1 w-8 h-8 md:w-9 md:h-9 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-all z-30 hover:bg-white/20"
                                     >
-                                        <IconTooltip content="Edit Profile Photo" position="right">
+                                        <IconTooltip content="Update Profile Photo" position="right">
                                             <Camera className="w-3.5 h-3.5" />
                                         </IconTooltip>
                                     </button>
