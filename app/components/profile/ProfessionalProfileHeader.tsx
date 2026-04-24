@@ -25,6 +25,7 @@ import {
     Flag,
     Users,
     UserPlus,
+    UserMinus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ReportDropdown } from "../common/ReportDropdown";
@@ -34,6 +35,9 @@ import Link from "next/link";
 import { IconTooltip } from "../common/IconTooltip";
 import { useAuth } from "../../context/AuthContext";
 import { PendingApprovalModal } from "../modals/PendingApprovalModal";
+import { followService } from "../../lib/followService";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface ProfessionalProfileHeaderProps {
     profile: Profile;
@@ -50,6 +54,45 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
     const [previewCover, setPreviewCover] = React.useState<string | null>(null);
     const [verificationColor, setVerificationColor] = React.useState<string>("#0A2472");
     const [isCoverLight, setIsCoverLight] = React.useState<boolean>(false);
+    const [isFollowing, setIsFollowing] = React.useState(false);
+    const [followersCount, setFollowersCount] = React.useState(profile.followers || 0);
+    const [isFollowingLoading, setIsFollowingLoading] = React.useState(false);
+
+    React.useEffect(() => {
+        if (user && profile.id && viewAs === "public") {
+            const checkStatus = async () => {
+                try {
+                    const res = await followService.checkFollowingStatus(profile.id);
+                    if (res.success) setIsFollowing(res.isFollowing);
+                } catch (err) {
+                    console.error("Follow check failed", err);
+                }
+            };
+            checkStatus();
+        }
+    }, [user, profile.id, viewAs]);
+
+    const handleFollowToggle = async () => {
+        if (!user) {
+            toast.error("Please login to follow users");
+            return;
+        }
+        if (isFollowingLoading) return;
+
+        try {
+            setIsFollowingLoading(true);
+            const res = await followService.toggleFollow(profile.id);
+            if (res.success) {
+                setIsFollowing(res.isFollowing);
+                setFollowersCount(prev => res.isFollowing ? prev + 1 : prev - 1);
+                toast.success(res.isFollowing ? `Following ${profile.name}` : `Unfollowed ${profile.name}`);
+            }
+        } catch (err) {
+            toast.error("Action failed. Try again.");
+        } finally {
+            setIsFollowingLoading(false);
+        }
+    };
 
     const sampleImageColor = React.useCallback((src: string) => {
         return new Promise<string>((resolve, reject) => {
@@ -350,7 +393,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                                 </div>
                                             </IconTooltip>
                                             <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Followers</span>
-                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.followers ?? 0}</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{followersCount}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -395,10 +438,22 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                     </button>
                                 </Link>
                                 <button
-                                    className="flex-1 md:flex-none flex items-center justify-center bg-[#fff3c6] text-black font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-[#FFD700]/30 hover:bg-[#FFD700]/20 active:scale-95 transition-all"
-                                    aria-label="Follow"
+                                    onClick={handleFollowToggle}
+                                    disabled={isFollowingLoading}
+                                    className={`flex-1 md:flex-none flex items-center justify-center font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border transition-all active:scale-95 ${
+                                        isFollowing 
+                                            ? "bg-red-500/10 text-red-500 border-red-500/30 hover:bg-red-500/20" 
+                                            : "bg-[#fff3c6] text-black border-[#FFD700]/30 hover:bg-[#FFD700]/20"
+                                    }`}
+                                    aria-label={isFollowing ? "Unfollow" : "Follow"}
                                 >
-                                    <UserPlus className="w-4 h-4" />
+                                    {isFollowingLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : isFollowing ? (
+                                        <UserMinus className="w-4 h-4" />
+                                    ) : (
+                                        <UserPlus className="w-4 h-4" />
+                                    )}
                                 </button>
                                 <ReportDropdown
                                     reportType="profile"
