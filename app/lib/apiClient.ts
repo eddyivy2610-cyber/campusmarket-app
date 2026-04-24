@@ -68,8 +68,8 @@ const apiRequest = async <T>(
 
   if (!response.ok) {
     const payloadMessage =
-      (payload as { message?: string; error?: string })?.message ||
-      (payload as { message?: string; error?: string })?.error;
+      (payload as { message?: string; error?: string })?.error ||
+      (payload as { message?: string; error?: string })?.message;
 
     const payloadErrors = Array.isArray(
       (payload as { errors?: unknown })?.errors
