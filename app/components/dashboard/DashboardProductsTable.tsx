@@ -57,7 +57,6 @@ const getStatusText = (status: string) => {
 export function DashboardProductsTable() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [editingListing, setEditingListing] = useState<any | null>(null);
     const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
@@ -176,10 +175,7 @@ export function DashboardProductsTable() {
         );
     };
 
-    const toggleDropdown = (id: string) => {
-        if (openDropdownId === id) setOpenDropdownId(null);
-        else setOpenDropdownId(id);
-    };
+
 
     if (loading) {
         return (
@@ -298,48 +294,28 @@ export function DashboardProductsTable() {
                                             </div>
                                         </div>
                                         <div className="mt-3 flex items-center gap-2">
-                                            <button
-                                                onClick={() => toggleDropdown(prod.id)}
-                                                className="flex-1 rounded-lg border border-border/60 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+                                            <button 
+                                                className="flex-1 rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary flex items-center justify-center gap-2 transition-all"
+                                                title="Share Listing"
                                             >
-                                                Details
+                                                <Share2 className="w-3.5 h-3.5" />
+                                                <span>Share</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => setEditingListing(prod)}
+                                                className="flex-1 rounded-lg border border-border/60 bg-primary/10 px-3 py-2 text-[11px] font-semibold text-primary hover:bg-primary hover:text-white flex items-center justify-center gap-2 transition-all"
+                                                title="Edit Listing"
+                                            >
+                                                <Edit className="w-3.5 h-3.5" />
+                                                <span>Edit</span>
+                                            </button>
+                                            <button 
+                                                className="p-2 rounded-lg border border-border/60 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                                title="Delete Listing"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
-                                        <AnimatePresence>
-                                            {openDropdownId === prod._id && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 6 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: 6 }}
-                                                    transition={{ duration: 0.18, ease: "easeOut" }}
-                                                    className="mt-2 w-full bg-popover border border-border rounded-xl shadow-xl z-50 py-1.5 text-left flex flex-col gap-0.5 px-1"
-                                                >
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
-                                                        <Share2 className="w-3.5 h-3.5" />
-                                                        Share
-                                                    </button>
-                                                    <button
-                                                        className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all"
-                                                        onClick={() => {
-                                                            setEditingListing(prod);
-                                                            setOpenDropdownId(null);
-                                                        }}
-                                                    >
-                                                        <Edit className="w-3.5 h-3.5" />
-                                                        Edit Content
-                                                    </button>
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
-                                                        <EyeOff className="w-3.5 h-3.5" />
-                                                        Hide Listing
-                                                    </button>
-                                                    <div className="h-px w-full bg-border/40 my-0.5" />
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                        Delete
-                                                    </button>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -348,7 +324,7 @@ export function DashboardProductsTable() {
                 })}
             </div>
 
-            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-32 hidden md:block" data-lenis-prevent>
+            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-4 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
@@ -386,8 +362,8 @@ export function DashboardProductsTable() {
                         </tr>
                     </thead>
                     <tbody className="text-sm">
-                        {filteredProducts.map((prod, idx) => (
-                            <tr key={prod._id} className={`border-b border-border/40 hover:bg-secondary/20 transition-colors group ${openDropdownId === prod._id ? "relative z-[70]" : ""}`}>
+                        {filteredProducts.map((prod) => (
+                            <tr key={prod._id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
                                 <td className="py-3 pl-4 md:pl-6">
                                     <div className="flex items-center gap-3">
                                         <input
@@ -423,51 +399,35 @@ export function DashboardProductsTable() {
                                         {getStatusText(prod.status)}
                                     </span>
                                 </td>
-                                <td className="py-3 text-center relative pr-4 md:pr-6">
-                                    <button
-                                        onClick={() => toggleDropdown(prod._id)}
-                                        className="text-[13px] font-medium text-foreground/80 hover:text-foreground transition-colors hover:bg-secondary/50 px-3 py-1.5 rounded-lg whitespace-nowrap"
-                                    >
-                                        Details
-                                    </button>
-                                    <AnimatePresence>
-                                        {openDropdownId === prod._id && (
-                                            <>
-                                                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: (idx >= filteredProducts.length - 2) ? 10 : -10, scale: 0.95 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    exit={{ opacity: 0, y: (idx >= filteredProducts.length - 2) ? 10 : -10, scale: 0.95 }}
-                                                    transition={{ duration: 0.18, ease: "easeOut" }}
-                                                    className={`absolute w-40 bg-popover border border-border rounded-xl shadow-xl z-[60] py-1.5 text-left flex flex-col gap-0.5 px-1 right-8 md:right-10 ${(idx >= filteredProducts.length - 2) ? "bottom-full mb-2" : "top-10"}`}
-                                                >
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
-                                                        <Share2 className="w-3.5 h-3.5" />
-                                                        Share
-                                                    </button>
-                                                    <button
-                                                        className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all"
-                                                        onClick={() => {
-                                                            setEditingListing(prod);
-                                                            setOpenDropdownId(null);
-                                                        }}
-                                                    >
-                                                        <Edit className="w-3.5 h-3.5" />
-                                                        Edit Content
-                                                    </button>
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
-                                                        <EyeOff className="w-3.5 h-3.5" />
-                                                        Hide Listing
-                                                    </button>
-                                                    <div className="h-px w-full bg-border/40 my-0.5" />
-                                                    <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                        Delete
-                                                    </button>
-                                                </motion.div>
-                                            </>
-                                        )}
-                                    </AnimatePresence>
+                                <td className="py-3 pr-4 md:pr-6 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                        <button 
+                                            className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all active:scale-90 border border-transparent hover:border-border/50"
+                                            title="Share Listing"
+                                        >
+                                            <Share2 className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            onClick={() => setEditingListing(prod)}
+                                            className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-primary transition-all active:scale-90 border border-transparent hover:border-border/50"
+                                            title="Edit Content"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            className="p-2 rounded-lg hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all active:scale-90 border border-transparent hover:border-border/50"
+                                            title="Hide Listing"
+                                        >
+                                            <EyeOff className="w-4 h-4" />
+                                        </button>
+                                        <div className="w-px h-4 bg-border/40 mx-1" />
+                                        <button 
+                                            className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-all active:scale-90 border border-transparent hover:border-red-500/20"
+                                            title="Delete Listing"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
