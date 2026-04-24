@@ -41,7 +41,7 @@ export function EditListingCard({ listing, onChange }: EditListingCardProps) {
     ];
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-10 font-sans">
             {/* Basic Info Section */}
             <ModalSection title="Basic Information" icon={<Info className="w-3.5 h-3.5" />}>
                 <div className="grid gap-6">

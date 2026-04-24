@@ -62,7 +62,7 @@ export function BaseModal({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         className={cn(
-                            "relative w-full bg-card border border-border/50 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col max-h-[90vh]",
+                            "relative w-full bg-card border border-border/50 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col max-h-[90vh] font-sans",
                             maxWidth,
                             className
                         )}
@@ -124,7 +124,7 @@ export function ModalSection({ title, children, icon, className }: { title: stri
             <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50 border-b border-border/40 pb-2.5 flex items-center gap-2">
                 {icon} {title}
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-4 font-sans">
                 {children}
             </div>
         </div>
