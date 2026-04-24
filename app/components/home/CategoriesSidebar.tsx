@@ -17,7 +17,7 @@ export function CategoriesSidebar() {
 
     return (
         <aside className="hidden lg:block w-56 shrink-0 z-[400]">
-            <div className="rounded-2xl bg-white dark:bg-card border border-border/60 dark:border-border/30 shadow-xl dark:shadow-2xl overflow-visible flex flex-col">
+            <div className="rounded-2xl bg-card border border-border/60 dark:border-border/30 shadow-xl dark:shadow-2xl overflow-visible flex flex-col">
                 <div className="px-3 pt-3 pb-2">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-5 bg-primary rounded-none shadow-sm" />
