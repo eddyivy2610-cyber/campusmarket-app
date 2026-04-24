@@ -179,7 +179,7 @@ export function DashboardProductsTable() {
 
     if (loading) {
         return (
-            <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-full bg-card rounded-[20px] shadow-sm flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Loading Products...</p>
             </div>
@@ -189,7 +189,7 @@ export function DashboardProductsTable() {
 
 
     return (
-        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col relative">
+        <div className="w-full bg-card rounded-[20px] shadow-sm flex flex-col relative">
             <div className="flex flex-col rounded-[20px]">
             <div className="p-4 md:p-5 border-b border-border/40 rounded-t-[20px] overflow-hidden">
                 <div className="flex items-center justify-between gap-3">
