@@ -19,9 +19,7 @@ export const userService = {
 
         // 2. Update user profile
         const updateRes = await apiPatch<any>(`/api/users/update/${userId}`, {
-            profile: {
-                avatar: avatarUrl
-            }
+            "profile.avatar": avatarUrl
         });
 
         return {
@@ -47,9 +45,7 @@ export const userService = {
         const coverUrl = uploadRes.urls[0];
 
         const updateRes = await apiPatch<any>(`/api/users/update/${userId}`, {
-            profile: {
-                coverPhoto: coverUrl
-            }
+            "profile.coverImage": coverUrl
         });
 
         return {

@@ -236,7 +236,7 @@ export function IntelligentSearch() {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <ChevronRight className="w-4 h-4 text-black/80 group-hover:text-black transition-colors" />
+                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                                                             </Link>
                                                         </li>
                                                     ))}

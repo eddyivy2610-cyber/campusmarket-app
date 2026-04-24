@@ -104,7 +104,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                     <div className="p-4">
                         <button
                             onClick={() => nav(user ? `/profile/${user.handle}` : "/login")}
-                            className="w-full flex items-center justify-between p-4 bg-primary text-white rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
+                            className="w-full flex items-center justify-between p-4 bg-primary text-primary-foreground rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
                         >
                             <div className="flex items-center gap-3">
                                 <User className="w-5 h-5" />
@@ -158,7 +158,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                             className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors group"
                         >
                             <div className="flex items-center gap-3">
-                                <Tag className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
+                                <Tag className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                 <span className="font-medium text-sm">All Categories</span>
                             </div>
                             <ChevronDown
@@ -241,7 +241,7 @@ function NavRow({
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group ${accent ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-secondary text-foreground"}`}
         >
             <div className="flex items-center gap-3">
-                <Icon className={`w-5 h-5 transition-colors shrink-0 ${accent ? "text-primary" : "text-gray-400 group-hover:text-primary"}`} />
+                <Icon className={`w-5 h-5 transition-colors shrink-0 ${accent ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`} />
                 <span className={`text-sm ${accent ? "font-semibold" : "font-medium"}`}>{label}</span>
             </div>
             {badge && badge > 0 ? (

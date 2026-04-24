@@ -8,7 +8,7 @@ import { RecommendedCarousel } from "../components/home/RecommendedCarousel";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#faf7ef] dark:bg-background text-foreground selection:bg-primary/20">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20">
         <div className="max-w-[1780px] mx-auto px-4 md:px-8 overflow-visible">
 
           <div className="flex gap-5 lg:gap-6 items-start overflow-visible">

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { apiGet } from "@/lib/apiClient";
+import { toast } from "sonner";
 
 interface User {
     id: string;
@@ -71,25 +72,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
 
             const refreshed: User = {
-                id: userData._id || userData.userId || user?.id || "",
-                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user?.email || "",
+                id: userData._id || userData.id || user?.id || "",
+                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user?.name || "",
                 email: userData.email || user?.email || "",
                 handle: userData.profile?.handle || user?.handle || "",
-                role: userData.role || "buyer",
+                role: userData.role || user?.role || "buyer",
                 isStudent: userData.studentStatus?.isStudent || false,
                 studentVerified: userData.studentStatus?.isVerified || false,
                 tier: user?.tier || "new",
                 sellerStatus: userData.sellerStatus || "none",
                 onboardingStep: userData.onboardingStep || "completed",
                 avatar: userData.profile?.avatar || user?.avatar,
-                image: user?.image,
+                image: userData.profile?.avatar || user?.image,
             };
             
             setUser(refreshed);
             localStorage.setItem("campus_user", JSON.stringify(refreshed));
             return refreshed;
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to refresh user", e);
+            toast.error("Session refresh failed: " + (e.message || "Unknown error"));
             return null;
         }
     };

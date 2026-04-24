@@ -73,7 +73,7 @@ export function RecommendedCarousel({ products }: RecommendedCarouselProps) {
         <section className="w-full pt-4 pb-2">
             <div className="flex items-center gap-2 mb-3">
                 <div className="w-3 h-5 bg-[#FFD700]/80 rounded-none shadow-sm" />
-                <h2 className="text-sm md:text-base font-bold text-black dark:text-foreground uppercase tracking-wider">
+                <h2 className="text-sm md:text-base font-bold text-foreground uppercase tracking-wider">
                     Recommended For You
                 </h2>
             </div>
@@ -88,7 +88,7 @@ export function RecommendedCarousel({ products }: RecommendedCarouselProps) {
                         <Link
                             key={product.id}
                             href={`/listings/${product.id}`}
-                            className="relative h-[88px] w-[88px] sm:h-[106px] sm:w-[106px] lg:h-[124px] lg:w-[124px] rounded-xl overflow-hidden border border-[#efe3cf] dark:border-border/70 bg-white dark:bg-card shadow-[0_8px_18px_rgba(40,30,10,0.06)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.35)] shrink-0 hover:-translate-y-0.5 transition-transform duration-200"
+                            className="relative h-[88px] w-[88px] sm:h-[106px] sm:w-[106px] lg:h-[124px] lg:w-[124px] rounded-xl overflow-hidden border border-border/60 bg-card shadow-sm dark:shadow-lg shrink-0 hover:-translate-y-0.5 transition-transform duration-200"
                         >
                             <Image src={product.image} alt={product.title} fill className="object-cover" />
                         </Link>
