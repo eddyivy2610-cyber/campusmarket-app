@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import { MessageSquareText, PlusCircle, Loader2 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { MessageSquareText, PlusCircle, Loader2, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { ChatInbox } from "../components/chat/ChatInbox";
 import { ChatThread } from "../components/chat/ChatThread";
@@ -80,6 +80,7 @@ export default function DashboardMessagesPage() {
 
 function DashboardMessagesInner() {
     const params = useSearchParams();
+    const router = useRouter();
     const userParam = params.get("user");
     const listingParam = params.get("listing");
 
@@ -346,11 +347,20 @@ function DashboardMessagesInner() {
                 
                 {/* Header & Search */}
                 <div className="p-5 md:p-6 pb-4 shrink-0 flex flex-col gap-5 border-b border-border/30">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-[15px] font-bold text-foreground">Active Conversations</h2>
-                        <span className="w-6 h-6 flex items-center justify-center bg-secondary/80 rounded-md text-[11px] font-bold text-foreground/80">
-                            {conversations.length}
-                        </span>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => router.back()}
+                            className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                            title="Go Back"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <div className="flex items-center justify-between flex-1">
+                            <h2 className="text-[15px] font-bold text-foreground">Conversations</h2>
+                            <span className="w-6 h-6 flex items-center justify-center bg-secondary/80 rounded-md text-[11px] font-bold text-foreground/80">
+                                {conversations.length}
+                            </span>
+                        </div>
                     </div>
                     <div className="relative">
                         <input

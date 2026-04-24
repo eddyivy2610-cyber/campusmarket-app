@@ -23,7 +23,7 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
                 {/* Back — mobile only */}
                 <button
                     onClick={onBack}
-                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground md:hidden"
+                    className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
                 >
                     <ChevronLeft className="w-5 h-5" />
                 </button>
