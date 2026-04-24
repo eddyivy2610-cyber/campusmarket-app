@@ -1,8 +1,8 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
-
+import { ShieldCheck, TrendingUp, Info, Camera, BarChart3, Trash2, CheckCircle, EyeOff } from "lucide-react";
 import type { DashboardProductRow } from "./DashboardProductsTable";
+import { ModalSection, ModalActionButton } from "../common/BaseModal";
 
 export interface EditListingCardProps {
     listing: DashboardProductRow & {
@@ -12,111 +12,133 @@ export interface EditListingCardProps {
 }
 
 export function EditListingCard({ listing }: EditListingCardProps) {
-    const quickActions = [
-        { label: "Delete Listing", tone: "text-red-600 border-red-200 bg-red-50" },
-        { label: "Mark as Sold", tone: "text-amber-700 border-amber-200 bg-amber-50" },
-        { label: "Hide from Search", tone: "text-black/70 border-border/60 bg-white" },
-    ];
-
     const statSections = [
-        { label: "Views", value: listing.views },
-        { label: "Messages", value: listing.messages },
-        { label: "Offers", value: listing.offers },
-        { label: "Orders", value: listing.orders },
+        { label: "Views", value: listing.views, icon: <TrendingUp className="w-3 h-3" /> },
+        { label: "Messages", value: listing.messages, icon: <Info className="w-3 h-3" /> },
+        { label: "Offers", value: listing.offers, icon: <Info className="w-3 h-3" /> },
+        { label: "Orders", value: listing.orders, icon: <BarChart3 className="w-3 h-3" /> },
     ];
 
     return (
-        <div className="w-full max-w-sm space-y-2 text-xs" style={{ borderRadius: "0.75rem" }}>
-            <div className="flex flex-col border border-border/40 bg-card px-3 py-2 shadow-sm">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Edit Listing</p>
-                        <h2 className="text-lg font-semibold text-foreground">{listing.name}</h2>
-                        <p className="text-[10px] text-muted-foreground">Status: {listing.status}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.4em] text-emerald-600">Live</span>
-                    </div>
-                </div>
-
-                <div className="mt-2 grid gap-1 sm:grid-cols-2">
-                    <div className="space-y-1">
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Title</p>
+        <div className="space-y-10">
+            {/* Basic Info Section */}
+            <ModalSection title="Basic Information" icon={<Info className="w-3.5 h-3.5" />}>
+                <div className="grid gap-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Product Title</label>
                         <input
-                            className="w-full border border-border/30 px-3 py-2 text-sm"
+                            className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/40"
                             defaultValue={listing.name}
+                            placeholder="Enter product title..."
                         />
                     </div>
-                    <div className="space-y-1">
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Price</p>
-                        <input
-                            className="w-full border border-border/30 px-3 py-2 text-sm"
-                            defaultValue={`₦${(listing.price / 1000).toFixed(0)}k`}
-                        />
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Price (NGN)</label>
+                            <div className="relative">
+                                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₦</span>
+                                <input
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl pl-10 pr-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                    defaultValue={listing.price.toLocaleString()}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Condition</label>
+                            <select className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
+                                <option value="New">New</option>
+                                <option value="Used">Used</option>
+                                <option value="Refurbished">Refurbished</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Category</label>
+                            <input
+                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                defaultValue={listing.category}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Location</label>
+                            <input
+                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                defaultValue={listing.location ?? "Campus"}
+                            />
+                        </div>
                     </div>
                 </div>
+            </ModalSection>
 
-                <div className="mt-1 grid gap-1 sm:grid-cols-3">
-                    {[
-                        { label: "Condition", value: listing.condition ?? "Used" },
-                        { label: "Category", value: listing.category },
-                        { label: "Location", value: listing.location ?? "Campus" },
-                    ].map((item) => (
-                        <div key={item.label} className="space-y-1">
-                            <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">{item.label}</p>
-                            <input className="w-full border border-border/30 px-3 py-2 text-sm" defaultValue={item.value} />
+            {/* Photos Section */}
+            <ModalSection title="Product Media" icon={<Camera className="w-3.5 h-3.5" />}>
+                <div className="flex flex-wrap gap-4">
+                    {[1, 2, 3].map((idx) => (
+                        <div key={idx} className="group relative aspect-square w-24 rounded-2xl border border-border/50 bg-muted/20 overflow-hidden shadow-sm">
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button className="p-1.5 bg-red-500 rounded-full text-white shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
                     ))}
-                </div>
-            </div>
-
-            <div className="border border-border/40 bg-card px-3 py-2 shadow-sm space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Photos</p>
-                <div className="flex flex-wrap gap-2">
-                    {[1, 2, 3].map((idx) => (
-                        <div key={idx} className="aspect-square w-16 border border-border/40 bg-secondary/50" />
-                    ))}
-                    <button className="aspect-square w-16 border border-dashed border-border/40 bg-white text-[10px] font-semibold uppercase tracking-[0.3em]">
-                        Upload
+                    <button className="aspect-square w-24 rounded-2xl border-2 border-dashed border-border/60 bg-muted/10 flex flex-col items-center justify-center gap-2 hover:border-primary/40 hover:bg-primary/5 transition-all group">
+                        <div className="p-2 bg-card rounded-xl group-hover:scale-110 transition-transform shadow-sm">
+                            <Camera className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">Add Photo</span>
                     </button>
                 </div>
-            </div>
+            </ModalSection>
 
-            <div className="border border-border/40 bg-card px-3 py-2 shadow-sm space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Description</p>
+            {/* Description Section */}
+            <ModalSection title="Description" icon={<Info className="w-3.5 h-3.5" />}>
                 <textarea
-                    rows={3}
-                    defaultValue="MacBook Pro 14-inch, M1 Pro chip, 16GB RAM, 512GB SSD..."
-                    className="w-full border border-border/30 px-3 py-2 text-sm resize-none"
+                    rows={4}
+                    defaultValue="This is a premium product in excellent condition..."
+                    className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/40 leading-relaxed"
+                    placeholder="Enter detailed description..."
                 />
-            </div>
+            </ModalSection>
 
-            <div className="border border-border/40 bg-card px-3 py-2 shadow-sm space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Performance</p>
-                <div className="grid gap-1 sm:grid-cols-4">
+            {/* Performance Statistics */}
+            <ModalSection title="Insights & Performance" icon={<TrendingUp className="w-3.5 h-3.5" />}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {statSections.map((item) => (
-                        <div key={item.label} className="border border-border/30 bg-secondary/30 px-2 py-1 text-center">
-                            <p className="text-[9px] uppercase tracking-[0.4em] text-muted-foreground">{item.label}</p>
-                            <p className="text-base font-bold text-foreground">{item.value}</p>
+                        <div key={item.label} className="bg-card border border-border/50 rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm hover:border-primary/20 transition-colors">
+                            <div className="p-2 bg-primary/5 rounded-lg text-primary mb-2">
+                                {item.icon}
+                            </div>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">{item.label}</p>
+                            <p className="text-xl font-black text-foreground tracking-tight">{item.value}</p>
                         </div>
                     ))}
                 </div>
-            </div>
+            </ModalSection>
 
-            <div className="border border-border/40 bg-card px-3 py-2 shadow-sm space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">Danger Zone</p>
-                <div className="flex flex-wrap gap-2">
-                    {quickActions.map((action) => (
-                        <button
-                            key={action.label}
-                            className={`flex-1 rounded-sm border px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] ${action.tone}`}
-                        >
-                            {action.label}
-                        </button>
-                    ))}
+            {/* Management Actions */}
+            <ModalSection title="Listing Management" icon={<ShieldCheck className="w-3.5 h-3.5" />}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <ModalActionButton 
+                        icon={<CheckCircle className="w-4 h-4" />} 
+                        label="Mark as Sold" 
+                        color="hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/30"
+                    />
+                    <ModalActionButton 
+                        icon={<EyeOff className="w-4 h-4" />} 
+                        label="Hide Listing" 
+                        color="hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30"
+                    />
+                    <ModalActionButton 
+                        icon={<Trash2 className="w-4 h-4" />} 
+                        label="Delete" 
+                        isDanger 
+                    />
                 </div>
-            </div>
+            </ModalSection>
         </div>
     );
 }
