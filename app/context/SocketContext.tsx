@@ -19,7 +19,7 @@ const SocketContext = createContext<SocketContextType>({
 export const useSocket = () => useContext(SocketContext);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth();
+    const { user } = useAuth(); // user.id is the MongoDB _id
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
