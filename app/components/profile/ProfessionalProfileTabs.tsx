@@ -31,6 +31,9 @@ import { Profile } from "../../data/profiles";
 import { ProfessionalListingsArea } from "./ProfessionalListingsArea";
 import { IconTooltip } from "../common/IconTooltip";
 import { ProUpgradePrompt } from "../shared/ProUpgradePrompt";
+import { ProfessionalPerformanceArea } from "./ProfessionalPerformanceArea";
+
+import { useAuth } from "../../context/AuthContext";
 
 interface ProfessionalProfileTabsProps {
     profile: Profile;
@@ -70,6 +73,60 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
             setActiveTab(defaultTab);
         }
     }, [activeTab, tabs, defaultTab]);
+
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+    const { user } = useAuth();
+
+    const fetchReviews = async () => {
+        try {
+            setIsLoadingReviews(true);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/seller/${profile.id}`);
+            const data = await response.json();
+            if (data.data) {
+                setReviews(data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch reviews:", error);
+        } finally {
+            setIsLoadingReviews(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === "Reviews") {
+            fetchReviews();
+        }
+    }, [activeTab, profile.id]);
+
+    const handleReviewSubmit = async () => {
+        if (!user) return;
+        try {
+            setIsSubmitting(true);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("campus_token")}`
+                },
+                body: JSON.stringify({
+                    sellerId: profile.id,
+                    rating: reviewRating,
+                    comment
+                })
+            });
+
+            if (response.ok) {
+                setComment("");
+                setReviewRating(0);
+                fetchReviews();
+            }
+        } catch (error) {
+            console.error("Failed to submit review:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="w-full space-y-8 font-heading">
@@ -181,6 +238,23 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                                     </p>
                                 </div>
 
+                                {isProAccount && (
+                                    <div className="md:col-span-2 pt-6">
+                                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 mb-4 flex items-center gap-2">
+                                            Performance Metrics
+                                        </h3>
+                                        <ProfessionalPerformanceArea 
+                                            vendor={{
+                                                activeListings: profile.activeListingsCount || 0,
+                                                soldItems: profile.soldItems || 0,
+                                                rating: profile.rating || 0,
+                                                recommended: String(profile.recommendedCount || 0),
+                                                notRecommended: String(profile.notRecommendedCount || 0)
+                                            }} 
+                                        />
+                                    </div>
+                                )}
+
                                 {isProAccount && profile.businessInfo && (
                                     <>
                                         <div className="space-y-4">
@@ -216,49 +290,91 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
 
                     {activeTab === "Reviews" && (
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             {/* Condensed Single Textbox Review Input */}
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    placeholder="Leave a review..."
-                                    className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
-                                />
-                                <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
-                                    <div className="flex items-center gap-0.5 pr-1">
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                onClick={() => setReviewRating(s)}
-                                                onMouseEnter={() => setHoverRating(s)}
-                                                onMouseLeave={() => setHoverRating(0)}
-                                                className="p-0.5 transition-transform hover:scale-125"
-                                            >
-                                                <Star
-                                                    className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
-                                                        ? 'text-amber-400 fill-amber-400'
-                                                        : 'text-muted-foreground/20'
-                                                        }`}
-                                                />
-                                            </button>
-                                        ))}
+                            {viewAs === 'public' && user && (
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Leave a review..."
+                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
+                                    />
+                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
+                                        <div className="flex items-center gap-0.5 pr-1">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setReviewRating(s)}
+                                                    onMouseEnter={() => setHoverRating(s)}
+                                                    onMouseLeave={() => setHoverRating(0)}
+                                                    className="p-0.5 transition-transform hover:scale-125"
+                                                >
+                                                    <Star
+                                                        className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
+                                                            ? 'text-amber-400 fill-amber-400'
+                                                            : 'text-muted-foreground/20'
+                                                            }`}
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={handleReviewSubmit}
+                                            disabled={isSubmitting || reviewRating === 0 || !comment.trim()}
+                                            className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
+                                        >
+                                            {isSubmitting ? "..." : "Go"}
+                                        </button>
                                     </div>
-                                    <button
-                                        disabled={reviewRating === 0 || !comment.trim()}
-                                        className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
-                                    >
-                                        Go
-                                    </button>
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
-                                <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
-                                <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
-                            </div>
+                            {isLoadingReviews ? (
+                                <div className="flex justify-center py-20">
+                                    <div className="w-8 h-8 border-4 border-[#FFD700] border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : reviews.length > 0 ? (
+                                <div className="grid gap-6">
+                                    {reviews.map((review) => (
+                                        <div key={review._id} className="p-6 bg-secondary/5 rounded-[24px] border border-border/40 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full overflow-hidden bg-secondary/20">
+                                                        {review.reviewerId?.profile?.avatar ? (
+                                                            <img src={review.reviewerId.profile.avatar} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-primary font-bold">
+                                                                {review.reviewerId?.profile?.displayName?.charAt(0) || "U"}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold">{review.reviewerId?.profile?.displayName || "Anonymous"}</p>
+                                                        <div className="flex items-center gap-0.5">
+                                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                                <Star
+                                                                    key={s}
+                                                                    className={`w-3 h-3 ${s <= review.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"}`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[10px] font-medium text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground leading-relaxed italic">"{review.comment}"</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-16 bg-secondary/5 rounded-[32px] border-2 border-dashed border-border/10">
+                                    <Star className="w-12 h-12 text-muted-foreground/5 mx-auto mb-4" />
+                                    <h4 className="font-bold text-sm uppercase tracking-tight opacity-40">No verified reviews yet</h4>
+                                </div>
+                            )}
                         </div>
                     )}
                 </motion.div>
