@@ -22,6 +22,7 @@ import { EditListingModal } from "./EditListingModal";
 type FilterKey = "status" | "price" | "stock" | "orders";
 
 export interface DashboardProductRow {
+    _id?: string;
     id: string;
     name: string;
     status: string;
@@ -67,21 +68,22 @@ export function DashboardProductsTable() {
     });
     const [activeFilterColumn, setActiveFilterColumn] = useState<FilterKey | null>(null);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                const res = await listingService.getUserListings();
-                if (res.success) {
-                    setProducts(res.data);
-                }
-            } catch (error) {
-                console.error("Fetch products error:", error);
-                toast.error("Failed to load your products");
-            } finally {
-                setLoading(false);
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            const res = await listingService.getUserListings();
+            if (res.success) {
+                setProducts(res.data);
             }
-        };
+        } catch (error) {
+            console.error("Fetch products error:", error);
+            toast.error("Failed to load your products");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchProducts();
     }, []);
 
@@ -188,8 +190,11 @@ export function DashboardProductsTable() {
         );
     }
 
+
+
     return (
-        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col overflow-hidden">
+        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col relative z-0">
+            <div className="flex flex-col overflow-hidden rounded-[20px]">
             <div className="p-4 md:p-5 border-b border-border/40">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -497,8 +502,10 @@ export function DashboardProductsTable() {
                     listing={editingListing}
                     isOpen={Boolean(editingListing)}
                     onClose={() => setEditingListing(null)}
+                    onSuccess={fetchProducts}
                 />
             )}
+            </div>
         </div>
     );
 }

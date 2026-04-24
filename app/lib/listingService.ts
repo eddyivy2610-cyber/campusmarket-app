@@ -80,4 +80,10 @@ export const listingService = {
     rejectListing: async (id: string, reason: string) => {
         return apiPut<any>(`/listing/admin/reject/${id}`, { reason });
     },
+    /**
+     * Update an existing listing
+     */
+    updateListing: async (id: string, data: Partial<CreateListingData>) => {
+        return apiPut<any>(`/listing/update/${id}`, data);
+    },
 };

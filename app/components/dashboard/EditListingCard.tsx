@@ -3,20 +3,41 @@
 import { ShieldCheck, TrendingUp, Info, Camera, BarChart3, Trash2, CheckCircle, EyeOff } from "lucide-react";
 import type { DashboardProductRow } from "./DashboardProductsTable";
 import { ModalSection, ModalActionButton } from "../common/BaseModal";
+import { useState, useEffect } from "react";
 
 export interface EditListingCardProps {
     listing: DashboardProductRow & {
-        condition: string;
-        location: string;
+        title?: string;
+        description?: string;
+        images?: string[];
+        [key: string]: any;
     };
+    onChange: (data: any) => void;
 }
 
-export function EditListingCard({ listing }: EditListingCardProps) {
+export function EditListingCard({ listing, onChange }: EditListingCardProps) {
+    const [formData, setFormData] = useState({
+        title: listing.title || listing.name || "",
+        price: listing.price || 0,
+        category: listing.category || "",
+        condition: listing.condition || "Used",
+        location: listing.location || "Campus",
+        description: listing.description || "",
+    });
+
+    useEffect(() => {
+        onChange(formData);
+    }, [formData]);
+
+    const handleChange = (field: string, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
     const statSections = [
-        { label: "Views", value: listing.views, icon: <TrendingUp className="w-3 h-3" /> },
-        { label: "Messages", value: listing.messages, icon: <Info className="w-3 h-3" /> },
-        { label: "Offers", value: listing.offers, icon: <Info className="w-3 h-3" /> },
-        { label: "Orders", value: listing.orders, icon: <BarChart3 className="w-3 h-3" /> },
+        { label: "Views", value: listing.views || 0, icon: <TrendingUp className="w-3 h-3" /> },
+        { label: "Messages", value: listing.messages || 0, icon: <Info className="w-3 h-3" /> },
+        { label: "Offers", value: listing.offers || 0, icon: <Info className="w-3 h-3" /> },
+        { label: "Orders", value: listing.orders || 0, icon: <BarChart3 className="w-3 h-3" /> },
     ];
 
     return (
@@ -28,7 +49,8 @@ export function EditListingCard({ listing }: EditListingCardProps) {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Product Title</label>
                         <input
                             className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/40"
-                            defaultValue={listing.name}
+                            value={formData.title}
+                            onChange={(e) => handleChange("title", e.target.value)}
                             placeholder="Enter product title..."
                         />
                     </div>
@@ -39,14 +61,20 @@ export function EditListingCard({ listing }: EditListingCardProps) {
                             <div className="relative">
                                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₦</span>
                                 <input
+                                    type="number"
                                     className="w-full bg-muted/30 border border-border/50 rounded-2xl pl-10 pr-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                    defaultValue={listing.price.toLocaleString()}
+                                    value={formData.price}
+                                    onChange={(e) => handleChange("price", Number(e.target.value))}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Condition</label>
-                            <select className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
+                            <select 
+                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                                value={formData.condition}
+                                onChange={(e) => handleChange("condition", e.target.value)}
+                            >
                                 <option value="New">New</option>
                                 <option value="Used">Used</option>
                                 <option value="Refurbished">Refurbished</option>
@@ -59,14 +87,16 @@ export function EditListingCard({ listing }: EditListingCardProps) {
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Category</label>
                             <input
                                 className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                defaultValue={listing.category}
+                                value={formData.category}
+                                onChange={(e) => handleChange("category", e.target.value)}
                             />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Location</label>
                             <input
                                 className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                defaultValue={listing.location ?? "Campus"}
+                                value={formData.location}
+                                onChange={(e) => handleChange("location", e.target.value)}
                             />
                         </div>
                     </div>
@@ -76,8 +106,9 @@ export function EditListingCard({ listing }: EditListingCardProps) {
             {/* Photos Section */}
             <ModalSection title="Product Media" icon={<Camera className="w-3.5 h-3.5" />}>
                 <div className="flex flex-wrap gap-4">
-                    {[1, 2, 3].map((idx) => (
+                    {listing.images?.map((img: string, idx: number) => (
                         <div key={idx} className="group relative aspect-square w-24 rounded-2xl border border-border/50 bg-muted/20 overflow-hidden shadow-sm">
+                            <img src={img} alt="" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <button className="p-1.5 bg-red-500 rounded-full text-white shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -98,7 +129,8 @@ export function EditListingCard({ listing }: EditListingCardProps) {
             <ModalSection title="Description" icon={<Info className="w-3.5 h-3.5" />}>
                 <textarea
                     rows={4}
-                    defaultValue="This is a premium product in excellent condition..."
+                    value={formData.description}
+                    onChange={(e) => handleChange("description", e.target.value)}
                     className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none placeholder:text-muted-foreground/40 leading-relaxed"
                     placeholder="Enter detailed description..."
                 />
