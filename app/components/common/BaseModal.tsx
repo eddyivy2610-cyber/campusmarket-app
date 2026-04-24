@@ -1,6 +1,7 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,8 +27,10 @@ export function BaseModal({
     maxWidth = "max-w-2xl",
     className,
 }: BaseModalProps) {
-    // Prevent scrolling when modal is open
-    React.useEffect(() => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
         if (isOpen) {
             document.body.style.overflow = "hidden";
         } else {
@@ -38,17 +41,19 @@ export function BaseModal({
         };
     }, [isOpen]);
 
-    return (
+    if (!mounted) return null;
+
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 isolate">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/60 backdrop-blur-md"
                     />
 
                     {/* Modal Content */}
@@ -109,6 +114,8 @@ export function BaseModal({
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 }
 
 export function ModalSection({ title, children, icon, className }: { title: string; children: ReactNode; icon?: ReactNode; className?: string }) {

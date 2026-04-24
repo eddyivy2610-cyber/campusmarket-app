@@ -193,9 +193,9 @@ export function DashboardProductsTable() {
 
 
     return (
-        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col relative z-0">
-            <div className="flex flex-col overflow-hidden rounded-[20px]">
-            <div className="p-4 md:p-5 border-b border-border/40">
+        <div className="w-full bg-white dark:bg-card rounded-[20px] shadow-sm flex flex-col relative">
+            <div className="flex flex-col rounded-[20px]">
+            <div className="p-4 md:p-5 border-b border-border/40 rounded-t-[20px] overflow-hidden">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold font-heading">Products</span>
@@ -348,7 +348,7 @@ export function DashboardProductsTable() {
                 })}
             </div>
 
-            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-2 hidden md:block" data-lenis-prevent>
+            <div className="w-full overflow-x-auto custom-scrollbar pt-4 pb-32 hidden md:block" data-lenis-prevent>
                 <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr className="border-b border-border/50 text-[13px] font-semibold text-muted-foreground/70 tracking-wide">
@@ -387,7 +387,7 @@ export function DashboardProductsTable() {
                     </thead>
                     <tbody className="text-sm">
                         {filteredProducts.map((prod, idx) => (
-                            <tr key={prod._id} className="border-b border-border/40 hover:bg-secondary/20 transition-colors group">
+                            <tr key={prod._id} className={`border-b border-border/40 hover:bg-secondary/20 transition-colors group ${openDropdownId === prod._id ? "relative z-[70]" : ""}`}>
                                 <td className="py-3 pl-4 md:pl-6">
                                     <div className="flex items-center gap-3">
                                         <input
@@ -435,11 +435,11 @@ export function DashboardProductsTable() {
                                             <>
                                                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdownId(null)}></div>
                                                 <motion.div
-                                                    initial={{ opacity: 0, y: idx >= 3 ? 10 : -10, scale: 0.95 }}
+                                                    initial={{ opacity: 0, y: (idx >= filteredProducts.length - 2) ? 10 : -10, scale: 0.95 }}
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    exit={{ opacity: 0, y: idx >= 3 ? 10 : -10, scale: 0.95 }}
+                                                    exit={{ opacity: 0, y: (idx >= filteredProducts.length - 2) ? 10 : -10, scale: 0.95 }}
                                                     transition={{ duration: 0.18, ease: "easeOut" }}
-                                                    className={`absolute w-40 bg-popover border border-border rounded-xl shadow-xl z-50 py-1.5 text-left flex flex-col gap-0.5 px-1 right-8 md:right-10 ${idx >= 3 ? "bottom-full mb-2" : "top-10"}`}
+                                                    className={`absolute w-40 bg-popover border border-border rounded-xl shadow-xl z-[60] py-1.5 text-left flex flex-col gap-0.5 px-1 right-8 md:right-10 ${(idx >= filteredProducts.length - 2) ? "bottom-full mb-2" : "top-10"}`}
                                                 >
                                                     <button className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium text-foreground/80 hover:bg-secondary hover:text-foreground rounded-lg transition-all">
                                                         <Share2 className="w-3.5 h-3.5" />
@@ -475,7 +475,7 @@ export function DashboardProductsTable() {
                 </table>
             </div>
 
-            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="p-4 md:p-6 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4 rounded-b-[20px] bg-white dark:bg-card">
                 <span className="text-[13px] font-medium text-muted-foreground order-2 md:order-1">Showing {filteredProducts.length} entries</span>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 order-1 md:order-2">
                     <button className="px-3 py-1.5 rounded-lg border border-border/50 bg-card text-xs font-semibold text-muted-foreground hover:bg-secondary transition-all">Prev</button>
