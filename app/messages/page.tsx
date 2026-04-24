@@ -209,20 +209,40 @@ function DashboardMessagesInner() {
     useEffect(() => {
         if (!socket || !user) return;
 
-        const handleReceiveMessage = (data: any) => {
+        const handleReceiveMessage = async (data: any) => {
             const msg = mapMessage(data, user.id);
             const convId = data.conversationId;
 
-            setConversations(prev => prev.map(c => {
-                if (c.id !== convId) return c;
-                return {
-                    ...c,
-                    messages: [...c.messages, msg],
-                    lastMessage: msg.text || "",
-                    lastTime: "Now",
-                    unread: convId === activeId ? 0 : (c.unread || 0) + 1,
-                };
-            }));
+            setConversations(prev => {
+                const exists = prev.some(c => c.id === convId);
+                if (exists) {
+                    return prev.map(c => {
+                        if (c.id !== convId) return c;
+                        return {
+                            ...c,
+                            messages: [...c.messages, msg],
+                            lastMessage: msg.text || "",
+                            lastTime: "Now",
+                            unread: convId === activeId ? 0 : (c.unread || 0) + 1,
+                        };
+                    });
+                }
+                return prev;
+            });
+
+            // If it's a new conversation not in our list, fetch it
+            const exists = conversations.some(c => c.id === convId);
+            if (!exists) {
+                try {
+                    // We need a way to get a single conversation by ID
+                    const res = await apiGet<{ success: boolean; data: any }>(`/api/chat/user/${user.id}`); // For now re-fetch all to be safe and simple
+                    const mapped = (res.data || []).map((c: any) => mapConversation(c, user.id));
+                    setConversations(mapped);
+                    toast.info("New message received");
+                } catch (err) {
+                    console.error("Failed to refresh conversations for new message", err);
+                }
+            }
         };
 
         socket.on("receive_message", handleReceiveMessage);
@@ -230,7 +250,7 @@ function DashboardMessagesInner() {
         return () => {
             socket.off("receive_message", handleReceiveMessage);
         };
-    }, [socket, user, activeId]);
+    }, [socket, user, activeId, conversations]);
 
     // ── Send a message
     const sendMessage = async (text: string, overrideId?: string) => {
