@@ -2,29 +2,24 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import { BaseModal, ModalSection, ModalDetailItem, ModalActionButton } from "../common/BaseModal";
 import AdminSuspendUserModal from "./AdminSuspendUserModal";
+import StatusBadge from "./StatusBadge";
 import { 
-    X, 
     User, 
     Mail, 
     Calendar, 
     Shield, 
-    MapPin, 
-    Phone, 
     GraduationCap, 
     BarChart3, 
     AlertTriangle, 
-    ArrowUpRight,
-    Search,
     ShieldAlert,
     Clock,
-    UserCheck,
-    Trash2,
     Ban,
-    Award
+    UserCheck,
+    Award,
+    Trash2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import StatusBadge from "./StatusBadge";
 
 interface UserDetailsModalProps {
     isOpen: boolean;
@@ -41,197 +36,118 @@ export default function AdminUserDetailsModal({ isOpen, onClose, user }: UserDet
     const joinedDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : (user.joined || user.date || "N/A");
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <>
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+        <>
+            <BaseModal
+                isOpen={isOpen}
+                onClose={onClose}
+                title={`User Profile: ${displayName}`}
+                icon={<User className="w-5 h-5" />}
+                footer={
+                    <button
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                    />
-
-                    {/* Modal Content */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-card border border-border rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="px-6 py-2.5 rounded-xl border border-border bg-card text-foreground font-bold uppercase tracking-widest text-[10px] hover:bg-muted transition-all active:scale-95 shadow-sm"
                     >
-                        {/* Header */}
-                        <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-muted/30">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary/10 rounded-xl text-primary">
-                                    <User className="w-5 h-5" />
-                                </div>
-                                <h1 className="text-lg font-bold font-heading truncate max-w-[200px] md:max-w-none">User Profile: {displayName}</h1>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                        Close Profile
+                    </button>
+                }
+            >
+                {/* Top Profile Summary */}
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
+                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-[28px] bg-primary/10 flex items-center justify-center text-2xl sm:text-3xl font-black text-primary border-2 border-primary/20 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)] shrink-0 overflow-hidden">
+                        {user.profile?.avatar ? <img src={user.profile.avatar} className="w-full h-full object-cover" /> : displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="space-y-1.5 flex flex-col items-center sm:items-start">
+                        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2.5">
+                            <h3 className="text-2xl font-black text-foreground tracking-tight">{displayName}</h3>
+                            <StatusBadge status={user.accountStatus || "Active"} />
                         </div>
+                        <p className="text-sm text-muted-foreground font-semibold flex items-center gap-2 opacity-80">
+                            <Mail className="w-4 h-4 text-primary/60" />
+                            {user.email}
+                        </p>
+                        <div className="flex flex-wrap justify-center sm:justify-start gap-x-5 gap-y-1.5 pt-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40 flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                Joined {joinedDate}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40 flex items-center gap-2">
+                                <Clock className="w-4 h-4" />
+                                Active: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "Recently"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-                        {/* Body - Scrollable */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
-                            
-                            {/* Top Profile Summary */}
-                            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-                                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl sm:rounded-3xl bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary border-2 border-primary/20 shadow-inner shrink-0 overflow-hidden">
-                                    {user.profile?.avatar ? <img src={user.profile.avatar} className="w-full h-full object-cover" /> : displayName.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="space-y-1 flex flex-col items-center sm:items-start">
-                                    <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-                                        <h3 className="text-xl font-bold text-foreground">{displayName}</h3>
-                                        <StatusBadge status={user.accountStatus || "Active"} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    {/* Account Details Section */}
+                    <ModalSection title="Account Details" icon={<Shield className="w-3.5 h-3.5" />}>
+                        <div className="space-y-4">
+                            <ModalDetailItem label="User ID" value={`CPM-${user._id?.slice(-8).toUpperCase() || '00000000'}`} />
+                            <ModalDetailItem label="User Type" value={<span className="capitalize">{user.role || "buyer"}</span>} />
+                            <ModalDetailItem 
+                                label="Badges" 
+                                value={
+                                    <div className="flex items-center gap-2 pt-1">
+                                        {user.isVerified && <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 rounded-lg text-[9px] font-black uppercase tracking-wider border border-emerald-500/20">Verified</span>}
+                                        {user.studentStatus?.isStudent && <span className="px-2.5 py-1 bg-amber-500/10 text-amber-500 rounded-lg text-[9px] font-black uppercase tracking-wider border border-amber-500/20">Student</span>}
                                     </div>
-                                    <p className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
-                                        <Mail className="w-3.5 h-3.5" />
-                                        {user.email}
-                                    </p>
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1 pt-1">
-                                        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-1.5">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            Joined {joinedDate}
-                                        </span>
-                                        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40 flex items-center gap-1.5">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            Last login: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "Just now"}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                } 
+                            />
+                            <ModalDetailItem label="Full Name" value={user.personalDetails?.fullName || "Not provided"} />
+                            <ModalDetailItem label="Phone" value={user.personalDetails?.phones?.[0] || user.phone || "No phone added"} />
+                            <ModalDetailItem label="Location" value={user.personalDetails?.address || "No address provided"} />
+                            <ModalDetailItem
+                                label="School / Institution"
+                                value={user.studentStatus?.schoolName || user.schoolName || "Not specified"}
+                                icon={<GraduationCap className="w-4 h-4" />}
+                            />
+                        </div>
+                    </ModalSection>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Account Details Section */}
-                                <div className="space-y-4">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-border pb-2 flex items-center gap-2">
-                                        <Shield className="w-3 h-3" /> Account Details
-                                    </h3>
-                                    <div className="space-y-3.5">
-                                        <DetailItem label="User ID" value={`CPM-${user._id?.slice(-8).toUpperCase() || '00000000'}`} />
-                                        <DetailItem label="User Type" value={user.role || "buyer"} />
-                                        <DetailItem 
-                                            label="Badges" 
-                                            value={
-                                                <div className="flex items-center gap-1.5 pt-0.5">
-                                                    {user.isVerified && <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded text-[10px] font-bold">✓ Verified</span>}
-                                                    {user.studentStatus?.isStudent && <span className="px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold">🎓 Student</span>}
-                                                </div>
-                                            } 
-                                        />
-                                        <DetailItem label="Full Name" value={user.personalDetails?.fullName || "Not provided"} />
-                                        <DetailItem label="Phone" value={user.personalDetails?.phones?.[0] || user.phone || "No phone added"} />
-                                        <DetailItem label="Location" value={user.personalDetails?.address || "No address provided"} />
-                                        <DetailItem
-                                            label="School / Institution"
-                                            value={user.studentStatus?.schoolName || user.schoolName || "Not specified"}
-                                            icon={<GraduationCap className="w-3.5 h-3.5" />}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Statistics Section */}
-                                <div className="space-y-4">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-border pb-2 flex items-center gap-2">
-                                        <BarChart3 className="w-3 h-3" /> Statistics
-                                    </h3>
-                                    
-                                    {isSeller ? (
-                                        <div className="space-y-3.5">
-                                            <DetailItem label="Listings" value={`${user.activeListingsCount || 0} active, ${user.soldItems || 0} sold`} />
-                                            <DetailItem label="Rating" value={`${user.rating?.average || 0} ★ (${user.rating?.count || 0} reviews)`} />
-                                            <DetailItem label="Followers" value={user.followers || 0} />
-                                            <DetailItem label="Reports" value="0 against user" />
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-8 text-center bg-secondary/20 rounded-2xl border border-dashed border-border">
-                                            <BarChart3 className="w-8 h-8 text-muted-foreground/20 mb-2" />
-                                            <p className="text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">No stats available</p>
-                                            <p className="text-[10px] text-muted-foreground/60 mt-1">User is not registered as a seller</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Admin Actions Section */}
+                    {/* Statistics Section */}
+                    <ModalSection title="Statistics" icon={<BarChart3 className="w-3.5 h-3.5" />}>
+                        {isSeller ? (
                             <div className="space-y-4">
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 border-b border-border pb-2 flex items-center gap-2">
-                                    <ShieldAlert className="w-3 h-3" /> Admin Actions
-                                </h3>
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                    <ActionButton icon={<AlertTriangle className="w-3.5 h-3.5" />} label="Send Warning" color="hover:bg-amber-500/10 hover:text-amber-500" />
-                                    <ActionButton 
-                                        icon={<Ban className="w-3.5 h-3.5" />} 
-                                        label="Suspend Account" 
-                                        color="hover:bg-rose-500/10 hover:text-rose-500" 
-                                        onClick={() => setIsSuspendModalOpen(true)}
-                                    />
-                                    <ActionButton icon={<UserCheck className="w-3.5 h-3.5" />} label="Verify Documents" color="hover:bg-primary/10 hover:text-primary" />
-                                    <ActionButton icon={<Award className="w-3.5 h-3.5" />} label="Add Badge" color="hover:bg-indigo-500/10 hover:text-indigo-500" />
-                                    <ActionButton icon={<Trash2 className="w-3.5 h-3.5" />} label="Delete Account" color="hover:bg-red-500 hover:text-white" isDanger />
-                                </div>
+                                <ModalDetailItem label="Listings" value={`${user.activeListingsCount || 0} active, ${user.soldItemsCount || 0} sold`} />
+                                <ModalDetailItem label="Rating" value={`${user.rating?.average || 0} ★ (${user.rating?.count || 0} reviews)`} />
+                                <ModalDetailItem label="Followers" value={user.businessProfile?.followersCount || 0} />
+                                <ModalDetailItem label="Activity" value="High Engagement" />
                             </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="px-6 py-4 border-t border-border bg-muted/30 flex justify-end">
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-2.5 rounded-xl border border-border bg-card text-foreground font-bold uppercase tracking-widest text-[10px] hover:bg-muted transition-all active:scale-95 shadow-sm"
-                            >
-                                Close Profile
-                            </button>
-                        </div>
-                    </motion.div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-10 text-center bg-secondary/20 rounded-3xl border border-dashed border-border/60">
+                                <BarChart3 className="w-10 h-10 text-muted-foreground/10 mb-3" />
+                                <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.2em]">No seller stats</p>
+                                <p className="text-[10px] text-muted-foreground/60 mt-1 px-4 font-medium italic">This account is primarily used for buying</p>
+                            </div>
+                        )}
+                    </ModalSection>
                 </div>
 
-                <AdminSuspendUserModal 
-                    isOpen={isSuspendModalOpen}
-                    onClose={() => setIsSuspendModalOpen(false)}
-                    user={user}
-                    onConfirm={(data) => {
-                        console.log("Suspension confirmed:", data);
-                        // Handle suspension logic here
-                    }}
-                />
-                </>
-            )}
-        </AnimatePresence>
-    );
-}
+                {/* Admin Actions Section */}
+                <ModalSection title="Admin Actions" icon={<ShieldAlert className="w-3.5 h-3.5" />}>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                        <ModalActionButton icon={<AlertTriangle className="w-4 h-4" />} label="Send Warning" color="hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/30" />
+                        <ModalActionButton 
+                            icon={<Ban className="w-4 h-4" />} 
+                            label="Suspend Account" 
+                            color="hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30" 
+                            onClick={() => setIsSuspendModalOpen(true)}
+                        />
+                        <ModalActionButton icon={<UserCheck className="w-4 h-4" />} label="Verify" color="hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/30" />
+                        <ModalActionButton icon={<Award className="w-4 h-4" />} label="Badge" color="hover:bg-indigo-500/10 hover:text-indigo-500 hover:border-indigo-500/30" />
+                        <ModalActionButton icon={<Trash2 className="w-4 h-4" />} label="Delete" color="bg-red-500 text-white hover:bg-red-600 border-transparent shadow-red-500/20" isDanger />
+                    </div>
+                </ModalSection>
+            </BaseModal>
 
-function DetailItem({ label, value, icon }: { label: string; value: React.ReactNode; icon?: React.ReactNode }) {
-    return (
-        <div className="group/item">
-            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider mb-0.5">{label}</p>
-            <div className="flex items-center gap-2">
-                {icon && <span className="text-primary/60">{icon}</span>}
-                <div className="text-sm font-bold text-foreground group-hover/item:text-primary transition-colors">
-                    {value}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function ActionButton({ icon, label, color, isDanger, onClick }: { icon: React.ReactNode; label: string; color: string; isDanger?: boolean; onClick?: () => void }) {
-    return (
-        <button 
-            onClick={onClick}
-            className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-border/60 transition-all active:scale-95 shadow-sm",
-                color,
-                isDanger ? "hover:border-red-500" : "hover:border-border"
-            )}
-        >
-            {icon}
-            {label}
-        </button>
+            <AdminSuspendUserModal 
+                isOpen={isSuspendModalOpen}
+                onClose={() => setIsSuspendModalOpen(false)}
+                user={user}
+                onConfirm={(data) => {
+                    console.log("Suspension confirmed:", data);
+                }}
+            />
+        </>
     );
 }
