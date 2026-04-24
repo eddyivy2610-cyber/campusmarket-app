@@ -441,9 +441,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                             </>
                         ) : (
                             <>
-                                <Link href="/messages" className="flex-1 md:flex-none w-full md:w-auto">
+                                <Link href={`/messages?user=${profile.id}`} className="flex-1 md:flex-none w-full md:w-auto">
                                     <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
-                                        Messages
+                                        Message
                                     </button>
                                 </Link>
                                 <button

@@ -147,16 +147,63 @@ function DashboardMessagesInner() {
         }
     }, [user]);
 
-    // ── Handle URL params (deep link to a conversation)
+    // ── Handle URL params (deep link / start new conversation)
+    const [hasInitiated, setHasInitiated] = useState(false);
+
     useEffect(() => {
-        if (!userParam || conversations.length === 0) return;
-        const conv = conversations.find(c => c.participant.id === userParam);
-        if (conv) {
-            setActiveId(conv.id);
-            setMobileView("thread");
-            fetchMessages(conv.id);
-        }
-    }, [userParam, conversations]);
+        if (!user || !userParam || isLoadingConversations || hasInitiated) return;
+
+        const initiateChat = async () => {
+            setHasInitiated(true);
+            // 1. Check if we already have this conversation loaded
+            const existing = conversations.find(c => c.participant.id === userParam);
+            if (existing) {
+                setActiveId(existing.id);
+                setMobileView("thread");
+                fetchMessages(existing.id);
+                
+                // If there's a message in URL, send it to existing conversation
+                const msgParam = params.get("message");
+                if (msgParam) {
+                    setTimeout(() => sendMessage(msgParam, existing.id), 500);
+                }
+                return;
+            }
+
+            // 2. Not found locally, try to get or create from API
+            try {
+                const res = await apiPost<{ success: boolean; data: any }>("/api/chat/conversation", {
+                    userId: user.id,
+                    otherUserId: userParam,
+                    listingId: listingParam || undefined
+                });
+
+                if (res.success && res.data) {
+                    const mapped = mapConversation(res.data, user.id);
+                    setConversations(prev => [mapped, ...prev]);
+                    setActiveId(mapped.id);
+                    setMobileView("thread");
+                    
+                    // Fetch messages for the new/existing conversation
+                    const msgRes = await apiGet<{ success: boolean; data: any[] }>(`/api/chat/${mapped.id}/messages`);
+                    const msgs = (msgRes.data || []).map((m: any) => mapMessage(m, user.id));
+                    setConversations(prev => prev.map(c => c.id === mapped.id ? { ...c, messages: msgs } : c));
+
+                    // 3. Handle auto-message if provided
+                    const msgParam = params.get("message");
+                    if (msgParam) {
+                        setTimeout(() => {
+                            sendMessage(msgParam, mapped.id);
+                        }, 600);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to initiate chat:", err);
+            }
+        };
+
+        initiateChat();
+    }, [userParam, listingParam, user, isLoadingConversations, conversations, hasInitiated]);
 
     // ── Socket.IO: listen for incoming messages
     useEffect(() => {
@@ -186,11 +233,14 @@ function DashboardMessagesInner() {
     }, [socket, user, activeId]);
 
     // ── Send a message
-    const sendMessage = async (text: string) => {
-        if (!activeId || !text.trim() || !user) return;
-        const activeConv = conversations.find(c => c.id === activeId);
-        if (!activeConv) return;
+    const sendMessage = async (text: string, overrideId?: string) => {
+        const targetId = overrideId || activeId;
+        if (!targetId || !text.trim() || !user) return;
 
+        const targetConv = conversations.find(c => c.id === targetId);
+        // Note: If this is a brand new conversation, it might not be in the conversations state 
+        // if we call this immediately. But our initiateChat logic adds it first.
+        
         // Optimistic update
         const tempMsg: Message = {
             id: `temp-${Date.now()}`,
@@ -202,7 +252,7 @@ function DashboardMessagesInner() {
         };
 
         setConversations(prev => prev.map(c =>
-            c.id === activeId
+            c.id === targetId
                 ? { ...c, messages: [...c.messages, tempMsg], lastMessage: text, lastTime: "Now" }
                 : c
         ));
@@ -210,7 +260,7 @@ function DashboardMessagesInner() {
         try {
             setIsSending(true);
             const res = await apiPost<{ success: boolean; data: any }>("/api/chat/send", {
-                conversationId: activeId,
+                conversationId: targetId,
                 senderId: user.id,
                 text,
                 type: "text",
@@ -220,27 +270,28 @@ function DashboardMessagesInner() {
 
             // Replace temp msg with saved
             setConversations(prev => prev.map(c => {
-                if (c.id !== activeId) return c;
+                if (c.id !== targetId) return c;
                 return {
                     ...c,
                     messages: c.messages.map(m => m.id === tempMsg.id ? savedMsg : m),
                 };
             }));
 
-            // Emit to socket so recipient gets it in real-time
-            socket?.emit("send_message", {
-                conversationId: activeId,
-                receiverId: activeConv.participant.id,
-                senderId: user.id,
-                text,
-                type: "text",
-                _id: res.data._id,
-            });
+            // Emit to socket
+            if (targetConv) {
+                socket?.emit("send_message", {
+                    conversationId: targetId,
+                    receiverId: targetConv.participant.id,
+                    senderId: user.id,
+                    text,
+                    type: "text",
+                    _id: res.data._id,
+                });
+            }
         } catch (err: any) {
             toast.error("Failed to send message");
-            // Roll back optimistic update
             setConversations(prev => prev.map(c =>
-                c.id === activeId
+                c.id === targetId
                     ? { ...c, messages: c.messages.filter(m => m.id !== tempMsg.id) }
                     : c
             ));

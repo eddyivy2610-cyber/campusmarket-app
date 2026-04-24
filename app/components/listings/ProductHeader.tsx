@@ -122,7 +122,7 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
                                 if (!message) return;
                                 setIsOfferOpen(false);
                                 const query = `&message=${encodeURIComponent(message)}`;
-                                router.push(`/chat?user=${vendor.id}&listing=${displayId}${query}`);
+                                router.push(`/messages?user=${vendor.id}&listing=${displayId}${query}`);
                                 setOfferNote("");
                             }}
                             disabled={!offerNote.trim()}
