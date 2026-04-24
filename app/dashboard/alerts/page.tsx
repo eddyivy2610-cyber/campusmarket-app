@@ -64,7 +64,7 @@ const DASHBOARD_ALERTS = [
     ...BASE_ALERTS.map(a => ({ ...a, id: a.id + 30 })),
 ];
 
-const FILTERS = ["All", "Matches", "Messages", "Price Drops", "Sold", "System"];
+const FILTERS = ["All", "Matches", "Messages", "Price Drops", "Orders", "Followers", "Reviews", "Sold", "System"];
 
 export default function DashboardAlertsPage() {
     const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
@@ -73,8 +73,11 @@ export default function DashboardAlertsPage() {
     const getFilteredAlerts = () => {
         if (activeFilter === "All") return DASHBOARD_ALERTS;
         if (activeFilter === "Matches") return DASHBOARD_ALERTS.filter(alert => alert.type === "match");
-        if (activeFilter === "Messages") return DASHBOARD_ALERTS.filter(alert => alert.type === "message");
+        if (activeFilter === "Messages") return DASHBOARD_ALERTS.filter(alert => alert.type === "message" || alert.type === "messaging");
         if (activeFilter === "Price Drops") return DASHBOARD_ALERTS.filter(alert => alert.type === "price_drop");
+        if (activeFilter === "Orders") return DASHBOARD_ALERTS.filter(alert => alert.type === "new_order" || alert.type === "order_update");
+        if (activeFilter === "Followers") return DASHBOARD_ALERTS.filter(alert => alert.type === "new_follower");
+        if (activeFilter === "Reviews") return DASHBOARD_ALERTS.filter(alert => alert.type === "new_review");
         if (activeFilter === "Sold") return DASHBOARD_ALERTS.filter(alert => alert.type === "sold");
         if (activeFilter === "System") return DASHBOARD_ALERTS.filter(alert => alert.type === "system");
         return DASHBOARD_ALERTS;

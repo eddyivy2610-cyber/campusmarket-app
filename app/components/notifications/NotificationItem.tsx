@@ -1,9 +1,9 @@
 "use client";
 
-import { Bell, MessageSquare, Tag, TrendingDown, ArrowRight, PackageCheck } from "lucide-react";
+import { Bell, MessageSquare, Tag, TrendingDown, ArrowRight, PackageCheck, UserPlus, Star, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
-export type NotificationType = "match" | "message" | "price_drop" | "sold" | "system";
+export type NotificationType = "match" | "message" | "messaging" | "price_drop" | "sold" | "system" | "listing_approved" | "listing_rejected" | "new_order" | "order_update" | "new_follower" | "new_review";
 
 interface NotificationItemProps {
     type: NotificationType;
@@ -20,9 +20,16 @@ export function NotificationItem({ type, message, timestamp, image, actionLabel,
     const getIcon = () => {
         switch (type) {
             case "match": return <Tag className="w-4 h-4 text-emerald-500" />;
-            case "message": return <MessageSquare className="w-4 h-4 text-blue-500" />;
+            case "message": 
+            case "messaging": return <MessageSquare className="w-4 h-4 text-blue-500" />;
             case "price_drop": return <TrendingDown className="w-4 h-4 text-orange-500" />;
-            case "sold": return <PackageCheck className="w-4 h-4 text-gray-500" />;
+            case "sold": 
+            case "listing_approved": return <PackageCheck className="w-4 h-4 text-emerald-500" />;
+            case "listing_rejected": return <Bell className="w-4 h-4 text-rose-500" />;
+            case "new_order":
+            case "order_update": return <ShoppingCart className="w-4 h-4 text-amber-500" />;
+            case "new_follower": return <UserPlus className="w-4 h-4 text-indigo-500" />;
+            case "new_review": return <Star className="w-4 h-4 text-yellow-500" />;
             case "system": return <Bell className="w-4 h-4 text-foreground/60" />;
             default: return <Bell className="w-4 h-4 text-foreground/60" />;
         }
@@ -31,8 +38,15 @@ export function NotificationItem({ type, message, timestamp, image, actionLabel,
     const getBgColor = () => {
         switch (type) {
             case "match": return "bg-emerald-500/10 border-emerald-500/20";
-            case "message": return "bg-blue-500/10 border-blue-500/20";
+            case "message":
+            case "messaging": return "bg-blue-500/10 border-blue-500/20";
             case "price_drop": return "bg-orange-500/10 border-orange-500/20";
+            case "listing_approved": return "bg-emerald-500/10 border-emerald-500/20";
+            case "listing_rejected": return "bg-rose-500/10 border-rose-500/20";
+            case "new_order":
+            case "order_update": return "bg-amber-500/10 border-amber-500/20";
+            case "new_follower": return "bg-indigo-500/10 border-indigo-500/20";
+            case "new_review": return "bg-yellow-500/10 border-yellow-500/20";
             default: return "bg-secondary/50 border-foreground/5";
         }
     }

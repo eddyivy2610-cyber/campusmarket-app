@@ -29,6 +29,8 @@ import { useAuth } from "../context/AuthContext";
 
 import { DashboardOnboarding } from "../components/dashboard/DashboardOnboarding";
 import { DashboardYearContext } from "../context/DashboardYearContext";
+import { NotificationsModal } from "../components/notifications/NotificationsModal";
+import { useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -58,6 +60,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const router = useRouter();
 
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
@@ -232,15 +236,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             {/* Notification + Avatar pill — matches homepage header */}
                             <div className="flex items-center gap-1 bg-card/80 backdrop-blur-lg border border-border/60 rounded-lg px-1.5 py-1 shadow-sm">
                                 {/* Bell */}
-                                <button
-                                    className="flex items-center justify-center p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground/70 relative group"
+                                <div className="relative">
+                                    <button
+                                        onClick={() => {
+                                            if (typeof window !== "undefined" && window.innerWidth < 768) {
+                                                router.push("/dashboard/alerts");
+                                                return;
+                                            }
+                                            setIsNotificationOpen(!isNotificationOpen);
+                                        }}
+                                        className="flex items-center justify-center p-1.5 rounded-lg hover:bg-secondary transition-colors text-foreground/70 relative group"
                                     title="Notifications"
                                 >
-                                    <Bell className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110 group-hover:text-primary" />
+                                        <Bell className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${isNotificationOpen ? 'text-primary' : 'group-hover:text-primary'}`} />
                                     <span className="absolute top-0.5 right-0.5 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background animate-pulse">
                                         3
                                     </span>
-                                </button>
+                                    </button>
+                                    <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
+                                </div>
 
                                 <div className="w-px h-5 bg-border/60 mx-0.5" />
 
