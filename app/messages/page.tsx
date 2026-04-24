@@ -132,10 +132,11 @@ function DashboardMessagesInner() {
 
     // ── Fetch messages when a conversation is selected
     const fetchMessages = useCallback(async (conversationId: string) => {
+        if (!user) return;
         try {
             setIsLoadingMessages(true);
             const res = await apiGet<{ success: boolean; data: any[] }>(`/api/chat/${conversationId}/messages`);
-            const msgs = (res.data || []).map((m: any) => mapMessage(m, user?.id));
+            const msgs = (res.data || []).map((m: any) => mapMessage(m, user.id));
             setConversations(prev =>
                 prev.map(c => c.id === conversationId ? { ...c, messages: msgs, unread: 0 } : c)
             );
