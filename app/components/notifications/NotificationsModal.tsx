@@ -20,7 +20,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
 
     useEffect(() => {
         const loadSellerCompletionState = async () => {
-            if (!user?.id || user.sellerStatus !== "approved") {
+            if (!isOpen || !user?.id || user.sellerStatus !== "approved") {
                 setNeedsSellerCompletion(false);
                 return;
             }
@@ -38,7 +38,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
         };
 
         loadSellerCompletionState();
-    }, [user?.id, user?.sellerStatus]);
+    }, [user?.id, user?.sellerStatus, isOpen]);
 
     const isStudentPending = !!user?.isStudent && !user?.studentVerified;
     const pendingNotification = (isStudentPending || user?.sellerStatus === "pending")

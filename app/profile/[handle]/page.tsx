@@ -58,7 +58,7 @@ export default function ProfilePage() {
         };
 
         fetchProfile();
-    }, [handle, authUser, authLoading, router]);
+    }, [handle, authUser?.id, authLoading, router]);
 
     if (isLoading) {
         return (

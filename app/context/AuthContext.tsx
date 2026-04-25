@@ -103,11 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const isPending = (!user.studentVerified && user.isStudent) || user.sellerStatus === "pending";
         if (!isPending) return;
 
-        const interval = setInterval(() => {
-            refreshUser();
-        }, 30_000); // Poll every 30 seconds while pending
+        let timeoutId: NodeJS.Timeout;
         
-        return () => clearInterval(interval);
+        const poll = async () => {
+            await refreshUser();
+            timeoutId = setTimeout(poll, 30_000);
+        };
+
+        timeoutId = setTimeout(poll, 30_000);
+        
+        return () => clearTimeout(timeoutId);
     }, [user?.id, user?.isStudent, user?.studentVerified, user?.sellerStatus]);
 
     return (

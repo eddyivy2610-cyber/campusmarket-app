@@ -42,14 +42,8 @@ export function IntelligentSearch() {
         }
     }, []);
 
-    const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setQuery(value);
-        setIsOpen(true);
-
-        const trimmed = value.trim();
-        const currentRequestId = ++searchRequestId.current;
-
+    useEffect(() => {
+        const trimmed = query.trim();
         if (trimmed.length === 0) {
             setProfileResults([]);
             setIsSearching(false);
@@ -57,30 +51,33 @@ export function IntelligentSearch() {
             return;
         }
 
+        const currentRequestId = ++searchRequestId.current;
         setIsSearching(true);
         setSearchError(null);
 
-        try {
-            const profiles = await searchProfiles(trimmed);
-
-            if (searchRequestId.current !== currentRequestId) {
-                return;
+        const timer = setTimeout(async () => {
+            try {
+                const profiles = await searchProfiles(trimmed);
+                if (searchRequestId.current !== currentRequestId) return;
+                setProfileResults(profiles);
+            } catch (error) {
+                if (searchRequestId.current !== currentRequestId) return;
+                console.error("Search failed", error);
+                setProfileResults([]);
+                setSearchError("Search is currently unavailable. Please try again.");
+            } finally {
+                if (searchRequestId.current === currentRequestId) {
+                    setIsSearching(false);
+                }
             }
+        }, 300);
 
-            setProfileResults(profiles);
-        } catch (error) {
-            if (searchRequestId.current !== currentRequestId) {
-                return;
-            }
+        return () => clearTimeout(timer);
+    }, [query]);
 
-            console.error("Search failed", error);
-            setProfileResults([]);
-            setSearchError("Search is currently unavailable. Please try again.");
-        } finally {
-            if (searchRequestId.current === currentRequestId) {
-                setIsSearching(false);
-            }
-        }
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+        setIsOpen(true);
     };
 
     const addToRecent = (term: string) => {
