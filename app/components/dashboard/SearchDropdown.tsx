@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { OptimizedImage } from "../common/OptimizedImage";
 import { 
     Package, 
     ShoppingCart, 
@@ -70,9 +71,11 @@ export function SearchDropdown({ results, isVisible, onClose, query }: SearchDro
                                                 className="flex items-center gap-3 p-2 rounded-xl h-14 hover:bg-secondary/80 transition-all group"
                                             >
                                                 {item.image ? (
-                                                    <img 
+                                                    <OptimizedImage 
                                                         src={item.image} 
                                                         alt="" 
+                                                        width={40}
+                                                        height={40}
                                                         className="w-10 h-10 rounded-lg object-cover border border-border/10"
                                                     />
                                                 ) : (

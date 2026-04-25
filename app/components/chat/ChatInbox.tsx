@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Edit, Bell } from "lucide-react";
+import { OptimizedImage } from "../common/OptimizedImage";
 import Image from "next/image";
 import { Conversation } from "../../data/chat";
 
@@ -45,7 +46,7 @@ function ConversationRow({ conv, active, onSelect }: { conv: Conversation; activ
             <div className="relative shrink-0">
                 <div className="w-11 h-11 rounded-full bg-secondary overflow-hidden flex items-center justify-center text-sm font-bold text-primary relative ring-2 ring-white dark:ring-card">
                     {conv.participant.avatar
-                        ? <Image src={conv.participant.avatar} alt={conv.participant.name} fill className="object-cover" />
+                        ? <OptimizedImage src={conv.participant.avatar} alt={conv.participant.name} fill className="object-cover" />
                         : <span>{conv.participant.name.charAt(0)}</span>
                     }
                 </div>

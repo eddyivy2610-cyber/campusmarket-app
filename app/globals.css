@@ -64,7 +64,7 @@
   --brand-yellow-soft: rgba(255, 244, 196, 0.6);
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -320,6 +320,36 @@ body {
 
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(var(--brand-blue-rgb), 0.03) 25%,
+      rgba(var(--brand-blue-rgb), 0.08) 50%,
+      rgba(var(--brand-blue-rgb), 0.03) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  .dark .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 75%
+    );
+    background-size: 200% 100%;
   }
 }
 

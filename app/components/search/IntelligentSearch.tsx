@@ -15,6 +15,7 @@ import { Search, X, Clock, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 import { searchProfiles } from "../../lib/searchUtils";
 import type { Profile } from "../../data/profiles";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -212,7 +213,7 @@ export function IntelligentSearch() {
                                                                 onClick={() => addToRecent(query)}
                                                             >
                                                                 <div className="w-10 h-10 rounded-full bg-secondary relative overflow-hidden shadow-sm border border-border/50">
-                                                                    <Image
+                                                                    <OptimizedImage
                                                                         src={(profile.avatar && profile.avatar !== "image") ? profile.avatar : "/placeholder.png"}
                                                                         alt={profile.name}
                                                                         fill

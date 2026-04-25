@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 import { readStoredHeroBanners } from "../../lib/heroBanners";
 
 export function Hero() {
@@ -47,11 +48,10 @@ export function Hero() {
                 >
                     {heroBanners.map((banner, index) => (
                         <div key={index} className="w-full h-full shrink-0 relative">
-                            <Image
+                            <OptimizedImage
                                 src={banner}
                                 alt={`Hero banner ${index + 1}`}
                                 fill
-                                unoptimized
                                 className="object-cover object-center"
                             />
                         </div>

@@ -14,6 +14,7 @@ import {
     Edit3, Trash2, Tag, MoreHorizontal
 } from "lucide-react";
 import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 import { motion } from "framer-motion";
 import { useSaved } from "../../context/SavedContext";
 import { QuickViewModal } from "../modals/QuickViewModal";
@@ -68,10 +69,9 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                 className="absolute inset-0 z-0"
                 aria-label={`View details for ${product.title}`}
             />
-
             {/* Image */}
             <div className="aspect-square bg-secondary/30 relative overflow-hidden pointer-events-none rounded-2xl w-full">
-                <Image
+                <OptimizedImage
                     src={displayImage}
                     alt={product.title}
                     fill

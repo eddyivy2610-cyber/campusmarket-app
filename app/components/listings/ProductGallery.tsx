@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 interface ProductGalleryProps {
     images: string[];
@@ -22,7 +23,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                         className={`relative aspect-square rounded-md overflow-hidden border transition-all ${currentIndex === index ? "border-primary ring-1 ring-primary/30" : "border-border/50 hover:border-border"
                             }`}
                     >
-                        <Image
+                        <OptimizedImage
                             src={image}
                             alt={`Product thumbnail ${index + 1}`}
                             fill
@@ -33,7 +34,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
             </div>
 
             <div className="relative min-h-[300px] sm:min-h-[380px] lg:min-h-[460px] rounded-md overflow-hidden border border-border/50 bg-secondary/20">
-                <Image
+                <OptimizedImage
                     src={images[currentIndex]}
                     alt="Product Image"
                     fill

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 import Link from "next/link";
 import type { Product } from "../../data/products";
 
@@ -90,7 +90,7 @@ export function RecommendedCarousel({ products }: RecommendedCarouselProps) {
                             href={`/listings/${product.id}`}
                             className="relative h-[88px] w-[88px] sm:h-[106px] sm:w-[106px] lg:h-[124px] lg:w-[124px] rounded-xl overflow-hidden border border-border/60 bg-card shadow-sm dark:shadow-lg shrink-0 hover:-translate-y-0.5 transition-transform duration-200"
                         >
-                            <Image src={product.image} alt={product.title} fill className="object-cover" />
+                            <OptimizedImage src={product.image} alt={product.title} fill className="object-cover" />
                         </Link>
                     ))}
                 </div>

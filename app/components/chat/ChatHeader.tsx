@@ -1,5 +1,6 @@
 "use client";
 
+import { OptimizedImage } from "../common/OptimizedImage";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, MoreVertical, Flag, Ban, Trash2, ExternalLink, Settings, Headset } from "lucide-react";
@@ -32,7 +33,7 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${participant.id}`} className="w-10 h-10 rounded-full bg-secondary overflow-hidden relative shrink-0">
                         {participant.avatar
-                            ? <Image src={participant.avatar} alt={participant.name} fill className="object-cover" />
+                            ? <OptimizedImage src={participant.avatar} alt={participant.name} fill className="object-cover" />
                             : <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">{participant.name.charAt(0)}</span>
                         }
                     </Link>

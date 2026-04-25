@@ -2,6 +2,7 @@
 
 import { Bell, MessageSquare, Tag, TrendingDown, ArrowRight, PackageCheck, UserPlus, Star, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 export type NotificationType = "match" | "message" | "messaging" | "price_drop" | "sold" | "system" | "listing_approved" | "listing_rejected" | "new_order" | "order_update" | "new_follower" | "new_review";
 
@@ -58,7 +59,7 @@ export function NotificationItem({ type, message, timestamp, image, actionLabel,
             <div className="shrink-0 relative">
                 {image ? (
                     <div className="w-12 h-12 rounded-xl overflow-hidden border border-foreground/10 relative">
-                        <Image src={(image && image !== "image") ? image : "/placeholder.png"} alt="Item" fill className="object-cover" />
+                        <OptimizedImage src={(image && image !== "image") ? image : "/placeholder.png"} alt="Item" fill className="object-cover" />
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-background flex items-center justify-center border border-foreground/10 shadow-sm z-10`}>
                             {getIcon()}
                         </div>

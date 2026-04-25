@@ -39,6 +39,7 @@ import { followService } from "../../lib/followService";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ProfilePhotoModal } from "./ProfilePhotoModal";
+import { OptimizedImage } from "../common/OptimizedImage";
 
 interface ProfessionalProfileHeaderProps {
     profile: Profile;
@@ -236,9 +237,10 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                     {/* Cover Photo Background */}
                     <div className="absolute inset-0 z-0">
                         {(previewCover || profile.coverPhoto) ? (
-                            <img
-                                src={previewCover || profile.coverPhoto}
+                            <OptimizedImage
+                                src={previewCover || profile.coverPhoto || ""}
                                 alt="Cover"
+                                fill
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -297,9 +299,10 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                     onClick={() => isHost && setIsAvatarModalOpen(true)}
                                 >
                                     {previewAvatar || profile.avatar ? (
-                                        <img
+                                        <OptimizedImage
                                             src={previewAvatar || profile.avatar}
                                             alt={profile.name}
+                                            fill
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
