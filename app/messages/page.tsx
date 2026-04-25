@@ -383,13 +383,18 @@ function DashboardMessagesInner() {
 
         const targetConv = conversations.find(c => c.id === targetId);
         
+        // If it's a regular text message but we have a listing context in the conversation 
+        // AND this is the first message (or no listing-card has been sent yet), 
+        // we might want to attach the listing context.
+        const effectiveListing = listing || (targetConv?.messages.length === 0 ? targetConv.listing : undefined);
+        
         // Optimistic update
         const tempMsg: Message = {
             id: `temp-${Date.now()}`,
             senderId: "me",
             type: type,
             text,
-            listing,
+            listing: effectiveListing,
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             read: true,
         };
@@ -407,7 +412,7 @@ function DashboardMessagesInner() {
                 senderId: user.id,
                 text,
                 type: type,
-                listingId: listing?.id
+                listingId: effectiveListing?.id
             });
 
             const savedMsg = mapMessage(res.data, user.id);
@@ -429,7 +434,7 @@ function DashboardMessagesInner() {
                     senderId: user.id,
                     text,
                     type: type,
-                    listing: listing,
+                    listing: effectiveListing,
                     _id: res.data._id,
                 });
             }
@@ -549,7 +554,7 @@ function DashboardMessagesInner() {
                         <div className="p-3 md:p-4 bg-card border-t border-border/0 pb-4 md:pb-4 shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] md:shadow-none z-20 relative">
                             <ChatInput
                                 onSend={sendMessage}
-                                onShareListing={() => {}}
+                                onShareListing={(listing) => sendMessage("", activeId, "listing-card", listing)}
                                 isBuyer={true}
                             />
                         </div>
