@@ -59,11 +59,21 @@ function mapConversation(raw: any, myId: string): Conversation {
 // ── Helper: Map backend message to frontend Message type
 function mapMessage(raw: any, myId: string): Message {
     const senderId = raw.senderId?._id || raw.senderId;
+    
+    const listing = raw.listingId ? {
+        id: raw.listingId._id || raw.listingId,
+        title: raw.listingId.title || "Listing",
+        price: raw.listingId.price || 0,
+        image: resolveImageUrl(raw.listingId.images?.[0]) || "",
+        status: raw.listingId.status || "available",
+    } : undefined;
+
     return {
         id: raw._id,
         senderId: senderId === myId ? "me" : senderId,
         type: raw.type || "text",
         text: raw.text,
+        listing,
         timestamp: raw.createdAt
             ? new Date(raw.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
             : "Now",
@@ -383,10 +393,11 @@ function DashboardMessagesInner() {
 
         const targetConv = conversations.find(c => c.id === targetId);
         
-        // If it's a regular text message but we have a listing context in the conversation 
-        // AND this is the first message (or no listing-card has been sent yet), 
-        // we might want to attach the listing context.
-        const effectiveListing = listing || (targetConv?.messages.length === 0 ? targetConv.listing : undefined);
+        // If it's a regular text message and there's an active negotiation, 
+        // ALWAYS attach the listing context unless it's explicitly provided.
+        // This ensures every inquiry message acts as an "open negotiation" toast.
+        const isNegotiationActive = targetConv?.negotiation?.status === "active";
+        const effectiveListing = listing || (isNegotiationActive ? targetConv?.listing : undefined);
         
         // Optimistic update
         const tempMsg: Message = {
