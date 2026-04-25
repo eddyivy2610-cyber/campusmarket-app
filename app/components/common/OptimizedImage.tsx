@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image, { ImageProps } from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, resolveImageUrl } from "@/lib/utils";
 
 interface OptimizedImageProps extends Omit<ImageProps, "onLoadingComplete" | "onLoad"> {
     fallbackSrc?: string;
@@ -17,6 +17,7 @@ export function OptimizedImage({
     fallbackSrc = "/placeholder-product.png",
     ...props
 }: OptimizedImageProps) {
+    const resolvedSrc = resolveImageUrl(typeof src === "string" ? src : "");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -50,7 +51,7 @@ export function OptimizedImage({
             )}
 
             <Image
-                src={error ? fallbackSrc : src}
+                src={error ? fallbackSrc : (resolvedSrc || fallbackSrc)}
                 alt={alt}
                 className={cn(
                     "transition-all duration-700 ease-in-out",

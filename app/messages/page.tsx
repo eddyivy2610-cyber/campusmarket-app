@@ -14,6 +14,7 @@ import { apiGet, apiPost } from "../lib/apiClient";
 import { Conversation, Message, MessageType, ChatListing } from "../data/chat";
 import { toast } from "sonner";
 import { RatingPopup } from "../components/chat/RatingPopup";
+import { resolveImageUrl } from "../lib/utils";
 
 // ── Helper: Map backend conversation to frontend Conversation type
 function mapConversation(raw: any, myId: string): Conversation {
@@ -23,7 +24,7 @@ function mapConversation(raw: any, myId: string): Conversation {
     const participant = {
         id: other?._id || "unknown",
         name: other?.profile?.displayName || other?.personalDetails?.fullName || other?.email?.split("@")[0] || "User",
-        avatar: other?.profile?.avatar || "",
+        avatar: resolveImageUrl(other?.profile?.avatar) || "",
         memberSince: other?.createdAt ? new Date(other.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "Recently",
         responseTime: "Varies",
         activeListings: other?.businessProfile?.activeListingsCount || 0,
@@ -34,7 +35,7 @@ function mapConversation(raw: any, myId: string): Conversation {
         id: raw.listingId._id || raw.listingId,
         title: raw.listingId.title || "Listing",
         price: raw.listingId.price || 0,
-        image: raw.listingId.images?.[0] || "",
+        image: resolveImageUrl(raw.listingId.images?.[0]) || "",
         status: raw.listingId.status || "available",
     } : undefined;
 

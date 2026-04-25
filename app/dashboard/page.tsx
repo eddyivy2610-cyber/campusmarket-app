@@ -10,6 +10,7 @@ import { DashboardYearContext } from "@/context/DashboardYearContext";
 import { dashboardService } from "@/lib/dashboardService";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 const DONUT_COLORS = ["#FFD700", "#f2c94c", "#f6e28b", "#e6d36a", "#e8e8e8"];
 const CARD_SHADOW = "shadow-[0_18px_52px_rgba(15,23,42,0.12)]";
@@ -348,14 +349,13 @@ export default function DashboardOverview() {
                             className="p-4 rounded-2xl border border-black/5 dark:border-white/5 bg-secondary/20 hover:bg-secondary/40 shadow-sm transition-all cursor-pointer group"
                         >
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="w-12 h-12 rounded-xl bg-primary/20 flex-shrink-0 overflow-hidden">
-                                    {item.image ? (
-                                        <img src={item.image} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-primary">
-                                            <BarChart3 className="w-6 h-6" />
-                                        </div>
-                                    )}
+                                <div className="w-12 h-12 rounded-xl bg-primary/20 flex-shrink-0 overflow-hidden relative">
+                                    <OptimizedImage
+                                        src={item.image}
+                                        alt={item.name}
+                                        fill
+                                        className="object-cover"
+                                    />
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-sm font-bold group-hover:text-primary transition-colors truncate">{item.name}</p>
