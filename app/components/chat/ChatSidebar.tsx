@@ -32,11 +32,18 @@ const STATUS_CONFIG: Record<NegotiationStatus, {
         text: "text-zinc-500 dark:text-zinc-400",
         icon: <XCircle className="w-2.5 h-2.5" />,
     },
+    none: {
+        label: "None",
+        bg: "bg-zinc-100 dark:bg-zinc-800/30",
+        text: "text-zinc-400 dark:text-zinc-500",
+        icon: <Handshake className="w-2.5 h-2.5" />,
+    },
 };
 
 export function NegotiationHistory({ negotiations, participant }: NegotiationHistoryProps) {
-    const active = negotiations.filter(n => n.status === "active").length;
-    const completed = negotiations.filter(n => n.status === "completed").length;
+    const validNegotiations = (negotiations || []).filter(n => n.status !== "none");
+    const active = validNegotiations.filter(n => n.status === "active").length;
+    const completed = validNegotiations.filter(n => n.status === "completed").length;
 
     return (
         <div className="flex flex-col min-h-0 h-full bg-secondary/10 border-l border-border/40">
@@ -71,7 +78,7 @@ export function NegotiationHistory({ negotiations, participant }: NegotiationHis
 
             {/* Records list — only this scrolls */}
             <div className="flex-1 min-h-0 overflow-y-auto" data-lenis-prevent>
-                {!participant || negotiations.length === 0 ? (
+                {!participant || validNegotiations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
                         <div className="w-12 h-12 rounded-2xl bg-secondary/60 flex items-center justify-center">
                             <Handshake className="w-5 h-5 text-muted-foreground" />
@@ -84,7 +91,7 @@ export function NegotiationHistory({ negotiations, participant }: NegotiationHis
                     </div>
                 ) : (
                     <div className="p-3 space-y-2">
-                        {negotiations.map((record) => {
+                        {validNegotiations.map((record) => {
                             const cfg = STATUS_CONFIG[record.status];
                             return (
                                 <div
@@ -92,12 +99,14 @@ export function NegotiationHistory({ negotiations, participant }: NegotiationHis
                                     className="w-full text-left p-3 rounded-2xl border bg-card border-border/40 shadow-sm"
                                 >
                                     {/* Listing title + price */}
-                                    <p className="text-xs font-bold text-foreground truncate">{record.listing.title}</p>
+                                    <p className="text-xs font-bold text-foreground truncate">{record.listing?.title || "Listing"}</p>
                                     <div className="flex items-center justify-between mt-1">
                                         <span className="text-[11px] font-bold text-primary">
                                             {record.agreedPrice
                                                 ? `₦${record.agreedPrice.toLocaleString()} agreed`
-                                                : `₦${record.listing.price.toLocaleString()}`}
+                                                : record.listing?.price 
+                                                    ? `₦${record.listing.price.toLocaleString()}`
+                                                    : "Price N/A"}
                                         </span>
                                         {/* Status badge */}
                                         <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
