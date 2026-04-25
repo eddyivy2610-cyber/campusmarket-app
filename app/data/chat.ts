@@ -169,14 +169,12 @@ export const CONVERSATIONS: Conversation[] = [
         lastMessage: "Is this MacBook still available?",
         lastTime: "2:30 PM",
         unread: 2,
-        negotiations: [
-            {
-                id: "n1",
-                listing: CHAT_LISTINGS[1],
-                status: "active",
-                startedAt: "Today",
-            },
-        ],
+        negotiation: {
+            id: "n1",
+            listing: CHAT_LISTINGS[1],
+            status: "active",
+            startedAt: "Today",
+        },
         messages: [
             { id: "m0", senderId: "system", type: "system", text: "🤝 You started a negotiation for MacBook Pro 2020 (₦450,000). Ending a negotiation requires both parties to agree.", timestamp: "2:27 PM", read: true },
             { id: "m1", senderId: "john", type: "text", text: "Hi! Is this MacBook still available?", timestamp: "2:28 PM", read: true },
@@ -193,23 +191,14 @@ export const CONVERSATIONS: Conversation[] = [
         lastMessage: "Thanks for the quick response!",
         lastTime: "Yesterday",
         unread: 0,
-        negotiations: [
-            {
-                id: "n2",
-                listing: CHAT_LISTINGS[2],
-                status: "completed",
-                startedAt: "Yesterday",
-                endedAt: "Yesterday",
-                agreedPrice: 300000,
-            },
-            {
-                id: "n3",
-                listing: CHAT_LISTINGS[3],
-                status: "ended",
-                startedAt: "Mar 12",
-                endedAt: "Mar 14",
-            },
-        ],
+        negotiation: {
+            id: "n2",
+            listing: CHAT_LISTINGS[2],
+            status: "completed",
+            startedAt: "Yesterday",
+            endedAt: "Yesterday",
+            agreedPrice: 300000,
+        },
         messages: [
             { id: "m6", senderId: "system", type: "system", text: "🤝 You started a negotiation for iPhone 12 (₦320,000). Ending a negotiation requires both parties to agree.", timestamp: "Yesterday 4:05 PM", read: true },
             { id: "m7", senderId: "sarah", type: "text", text: "Hi, is the iPhone 12 still for sale?", timestamp: "Yesterday 4:10 PM", read: true },
@@ -234,15 +223,13 @@ export const CONVERSATIONS: Conversation[] = [
         lastMessage: "Can we meet on campus?",
         lastTime: "Mar 8",
         unread: 1,
-        negotiations: [
-            {
-                id: "n4",
-                listing: CHAT_LISTINGS[1],
-                status: "ended",
-                startedAt: "Mar 8",
-                endedAt: "Mar 8",
-            },
-        ],
+        negotiation: {
+            id: "n4",
+            listing: CHAT_LISTINGS[1],
+            status: "ended",
+            startedAt: "Mar 8",
+            endedAt: "Mar 8",
+        },
         messages: [
             { id: "m12", senderId: "michael", type: "text", text: "Hey, I saw your listing. Can we meet on campus?", timestamp: "Mar 8", read: true },
         ],
