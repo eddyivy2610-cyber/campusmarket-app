@@ -44,15 +44,17 @@ export interface Message {
     read: boolean;
 }
 
-export type NegotiationStatus = "active" | "completed" | "ended";
+export type NegotiationStatus = "active" | "completed" | "ended" | "none";
 
 export interface NegotiationRecord {
-    id: string;
-    listing: ChatListing;
+    id?: string;
+    trackingRef?: string;
+    listing?: ChatListing;
     status: NegotiationStatus;
-    startedAt: string;
+    startedAt?: string;
     endedAt?: string;
     agreedPrice?: number;
+    closeRequestedBy?: string;
 }
 
 export interface Conversation {
@@ -63,7 +65,7 @@ export interface Conversation {
     lastMessage: string;
     lastTime: string;
     unread: number;
-    negotiations?: NegotiationRecord[];
+    negotiation?: NegotiationRecord; // Current active negotiation session
 }
 
 // ── Mock participants ───────────────────────────────────────────────────────

@@ -11,8 +11,9 @@ import { ChatInput } from "../components/chat/ChatInput";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import { apiGet, apiPost } from "../lib/apiClient";
-import { Conversation, Message } from "../data/chat";
+import { Conversation, Message, MessageType, ChatListing } from "../data/chat";
 import { toast } from "sonner";
+import { RatingPopup } from "../components/chat/RatingPopup";
 
 // ── Helper: Map backend conversation to frontend Conversation type
 function mapConversation(raw: any, myId: string): Conversation {
@@ -48,8 +49,9 @@ function mapConversation(raw: any, myId: string): Conversation {
         listing,
         messages: [], // Loaded separately when conversation is selected
         lastMessage: lastMsgText,
-        lastTime,
+        lastTime: lastTime,
         unread: raw.unreadCount?.get?.(myId) || 0,
+        negotiation: raw.negotiation || undefined,
     };
 }
 
@@ -96,6 +98,8 @@ function DashboardMessagesInner() {
     const [isLoadingConversations, setIsLoadingConversations] = useState(true);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [isRatingOpen, setIsRatingOpen] = useState(false);
+    const [ratingContext, setRatingContext] = useState<{ item: string; vendor: string } | null>(null);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -173,10 +177,12 @@ function DashboardMessagesInner() {
 
             // 2. Not found locally, try to get or create from API
             try {
+                const msgParam = params.get("message");
                 const res = await apiPost<{ success: boolean; data: any }>("/api/chat/conversation", {
                     userId: user.id,
                     otherUserId: userParam,
-                    listingId: listingParam || undefined
+                    listingId: listingParam || undefined,
+                    initialMessage: msgParam || undefined
                 });
 
                 if (res.success && res.data) {
@@ -188,14 +194,21 @@ function DashboardMessagesInner() {
                     // Fetch messages for the new/existing conversation
                     const msgRes = await apiGet<{ success: boolean; data: any[] }>(`/api/chat/${mapped.id}/messages`);
                     const msgs = (msgRes.data || []).map((m: any) => mapMessage(m, user.id));
+                    
+                    // If this was a new inquiry conversation, automatically send the listing-card
+                    if (msgs.length === 0 && mapped.listing) {
+                        setTimeout(() => {
+                            sendMessage("", mapped.id, "listing-card", mapped.listing);
+                        }, 300);
+                    }
+
                     setConversations(prev => prev.map(c => c.id === mapped.id ? { ...c, messages: msgs } : c));
 
                     // 3. Handle auto-message if provided
-                    const msgParam = params.get("message");
                     if (msgParam) {
                         setTimeout(() => {
                             sendMessage(msgParam, mapped.id);
-                        }, 600);
+                        }, 1000);
                     }
                 }
             } catch (err) {
@@ -232,8 +245,8 @@ function DashboardMessagesInner() {
             });
 
             // If it's a new conversation not in our list, fetch it
-            const exists = conversations.some(c => c.id === convId);
-            if (!exists) {
+            const existsInState = conversations.some(c => c.id === convId);
+            if (!existsInState) {
                 try {
                     // We need a way to get a single conversation by ID
                     const res = await apiGet<{ success: boolean; data: any }>(`/api/chat/user/${user.id}`); // For now re-fetch all to be safe and simple
@@ -246,35 +259,143 @@ function DashboardMessagesInner() {
             }
         };
 
+        const handleNegotiationUpdate = (data: any) => {
+            const { conversationId, type, senderId } = data;
+            
+            // Show toast or update state based on negotiation event
+            if (type === "request_close") {
+                toast.info("The other party has requested to end the order session.");
+                // Add a system message locally
+                const systemMsg: Message = {
+                    id: `system-${Date.now()}`,
+                    senderId: "system",
+                    type: "system",
+                    text: "🤝 The other party wants to end this order. Do you agree?",
+                    timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                    read: true
+                };
+                setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, messages: [...c.messages, systemMsg] } : c));
+            } else if (type === "confirm_close") {
+                const status = data.status;
+                toast.success(`Order session has been ${status === "completed" ? "completed successfully" : "closed"}.`);
+                
+                // Update negotiation status in state
+                setConversations(prev => prev.map(c => {
+                    if (c.id !== conversationId) return c;
+                    return {
+                        ...c,
+                        negotiation: { ...c.negotiation, status: status, statusText: status } as any
+                    };
+                }));
+
+                // If buyer and completed, show rating popup
+                const conv = conversations.find(c => c.id === conversationId);
+                if (status === "completed" && conv) {
+                    setRatingContext({
+                        item: conv.listing?.title || "Item",
+                        vendor: conv.participant.name
+                    });
+                    setIsRatingOpen(true);
+                }
+            }
+        };
+
         socket.on("receive_message", handleReceiveMessage);
+        socket.on("negotiation_update", handleNegotiationUpdate);
 
         return () => {
             socket.off("receive_message", handleReceiveMessage);
+            socket.off("negotiation_update", handleNegotiationUpdate);
         };
     }, [socket, user, activeId, conversations]);
 
+    const handleEndNegotiation = async () => {
+        if (!activeId || !user) return;
+        const conv = conversations.find(c => c.id === activeId);
+        if (!conv) return;
+
+        try {
+            // 1. Send request to backend
+            await apiPost("/api/chat/negotiation/end", {
+                conversationId: activeId,
+                userId: user.id,
+                action: "request_close"
+            });
+
+            // 2. Emit socket event
+            socket?.emit("negotiation_event", {
+                type: "request_close",
+                conversationId: activeId,
+                receiverId: conv.participant.id
+            });
+
+            // 3. Add system message locally
+            const systemMsg: Message = {
+                id: `system-${Date.now()}`,
+                senderId: "system",
+                type: "system",
+                text: "⏳ You have requested to end the order session. Waiting for confirmation...",
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                read: true
+            };
+            setConversations(prev => prev.map(c => c.id === activeId ? { ...c, messages: [...c.messages, systemMsg] } : c));
+            
+            toast.success("Request to end order sent");
+        } catch (err) {
+            toast.error("Failed to request order closure");
+        }
+    };
+
+    const handleConfirmEndNegotiation = async (status: "completed" | "ended") => {
+        if (!activeId || !user) return;
+        const conv = conversations.find(c => c.id === activeId);
+        if (!conv) return;
+
+        try {
+            await apiPost("/api/chat/negotiation/confirm", {
+                conversationId: activeId,
+                status
+            });
+
+            socket?.emit("negotiation_event", {
+                type: "confirm_close",
+                conversationId: activeId,
+                receiverId: conv.participant.id,
+                status
+            });
+
+            toast.success(`Order ${status === "completed" ? "completed" : "ended"}`);
+            
+            if (status === "completed") {
+                setRatingContext({ item: conv.listing?.title || "Item", vendor: conv.participant.name });
+                setIsRatingOpen(true);
+            }
+        } catch (err) {
+            toast.error("Failed to confirm order closure");
+        }
+    };
+
     // ── Send a message
-    const sendMessage = async (text: string, overrideId?: string) => {
+    const sendMessage = async (text: string, overrideId?: string, type: MessageType = "text", listing?: ChatListing) => {
         const targetId = overrideId || activeId;
-        if (!targetId || !text.trim() || !user) return;
+        if (!targetId || (!text.trim() && type === "text") || !user) return;
 
         const targetConv = conversations.find(c => c.id === targetId);
-        // Note: If this is a brand new conversation, it might not be in the conversations state 
-        // if we call this immediately. But our initiateChat logic adds it first.
         
         // Optimistic update
         const tempMsg: Message = {
             id: `temp-${Date.now()}`,
             senderId: "me",
-            type: "text",
+            type: type,
             text,
+            listing,
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             read: true,
         };
 
         setConversations(prev => prev.map(c =>
             c.id === targetId
-                ? { ...c, messages: [...c.messages, tempMsg], lastMessage: text, lastTime: "Now" }
+                ? { ...c, messages: [...c.messages, tempMsg], lastMessage: type === "text" ? text : `Shared a ${type}`, lastTime: "Now" }
                 : c
         ));
 
@@ -284,7 +405,8 @@ function DashboardMessagesInner() {
                 conversationId: targetId,
                 senderId: user.id,
                 text,
-                type: "text",
+                type: type,
+                listingId: listing?.id
             });
 
             const savedMsg = mapMessage(res.data, user.id);
@@ -305,7 +427,8 @@ function DashboardMessagesInner() {
                     receiverId: targetConv.participant.id,
                     senderId: user.id,
                     text,
-                    type: "text",
+                    type: type,
+                    listing: listing,
                     _id: res.data._id,
                 });
             }
@@ -417,7 +540,8 @@ function DashboardMessagesInner() {
                                     participantAvatar={activeConversation.participant.avatar}
                                     participantName={activeConversation.participant.name}
                                     isTyping={isTyping}
-                                    userRole="vendor"
+                                    onEndNegotiation={handleEndNegotiation}
+                                    onConfirmEndNegotiation={handleConfirmEndNegotiation}
                                 />
                             )}
                         </div>
@@ -433,6 +557,16 @@ function DashboardMessagesInner() {
                     <EmptyState />
                 )}
             </div>
+            <RatingPopup
+                isOpen={isRatingOpen}
+                onClose={() => setIsRatingOpen(false)}
+                itemTitle={ratingContext?.item || "Item"}
+                vendorName={ratingContext?.vendor || "Seller"}
+                onSubmit={async (rating, comment) => {
+                    console.log("Submitted rating:", rating, comment);
+                    toast.success("Thank you for your feedback!");
+                }}
+            />
         </div>
     );
 }
