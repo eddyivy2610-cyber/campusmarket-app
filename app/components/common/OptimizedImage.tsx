@@ -20,6 +20,28 @@ export function OptimizedImage({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    // Reset loading state if src changes
+    React.useEffect(() => {
+        setIsLoading(true);
+        setError(false);
+        
+        // Safety timeout: if image hasn't loaded in 2 seconds, show it anyway
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+    }, [src]);
+
+    const handleLoad = () => {
+        setIsLoading(false);
+    };
+
+    const handleError = () => {
+        setError(true);
+        setIsLoading(false);
+    };
+
     return (
         <div className={cn("relative overflow-hidden bg-muted/20", containerClassName)}>
             {/* Shimmer Placeholder */}
@@ -35,11 +57,8 @@ export function OptimizedImage({
                     isLoading ? "scale-105 blur-sm opacity-0" : "scale-100 blur-0 opacity-100",
                     className
                 )}
-                onLoad={() => setIsLoading(false)}
-                onError={() => {
-                    setError(true);
-                    setIsLoading(false);
-                }}
+                onLoadingComplete={handleLoad}
+                onError={handleError}
                 {...props}
             />
         </div>
