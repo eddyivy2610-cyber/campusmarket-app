@@ -85,11 +85,14 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: "Poppins", var(--font-poppins), var(--font-inter), var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-poppins), "Poppins", var(--font-inter), var(--font-geist-sans), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
-  --font-poppins: var(--font-poppins);
-  --font-heading: "Poppins", var(--font-poppins), sans-serif;
-  --font-display: "Poppins", var(--font-poppins), sans-serif;
+  --font-heading: var(--font-poppins), "Poppins", sans-serif;
+  --font-display: var(--font-poppins), "Poppins", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
 }
 
 html {
