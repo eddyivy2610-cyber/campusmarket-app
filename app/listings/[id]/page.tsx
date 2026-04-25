@@ -66,11 +66,17 @@ export default function ListingPage() {
     }
 
     // Map backend sellerId population to the vendor format expected by components
+    const seller = product.sellerId;
     const vendor = {
-        id: product.sellerId?._id || product.sellerId,
-        name: product.sellerId?.profile?.displayName || "Unknown Seller",
-        avatar: product.sellerId?.profile?.avatar || "/placeholder-avatar.png",
-        studentVerified: product.sellerId?.studentStatus?.isVerified || false,
+        id: seller?._id || seller,
+        name: seller?.businessProfile?.name || 
+              seller?.profile?.displayName || 
+              seller?.personalDetails?.fullName || 
+              (seller?.profile?.handle ? `@${seller.profile.handle}` : null) || 
+              seller?.email?.split('@')[0] || 
+              "Unknown Seller",
+        avatar: seller?.profile?.avatar || "/placeholder-avatar.png",
+        studentVerified: seller?.studentStatus?.isVerified || false,
     };
 
     // For now, we'll keep empty placeholders for related items 
