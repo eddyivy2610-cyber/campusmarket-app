@@ -35,11 +35,11 @@ export default function RootLayout({
   } as React.CSSProperties;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={poppinsFont.variable}>
       <body
         suppressHydrationWarning
         style={{ ...fontVars }}
-        className={`${poppinsFont.variable} antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen`}
+        className="antialiased transition-colors duration-300 font-sans flex flex-col min-h-screen"
       >
         <ThemeProvider>
           <AuthProvider>
