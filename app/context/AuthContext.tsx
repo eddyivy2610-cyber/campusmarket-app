@@ -1,0 +1,131 @@
+"use client";
+
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { apiGet } from "@/lib/apiClient";
+import { toast } from "sonner";
+
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    handle: string;
+    role: "buyer" | "seller" | "admin";
+    isStudent?: boolean;
+    studentVerified?: boolean;
+    tier?: "new" | "rising" | "trusted" | "elite";
+    sellerStatus: "none" | "pending" | "approved" | "rejected";
+    onboardingStep: "otp_verified" | "profile_completed" | "onboarding_choice" | "seller_pending" | "completed";
+    avatar?: string;
+    image?: string;
+}
+
+interface AuthContextType {
+    user: User | null;
+    login: (userData: User) => void;
+    logout: () => void;
+    isLoading: boolean;
+    refreshUser: () => Promise<User | null>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Mock initial load - check localStorage
+    useEffect(() => {
+        const storedUser = localStorage.getItem("campus_user");
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error("Failed to parse stored user", e);
+            }
+        }
+        setIsLoading(false);
+    }, []);
+
+    const login = (userData: User) => {
+        setUser(userData);
+        localStorage.setItem("campus_user", JSON.stringify(userData));
+    };
+
+    const logout = () => {
+        setUser(null);
+        localStorage.removeItem("campus_user");
+        localStorage.removeItem("campus_token");
+        if (typeof window !== "undefined") {
+            window.location.replace("/home");
+        }
+    };
+
+    const refreshUser = async () => {
+        try {
+            // Call the refresh-token endpoint to get latest data and a fresh JWT
+            const response: any = await apiGet("auth/refresh-token");
+            const userData = response?.user || response?.data || response;
+            const newToken = response?.token;
+
+            if (newToken) {
+                localStorage.setItem("campus_token", newToken);
+            }
+
+            const refreshed: User = {
+                id: userData._id || userData.id || user?.id || "",
+                name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user?.name || "",
+                email: userData.email || user?.email || "",
+                handle: userData.profile?.handle || user?.handle || "",
+                role: userData.role || user?.role || "buyer",
+                isStudent: userData.studentStatus?.isStudent || false,
+                studentVerified: userData.studentStatus?.isVerified || false,
+                tier: user?.tier || "new",
+                sellerStatus: userData.sellerStatus || "none",
+                onboardingStep: userData.onboardingStep || "completed",
+                avatar: userData.profile?.avatar || user?.avatar,
+                image: userData.profile?.avatar || user?.image,
+            };
+            
+            setUser(refreshed);
+            localStorage.setItem("campus_user", JSON.stringify(refreshed));
+            return refreshed;
+        } catch (e: any) {
+            console.error("Failed to refresh user", e);
+            toast.error("Session refresh failed: " + (e.message || "Unknown error"));
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        if (!user?.id) return;
+        
+        // Poll more frequently if user is pending verification or seller approval
+        const isPending = (!user.studentVerified && user.isStudent) || user.sellerStatus === "pending";
+        if (!isPending) return;
+
+        let timeoutId: NodeJS.Timeout;
+        
+        const poll = async () => {
+            await refreshUser();
+            timeoutId = setTimeout(poll, 30_000);
+        };
+
+        timeoutId = setTimeout(poll, 30_000);
+        
+        return () => clearTimeout(timeoutId);
+    }, [user?.id, user?.isStudent, user?.studentVerified, user?.sellerStatus]);
+
+    return (
+        <AuthContext.Provider value={{ user, login, logout, isLoading, refreshUser }}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+}

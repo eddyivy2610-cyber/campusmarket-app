@@ -1,0 +1,1354 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import {
+  BadgeCheck,
+  MessageSquare,
+  UserPlus,
+  UserCheck,
+  MoreHorizontal,
+  Flag,
+  Share2,
+  Heart,
+  Eye,
+  ArrowRight,
+  Star,
+  ShieldCheck,
+  RefreshCw,
+  ChevronRight,
+  Lightbulb,
+  MapPin,
+  Check,
+  X,
+  Settings,
+  Store,
+} from "lucide-react";
+import { RebrandHeader } from "../../components/header/RebrandHeader";
+import { followService } from "@/lib/followService";
+
+interface ProfileListingItem {
+  id: string;
+  title: string;
+  price: string;
+  status: "Available" | "In deal" | "Sold";
+  likes: number;
+  views: number;
+  image: string;
+  href: string;
+}
+
+interface ProfileReviewItem {
+  id: string;
+  authorName: string;
+  authorHandle: string;
+  authorAvatar: string;
+  dateLabel: string;
+  rating: number;
+  comment: string;
+  contextBadge: string;
+}
+
+interface ProfilePreviewData {
+  id: string;
+  handle: string;
+  name: string;
+  username: string;
+  isStudentSeller: boolean;
+  isVerified: boolean;
+  location: string;
+  bio: string;
+  avatar: string;
+  coverImage: string;
+  sales: number;
+  rating: number;
+  reviewsCount: number;
+  joined: string;
+  listingsCount: number;
+  listings: ProfileListingItem[];
+  reviews: ProfileReviewItem[];
+  ratingBreakdown: { stars: number; count: number }[];
+}
+
+const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
+  tundebello: {
+    id: "user-tunde-bello",
+    handle: "tundebello",
+    name: "Tunde Bello",
+    username: "@tundebello",
+    isStudentSeller: true,
+    isVerified: true,
+    location: "Samaru, Zaria · Main Campus",
+    bio: "Tech enthusiast, problem solver and student entrepreneur. I sell quality gadgets and useful accessories. Always open to fair negotiations. Let's do business! ✌️",
+    avatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
+    coverImage:
+      "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1400&auto=format&fit=crop&q=80",
+    sales: 28,
+    rating: 4.8,
+    reviewsCount: 18,
+    joined: "Oct 2026",
+    listingsCount: 12,
+    listings: [
+      {
+        id: "lst-hp-elitebook",
+        title: "HP EliteBook 840 G5",
+        price: "₦185,000",
+        status: "Available",
+        likes: 12,
+        views: 3,
+        image:
+          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/lst-hp-elitebook",
+      },
+      {
+        id: "lst-iphone-11",
+        title: "iPhone 11 (128GB)",
+        price: "₦160,000",
+        status: "Available",
+        likes: 8,
+        views: 2,
+        image:
+          "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/lst-iphone-11",
+      },
+      {
+        id: "lst-casio-991es",
+        title: "Casio Scientific Calculator",
+        price: "₦6,500",
+        status: "Available",
+        likes: 15,
+        views: 4,
+        image:
+          "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/lst-casio-991es",
+      },
+      {
+        id: "lst-sony-whch520",
+        title: "Sony WH-CH520",
+        price: "₦32,000",
+        status: "In deal",
+        likes: 6,
+        views: 1,
+        image:
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/lst-sony-whch520",
+      },
+    ],
+    reviews: [
+      {
+        id: "rev-1",
+        authorName: "Campus Closet",
+        authorHandle: "campus-closet",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "2 days ago",
+        rating: 5,
+        comment:
+          "Laptop was in perfect condition. Easy to communicate with and met at the library as agreed.",
+        contextBadge: "Product · Completed",
+      },
+      {
+        id: "rev-2",
+        authorName: "Tech Corner",
+        authorHandle: "tech-corner",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "1 week ago",
+        rating: 5,
+        comment:
+          "Great seller! Very responsive and the item was exactly as described.",
+        contextBadge: "Product · Completed",
+      },
+    ],
+    ratingBreakdown: [
+      { stars: 5, count: 14 },
+      { stars: 4, count: 3 },
+      { stars: 3, count: 1 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  },
+
+  "campus-closet": {
+    id: "store-campus-closet",
+    handle: "campus-closet",
+    name: "Campus Closet",
+    username: "@campuscloset",
+    isStudentSeller: true,
+    isVerified: true,
+    location: "Suleiman Hall · Samaru Campus",
+    bio: "Student-run vintage thrift and curated campus streetwear. Hand-picked quality denim, everyday sneakers, and essentials tailored for university life.",
+    avatar:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=320&auto=format&fit=crop&q=80",
+    coverImage:
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&auto=format&fit=crop&q=80",
+    sales: 42,
+    rating: 4.9,
+    reviewsCount: 24,
+    joined: "Sep 2025",
+    listingsCount: 8,
+    listings: [
+      {
+        id: "prod-101",
+        title: "Vintage Denim Trucker Jacket",
+        price: "₦8,500",
+        status: "Available",
+        likes: 19,
+        views: 7,
+        image:
+          "https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-101",
+      },
+      {
+        id: "prod-102",
+        title: "Campus Oversized Fleece Hoodie",
+        price: "₦7,200",
+        status: "Available",
+        likes: 14,
+        views: 5,
+        image:
+          "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-102",
+      },
+      {
+        id: "prod-103",
+        title: "Nike Air Pegasus '89 (Size 43)",
+        price: "₦14,000",
+        status: "Available",
+        likes: 11,
+        views: 4,
+        image:
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-103",
+      },
+      {
+        id: "prod-104",
+        title: "Heavyweight Canvas Tote Bag",
+        price: "₦3,500",
+        status: "Available",
+        likes: 9,
+        views: 3,
+        image:
+          "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-104",
+      },
+    ],
+    reviews: [
+      {
+        id: "rev-cc-1",
+        authorName: "Tunde Bello",
+        authorHandle: "tundebello",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "3 days ago",
+        rating: 5,
+        comment:
+          "Clean denim jacket, exactly as pictured. Quick pickup near Suleiman Hall.",
+        contextBadge: "Product · Completed",
+      },
+    ],
+    ratingBreakdown: [
+      { stars: 5, count: 21 },
+      { stars: 4, count: 3 },
+      { stars: 3, count: 0 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  },
+
+  "tech-corner": {
+    id: "store-tech-corner",
+    handle: "tech-corner",
+    name: "Tech Corner",
+    username: "@techcorner",
+    isStudentSeller: true,
+    isVerified: true,
+    location: "Engineering Complex · Samaru",
+    bio: "Reliable student tech hub near Engineering and Science faculties. Tested UK-used laptops, fast NVMe SSD upgrades, and original phone accessories.",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&auto=format&fit=crop&q=80",
+    coverImage:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1400&auto=format&fit=crop&q=80",
+    sales: 64,
+    rating: 4.8,
+    reviewsCount: 31,
+    joined: "Jan 2026",
+    listingsCount: 10,
+    listings: [
+      {
+        id: "prod-201",
+        title: "Apple 45W MagSafe 2 Adapter",
+        price: "₦12,500",
+        status: "Available",
+        likes: 10,
+        views: 4,
+        image:
+          "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-201",
+      },
+      {
+        id: "prod-202",
+        title: "Anker 20,000mAh Power Bank",
+        price: "₦18,000",
+        status: "Available",
+        likes: 16,
+        views: 6,
+        image:
+          "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-202",
+      },
+      {
+        id: "prod-203",
+        title: "Kingston 512GB NVMe SSD",
+        price: "₦24,000",
+        status: "Available",
+        likes: 14,
+        views: 5,
+        image:
+          "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-203",
+      },
+      {
+        id: "prod-204",
+        title: "JBL Tune 510BT Headphones",
+        price: "₦22,000",
+        status: "In deal",
+        likes: 11,
+        views: 3,
+        image:
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-204",
+      },
+    ],
+    reviews: [
+      {
+        id: "rev-tc-1",
+        authorName: "Tunde Bello",
+        authorHandle: "tundebello",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "5 days ago",
+        rating: 5,
+        comment:
+          "Upgraded my laptop SSD in 20 minutes right at the Engineering complex.",
+        contextBadge: "Service · Completed",
+      },
+    ],
+    ratingBreakdown: [
+      { stars: 5, count: 26 },
+      { stars: 4, count: 4 },
+      { stars: 3, count: 1 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  },
+
+  "the-print-hub": {
+    id: "store-the-print-hub",
+    handle: "the-print-hub",
+    name: "The Print Hub",
+    username: "@theprinthub",
+    isStudentSeller: false,
+    isVerified: false,
+    location: "Student Social Centre (SUB)",
+    bio: "Commercial printing & binding centre on Samaru campus. Fast turnarounds on undergraduate final year projects, A1/A2 architectural plotting, and colour prints.",
+    avatar:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=320&auto=format&fit=crop&q=80",
+    coverImage:
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&auto=format&fit=crop&q=80",
+    sales: 112,
+    rating: 4.7,
+    reviewsCount: 29,
+    joined: "Mar 2025",
+    listingsCount: 6,
+    listings: [
+      {
+        id: "prod-301",
+        title: "Spiral-Bound Lecture Compendiums",
+        price: "₦1,800",
+        status: "Available",
+        likes: 9,
+        views: 4,
+        image:
+          "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-301",
+      },
+      {
+        id: "prod-302",
+        title: "Hardcover Gold-Foil Thesis Binding",
+        price: "₦5,500",
+        status: "Available",
+        likes: 18,
+        views: 8,
+        image:
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-302",
+      },
+    ],
+    reviews: [
+      {
+        id: "rev-ph-1",
+        authorName: "Campus Closet",
+        authorHandle: "campus-closet",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "1 week ago",
+        rating: 5,
+        comment:
+          "Sharp A1 architectural prints and zero smudges. Ready in 15 minutes.",
+        contextBadge: "Service · Completed",
+      },
+    ],
+    ratingBreakdown: [
+      { stars: 5, count: 22 },
+      { stars: 4, count: 5 },
+      { stars: 3, count: 2 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  },
+
+  "kongo-scholars": {
+    id: "store-kongo-scholars",
+    handle: "kongo-scholars",
+    name: "Kongo Scholars Bookshop",
+    username: "@kongoscholars",
+    isStudentSeller: false,
+    isVerified: false,
+    location: "Faculty of Law · Kongo Campus",
+    bio: "Academic bookshop for Law, Accounting & Administration texts. Complete case law compendiums, revised statute booklets, and ICAN study packs.",
+    avatar:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=320&auto=format&fit=crop&q=80",
+    coverImage:
+      "https://images.unsplash.com/photo-1507842229356-51c61504d3ab?w=1400&auto=format&fit=crop&q=80",
+    sales: 79,
+    rating: 4.8,
+    reviewsCount: 21,
+    joined: "Nov 2025",
+    listingsCount: 9,
+    listings: [
+      {
+        id: "prod-501",
+        title: "Nigerian Constitutional Law",
+        price: "₦6,500",
+        status: "Available",
+        likes: 14,
+        views: 5,
+        image:
+          "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-501",
+      },
+      {
+        id: "prod-502",
+        title: "ICAN Accounting Study Pack",
+        price: "₦8,000",
+        status: "Available",
+        likes: 11,
+        views: 4,
+        image:
+          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
+        href: "/listings/prod-502",
+      },
+    ],
+    reviews: [
+      {
+        id: "rev-ks-1",
+        authorName: "Tech Corner",
+        authorHandle: "tech-corner",
+        authorAvatar:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+        dateLabel: "4 days ago",
+        rating: 5,
+        comment:
+          "Had all the 300L Constitutional Law materials in stock at fair prices.",
+        contextBadge: "Product · Completed",
+      },
+    ],
+    ratingBreakdown: [
+      { stars: 5, count: 17 },
+      { stars: 4, count: 3 },
+      { stars: 3, count: 1 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  },
+};
+
+type ProfileTab = "overview" | "listings" | "reviews" | "about";
+
+export default function ProfilePage() {
+  const params = useParams();
+  const rawHandle = ((params?.handle as string) || "tundebello")
+    .replace(/^@/, "")
+    .toLowerCase();
+
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState(
+    "Suspicious or misleading activity"
+  );
+  const [reportNote, setReportNote] = useState("");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [savedOwnProfile, setSavedOwnProfile] = useState<{
+    name?: string;
+    username?: string;
+    bio?: string;
+    location?: string;
+    avatar?: string;
+    coverImage?: string;
+  } | null>(null);
+
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ch_profile_identity_v1");
+      if (raw) {
+        setSavedOwnProfile(JSON.parse(raw));
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, []);
+
+  const customSavedHandle = savedOwnProfile?.username
+    ? savedOwnProfile.username.replace(/^@/, "").toLowerCase()
+    : "tundebello";
+
+  const isOwnProfile =
+    rawHandle === "tundebello" || rawHandle === customSavedHandle;
+
+  const baseProfile: ProfilePreviewData = isOwnProfile
+    ? PROFILES_BY_HANDLE.tundebello
+    : PROFILES_BY_HANDLE[rawHandle] || PROFILES_BY_HANDLE.tundebello;
+
+  // Merge user-editable profile fields for own profile while strictly keeping verification status read-only
+  const profile: ProfilePreviewData =
+    isOwnProfile && savedOwnProfile
+      ? {
+          ...baseProfile,
+          name: savedOwnProfile.name || baseProfile.name,
+          handle: customSavedHandle || baseProfile.handle,
+          username: savedOwnProfile.username
+            ? `@${savedOwnProfile.username.replace(/^@/, "")}`
+            : baseProfile.username,
+          bio: savedOwnProfile.bio ?? baseProfile.bio,
+          location: savedOwnProfile.location || baseProfile.location,
+          avatar: savedOwnProfile.avatar || baseProfile.avatar,
+          coverImage: savedOwnProfile.coverImage || baseProfile.coverImage,
+          // Never allow profile edits to silently alter verified student status
+          isStudentSeller: baseProfile.isStudentSeller,
+          isVerified: baseProfile.isVerified,
+        }
+      : baseProfile;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        moreMenuRef.current &&
+        !moreMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!isOwnProfile && profile?.id) {
+      followService
+        .checkFollowingStatus(profile.id)
+        .then((res) => {
+          if (res?.success) setIsFollowing(res.isFollowing);
+        })
+        .catch(() => {});
+    }
+  }, [isOwnProfile, profile?.id]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleReportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsReportModalOpen(false);
+    setReportNote("");
+    showToast(`Report submitted for ${profile.name}`);
+  };
+
+  return (
+    <div
+      style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+      className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased"
+    >
+      {/* Global Top Navigation */}
+      <RebrandHeader />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50 bg-[#171717] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 border border-white/10">
+          <Check className="w-4 h-4 text-[#FFC928] shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Main Container matching Explore, Stores, Radar, and Messages */}
+      <main className="max-w-[1380px] mx-auto px-5 sm:px-8 lg:px-12 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_340px] gap-6 items-start">
+          {/* =============================================================== */}
+          {/* LEFT COLUMN: PROFILE HEADER + TABS + LISTINGS + REVIEWS         */}
+          {/* =============================================================== */}
+          <div className="min-w-0 space-y-5">
+            {/* 1. PROFILE HEADER CARD (Wireframe Layout) */}
+            <section className="radius-native relative rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              {/* Banner / Cover Image */}
+              <div className="relative h-28 sm:h-32 w-full bg-[#E8ECF2] dark:bg-white/5 rounded-t-2xl overflow-hidden">
+                <img
+                  src={profile.coverImage}
+                  alt={`${profile.name} cover`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Profile Header Body matching wireframe:
+                  Left: Avatar overlapping cover
+                  Middle: Name + Tick + @username inline -> Bio -> Location
+                  Right: 3 Milestones (Sales · Rating · Joined) -> Follow + Message + Settings (own) / 3-dots (others) */}
+              <div className="px-5 sm:px-7 pb-6 pt-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  {/* Left + Middle Identity Block */}
+                  <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5 min-w-0 flex-1">
+                    {/* Avatar overlapping cover */}
+                    <div className="-mt-14 sm:-mt-16 shrink-0 relative z-10">
+                      <img
+                        src={profile.avatar}
+                        alt={profile.name}
+                        className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white"
+                      />
+                    </div>
+
+                    {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio) -> Row 3 (Location) */}
+                    <div className="min-w-0 flex-1 space-y-2">
+                      {/* Row 1: Name + Single Tick + @username inline */}
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <div className="inline-flex items-center gap-1.5">
+                          <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
+                            {profile.name}
+                          </h1>
+                          {profile.isStudentSeller && profile.isVerified && (
+                            <BadgeCheck
+                              className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0 translate-y-[1px]"
+                              aria-label="Verified student seller"
+                            />
+                          )}
+                        </div>
+
+                        <span className="text-[13.5px] font-medium text-[#7A818C] dark:text-neutral-400">
+                          {profile.username}
+                        </span>
+                      </div>
+
+                      {/* Row 2: Bio */}
+                      <p className="text-[13px] text-[#3F454D] dark:text-neutral-300 leading-[1.55] max-w-[490px]">
+                        {profile.bio}
+                      </p>
+
+                      {/* Row 3: Location with Pin Icon */}
+                      <div className="flex items-center gap-1.5 pt-0.5 text-[12.5px] font-medium text-[#68707A] dark:text-neutral-400">
+                        <MapPin className="w-3.5 h-3.5 text-[#8C929C] shrink-0" />
+                        <span>{profile.location}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Block: 3 Milestones (Sales · Rating · Joined) + Action Buttons */}
+                  <div className="md:w-[295px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-4">
+                    {/* 3 Milestones separated by centered dots */}
+                    <div className="flex items-center justify-between px-1">
+                      <div className="text-center">
+                        <div className="text-[16px] sm:text-[17px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                          {profile.sales}
+                        </div>
+                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                          Sales
+                        </div>
+                      </div>
+
+                      <span
+                        className="text-[#9AA1AC] dark:text-neutral-500 font-bold select-none"
+                        aria-hidden="true"
+                      >
+                        ·
+                      </span>
+
+                      <div className="text-center">
+                        <div className="text-[16px] sm:text-[17px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                          {profile.rating}
+                        </div>
+                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                          Rating
+                        </div>
+                      </div>
+
+                      <span
+                        className="text-[#9AA1AC] dark:text-neutral-500 font-bold select-none"
+                        aria-hidden="true"
+                      >
+                        ·
+                      </span>
+
+                      <div className="text-center">
+                        <div className="text-[15px] sm:text-[16px] font-extrabold text-[#171717] dark:text-white leading-tight whitespace-nowrap">
+                          {profile.joined}
+                        </div>
+                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                          Joined
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    <div className="flex items-center gap-2 w-full">
+                      {isOwnProfile ? (
+                        <>
+                          <Link
+                            href="/stores?view=storefront"
+                            className="radius-native flex-1 h-9 px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                          >
+                            <Store className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <span>Storefront</span>
+                          </Link>
+
+                          <Link
+                            href="/settings"
+                            aria-label="Account and profile settings"
+                            title="Settings"
+                            className="radius-native flex-1 h-9 px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <Settings className="w-4 h-4 stroke-[2]" />
+                            <span>Settings</span>
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const res = await followService.toggleFollow(profile.id);
+                                if (res?.success) {
+                                  setIsFollowing(res.isFollowing);
+                                  showToast(
+                                    res.isFollowing
+                                      ? `Following ${profile.name}`
+                                      : `Unfollowed ${profile.name}`
+                                  );
+                                }
+                              } catch (err: any) {
+                                showToast(err.message || "Failed to update follow status");
+                              }
+                            }}
+                            className={`radius-native flex-1 h-9 px-3.5 rounded-lg border text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                              isFollowing
+                                ? "bg-[#171717] border-[#171717] text-white dark:bg-white dark:border-white dark:text-[#171717]"
+                                : "bg-white dark:bg-white/5 border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white hover:border-[#171717]"
+                            }`}
+                          >
+                            {isFollowing ? (
+                              <>
+                                <UserCheck className="w-3.5 h-3.5 stroke-[2.2]" />
+                                <span>Following</span>
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                                <span>Follow</span>
+                              </>
+                            )}
+                          </button>
+
+                          <Link
+                            href={`/messages?user=${encodeURIComponent(
+                              profile.id
+                            )}&name=${encodeURIComponent(profile.name)}`}
+                            className="radius-native flex-1 h-9 px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <span>Message</span>
+                          </Link>
+
+                          <div className="relative shrink-0" ref={moreMenuRef}>
+                            <button
+                              type="button"
+                              onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                              aria-label="More profile options"
+                              title="More options"
+                              className="radius-native w-9 h-9 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] flex items-center justify-center text-[#5B636E] hover:text-[#171717] dark:text-neutral-300 dark:hover:text-white transition-colors cursor-pointer"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+
+                            {isMoreMenuOpen && (
+                              <div className="radius-native absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg py-1.5 z-30">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsMoreMenuOpen(false);
+                                    if (typeof window !== "undefined") {
+                                      navigator.clipboard?.writeText(
+                                        window.location.href
+                                      );
+                                    }
+                                    showToast("Profile link copied");
+                                  }}
+                                  className="w-full px-3.5 py-2 text-left text-[12.5px] font-semibold text-[#171717] dark:text-white hover:bg-[#F7F8FA] dark:hover:bg-white/5 flex items-center gap-2.5 cursor-pointer"
+                                >
+                                  <Share2 className="w-3.5 h-3.5 text-[#68707A]" />
+                                  <span>Share profile</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsMoreMenuOpen(false);
+                                    setIsReportModalOpen(true);
+                                  }}
+                                  className="w-full px-3.5 py-2 text-left text-[12.5px] font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-2.5 cursor-pointer"
+                                >
+                                  <Flag className="w-3.5 h-3.5" />
+                                  <span>Report user</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* 2. PROFILE TABS BAR */}
+            <div className="border-b border-[#E5E8EE] dark:border-white/10 flex items-center gap-6 sm:gap-8 px-1">
+              {(
+                [
+                  { id: "overview", label: "Overview" },
+                  {
+                    id: "listings",
+                    label: `Listings (${profile.listings.length})`,
+                  },
+                  {
+                    id: "reviews",
+                    label: `Reviews (${profile.reviewsCount})`,
+                  },
+                  { id: "about", label: "About" },
+                ] as { id: ProfileTab; label: string }[]
+              ).map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative pb-3 text-[13.5px] transition-colors cursor-pointer ${
+                      isActive
+                        ? "font-bold text-[#171717] dark:text-white"
+                        : "font-medium text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
+                    }`}
+                  >
+                    {tab.label}
+                    {isActive && (
+                      <span className="absolute left-0 right-0 bottom-0 h-[3px] rounded-full bg-[#FFC928]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 3. RECENT LISTINGS SECTION */}
+            {(activeTab === "overview" || activeTab === "listings") && (
+              <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                    {activeTab === "listings" ? "All Listings" : "Recent Listings"}
+                  </h2>
+                  {activeTab === "overview" && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("listings")}
+                      className="text-[12.5px] font-bold text-[#5B636E] hover:text-[#171717] dark:text-neutral-400 dark:hover:text-white inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>View all</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div
+                  className={
+                    activeTab === "overview"
+                      ? "flex sm:grid sm:grid-cols-2 xl:grid-cols-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-3 sm:gap-4 pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-none"
+                      : "grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
+                  }
+                >
+                  {profile.listings.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#181B24] overflow-hidden flex flex-col hover:border-[#D5D9E0] transition-colors ${
+                        activeTab === "overview"
+                          ? "w-[41vw] min-w-[148px] max-w-[180px] sm:w-auto sm:min-w-0 sm:max-w-none shrink-0 snap-start"
+                          : ""
+                      }`}
+                    >
+                      <div className="relative h-28 sm:h-36 w-full bg-[#F3F4F6] dark:bg-white/5 overflow-hidden">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Listing options"
+                          className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-xs flex items-center justify-center text-[#4A5058] hover:text-[#171717]"
+                        >
+                          <MoreHorizontal className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2.5">
+                        <div className="space-y-1">
+                          <Link
+                            href={`/messages?user=${encodeURIComponent(
+                              profile.id
+                            )}&name=${encodeURIComponent(
+                              profile.name
+                            )}&contextType=product&contextId=${encodeURIComponent(
+                              item.id
+                            )}&contextTitle=${encodeURIComponent(
+                              item.title
+                            )}&contextPrice=${encodeURIComponent(
+                              item.price
+                            )}&contextImage=${encodeURIComponent(item.image)}`}
+                            className="block text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
+                          >
+                            {item.title}
+                          </Link>
+                          <div className="flex items-center justify-between gap-1.5">
+                            <p className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                              {item.price}
+                            </p>
+                            {profile.isStudentSeller && profile.isVerified && (
+                              <span
+                                title="Verified student seller"
+                                className="radius-native w-3.5 h-3.5 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
+                              >
+                                <Check className="w-2.2 h-2.2 text-white stroke-[3.2]" />
+                              </span>
+                            )}
+                          </div>
+                          <div className="pt-0.5">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
+                                item.status === "Available"
+                                  ? "bg-[#E8F8F0] text-[#15803D]"
+                                  : "bg-[#FFF4D6] text-[#B45309]"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#F1F3F6] dark:border-white/10 flex items-center gap-3 text-[11px] font-semibold text-[#8C929C]">
+                          <span className="inline-flex items-center gap-1">
+                            <Heart className="w-3.2 h-3.2" />
+                            {item.likes}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Eye className="w-3.2 h-3.2" />
+                            {item.views}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 4. REVIEWS SECTION */}
+            {(activeTab === "overview" || activeTab === "reviews") && (
+              <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                    Reviews
+                  </h2>
+                  {activeTab === "overview" && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("reviews")}
+                      className="text-[12.5px] font-bold text-[#5B636E] hover:text-[#171717] dark:text-neutral-400 dark:hover:text-white inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>View all</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-[270px_1fr] gap-4 items-stretch">
+                  {/* Rating Summary Box */}
+                  <div className="radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-[#FAFBFD] dark:bg-white/[0.02] p-4 flex items-center gap-4">
+                    <div className="text-center pr-3 border-r border-[#ECEEF2] dark:border-white/10 shrink-0">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <div className="w-7 h-7 rounded-full bg-[#FFF4CC] flex items-center justify-center">
+                          <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
+                        </div>
+                        <span className="text-[24px] font-extrabold text-[#171717] dark:text-white">
+                          {profile.rating}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium text-[#7A818C] mt-1">
+                        ({profile.reviewsCount} reviews)
+                      </p>
+                    </div>
+
+                    <div className="flex-1 space-y-1.5">
+                      {profile.ratingBreakdown.map((row) => {
+                        const pct =
+                          profile.reviewsCount > 0
+                            ? Math.round(
+                                (row.count / profile.reviewsCount) * 100
+                              )
+                            : 0;
+                        return (
+                          <div
+                            key={row.stars}
+                            className="flex items-center gap-2 text-[11px] font-bold text-[#5B636E]"
+                          >
+                            <span className="w-5 inline-flex items-center gap-0.5">
+                              {row.stars}
+                              <Star className="w-2.5 h-2.5 fill-[#171717] text-[#171717] dark:fill-white dark:text-white" />
+                            </span>
+                            <div className="flex-1 h-1.5 rounded-full bg-[#ECEEF2] dark:bg-white/10 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-[#F5B800]"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-4 text-right text-[#7A818C]">
+                              {row.count}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Individual Review Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {profile.reviews.map((rev) => (
+                      <div
+                        key={rev.id}
+                        className="radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 p-4 flex flex-col justify-between space-y-2.5"
+                      >
+                        <div className="space-y-2">
+                          <Link
+                            href={`/profile/${rev.authorHandle}`}
+                            className="flex items-center gap-2.5 group"
+                          >
+                            <img
+                              src={rev.authorAvatar}
+                              alt={rev.authorName}
+                              className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8]"
+                            />
+                            <div>
+                              <h3 className="text-[13px] font-bold text-[#171717] dark:text-white group-hover:underline leading-tight">
+                                {rev.authorName}
+                              </h3>
+                              <p className="text-[11px] text-[#8C929C]">
+                                {rev.dateLabel}
+                              </p>
+                            </div>
+                          </Link>
+
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star
+                                key={s}
+                                className={`w-3.5 h-3.5 ${
+                                  s <= rev.rating
+                                    ? "fill-[#F5B800] text-[#F5B800]"
+                                    : "text-[#E2E6EC]"
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          <p className="text-[12.5px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
+                            {rev.comment}
+                          </p>
+                        </div>
+
+                        <div>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#E8F8F0] text-[#15803D]">
+                            {rev.contextBadge}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* 5. ABOUT TAB VIEW */}
+            {activeTab === "about" && (
+              <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white">
+                  About {profile.name}
+                </h2>
+                <p className="text-[13.5px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
+                  {profile.bio}
+                </p>
+                <div className="pt-2 flex flex-wrap gap-6 text-[12.5px] text-[#68707A]">
+                  <div>
+                    <span className="font-bold text-[#171717] dark:text-white">
+                      Location:{" "}
+                    </span>
+                    {profile.location}
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#171717] dark:text-white">
+                      Joined:{" "}
+                    </span>
+                    {profile.joined}
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#171717] dark:text-white">
+                      Sales:{" "}
+                    </span>
+                    {profile.sales}
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* =============================================================== */}
+          {/* RIGHT COLUMN: TRUST AT A GLANCE + MARKETPLACE PROMO             */}
+          {/* =============================================================== */}
+          <aside className="space-y-5 lg:sticky lg:top-[88px] lg:self-start">
+            {/* Trust at a glance Card */}
+            <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+              <h2 className="text-[15px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                Trust at a glance
+              </h2>
+
+              <div className="divide-y divide-[#F1F3F6] dark:divide-white/10">
+                {profile.isStudentSeller && profile.isVerified ? (
+                  <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
+                        <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                          Campus verified
+                        </p>
+                        <p className="text-[11.5px] text-[#7A818C] truncate">
+                          Verified student seller at ABU Zaria
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                  </div>
+                ) : (
+                  <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4.5 h-4.5 text-[#5B636E]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                          Non-student seller
+                        </p>
+                        <p className="text-[11.5px] text-[#7A818C] truncate">
+                          Unverified · Active campus vendor
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                  </div>
+                )}
+
+                <div className="py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                        Reliable seller
+                      </p>
+                      <p className="text-[11.5px] text-[#7A818C] truncate">
+                        Consistently positive feedback
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                </div>
+
+                <div className="py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
+                      <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                        {profile.sales} confirmed exchanges
+                      </p>
+                      <p className="text-[11.5px] text-[#7A818C] truncate">
+                        Mutually verified transactions
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                </div>
+
+                <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
+                      <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                        {profile.rating} · {profile.reviewsCount} reviews
+                      </p>
+                      <p className="text-[11.5px] text-[#7A818C] truncate">
+                        From eligible transactions
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                </div>
+              </div>
+            </div>
+
+            {/* Looking for something else? Card */}
+            <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
+                  <Lightbulb className="w-4 h-4 text-[#B45309]" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                    Looking for something else?
+                  </h3>
+                  <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
+                    Check out more listings from {profile.name} or browse
+                    similar sellers.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pl-11">
+                <Link
+                  href="/explore"
+                  className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Explore marketplace</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      {/* Report Modal triggered from the 3-Dots Menu next to Follow */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Flag className="w-4 h-4 text-rose-600" />
+                <h3 className="text-[15px] font-extrabold text-[#171717] dark:text-white">
+                  Report {profile.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(false)}
+                className="p-1 rounded-full text-[#8C929C] hover:text-[#171717] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReportSubmit} className="space-y-3">
+              <div>
+                <label className="block text-[11.5px] font-bold text-[#5B636E] mb-1">
+                  Reason
+                </label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full h-9 px-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[12.5px] font-medium text-[#171717] dark:text-white focus:outline-none focus:border-[#171717]"
+                >
+                  <option value="Suspicious or misleading activity">
+                    Suspicious or misleading activity
+                  </option>
+                  <option value="Item not as described">
+                    Item not as described
+                  </option>
+                  <option value="Inappropriate behavior">
+                    Inappropriate behavior
+                  </option>
+                  <option value="Spam or fake listing">
+                    Spam or fake listing
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11.5px] font-bold text-[#5B636E] mb-1">
+                  Additional details (optional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={reportNote}
+                  onChange={(e) => setReportNote(e.target.value)}
+                  placeholder="Share any context that can help our campus moderation team..."
+                  className="w-full p-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[12.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#171717] resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="h-9 px-4 rounded-full border border-[#DCE0E6] text-[12px] font-bold text-[#5B636E] hover:text-[#171717] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 px-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-bold cursor-pointer"
+                >
+                  Submit report
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

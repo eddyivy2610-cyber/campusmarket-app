@@ -1,0 +1,335 @@
+"use client";
+
+import { useState } from "react";
+import { 
+    CheckCircle2, 
+    XCircle, 
+    ShieldCheck, 
+    ExternalLink, 
+    Filter, 
+    Search,
+    ChevronLeft,
+    ChevronRight,
+    ChevronDown,
+    MoreVertical,
+    Clock,
+    AlertCircle
+} from "lucide-react";
+import { DashboardOrder } from "../../data/dashboardOrders";
+import { orderService } from "@/lib/orderService";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import Link from "next/link";
+
+export default function AdminOrdersPage() {
+    const [orders, setOrders] = useState<DashboardOrder[]>([]);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                setLoading(true);
+                const res = await orderService.getAllOrdersAdmin();
+                if (res && res.success) {
+                    const rawOrders = res.data || [];
+                    const mapped: any[] = rawOrders.map((o: any) => ({
+                        id: o.orderId || o._id || o.id,
+                        _id: o._id,
+                        orderId: o.orderId,
+                        customer: o.buyerId?.name || o.buyerId?.email || o.customer || "Student",
+                        buyerId: o.buyerId?._id || o.buyerId || "",
+                        vendorId: o.sellerId?._id || o.sellerId || "",
+                        listingId: o.items?.[0]?.listingId || 0,
+                        productName: o.items?.[0]?.title
+                            ? `${o.items[0].title}${o.items.length > 1 ? ` (+${o.items.length - 1} more)` : ""}`
+                            : o.productName || "Listing Item",
+                        productImage: o.items?.[0]?.image || o.productImage || "",
+                        date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : o.date || "Recent",
+                        amount: typeof o.totalAmount === "number" ? o.totalAmount : o.amount || 0,
+                        status: o.status || "pending",
+                        qty: o.items?.[0]?.quantity || o.qty || 1,
+                        ratingLeft: false,
+                        sellerConfirmed: o.status !== "pending",
+                        adminVerified: o.status === "delivered",
+                    }));
+                    setOrders(mapped);
+                }
+            } catch (err: any) {
+                console.error("Admin orders fetch error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOrders();
+    }, []);
+
+    const handleVerify = async (orderId: string) => {
+        try {
+            const targetOrder = orders.find(o => o.id === orderId || (o as any)._id === orderId);
+            const currentStatus = (targetOrder?.status || "pending").toLowerCase();
+            
+            // Map strictly to valid canonical transitions in orderPolicy.ts
+            let nextStatus: "confirmed" | "delivered" = "confirmed";
+            let reason = "Order approved and confirmed by administrator";
+
+            if (currentStatus === "pending") {
+                nextStatus = "confirmed";
+                reason = "Order approved and confirmed by administrator";
+            } else if (currentStatus === "disputed") {
+                nextStatus = "delivered";
+                reason = "Dispute resolved by administrator in favor of fulfillment";
+            } else if (currentStatus === "confirmed" || currentStatus === "processing" || currentStatus === "shipped") {
+                nextStatus = "delivered";
+                reason = "Order verified and marked completed by administrator";
+            }
+
+            const targetId = (targetOrder as any)?._id || orderId;
+            const res = await orderService.updateOrderStatus(targetId, nextStatus, reason);
+            if (res && res.success) {
+                toast.success(`Order successfully transitioned to "${nextStatus}".`);
+                setOrders(prev => prev.filter(o => o.id !== orderId && (o as any)._id !== orderId));
+            } else {
+                toast.error(res?.error || "Failed to update order");
+            }
+        } catch (err: any) {
+            toast.error(err.message || "Failed to update order");
+        }
+    };
+
+    const handleReject = async (orderId: string) => {
+        try {
+            const targetOrder = orders.find(o => o.id === orderId || (o as any)._id === orderId);
+            const currentStatus = (targetOrder?.status || "pending").toLowerCase();
+            const reason = currentStatus === "disputed"
+                ? "Dispute resolved by administrator with order cancellation"
+                : "Order rejected and cancelled by administrator moderation";
+
+            const targetId = (targetOrder as any)?._id || orderId;
+            const res = await orderService.updateOrderStatus(targetId, "cancelled", reason);
+            if (res && res.success) {
+                toast.success("Order cancelled by administrator.");
+                setOrders(prev => prev.filter(o => o.id !== orderId && (o as any)._id !== orderId));
+            } else {
+                toast.error(res?.error || "Failed to reject order");
+            }
+        } catch (err: any) {
+            toast.error(err.message || "Failed to reject order");
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight mb-1">Order Verification</h1>
+                    <p className="text-muted-foreground font-medium uppercase tracking-widest text-[8px]">Review and verify pending transactions</p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <input 
+                            type="text" 
+                            placeholder="Search orders..." 
+                            className="bg-card border border-border/50 rounded-xl pl-9 pr-4 py-2 text-[11px] font-medium focus:outline-none focus:ring-1 focus:ring-primary/20 w-full sm:w-64 transition-all"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Verification Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Pending Approval</p>
+                        <p className="text-xl font-bold">{orders.length}</p>
+                    </div>
+                </div>
+                <div className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Verified Today</p>
+                        <p className="text-xl font-bold">12</p>
+                    </div>
+                </div>
+                <div className="bg-card border border-border/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                        <AlertCircle className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Disputed / Flags</p>
+                        <p className="text-xl font-bold">3</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Orders Table */}
+            <div className="bg-card border border-border/50 rounded-[28px] overflow-hidden shadow-sm">
+                <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+                    {orders.length > 0 ? (
+                        orders.map((order) => {
+                            const isOpen = expandedId === order.id;
+                            return (
+                                <div key={order.id} className="rounded-2xl border border-border/60 bg-background/70 shadow-sm overflow-hidden">
+                                    <button
+                                        onClick={() => setExpandedId(isOpen ? null : order.id)}
+                                        className="w-full flex items-center justify-between gap-3 px-4 py-3"
+                                    >
+                                        <div className="min-w-0 text-left">
+                                            <p className="text-sm font-semibold text-foreground truncate">Order {order.id}</p>
+                                            <p className="text-[11px] text-muted-foreground">{order.productName}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-slate-400" aria-hidden />
+                                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                                        </div>
+                                    </button>
+                                    {isOpen && (
+                                        <div className="px-4 pb-3">
+                                            <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Customer</p>
+                                                    <p className="font-semibold text-foreground/80">{order.customer}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Amount</p>
+                                                    <p className="font-semibold text-foreground/80">â‚¦{order.amount.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Date</p>
+                                                    <p className="font-semibold text-foreground/80">{order.date}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="uppercase tracking-widest text-[9px]">Evidence</p>
+                                                    <p className="font-semibold text-foreground/80">Seller Confirmed</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => handleVerify(order.id)}
+                                                    className="flex-1 px-3 py-2 rounded-lg bg-emerald-500 text-white text-[11px] font-bold uppercase tracking-widest"
+                                                >
+                                                    Verify
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleReject(order.id)}
+                                                    className="flex-1 px-3 py-2 rounded-lg border border-border/60 text-rose-500 text-[11px] font-bold uppercase tracking-widest"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="rounded-2xl border border-border/60 bg-background/70 p-6 text-center text-muted-foreground text-sm">
+                            No orders currently awaiting verification.
+                        </div>
+                    )}
+                </div>
+
+                <div className="overflow-x-auto hidden md:block">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-secondary/5 border-b border-border/50 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                                <th className="px-6 py-4">Order Info</th>
+                                <th className="px-6 py-4">Marketplace Transaction</th>
+                                <th className="px-6 py-4">Verification Evidence</th>
+                                <th className="px-6 py-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                            {orders.length > 0 ? (
+                                orders.map((order) => (
+                                    <tr key={order.id} className="group hover:bg-secondary/5 transition-colors">
+                                        <td className="px-6 py-5">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-foreground">Order {order.id}</span>
+                                                <span className="text-[10px] font-medium text-muted-foreground">{order.date}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-bold text-foreground">{order.productName}</span>
+                                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+                                                    <span className="text-primary">{order.customer}</span>
+                                                    <span className="text-muted-foreground">→</span>
+                                                    <span className="text-primary">Seller</span>
+                                                </div>
+                                                <div className="text-xs font-bold mt-1">₦{order.amount.toLocaleString()}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Rating Left</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600">Seller Confirmed</span>
+                                                </div>
+                                                <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-primary hover:underline">
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    Chat Log
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button 
+                                                    onClick={() => handleVerify(order.id)}
+                                                    className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 transition-all flex items-center gap-2"
+                                                >
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    Verify
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleReject(order.id)}
+                                                    className="px-4 py-2 rounded-xl bg-card border border-border/50 text-rose-500 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500/5 transition-all flex items-center gap-2"
+                                                >
+                                                    <XCircle className="w-3.5 h-3.5" />
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground italic text-sm">
+                                        No orders currently awaiting verification.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Table Footer / Pagination */}
+                <div className="px-6 py-4 bg-secondary/5 border-t border-border/50 flex items-center justify-between">
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Showing {orders.length} pending verifications
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="p-2 rounded-lg border border-border/50 bg-card hover:bg-secondary/5 transition-colors disabled:opacity-30" disabled>
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button className="w-8 h-8 rounded-lg bg-primary text-white text-[10px] font-bold">1</button>
+                        <button className="p-2 rounded-lg border border-border/50 bg-card hover:bg-secondary/5 transition-colors disabled:opacity-30" disabled>
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

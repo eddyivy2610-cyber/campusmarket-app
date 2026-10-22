@@ -1,0 +1,258 @@
+"use client";
+
+import {
+    X,
+    User,
+    Bell,
+    ChevronRight,
+    ChevronDown,
+    Store,
+    Heart,
+    Settings,
+    HelpCircle,
+    MessageSquare,
+    LifeBuoy,
+    MonitorSmartphone,
+    BookOpen,
+    Home,
+    Shirt,
+    Sparkles,
+    Dumbbell,
+    Music,
+    Package,
+    Bike,
+    Calendar,
+    AlertCircle,
+    Wrench,
+    Tag,
+    UtensilsCrossed,
+    LucideIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { CATEGORIES } from "../../data/products";
+import { useAuth } from "../../context/AuthContext";
+
+interface HamburgerMenuProps {
+    isOpen: boolean;
+    onClose: () => void;
+    notificationCount?: number;
+}
+
+const IconMap: Record<string, LucideIcon> = {
+    MonitorSmartphone,
+    BookOpen,
+    Home,
+    Shirt,
+    Sparkles,
+    Dumbbell,
+    Music,
+    Package,
+    Bike,
+    Calendar,
+    AlertCircle,
+    Wrench,
+    UtensilsCrossed,
+};
+
+export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: HamburgerMenuProps) {
+    const [categoriesOpen, setCategoriesOpen] = useState(false);
+    const router = useRouter();
+    const { user, logout } = useAuth();
+
+    useEffect(() => {
+        document.body.style.overflow = isOpen ? "hidden" : "unset";
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen]);
+
+    const nav = (path: string) => {
+        router.push(path);
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] flex justify-start">
+            <div
+                className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
+                onClick={onClose}
+            />
+
+            <div
+                className={`relative w-full max-w-[85vw] sm:max-w-[360px] bg-background border-r border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out font-heading ${isOpen ? "translate-x-0" : "-translate-x-full"} h-full overflow-hidden`}
+            >
+                <div className="flex items-center justify-between px-4 py-3.5 border-b border-border bg-secondary/30 shrink-0">
+                    <Link href="/home" onClick={onClose} className="flex items-center gap-0 group" aria-label="Hive Home">
+                        <span className="text-[20px] md:text-[22px] font-bold font-sans text-[#FFD700] whitespace-nowrap drop-shadow-sm">
+                            Hive
+                        </span>
+                    </Link>
+                    <button
+                        onClick={onClose}
+                        className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md border border-border/60 transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto">
+                    <div className="p-4">
+                        <button
+                            onClick={() => nav(user ? `/profile/${user.handle}` : "/login")}
+                            className="w-full flex items-center justify-between p-4 bg-primary text-primary-foreground rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <User className="w-5 h-5" />
+                                <div className="text-left">
+                                    <p className="font-semibold uppercase tracking-widest text-[11px] truncate max-w-[140px]">
+                                        {user ? user.name : "Join Campus Hive"}
+                                    </p>
+                                    <p className="text-[10px] text-white/70 font-medium capitalize">
+                                        {user ? `${user.role} Account` : "Log in or Sign up"}
+                                    </p>
+                                </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+
+                    <Section label="Navigation">
+                        <NavRow icon={Home} label="Home" onClick={() => nav("/home")} />
+                        <NavRow icon={AlertCircle} label="Looking For (Wanted)" onClick={() => nav("/wanted")} accent />
+                        <NavRow icon={Store} label="Campus Storefronts" onClick={() => nav("/stores")} />
+                        <NavRow icon={Wrench} label="Campus Services" onClick={() => nav("/services")} />
+                        <NavRow icon={Bell} label="Notifications" badge={notificationCount} onClick={() => nav("/notifications")} />
+                        <NavRow icon={BookOpen} label="About" onClick={() => nav("/about-us")} />
+                        <NavRow icon={LifeBuoy} label="Help" onClick={() => nav("/help-support")} />
+                        <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
+                    </Section>
+
+                    {user && user.role === "seller" && (
+                        <Section label="Seller Tools">
+                            <NavRow icon={Store} label="Seller Dashboard" onClick={() => nav("/dashboard")} accent />
+                            <NavRow icon={Package} label="My Listings" onClick={() => nav("/dashboard/products")} />
+                            <NavRow icon={MessageSquare} label="Customer Messages" onClick={() => nav("/messages")} />
+                        </Section>
+                    )}
+
+                    {user && (
+                        <Section label="Account">
+                            <NavRow icon={User} label="My Profile" onClick={() => nav(`/profile/${user.handle}`)} />
+                            <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
+                            {user.role !== "seller" && user.role !== "admin" && user.sellerStatus !== "approved" && (
+                                <NavRow 
+                                    icon={Store} 
+                                    label={user.sellerStatus === "pending" ? "Verification Pending" : "Become a Seller"} 
+                                    onClick={() => nav("/register/seller")} 
+                                />
+                            )}
+                        </Section>
+                    )}
+
+                    <Section label="Shop by Category">
+                        <button
+                            onClick={() => setCategoriesOpen((v) => !v)}
+                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Tag className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <span className="font-medium text-sm">All Categories</span>
+                            </div>
+                            <ChevronDown
+                                className={`w-4 h-4 text-muted-foreground/50 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`}
+                            />
+                        </button>
+
+                        {categoriesOpen && (
+                            <div className="ml-4 mt-1 space-y-0.5 border-l border-border/40 pl-3">
+                                {CATEGORIES.map((cat, idx) => {
+                                    const Icon = IconMap[cat.lucideIcon || "Package"];
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => nav(`/listings?category=${cat.name}`)}
+                                            className="w-full flex items-center gap-3 px-2 py-2 hover:bg-secondary rounded-lg transition-colors group text-left"
+                                        >
+                                            <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                                            <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">{cat.name}</span>
+                                        </button>
+                                    );
+                                })}
+                                <button
+                                    onClick={() => nav("/listings")}
+                                    className="w-full flex items-center gap-3 px-2 py-2 hover:bg-primary/5 rounded-lg transition-colors text-primary font-bold text-xs uppercase tracking-widest"
+                                >
+                                    View All Listings {"->"}
+                                </button>
+                            </div>
+                        )}
+                    </Section>
+
+                    
+                </div>
+
+                {user && (
+                    <div className="shrink-0 border-t border-border/60 p-3">
+                        <button
+                            onClick={() => { logout(); onClose(); }}
+                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group bg-primary/10 text-primary hover:bg-primary/15"
+                        >
+                            <div className="flex items-center gap-3">
+                                <User className="w-5 h-5 text-primary shrink-0" />
+                                <span className="text-sm font-semibold">Logout</span>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-primary/60 group-hover:translate-x-0.5 transition-all" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="px-2 py-3 border-b border-border/40 last:border-0">
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+            <nav className="space-y-0.5">{children}</nav>
+        </div>
+    );
+}
+
+function NavRow({
+    icon: Icon,
+    label,
+    badge,
+    accent,
+    onClick,
+}: {
+    icon: LucideIcon;
+    label: string;
+    badge?: number;
+    accent?: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors group ${accent ? "bg-primary/10 text-primary hover:bg-primary/15" : "hover:bg-secondary text-foreground"}`}
+        >
+            <div className="flex items-center gap-3">
+                <Icon className={`w-5 h-5 transition-colors shrink-0 ${accent ? "text-primary" : "text-muted-foreground group-hover:text-primary"}`} />
+                <span className={`text-sm ${accent ? "font-semibold" : "font-medium"}`}>{label}</span>
+            </div>
+            {badge && badge > 0 ? (
+                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {badge}
+                </span>
+            ) : (
+                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
+            )}
+        </button>
+    );
+}

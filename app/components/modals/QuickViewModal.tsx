@@ -1,0 +1,210 @@
+"use client";
+
+import React, { useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import {
+    X,
+    Heart,
+    Star,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { useSaved } from "../../context/SavedContext";
+
+interface QuickViewModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    product: any;
+}
+
+export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps) {
+    const { toggleSaved, isSaved } = useSaved();
+    const router = useRouter();
+
+    const displayId = product._id || product.id;
+
+    const imageList = useMemo(() => {
+        if (product.images && product.images.length > 0) return product.images;
+        if (product.image) return [product.image];
+        return ["/placeholder-product.png"];
+    }, [product.image, product.images]);
+
+    useEffect(() => {
+        document.body.style.overflow = isOpen ? "hidden" : "unset";
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        window.addEventListener("keydown", handleEsc);
+        return () => window.removeEventListener("keydown", handleEsc);
+    }, [onClose]);
+
+    const formatPrice = (price: number | string) => {
+        if (price === undefined || price === null) return "0";
+        const n = typeof price === "string" ? parseFloat(price.replace(/,/g, "")) : price;
+        return isNaN(n) ? price : n.toLocaleString();
+    };
+
+    const recommendedCount = product.recommendedCount || 0;
+    const notRecommendedCount = product.notRecommendedCount || 0;
+    const totalReviews = recommendedCount + notRecommendedCount;
+    const starRating = Math.min(
+        5,
+        Math.max(1, Math.round((recommendedCount / (totalReviews || 1)) * 5))
+    );
+    const shortDescription = (product.description || "").split("\n")[0]?.slice(0, 140) || "No description provided for this listing yet.";
+
+    const goToListing = () => {
+        onClose();
+        router.push(`/listings/${displayId}`);
+    };
+
+    if (typeof document === "undefined") return null;
+
+    return createPortal(
+        <AnimatePresence>
+            {isOpen && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/75"
+                    />
+
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 18 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 18 }}
+                        transition={{ type: "spring", damping: 24, stiffness: 290 }}
+                        className="relative w-full max-w-sm sm:max-w-[420px] bg-card rounded-[24px] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] max-h-[88vh] flex flex-col font-sans"
+                        onWheel={(e) => e.stopPropagation()}
+                    >
+                        <div className="absolute top-4 inset-x-4 z-20 flex items-start justify-between pointer-events-none">
+                            <div className="px-2.5 py-1 bg-black rounded-full shadow-lg pointer-events-auto ring-1 ring-white/20">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-white">{product.category}</span>
+                            </div>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onClose();
+                                }}
+                                className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white border border-white/10 hover:bg-zinc-900 transition-colors pointer-events-auto"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border" data-lenis-prevent>
+                            <div className="p-4 pb-3">
+                                <div className="grid grid-cols-4 grid-rows-3 gap-2 h-[220px] sm:h-[260px]">
+                                    <div className="col-span-4 row-span-2 relative rounded-2xl overflow-hidden border border-border/40">
+                                        <Image
+                                            src={imageList[0]}
+                                            alt={product.title}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                        {product.isUrgent && (
+                                            <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                                                URGENT
+                                            </span>
+                                        )}
+                                        {product.status === "sold" && (
+                                            <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                                                SOLD
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {Array.from({ length: 4 }).map((_, idx) => {
+                                        const thumb = imageList[idx + 1] ?? imageList[0];
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="col-span-1 row-span-1 relative rounded-xl overflow-hidden border border-border/40"
+                                            >
+                                                <Image src={thumb} alt="" fill className="object-cover" />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="px-5 pb-5 space-y-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <h2 className="text-base font-bold font-heading leading-tight text-foreground">{product.title}</h2>
+                                    <div className="text-right shrink-0">
+                                        <p className="text-lg font-price font-bold text-amber-800 dark:text-amber-300">₦{formatPrice(product.price)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-3.5 h-3.5 ${s <= starRating ? "text-amber-400 fill-amber-400" : "text-muted-foreground/20"}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-muted-foreground">
+                                        ({totalReviews} reviews)
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2 bg-secondary/20 p-4 rounded-2xl border border-border/30">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Overview</p>
+                                    <p className="text-xs text-foreground/80 leading-relaxed font-medium line-clamp-4">
+                                        {shortDescription}
+                                    </p>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div className="p-3 border-t border-border/50 bg-card flex gap-2">
+                            <button
+                                onClick={goToListing}
+                                className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 bg-primary text-white hover:scale-[1.01] active:scale-[0.98] transition-all"
+                            >
+                                View Full
+                            </button>
+
+                            <button
+                                onClick={() =>
+                                    toggleSaved({
+                                        id: displayId,
+                                        title: product.title,
+                                        price: product.price,
+                                        image: imageList[0],
+                                        category: product.category,
+                                        recommendedCount: recommendedCount,
+                                        notRecommendedCount: notRecommendedCount,
+                                        location: product.location,
+                                        sellerId: product.sellerId,
+                                    })
+                                }
+                                className={`h-11 w-11 rounded-xl flex items-center justify-center border-2 transition-all ${
+                                    isSaved(displayId)
+                                        ? "bg-red-50 border-red-200 text-red-500"
+                                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+                                }`}
+                            >
+                                <Heart className={`w-5 h-5 ${isSaved(displayId) ? "fill-current" : ""}`} />
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>,
+        document.body
+    );
+}

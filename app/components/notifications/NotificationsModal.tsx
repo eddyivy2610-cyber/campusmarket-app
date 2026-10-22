@@ -1,0 +1,229 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { CheckCheck } from "lucide-react";
+import { useClickOutside } from "../../hooks/useClickOutside";
+import Link from "next/link";
+import { useAuth } from "../../context/AuthContext";
+import { apiGet } from "@/lib/apiClient";
+
+interface NotificationsModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps) {
+    const modalRef = useRef<HTMLDivElement>(null);
+    useClickOutside(modalRef, onClose);
+    const { user } = useAuth();
+    const [needsSellerCompletion, setNeedsSellerCompletion] = useState(false);
+
+    useEffect(() => {
+        const loadSellerCompletionState = async () => {
+            if (!isOpen || !user?.id || user.sellerStatus !== "approved") {
+                setNeedsSellerCompletion(false);
+                return;
+            }
+
+            try {
+                const response: any = await apiGet(`/api/users/${user.id}`);
+                const data = response?.data || response || {};
+                const profile = data?.profile || {};
+                const business = data?.businessProfile || {};
+                const missingBusinessInfo = !business?.name || !business?.category || !business?.description;
+                setNeedsSellerCompletion(!profile?.displayName || missingBusinessInfo);
+            } catch {
+                setNeedsSellerCompletion(true);
+            }
+        };
+
+        loadSellerCompletionState();
+    }, [user?.id, user?.sellerStatus, isOpen]);
+
+    const isStudentPending = !!user?.isStudent && !user?.studentVerified;
+    const pendingNotification = (isStudentPending || user?.sellerStatus === "pending")
+        ? {
+            id: "student-pending",
+            title: "Student Verification Pending",
+            message: "Your student ID is under review. Selling tools, dashboard, listings, and ratings are locked until approval.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
+    const approvedNotification = user?.sellerStatus === "approved"
+        ? {
+            id: "seller-approved",
+            title: "Seller Application Approved",
+            message: needsSellerCompletion
+                ? "You are approved. Complete your seller application: Business Name, Category, and Description."
+                : "You are approved to sell on Campus Hive. Your seller tools are now active.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
+    const rejectedNotification = user?.sellerStatus === "rejected"
+        ? {
+            id: "seller-rejected",
+            title: "Seller Application Not Approved",
+            message: "Your verification was not approved. You can update your details and try again.",
+            timestamp: "Now",
+            isRead: false,
+        }
+        : null;
+
+    const displayed: any[] = [];
+
+    if (!isOpen) return null;
+
+    return (
+        <div ref={modalRef} className="absolute top-full right-0 mt-2 w-[260px] z-50 animate-in fade-in zoom-in-95 duration-150 origin-top-right bg-background font-heading rounded-xl shadow-2xl border border-border overflow-hidden" onWheel={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="px-3 py-2 border-b border-border/50 flex items-center justify-between">
+                <h3 className="font-bold text-xs font-heading">Notifications</h3>
+                <button className="text-primary text-[10px] font-bold flex items-center gap-1 hover:opacity-70 transition-opacity">
+                    <CheckCheck className="w-3 h-3" />
+                    Mark all read
+                </button>
+            </div>
+
+            {/* List */}
+            <div className="max-h-[240px] overflow-y-auto divide-y divide-border/30" data-lenis-prevent>
+                {pendingNotification && (
+                    <div
+                        key={pendingNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-primary/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                            </div>
+                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 border border-background rounded-full" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {pendingNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{pendingNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{pendingNotification.message}</p>
+                            <Link
+                                href="/register/seller"
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                            >
+                                Resend verification
+                            </Link>
+                        </div>
+                    </div>
+                )}
+                {approvedNotification && (
+                    <div
+                        key={approvedNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-emerald-500/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {approvedNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{approvedNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{approvedNotification.message}</p>
+                            {needsSellerCompletion && (
+                                <Link
+                                    href="/register/seller/complete"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                                >
+                                    Complete application
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {rejectedNotification && (
+                    <div
+                        key={rejectedNotification.id}
+                        className="flex gap-2.5 px-3 py-2.5 bg-red-500/5 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className="text-[11px] leading-tight truncate font-bold text-foreground">
+                                    {rejectedNotification.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{rejectedNotification.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{rejectedNotification.message}</p>
+                            <Link
+                                href="/register/seller"
+                                onClick={(e) => e.stopPropagation()}
+                                className="mt-0.5 text-[10px] font-bold text-primary hover:underline inline-block"
+                            >
+                                Try again
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {displayed.length > 0 ? displayed.map((notif: any) => (
+                    <div
+                        key={notif.id}
+                        className={`flex gap-2.5 px-3 py-2.5 hover:bg-secondary/30 transition-colors cursor-pointer ${!notif.isRead ? "bg-primary/5" : ""}`}
+                    >
+                        {/* Thumbnail */}
+                        <div className="shrink-0 relative">
+                            <div className="w-8 h-8 rounded-lg overflow-hidden bg-secondary border border-border flex items-center justify-center">
+                                {notif.image
+                                    ? <img src={notif.image} alt="" className="w-full h-full object-cover" />
+                                    : <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                                }
+                            </div>
+                            {!notif.isRead && (
+                                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 border border-background rounded-full" />
+                            )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-0.5">
+                                <h4 className={`text-[11px] leading-tight truncate ${!notif.isRead ? "font-bold text-foreground" : "font-semibold text-foreground/80"}`}>
+                                    {notif.title}
+                                </h4>
+                                <span className="text-[9px] text-muted-foreground whitespace-nowrap shrink-0">{notif.timestamp}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-snug line-clamp-2">{notif.message}</p>
+                            {notif.actions && notif.actions.length > 0 && (
+                                <button className="mt-0.5 text-[10px] font-bold text-primary hover:underline">
+                                    {notif.actions[0]}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )) : (
+                    <div className="py-6 text-center text-muted-foreground text-xs">
+                        {user ? "No recent notifications." : "No notifications. Sign in to receive updates."}
+                    </div>
+                )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-3 py-2 border-t border-border/50 text-center">
+                <Link href="/dashboard/alerts" onClick={onClose} className="text-[11px] font-bold text-primary hover:opacity-80 transition-opacity">
+                    Notifications Centre →
+                </Link>
+            </div>
+        </div>
+    );
+}

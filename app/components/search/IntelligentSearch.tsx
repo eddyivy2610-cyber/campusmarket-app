@@ -1,0 +1,287 @@
+/**
+ * @BACKEND: SEARCH — Currently filters local mock data arrays (PRODUCTS, PROFILES) client-side.
+ *
+ * Replace with:
+ *   - GET /api/search?q=<query>&type=products|profiles → full-text search API
+ *   - Support pagination, category filters, and sorting
+ *   - Recent searches should be stored per-user on the backend
+ *   - Trending searches can be fetched from GET /api/search/trending
+ */
+
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Search, X, Clock, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { OptimizedImage } from "../common/OptimizedImage";
+import { searchProfiles } from "../../lib/searchUtils";
+import type { Profile } from "../../data/profiles";
+import { useClickOutside } from "../../hooks/useClickOutside";
+import { AnimatePresence, motion } from "framer-motion";
+
+export function IntelligentSearch() {
+    const router = useRouter();
+    const [query, setQuery] = useState("");
+    const [profileResults, setProfileResults] = useState<Profile[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const searchRequestId = useRef(0);
+
+    useClickOutside(wrapperRef, () => setIsOpen(false));
+
+    useEffect(() => {
+        // Load recent searches on mount
+        const saved = localStorage.getItem("recentSearches");
+        if (saved) {
+            setRecentSearches(JSON.parse(saved));
+        }
+    }, []);
+
+    useEffect(() => {
+        const trimmed = query.trim();
+        if (trimmed.length === 0) {
+            setProfileResults([]);
+            setIsSearching(false);
+            setSearchError(null);
+            return;
+        }
+
+        const currentRequestId = ++searchRequestId.current;
+        setIsSearching(true);
+        setSearchError(null);
+
+        const timer = setTimeout(async () => {
+            try {
+                const profiles = await searchProfiles(trimmed);
+                if (searchRequestId.current !== currentRequestId) return;
+                setProfileResults(profiles);
+            } catch (error) {
+                if (searchRequestId.current !== currentRequestId) return;
+                console.error("Search failed", error);
+                setProfileResults([]);
+                setSearchError("Search is currently unavailable. Please try again.");
+            } finally {
+                if (searchRequestId.current === currentRequestId) {
+                    setIsSearching(false);
+                }
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value);
+        setIsOpen(true);
+    };
+
+    const addToRecent = (term: string) => {
+        const newRecent = [term, ...recentSearches.filter(s => s !== term)].slice(0, 5);
+        setRecentSearches(newRecent);
+        localStorage.setItem("recentSearches", JSON.stringify(newRecent));
+    };
+
+    const handleSelect = (term: string) => {
+        setQuery(term);
+        addToRecent(term);
+        setIsOpen(false);
+        router.push(`/listings?q=${encodeURIComponent(term)}`);
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            handleSelect(query);
+        }
+    };
+
+    const clearRecent = () => {
+        setRecentSearches([]);
+        localStorage.removeItem("recentSearches");
+    };
+
+    return (
+        <div ref={wrapperRef} className="relative w-full max-w-xl mx-auto hidden md:block group z-50">
+            {/* Search Input */}
+            <form
+                onSubmit={handleSearchSubmit}
+                className={`
+                flex items-center w-full h-12 bg-black/5 dark:bg-black/30 rounded-2xl overflow-hidden transition-all duration-300 
+                border border-black/10 dark:border-white/20
+                ${isOpen ? 'bg-white dark:bg-black/45 ring-2 ring-primary/20 border-primary/30 shadow-lg rounded-b-none' : 'focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white dark:focus-within:bg-black/35 focus-within:border-primary/30'}
+            `}>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={handleSearch}
+                    onFocus={() => setIsOpen(true)}
+                    placeholder="Search for students, shops & more..."
+                    className="flex-1 h-full bg-transparent outline-none text-sm placeholder:text-black/50 dark:placeholder:text-white/70 text-black dark:text-white font-heading w-full pl-5"
+                />
+
+                {query && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setQuery("");
+                            setProfileResults([]);
+                            setSearchError(null);
+                            setIsSearching(false);
+                            searchRequestId.current += 1;
+                            inputRef.current?.focus();
+                        }}
+                        className="p-2 text-black/50 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+
+                <button type="submit" className="h-8 w-8 mr-2 bg-[#FFD700] hover:bg-[#f5dc48] rounded-full flex items-center justify-center text-black transition-colors shadow-md shadow-[#FFD700]/40 active:scale-[0.98] shrink-0">
+                    <Search className="w-4 h-4 font-bold" />
+                </button>
+            </form>
+
+            {/* Dropdown Results */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute top-full mt-0 left-0 right-0 bg-secondary/65 dark:bg-secondary/75 backdrop-blur-md border border-t-0 border-border/50 rounded-b-2xl shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto custom-scrollbar"
+                    >
+                        {query.trim().length === 0 ? (
+                            // Default State: Recent & Trending
+                            <div className="p-4">
+                                {recentSearches.length > 0 ? (
+                                    <div className="mb-6">
+                                        <div className="flex items-center justify-between mb-2 px-2">
+                                            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Recent Searches</h3>
+                                            <button onClick={clearRecent} className="text-[10px] text-primary hover:underline">Clear All</button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {recentSearches.map(term => (
+                                                <button
+                                                    key={term}
+                                                    onClick={() => handleSelect(term)}
+                                                    className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 hover:bg-secondary rounded-lg text-sm text-foreground transition-colors"
+                                                >
+                                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    {term}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-6 text-center text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
+                                        No recent searches yet
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            // Search Results State
+                            <div className="py-2">
+                                {searchError ? (
+                                    <div className="p-4 text-center text-xs font-semibold text-red-500">
+                                        {searchError}
+                                    </div>
+                                ) : isSearching ? (
+                                    <div className="p-4 text-center text-xs uppercase tracking-[0.3em] text-muted-foreground/70">
+                                        Searching for "{query.trim()}"...
+                                    </div>
+                                ) : (profileResults.length > 0) ? (
+                                    <>
+                                        {profileResults.length > 0 && (
+                                            <>
+                                                <div className="px-4 py-2 border-b border-border/40 bg-secondary/20">
+                                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Profiles</h3>
+                                                </div>
+                                                <ul>
+                                                    {profileResults.slice(0, 3).map(profile => (
+                                                        <li key={profile.id}>
+                                                            <Link
+                                                                href={`/profile/${profile.handle}`}
+                                                                className="flex items-center gap-4 px-4 py-3 hover:bg-secondary/50 transition-colors group"
+                                                                onClick={() => addToRecent(query)}
+                                                            >
+                                                                <div className="w-10 h-10 rounded-full bg-secondary relative overflow-hidden shadow-sm border border-border/50">
+                                                                    <OptimizedImage
+                                                                        src={(profile.avatar && profile.avatar !== "image") ? profile.avatar : "/placeholder.png"}
+                                                                        alt={profile.name}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <h4 className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">{profile.name}</h4>
+                                                                        <span className="text-xs text-muted-foreground bg-secondary px-1.5 rounded-sm">{profile.handle}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                                                        <span className="truncate max-w-[200px]">{profile.bio}</span>
+                                                                        <span className="w-1 h-1 rounded-full bg-border" />
+                                                                        <div className="flex items-center gap-0.5">
+                                                                            <span className="text-blue-500">★</span>
+                                                                            <span>{profile.rating}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </>
+                                        )}
+
+                                        {profileResults.length >= 3 && (
+                                            <div className="p-2 border-t border-border/40">
+                                                <button
+                                                    onClick={() => handleSelect(query)}
+                                                    className="w-full py-2 text-center text-sm font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                                >
+                                                    See all {profileResults.length} results
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    // No Results
+                                    <div className="p-8 text-center flex flex-col items-center">
+                                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mb-3">
+                                            <Search className="w-6 h-6 text-muted-foreground" />
+                                        </div>
+                                        <h3 className="font-bold text-foreground mb-1">No results found</h3>
+                                        <p className="text-muted-foreground text-sm mb-4">
+                                            We couldn't find matches for "{query}".
+                                        </p>
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            <span className="text-xs text-muted-foreground">Try searching for:</span>
+                                            {['ABU students', 'Unilag shops', 'Trusted vendors'].map(term => (
+                                                <button
+                                                    key={term}
+                                                    onClick={() => { setQuery(term); handleSelect(term); }}
+                                                    className="text-xs font-bold text-primary hover:underline"
+                                                >
+                                                    {term}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}

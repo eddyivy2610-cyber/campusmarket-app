@@ -1,0 +1,61 @@
+Frontend Integration: Where to Begin
+Assuming Backend APIs Ready on Render + Next.js Frontend Already Built
+PART 1: YOUR CURRENT STATE
+Component	Status
+Backend API	✅ Deployed on Render 
+API Endpoints	✅ All endpoints ready
+Frontend Project	✅ Next.js project already built
+What's Left	🔄 Connect frontend to backend APIs
+PART 2: FIRST THINGS FIRST
+Step 1: Get Your API Base URL
+Locate your deployed backend URL from Render:
+
+text
+https://your-app-name.onrender.com/api/v1
+Save this — you'll need it everywhere.
+
+Step 2: Create Environment File
+In your Next.js project root, create .env.local:
+
+text
+NEXT_PUBLIC_API_URL=https://your-app-name.onrender.com/api/v1
+The NEXT_PUBLIC_ prefix makes it accessible on the frontend.
+
+Step 3: Verify API is Reachable
+Before writing any code, test if your backend is responding:
+
+Open browser console or terminal:
+
+bash
+curl https://your-app-name.onrender.com/api/v1/health
+Or visit in browser: https://your-app-name.onrender.com/api/v1/health
+
+Expected: { "status": "ok" }
+
+PART 3: WHAT TO CONNECT FIRST (PRIORITY ORDER)
+Priority 1: Authentication (Login & Registration)
+Why first: Everything else requires a logged-in user
+
+Files to modify:
+
+pages/login.js or app/login/page.js
+
+pages/register.js or app/register/page.js
+
+Any auth context/provider file
+
+What to replace:
+
+Mock login functions → Real API calls to /auth/login
+
+Mock registration → Real API calls to /auth/register
+
+Token storage (localStorage or cookies) with real tokens from response
+
+Test after:
+
+Can you register a new user?
+
+Can you log in?
+
+Does token persist after page refresh?

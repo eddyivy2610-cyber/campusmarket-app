@@ -1,0 +1,177 @@
+"use client";
+
+import { Bell, Heart, ChevronDown, Star } from "lucide-react";
+import { useState, useRef } from "react";
+import { AccountDropdown } from "./AccountDropdown";
+import Link from "next/link";
+import { useScrollReveal } from "../../hooks/useScrollReveal";
+import { NotificationsModal } from "../notifications/NotificationsModal";
+import { useClickOutside } from "../../hooks/useClickOutside";
+import { HamburgerMenu } from "./HamburgerMenu";
+import { IntelligentSearch } from "../search/IntelligentSearch";
+import { MobileSearch } from "../search/MobileSearch";
+import { CampusSelectorPill } from "./CampusSelectorPill";
+import { usePathname, useRouter } from "next/navigation";
+import { useSaved } from "../../context/SavedContext";
+import { useAuth } from "../../context/AuthContext";
+import { Logo } from "../ui/Logo";
+
+export function MainHeader() {
+    useScrollReveal();
+    const [isAccountOpen, setIsAccountOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const pathname = usePathname();
+    const router = useRouter();
+    const { user } = useAuth();
+    const isSettingsPage = pathname === "/settings";
+    const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password");
+    const isDashboardPage = pathname?.startsWith("/dashboard");
+    const isLegalPage = pathname?.startsWith("/(legal)") || pathname === "/about-us" || pathname === "/terms-of-service" || pathname === "/safety-guidelines" || pathname === "/community-rules" || pathname === "/usage-policy";
+
+
+    const isActuallyLegal = ["/about-us", "/terms-of-service", "/safety-guidelines", "/community-rules", "/usage-policy"].includes(pathname);
+    const isAdminPage = pathname?.startsWith("/admin");
+    const { savedItems } = useSaved();
+    const notificationCount = 0;
+
+    const accountRef = useRef<HTMLDivElement>(null);
+    useClickOutside(accountRef, () => setIsAccountOpen(false));
+
+    const handleAccountClick = () => {
+        setIsAccountOpen(!isAccountOpen);
+    };
+
+    const handleNotificationsClick = () => {
+        if (!user && typeof window !== "undefined" && window.innerWidth < 768) {
+            router.push("/login?next=%2Fnotifications");
+            return;
+        }
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            router.push("/notifications");
+            return;
+        }
+        setIsNotificationOpen(!isNotificationOpen);
+    };
+
+    if (isAdminPage || isAuthPage || isDashboardPage) return null;
+
+    return (
+        <>
+            {/* ── Main header row ── */}
+            <div className="bg-black/60 text-white py-[11px] border-b border-white/10 backdrop-blur-md shadow-sm relative z-40 transition-colors">
+                <div className="w-full max-w-[1780px] mx-auto px-4 md:px-6 flex items-center gap-3 md:gap-4">
+
+                    {/* Hamburger & Logo (Mobile Left Aligned) */}
+                    <div className="flex flex-1 md:flex-none items-center gap-3">
+                        <button
+                            onClick={() => setIsMenuOpen(true)}
+                            className="md:hidden flex flex-col gap-[5px] cursor-pointer bg-transparent border-none p-0"
+                            aria-label="Open menu"
+                        >
+                            <span className="block w-[25px] h-[3px] bg-[#FFD700]"></span>
+                            <span className="block w-[25px] h-[3px] bg-[#FFD700]"></span>
+                            <span className="block w-[25px] h-[3px] bg-[#FFD700]"></span>
+                        </button>
+                        
+                        <Logo height={30} width={75} href="/home" />
+
+                        {/* Quick MVP Navigation Links (Desktop) */}
+                        <nav className="hidden lg:flex items-center gap-3 ml-3 pl-3 border-l border-white/15 text-[11px] font-heading font-bold uppercase tracking-wider text-white/85">
+                            <Link href="/listings" className="hover:text-[#FFD700] transition-colors">
+                                Explore
+                            </Link>
+                            <Link href="/wanted" className="hover:text-[#FFD700] transition-colors">
+                                Wanted
+                            </Link>
+                            <Link href="/stores" className="hover:text-[#FFD700] transition-colors">
+                                Stores
+                            </Link>
+                            <Link href="/services" className="hover:text-[#FFD700] transition-colors">
+                                Services
+                            </Link>
+                        </nav>
+                    </div>
+
+                    {/* Desktop search */}
+                    <div className="hidden md:flex flex-1 relative z-30">
+                        <IntelligentSearch />
+                    </div>
+
+                    {/* Campus Selector Pill (CAMP-01 / CAMP-04) */}
+                    <CampusSelectorPill />
+
+                    {/* Right actions */}
+                    <div ref={accountRef} className="relative z-40 flex items-center gap-1 md:gap-1.5 shrink-0 bg-black/40 backdrop-blur-lg border border-white/10 rounded-lg px-1.5 py-1 md:px-2 md:py-1 shadow-sm text-white min-w-[200px] md:min-w-[230px]">
+                        {/* Saved Items */}
+                        <Link
+                            href="/saved"
+                            className="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors text-white/90 relative group"
+                            title="Saved Items"
+                        >
+                            <Heart className="w-5 h-5 text-white shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                            {savedItems.length > 0 && (
+                                <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-[#FFD700] text-black text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent">
+                                    {savedItems.length}
+                                </span>
+                            )}
+                        </Link>
+
+                        {/* Notifications */}
+                        <div className="relative z-40">
+                            <button
+                                onClick={handleNotificationsClick}
+                                className="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors text-white/90 relative group"
+                                title="Notifications"
+                            >
+                                <Bell className="w-4 h-4 text-white shrink-0 transition-transform group-hover:scale-110 group-hover:text-[#FFD700]" strokeWidth={2} />
+                                {notificationCount > 0 && (
+                                    <span className="absolute top-0 right-0 translate-x-1 -translate-y-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-transparent animate-pulse">
+                                        {notificationCount}
+                                    </span>
+                                )}
+                            </button>
+                            <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
+                        </div>
+
+                        <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+                        {/* Account */}
+                        <div className="pl-1">
+                            <button
+                                onClick={handleAccountClick}
+                                className="flex items-center gap-2 text-white hover:text-white transition-colors group p-1 rounded-lg hover:bg-white/10 text-left"
+                            >
+                                <div className="flex flex-col leading-tight pr-1">
+                                    {user?.studentVerified && (
+                                        <span className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-[#FFD700]/90 font-bold transition-colors">
+                                            <Star className="w-3 h-3 text-[#FFD700]" />
+                                        </span>
+                                    )}
+                                    <span className="text-[11px] md:text-[12px] font-bold font-heading text-white tracking-wide truncate max-w-[80px] md:max-w-[120px]">
+                                        {user ? user.name : "Guest"}
+                                    </span>
+                                </div>
+                                <ChevronDown className="w-3.5 h-3.5 text-white/70 hidden sm:block mr-1 transition-colors group-hover:text-white" />
+                            </button>
+                        </div>
+                        <AccountDropdown isOpen={isAccountOpen} />
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Mobile search bar (below header) ── */}
+            {!isSettingsPage && !isAuthPage && (
+                <div className="block md:hidden bg-gradient-to-r from-black/80 via-black/60 to-black/80 border-b border-white/10 px-3 py-1">
+                    <MobileSearch />
+                </div>
+            )}
+
+            <HamburgerMenu
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                notificationCount={notificationCount}
+            />
+        </>
+    );
+}

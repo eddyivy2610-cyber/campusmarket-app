@@ -1,0 +1,507 @@
+/**
+ * @BACKEND: PROFILE HEADER — Avatar and cover photo uploads are client-side only (preview via URL.createObjectURL).
+ *
+ * Replace with:
+ *   - POST /api/users/me/avatar  → upload avatar image to file storage, update user record
+ *   - POST /api/users/me/cover   → upload cover photo to file storage, update user record
+ *   - Profile data (name, rating, stats) should come from GET /api/users/:id
+ */
+
+"use client";
+
+import React from "react";
+import {
+    MessageSquare,
+    Settings,
+    ShieldAlert,
+    ThumbsUp,
+    ThumbsDown,
+    Star,
+    LayoutGrid,
+    CheckCircle,
+    MoreHorizontal,
+    Camera,
+    BadgeCheck,
+    Flag,
+    Users,
+    UserPlus,
+    UserMinus,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { ReportDropdown } from "../common/ReportDropdown";
+import { Profile } from "../../data/profiles";
+import { StudentCapOverlay, AchievementBadge } from "./BadgeSystem";
+import Link from "next/link";
+import { IconTooltip } from "../common/IconTooltip";
+import { useAuth } from "../../context/AuthContext";
+import { PendingApprovalModal } from "../modals/PendingApprovalModal";
+import { followService } from "../../lib/followService";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import { ProfilePhotoModal } from "./ProfilePhotoModal";
+import { OptimizedImage } from "../common/OptimizedImage";
+
+interface ProfessionalProfileHeaderProps {
+    profile: Profile;
+    viewAs: "private" | "public";
+}
+
+export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfileHeaderProps) {
+    const isHost = viewAs === "private";
+    const { user } = useAuth();
+    const [showPending, setShowPending] = React.useState(false);
+    const avatarInputRef = React.useRef<HTMLInputElement>(null);
+    const coverInputRef = React.useRef<HTMLInputElement>(null);
+    const [previewAvatar, setPreviewAvatar] = React.useState<string | null>(null);
+    const [previewCover, setPreviewCover] = React.useState<string | null>(null);
+    const [verificationColor, setVerificationColor] = React.useState<string>("#0A2472");
+    const [isCoverLight, setIsCoverLight] = React.useState<boolean>(false);
+    const [isFollowing, setIsFollowing] = React.useState(false);
+    const [followersCount, setFollowersCount] = React.useState(profile.followers || 0);
+    const [isFollowingLoading, setIsFollowingLoading] = React.useState(false);
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        if (user && profile.id && viewAs === "public") {
+            const checkStatus = async () => {
+                try {
+                    const res = await followService.checkFollowingStatus(profile.id);
+                    if (res.success) setIsFollowing(res.isFollowing);
+                } catch (err) {
+                    console.error("Follow check failed", err);
+                }
+            };
+            checkStatus();
+        }
+    }, [user, profile.id, viewAs]);
+
+    const handleFollowToggle = async () => {
+        if (!user) {
+            toast.error("Please login to follow users");
+            return;
+        }
+        if (isFollowingLoading) return;
+
+        try {
+            setIsFollowingLoading(true);
+            const res = await followService.toggleFollow(profile.id);
+            if (res.success) {
+                setIsFollowing(res.isFollowing);
+                setFollowersCount(prev => res.isFollowing ? prev + 1 : prev - 1);
+                toast.success(res.isFollowing ? `Following ${profile.name}` : `Unfollowed ${profile.name}`);
+            }
+        } catch (err) {
+            toast.error("Action failed. Try again.");
+        } finally {
+            setIsFollowingLoading(false);
+        }
+    };
+
+    const sampleImageColor = React.useCallback((src: string) => {
+        return new Promise<string>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const size = 24;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) throw new Error("no-canvas");
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const data = ctx.getImageData(0, 0, size, size).data;
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const alpha = data[i + 3];
+                        if (alpha < 10) continue;
+                        r += data[i];
+                        g += data[i + 1];
+                        b += data[i + 2];
+                        count++;
+                    }
+                    if (!count) throw new Error("no-data");
+                    r = Math.round(r / count);
+                    g = Math.round(g / count);
+                    b = Math.round(b / count);
+                    resolve("#0A2472");
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = reject;
+            img.src = src;
+        });
+    }, []);
+
+    const sampleImageLuma = React.useCallback((src: string) => {
+        return new Promise<number>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const size = 24;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) throw new Error("no-canvas");
+                    ctx.drawImage(img, 0, 0, size, size);
+                    const data = ctx.getImageData(0, 0, size, size).data;
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const alpha = data[i + 3];
+                        if (alpha < 10) continue;
+                        r += data[i];
+                        g += data[i + 1];
+                        b += data[i + 2];
+                        count++;
+                    }
+                    if (!count) throw new Error("no-data");
+                    r = r / count;
+                    g = g / count;
+                    b = b / count;
+                    // relative luminance
+                    const luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+                    resolve(luma);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = reject;
+            img.src = src;
+        });
+    }, []);
+
+    React.useEffect(() => {
+        const src = previewCover || profile.coverPhoto || previewAvatar || profile.avatar;
+        if (!src) return;
+        sampleImageColor(src)
+            .then((color) => setVerificationColor(color))
+            .catch(() => setVerificationColor("#FFD700"));
+        sampleImageLuma(src)
+            .then((luma) => setIsCoverLight(luma > 0.52))
+            .catch(() => setIsCoverLight(false));
+    }, [previewCover, previewAvatar, profile.coverPhoto, profile.avatar, sampleImageColor, sampleImageLuma]);
+
+    const handleAvatarUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setPreviewAvatar(url);
+        }
+    };
+
+    const handleCoverUpdate = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setPreviewCover(url);
+        }
+    };
+
+    return (
+        <div className="w-full space-y-6 font-heading">
+            <PendingApprovalModal isOpen={showPending} onClose={() => setShowPending(false)} />
+            
+            {isHost && (
+                <ProfilePhotoModal
+                    isOpen={isAvatarModalOpen}
+                    onClose={() => setIsAvatarModalOpen(false)}
+                    currentImage={profile.avatar || null}
+                    userName={profile.name}
+                    userId={profile.id}
+                />
+            )}
+            
+            {/* Hidden Photo Inputs */}
+
+            <input
+                type="file"
+                ref={coverInputRef}
+                onChange={handleCoverUpdate}
+                accept="image/*"
+                className="hidden"
+            />
+
+            {/* Main Header Card */}
+            <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="bg-card border border-border/50 rounded-[24px] shadow-sm relative flex flex-col"
+            >
+                {/* TOP AREA */}
+                <div className="relative w-full overflow-hidden rounded-t-[24px] p-5 md:p-7">
+                    {/* Cover Photo Background */}
+                    <div className="absolute inset-0 z-0">
+                        {(previewCover || profile.coverPhoto) ? (
+                            <OptimizedImage
+                                src={previewCover || profile.coverPhoto || ""}
+                                alt="Cover"
+                                fill
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-secondary/30" />
+                        )}
+                        {/* Adaptive Dark Overlay */}
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+                    </div>
+
+                    {/* Edit Cover - host only */}
+                    {isHost && (
+                        <button
+                            onClick={() => coverInputRef.current?.click()}
+                            className="absolute top-4 right-4 flex items-center gap-2 bg-black/30 hover:bg-black/50 text-white px-3 py-2 rounded-lg backdrop-blur-md transition-all active:scale-95 border border-white/10 z-20"
+                        >
+                            <IconTooltip content="Edit Cover Photo" position="left">
+                                <Camera className="w-4 h-4" />
+                            </IconTooltip>
+                            <span className="text-[10px] font-medium">Edit Cover</span>
+                        </button>
+                    )}
+
+                    {/* Mobile/Desktop Layout Transition */}
+                    <div className="relative z-10 flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-8 items-center">
+
+                        {/* Column 1: Trust Signals */}
+                        <div className="hidden md:flex flex-col items-center md:items-start gap-4">
+                            {profile.type === 'vendor' && (
+                                <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-5 flex flex-col items-center gap-3 shadow-2xl transition-all hover:bg-white/10">
+                                    <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star
+                                                key={s}
+                                                className={`w-5 h-5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xl font-bold text-white">
+                                            {profile.rating}
+                                            <span className={`text-sm ${isCoverLight ? "text-black/60" : "text-white/60"}`}>/5.0</span>
+                                        </p>
+                                        <p className={`text-[9px] font-bold mt-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                            {profile.recommendedCount + profile.notRecommendedCount} Total Reviews
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Column 2: Central Profile Info */}
+                        <div className="flex flex-col items-center text-center order-first md:order-none">
+                            <div className="relative mb-3 md:mb-6 group/avatar">
+                                <div 
+                                    className={`w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white/30 ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all ${isHost ? "cursor-pointer hover:ring-white/50 group-hover:scale-[1.02]" : ""}`}
+                                    onClick={() => isHost && setIsAvatarModalOpen(true)}
+                                >
+                                    {previewAvatar || profile.avatar ? (
+                                        <OptimizedImage
+                                            src={previewAvatar || profile.avatar}
+                                            alt={profile.name}
+                                            fill
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-3xl font-bold">
+                                            {profile.name.charAt(0)}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {isHost && (
+                                    <button
+                                        onClick={() => setIsAvatarModalOpen(true)}
+                                        className="absolute -bottom-1 -right-1 w-8 h-8 md:w-9 md:h-9 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center text-white shadow-xl active:scale-95 transition-all z-30 hover:bg-white/20"
+                                    >
+                                        <IconTooltip content="Update Profile Photo" position="right">
+                                            <Camera className="w-3.5 h-3.5" />
+                                        </IconTooltip>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-1 md:space-y-1.5">
+                                <div className="flex items-center justify-center gap-2">
+                                    <h1 className={`text-lg md:text-2xl font-bold tracking-tight drop-shadow-sm ${isCoverLight ? "text-slate-950" : "text-white"}`}>
+                                        {profile.name}
+                                    </h1>
+                                    {profile.isVerified && (
+                                        <IconTooltip content="Verified Member" position="top">
+                                            <BadgeCheck className="w-6 h-6" style={{ color: "#ffffff", fill: verificationColor }} strokeWidth={2} />
+                                        </IconTooltip>
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-center text-center">
+                                     <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                         {profile.userStatus === 'student' ? "Student from" : 
+                                          profile.userStatus === 'alumni' ? "Alumni from" : 
+                                          profile.type === 'vendor' ? "Verified Member" :
+                                          "Community Member"}
+                                     </span>
+                                    {profile.userStatus !== "community" && (
+                                        <span className={`text-xs md:text-sm font-bold ${isCoverLight ? "text-black/80" : "text-white/90"}`}>
+                                            {profile.location}
+                                        </span>
+                                    )}
+                                    <span className={`text-[9px] md:text-[10px] font-bold mt-0.5 ${isCoverLight ? "text-black/50" : "text-white/50"}`}>
+                                        Joined {profile.joinedDate}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Column 3: Stats Board */}
+                        <div className="flex justify-center md:justify-end md:gap-10 w-full md:w-auto">
+                            {profile.type === 'vendor' && (
+                                <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-3 md:p-4 flex items-center justify-between md:justify-start gap-4 md:gap-10 shadow-2xl w-full md:w-auto">
+                                    {/* Star Rating - Mobile Only */}
+                                    <div className="flex flex-col items-center gap-1 md:hidden">
+                                        <div className="flex items-center gap-0.5">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                                <Star
+                                                    key={s}
+                                                    className={`w-3.5 h-3.5 ${s <= Math.round(profile.rating) ? "fill-amber-300 text-amber-300/80" : "text-white/20"}`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-sm font-bold text-white">
+                                            {profile.rating}
+                                            <span className={`text-[10px] ${isCoverLight ? "text-black/60" : "text-white/60"}`}>/5</span>
+                                        </p>
+                                        <p className={`text-[8px] font-bold ${isCoverLight ? "text-black/60" : "text-white/60"}`}>
+                                            {profile.recommendedCount + profile.notRecommendedCount} reviews
+                                        </p>
+                                    </div>
+
+                                    <div className="w-px h-8 bg-white/10 md:hidden" />
+
+                                    <div className="flex items-center gap-4 md:gap-10">
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Currently Active Items">
+                                                <div className="p-2 bg-amber-400/10 border border-amber-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-amber-400/20">
+                                                    <LayoutGrid className="w-4 h-4 text-amber-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Active Items</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.activeListingsCount || 0}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Successfully Sold Items">
+                                                <div className="p-2 bg-emerald-400/10 border border-emerald-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-emerald-400/20">
+                                                    <CheckCircle className="w-4 h-4 text-emerald-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Sold Items</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{profile.soldItems || 0}</span>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center group">
+                                            <IconTooltip content="Followers">
+                                                <div className="p-2 bg-purple-400/10 border border-purple-400/20 rounded-xl mb-1 md:p-2.5 md:mb-1.5 transition-colors group-hover:bg-purple-400/20">
+                                                    <Users className="w-4 h-4 text-purple-300 md:w-5 md:h-5" />
+                                                </div>
+                                            </IconTooltip>
+                                            <span className={`text-[8px] md:text-[9px] font-bold mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>Followers</span>
+                                            <span className="text-sm md:text-lg font-semibold text-white">{followersCount}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* BOTTOM AREA */}
+                <div className="px-6 py-5 md:px-8 md:py-6 bg-card dark:bg-card/50 border-t border-border/50 flex flex-col md:flex-row items-center justify-center md:justify-between gap-4 relative min-h-[90px] md:min-h-0">
+                    <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+                        {viewAs === 'private' ? (
+                            <>
+                                {profile.accountType === "Pro" || profile.type === "vendor" ? (
+                                    user?.sellerStatus !== "approved" ? (
+                                        <button 
+                                            onClick={() => user?.sellerStatus === "pending" ? setShowPending(true) : window.location.assign('/register/seller')}
+                                            className="w-full flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5"
+                                        >
+                                            Dashboard
+                                        </button>
+                                    ) : (
+                                        <Link href="/dashboard" className="flex-1 md:flex-none w-full md:w-auto">
+                                            <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                                Dashboard
+                                            </button>
+                                        </Link>
+                                    )
+                                ) : (
+                                    <Link href="/messages" className="flex-1 md:flex-none w-full md:w-auto">
+                                        <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                            Messages
+                                        </button>
+                                    </Link>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <Link href={`/messages?user=${profile.id}`} className="flex-1 md:flex-none w-full md:w-auto">
+                                    <button className="w-full flex items-center justify-center gap-2 bg-[#FFD700] text-black font-semibold px-4 md:px-8 py-2.5 md:py-3 rounded-lg md:rounded-xl hover:bg-[#f5dc48] active:scale-95 transition-all text-[10px] md:text-[11px] uppercase tracking-wide shadow-lg shadow-black/5">
+                                        Message
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={handleFollowToggle}
+                                    disabled={isFollowingLoading}
+                                    className={`flex-1 md:flex-none flex items-center justify-center font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border transition-all active:scale-95 ${
+                                        isFollowing 
+                                            ? "bg-red-500/10 text-red-500 border-red-500/30 hover:bg-red-500/20" 
+                                            : "bg-[#fff3c6] text-black border-[#FFD700]/30 hover:bg-[#FFD700]/20"
+                                    }`}
+                                    aria-label={isFollowing ? "Unfollow" : "Follow"}
+                                >
+                                    {isFollowingLoading ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : isFollowing ? (
+                                        <UserMinus className="w-4 h-4" />
+                                    ) : (
+                                        <UserPlus className="w-4 h-4" />
+                                    )}
+                                </button>
+                                <ReportDropdown
+                                    reportType="profile"
+                                    targetId={profile.handle}
+                                    triggerClassName="p-2.5 md:p-3 bg-red-500/10 text-red-600 rounded-lg md:rounded-xl border border-red-500/30 hover:text-red-700 hover:bg-red-500/20 transition-all flex items-center justify-center"
+                                    align="left"
+                                />
+                            </>
+                        )}
+                    </div>
+
+                    {/* Absolute centered achievements row */}
+                    <div className="flex-1 md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center justify-center gap-3 px-2 py-2 md:py-0">
+                        {profile.achievements?.map((achievement, idx) => (
+                            <AchievementBadge
+                                key={idx}
+                                achievement={achievement}
+                                className="scale-90 md:scale-100"
+                            />
+                        ))}
+                    </div>
+
+                    <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-center md:justify-end md:min-w-[120px]">
+                        {viewAs === 'private' && (
+                            <Link href="/settings" className="w-full md:w-auto">
+                                <button className="w-full flex items-center justify-center gap-2 bg-[#fff3c6] text-black font-semibold px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl border border-[#FFD700]/30 hover:bg-[#FFD700]/30 transition-all text-[10px] md:text-[11px] group">
+                                    <IconTooltip content="Settings" position="top">
+                                        <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-black group-hover:rotate-45 transition-transform" />
+                                    </IconTooltip>
+                                    Settings
+                                </button>
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    );
+}

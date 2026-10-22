@@ -1,0 +1,50 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+/**
+ * Lightweight full-width search bar for mobile header.
+ * Desktop uses IntelligentSearch instead.
+ */
+export function MobileSearch() {
+    const [query, setQuery] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter();
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            router.push(`/listings?q=${encodeURIComponent(query.trim())}`);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="relative w-full">
+            <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products, sellers..."
+                className="w-full bg-black/5 dark:bg-black/30 border border-black/10 dark:border-white/20 shadow-sm rounded-md py-3 pl-5 pr-14 text-sm font-heading focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow text-black dark:text-white placeholder:text-black/50 dark:placeholder:text-white/70"
+            />
+            {query && (
+                <button
+                    type="button"
+                    onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1.5 text-black/50 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
+                >
+                    <X className="w-4 h-4" />
+                </button>
+            )}
+            <button
+                type="submit"
+                className="absolute right-2 top-2 w-8 h-8 bg-[#FFD700] hover:bg-[#f5dc48] rounded-md flex items-center justify-center text-black transition-colors shadow-md shadow-[#FFD700]/40 active:scale-[0.98]"
+            >
+                <Search className="w-4 h-4 font-bold" />
+            </button>
+        </form>
+    );
+}
