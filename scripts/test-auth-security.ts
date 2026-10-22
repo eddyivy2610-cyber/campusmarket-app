@@ -38,8 +38,91 @@ import StoreModel from "../app/models/Store";
 import { createStructuredOffer } from "../app/lib/chatRepository";
 import ListingModel from "../app/models/Listing";
 import UserModel from "../app/models/User";
-import { verifyAuthClaims, generateToken as generateExpressToken } from "../campus-hive-backend/utils/auth.js";
 import crypto from "node:crypto";
+
+type ExpressTestUser = {
+  _id: string;
+  email: string;
+  role: string;
+};
+
+type ExpressAuthClaims = Record<string, any> & {
+  sub: string;
+  id: string;
+};
+
+// The Express service is deployed separately. Keep this interoperability
+// check self-contained so the frontend build does not depend on its filesystem.
+function generateExpressToken(user: ExpressTestUser): string {
+  const now = Math.floor(Date.now() / 1000);
+  const header = toBase64Url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = toBase64Url(
+    JSON.stringify({
+      iss: AUTH_ISSUER,
+      aud: AUTH_AUDIENCE,
+      sub: user._id,
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      tokenType: "access",
+      iat: now,
+      exp: now + 3600,
+    })
+  );
+  const signature = crypto
+    .createHmac("sha256", getAuthSecret())
+    .update(header + "." + payload)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  return header + "." + payload + "." + signature;
+}
+
+function verifyAuthClaims(token: string): ExpressAuthClaims {
+  const parts = token.trim().split(".");
+  if (parts.length !== 3) throw new Error("Invalid token");
+
+  const [headerPart, payloadPart, signature] = parts;
+  const expectedSignature = crypto
+    .createHmac("sha256", getAuthSecret())
+    .update(headerPart + "." + payloadPart)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  const received = Buffer.from(signature);
+  const expected = Buffer.from(expectedSignature);
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
+    throw new Error("Invalid token signature");
+  }
+
+  const decode = (value: string) => {
+    let base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) base64 += "=";
+    return JSON.parse(Buffer.from(base64, "base64").toString("utf8"));
+  };
+  const header = decode(headerPart);
+  if (header.alg !== "HS256" || header.typ !== "JWT") {
+    throw new Error("Invalid token algorithm");
+  }
+
+  const payload = decode(payloadPart);
+  if (payload.iss !== undefined && payload.iss !== AUTH_ISSUER) {
+    throw new Error("Invalid token issuer");
+  }
+  if (payload.aud !== undefined && payload.aud !== AUTH_AUDIENCE) {
+    throw new Error("Invalid token audience");
+  }
+  if (typeof payload.exp !== "number" || payload.exp <= Math.floor(Date.now() / 1000)) {
+    throw new Error("Token expired");
+  }
+  const subject = typeof payload.sub === "string" ? payload.sub : payload.id;
+  if (typeof subject !== "string" || !subject) {
+    throw new Error("Token subject missing");
+  }
+  return { ...payload, sub: subject, id: subject };
+}
 
 function toBase64Url(str: string): string {
   return Buffer.from(str)
