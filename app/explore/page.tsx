@@ -279,9 +279,21 @@ function ExploreContent() {
       }
 
       // Seller type filter
-      if (selectedSellerType === "verified_student" && item.sellerType !== "verified_student") return false;
-      if (selectedSellerType === "student_store" && item.sellerType !== "student_store") return false;
-      if (selectedSellerType === "approved_business" && item.sellerType !== "approved_business") return false;
+      if (selectedSellerType === "verified") {
+        const isVerified =
+          item.sellerType === "verified_student" ||
+          item.sellerType === "student_store" ||
+          (item as any).sellerVerificationType === "verified_student" ||
+          (item as any).sellerVerificationType === "verified_business";
+        if (!isVerified) return false;
+      } else if (selectedSellerType === "non_verified") {
+        const isVerified =
+          item.sellerType === "verified_student" ||
+          item.sellerType === "student_store" ||
+          (item as any).sellerVerificationType === "verified_student" ||
+          (item as any).sellerVerificationType === "verified_business";
+        if (isVerified) return false;
+      }
 
       // Price filter
       const min = customMinPrice ? parseFloat(customMinPrice) : 0;
@@ -340,11 +352,16 @@ function ExploreContent() {
         return false;
       }
 
-      if (selectedSellerType === "verified_student" && store.verificationType !== "verified_student") {
-        return false;
-      }
-      if (selectedSellerType === "approved_business" && store.verificationType !== "verified_business") {
-        return false;
+      if (selectedSellerType === "verified") {
+        const isVerified =
+          store.verificationType === "verified_student" ||
+          store.verificationType === "verified_business";
+        if (!isVerified) return false;
+      } else if (selectedSellerType === "non_verified") {
+        const isVerified =
+          store.verificationType === "verified_student" ||
+          store.verificationType === "verified_business";
+        if (isVerified) return false;
       }
 
       if (searchQuery.trim()) {
@@ -660,12 +677,16 @@ function ExploreContent() {
                   <div className="space-y-1.5 text-[13px]">
                     {[
                       { id: "all", label: "All sellers" },
-                      { id: "verified_student", label: "Verified Student Sellers", hasGreenTick: true },
-                      { id: "student_store", label: "Student Stores", hasGreenTick: true },
-                      { id: "approved_business", label: "Non-Student Sellers" },
+                      { id: "verified", label: "Verified", hasGreenTick: true },
+                      { id: "non_verified", label: "Non-verified" },
                     ].map((opt) => (
                       <label
                         key={opt.id}
+                        onClick={() => {
+                          if (opt.id !== "all" && selectedSellerType === opt.id) {
+                            setSelectedSellerType("all");
+                          }
+                        }}
                         className="flex items-center gap-2 cursor-pointer text-[#4A5058] dark:text-neutral-300 hover:text-[#171717]"
                       >
                         <input
@@ -1143,6 +1164,38 @@ function ExploreContent() {
                       </button>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Mobile Seller Verification */}
+              <div>
+                <p className="text-[12px] font-bold uppercase tracking-wider text-[#68707A] dark:text-neutral-400 mb-2">
+                  Seller Verification
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "all", label: "All sellers" },
+                    { id: "verified", label: "Verified", hasGreenTick: true },
+                    { id: "non_verified", label: "Non-verified" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSelectedSellerType(opt.id)}
+                      className={`radius-native px-2 py-2 rounded-xl text-[12px] font-semibold border flex items-center justify-center gap-1 transition-colors ${
+                        selectedSellerType === opt.id
+                          ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717] border-transparent"
+                          : "bg-[#F7F8FA] dark:bg-white/5 text-[#4A5058] dark:text-neutral-300 border-[#ECEEF2] dark:border-white/10"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {opt.hasGreenTick && (
+                        <span className="w-3.5 h-3.5 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0">
+                          <Check className="w-2 h-2 text-white" strokeWidth={3} />
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
 
