@@ -1,12 +1,55 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  applyRateLimitAsync,
+  RATE_LIMIT_PRESETS,
+} from "@/lib/rateLimit";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Extract or generate a unique request ID
   const incomingRequestId = request.headers.get("x-request-id");
-  const requestId = incomingRequestId && incomingRequestId.trim() !== ""
-    ? incomingRequestId.trim()
-    : crypto.randomUUID();
+  const requestId =
+    incomingRequestId && incomingRequestId.trim() !== ""
+      ? incomingRequestId.trim()
+      : crypto.randomUUID();
+
+  const pathname = request.nextUrl.pathname;
+  const method = request.method;
+
+  // 1. Rate Limiting Enforcement in Middleware for APIs
+  if (pathname.startsWith("/api/")) {
+    // Health probe and static internal routes bypass rate limiting
+    if (pathname === "/api/health") {
+      // Allow health probes unimpeded
+    } else if (
+      pathname.startsWith("/api/auth/") ||
+      pathname.startsWith("/api/admin/auth/")
+    ) {
+      // Auth routes: strict brute-force prevention
+      const rateLimit = await applyRateLimitAsync(request, "auth", RATE_LIMIT_PRESETS.AUTH);
+      if (!rateLimit.allowed && rateLimit.response) {
+        rateLimit.response.headers.set("x-request-id", requestId);
+        return rateLimit.response;
+      }
+    } else if (
+      pathname.startsWith("/api/upload") ||
+      pathname.startsWith("/api/documents/")
+    ) {
+      // Upload routes: upload resource protection
+      const rateLimit = await applyRateLimitAsync(request, "upload", RATE_LIMIT_PRESETS.UPLOAD);
+      if (!rateLimit.allowed && rateLimit.response) {
+        rateLimit.response.headers.set("x-request-id", requestId);
+        return rateLimit.response;
+      }
+    } else if (["POST", "PATCH", "DELETE", "PUT"].includes(method)) {
+      // General write routes: mutations protection
+      const rateLimit = await applyRateLimitAsync(request, "write", RATE_LIMIT_PRESETS.WRITE);
+      if (!rateLimit.allowed && rateLimit.response) {
+        rateLimit.response.headers.set("x-request-id", requestId);
+        return rateLimit.response;
+      }
+    }
+  }
 
   // Clone the request headers and inject x-request-id for downstream handlers
   const requestHeaders = new Headers(request.headers);

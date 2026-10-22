@@ -292,7 +292,7 @@ async function runBenchmark() {
   // 5. System Health Check Probe Load Test (50 concurrent)
   results.push(
     await runLoadTest("GET /api/health (Health Probe)", 25, 100, async () => {
-      return await handleGetHealth();
+      return await handleGetHealth(new NextRequest("http://localhost:3000/api/health"));
     })
   );
 

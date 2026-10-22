@@ -54,13 +54,13 @@ export async function PATCH(
       );
     }
 
-    const { action, reason } = body;
+    const { action, reason, role: newRole } = body;
 
-    if (!["suspend", "restore", "ban"].includes(action)) {
+    if (!["suspend", "restore", "ban", "role_change", "approve"].includes(action)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid action. Supported actions are 'suspend', 'restore', or 'ban'.",
+          error: "Invalid action. Supported actions are 'suspend', 'restore', 'ban', 'role_change', or 'approve'.",
         },
         { status: 400 }
       );
@@ -306,6 +306,87 @@ export async function PATCH(
           message: "User account banned.",
           storesAffected: storeRes.modifiedCount,
           listingsAffected: listingRes.modifiedCount,
+        };
+      }
+
+      if (action === "role_change") {
+        if (!newRole || !["buyer", "seller", "admin"].includes(newRole)) {
+          throw new Error("Invalid role specified. Role must be 'buyer', 'seller', or 'admin'.");
+        }
+
+        const existingUser = await UserModel.findById(id).session(session || null);
+        if (!existingUser) {
+          throw new Error("User record not found.");
+        }
+
+        const previousRole = existingUser.role;
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              role: newRole,
+              updatedAt: now,
+            },
+            $inc: {
+              tokenVersion: 1, // Invalidate old session claims immediately
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "user",
+          targetId: id,
+          action: "role_change",
+          reason: reason || `Administrative role change from ${previousRole} to ${newRole}`,
+          details: {
+            previousRole,
+            newRole,
+          },
+          session: session || undefined,
+        });
+
+        return {
+          user: updatedUser,
+          message: `User role changed from ${previousRole} to ${newRole}.`,
+          storesAffected: 0,
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "approve") {
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              studentVerified: true,
+              isStudent: true,
+              updatedAt: now,
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "user",
+          targetId: id,
+          action: "approve",
+          reason: reason || "User verified and approved by administrator.",
+          details: {
+            verifiedFields: ["studentVerified", "isStudent"],
+          },
+          session: session || undefined,
+        });
+
+        return {
+          user: updatedUser,
+          message: "User approved and student status verified successfully.",
+          storesAffected: 0,
+          listingsAffected: 0,
         };
       }
 

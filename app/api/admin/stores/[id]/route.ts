@@ -56,11 +56,11 @@ export async function PATCH(
     const { action, reason } = body;
     const effectiveReason = String(reason || body.suspensionReason || "").trim();
 
-    if (!["suspend", "restore", "pause"].includes(action)) {
+    if (!["suspend", "restore", "pause", "approve"].includes(action)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid action. Supported actions are 'suspend', 'restore', or 'pause'.",
+          error: "Invalid action. Supported actions are 'suspend', 'restore', 'pause', or 'approve'.",
         },
         { status: 400 }
       );
@@ -203,6 +203,41 @@ export async function PATCH(
         return {
           store: updatedStore,
           message: "Store paused.",
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "approve") {
+        const updatedStore = await StoreModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              status: "active",
+              isVerified: true,
+              updatedAt: now,
+            },
+            $unset: {
+              suspendedBy: "",
+              suspensionReason: "",
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "store",
+          targetId: id,
+          action: "approve",
+          reason: effectiveReason || "Storefront approved by administrator.",
+          details: {},
+          session: session || undefined,
+        });
+
+        return {
+          store: updatedStore,
+          message: "Store approved and activated successfully.",
           listingsAffected: 0,
         };
       }
