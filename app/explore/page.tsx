@@ -31,9 +31,7 @@ import {
   ExploreCategory,
   ExploreListingItem,
 } from "../data/exploreCatalog";
-import { STOREFRONTS_DB, StorefrontItem, WANTED_REQUESTS_DB, WantedRequestItem } from "../data/mvpMockData";
-
-type ContentType = "all" | "products" | "services" | "stores" | "wanted";
+type ContentType = "all" | "products" | "services";
 type SortOption = "recent" | "price_asc" | "price_desc";
 
 function mapApiListingToExploreItem(item: any): ExploreListingItem {
@@ -72,26 +70,6 @@ function mapApiListingToExploreItem(item: any): ExploreListingItem {
   };
 }
 
-function mapApiStoreToStorefrontItem(store: any): StorefrontItem {
-  const isStudent = store.storeType === "student_store" || store.storeType === "student_owned";
-  return {
-    id: store._id || store.id,
-    slug: store.slug || store._id,
-    handle: store.slug || store._id,
-    name: store.name,
-    tagline: store.description?.slice(0, 100) || "Campus seller storefront.",
-    category: store.category || "General",
-    verificationType: isStudent ? "verified_student" : "verified_business",
-    campusSlug: store.campus || "abu-samaru",
-    campusShortName: store.campus || "ABU Samaru",
-    pickupLandmark: store.operatingLocation || store.campus || "Samaru Campus",
-    responseTime: "Replies in ~15 mins",
-    activeListingsCount: store.metrics?.listingsCount || 0,
-    avatar: store.logo || "",
-    featuredProducts: store.categoryTags || [],
-  };
-}
-
 export default function ExplorePage() {
   return (
     <Suspense
@@ -121,7 +99,6 @@ function ExploreContent() {
 
   // Live database data state
   const [dbListings, setDbListings] = useState<ExploreListingItem[]>([]);
-  const [dbStores, setDbStores] = useState<StorefrontItem[]>([]);
   const [isLoadingLive, setIsLoadingLive] = useState(true);
 
   // B. Category navigation state
@@ -140,16 +117,13 @@ function ExploreContent() {
   const [customMaxPrice, setCustomMaxPrice] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
 
-  // Fetch live listings & stores from canonical API
+  // Fetch live listings from canonical API
   useEffect(() => {
     let isCancelled = false;
     async function fetchLiveExplore() {
       try {
         setIsLoadingLive(true);
-        const [listingsRes, storesRes] = await Promise.all([
-          fetch("/api/listings?limit=50&status=active"),
-          fetch("/api/stores?limit=50&status=active"),
-        ]);
+        const listingsRes = await fetch("/api/listings?limit=50&status=active");
 
         if (!isCancelled) {
           if (listingsRes.ok) {
@@ -158,15 +132,9 @@ function ExploreContent() {
               setDbListings(listJson.data.map(mapApiListingToExploreItem));
             }
           }
-          if (storesRes.ok) {
-            const storeJson = await storesRes.json();
-            if (storeJson.success && Array.isArray(storeJson.data) && storeJson.data.length > 0) {
-              setDbStores(storeJson.data.map(mapApiStoreToStorefrontItem));
-            }
-          }
         }
       } catch (err) {
-        console.warn("[ExplorePage] Could not fetch live listings or stores:", err);
+        console.warn("[ExplorePage] Could not fetch live listings:", err);
       } finally {
         if (!isCancelled) setIsLoadingLive(false);
       }
@@ -223,16 +191,11 @@ function ExploreContent() {
     setActiveContentType("all");
   };
 
-  // Primary source datasets: live DB with graceful fallback if empty
+  // Primary source dataset: live DB with graceful fallback if empty
   const sourceListings = useMemo(() => {
     if (dbListings.length > 0) return dbListings;
     return EXPLORE_LISTINGS;
   }, [dbListings]);
-
-  const sourceStores = useMemo(() => {
-    if (dbStores.length > 0) return dbStores;
-    return STOREFRONTS_DB;
-  }, [dbStores]);
 
   // Compute active filter count for badge indicator
   const activeFiltersCount = useMemo(() => {
@@ -257,8 +220,6 @@ function ExploreContent() {
 
   // Filter listings based on all active criteria
   const filteredListings = useMemo(() => {
-    if (activeContentType === "stores") return [];
-
     return sourceListings.filter((item) => {
       // Content type filter
       if (activeContentType === "products" && item.itemType !== "product") return false;
@@ -343,72 +304,7 @@ function ExploreContent() {
     sortBy,
   ]);
 
-  // Filter stores (shown when 'all' with store search, or when 'stores' tab is active)
-  const filteredStores: StorefrontItem[] = useMemo(() => {
-    if (activeContentType === "products" || activeContentType === "services") return [];
-
-    return sourceStores.filter((store) => {
-      if (selectedLandmark !== "All Landmarks" && !store.pickupLandmark.includes(selectedLandmark)) {
-        return false;
-      }
-
-      if (selectedSellerType === "verified") {
-        const isVerified =
-          store.verificationType === "verified_student" ||
-          store.verificationType === "verified_business";
-        if (!isVerified) return false;
-      } else if (selectedSellerType === "non_verified") {
-        const isVerified =
-          store.verificationType === "verified_student" ||
-          store.verificationType === "verified_business";
-        if (isVerified) return false;
-      }
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesName = store.name.toLowerCase().includes(q);
-        const matchesCategory = store.category.toLowerCase().includes(q);
-        const matchesTagline = store.tagline.toLowerCase().includes(q);
-        const matchesProducts = store.featuredProducts.some((p) => p.toLowerCase().includes(q));
-        if (!matchesName && !matchesCategory && !matchesTagline && !matchesProducts) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [sourceStores, activeContentType, selectedLandmark, selectedSellerType, searchQuery]);
-
-  // Filter wanted requests
-  const filteredWanted = useMemo(() => {
-    if (activeContentType === "products" || activeContentType === "services" || activeContentType === "stores") return [];
-
-    return WANTED_REQUESTS_DB.filter((req) => {
-      if (selectedLandmark !== "All Landmarks" && !req.preferredLandmark.includes(selectedLandmark)) {
-        return false;
-      }
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesTitle = req.title.toLowerCase().includes(q);
-        const matchesDesc = req.description.toLowerCase().includes(q);
-        const matchesCategory = req.category.toLowerCase().includes(q);
-        const matchesRequester = req.requesterName.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesDesc && !matchesCategory && !matchesRequester) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [activeContentType, selectedLandmark, searchQuery]);
-
-  const totalResultsCount =
-    activeContentType === "stores"
-      ? filteredStores.length
-      : activeContentType === "wanted"
-      ? filteredWanted.length
-      : filteredListings.length + (activeContentType === "all" ? (filteredStores.length + filteredWanted.length) : 0);
+  const totalResultsCount = filteredListings.length;
 
   const savedCount = Object.values(savedIds).filter(Boolean).length;
 
@@ -458,8 +354,6 @@ function ExploreContent() {
                   { id: "all", label: "All Items" },
                   { id: "products", label: "Products" },
                   { id: "services", label: "Services" },
-                  { id: "stores", label: "Stores" },
-                  { id: "wanted", label: "Wanted" },
                 ] as const
               ).map((tab) => (
                 <button
@@ -878,126 +772,6 @@ function ExploreContent() {
                     </div>
                   );
                 })}
-
-                {/* 2. Stores Cards (when activeContentType is 'stores' or 'all') */}
-                {filteredStores.map((store) => {
-                  const isVerifiedStudentStore = store.verificationType === "verified_student";
-
-                  return (
-                    <div
-                      key={store.id}
-                      className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 sm:p-4 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Store Avatar */}
-                        <div className="flex items-start justify-between gap-2.5">
-                          <Link
-                            href={`/profile/${store.handle}`}
-                            className="radius-native w-10 h-10 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0"
-                          >
-                            {store.avatar ? (
-                              <img src={store.avatar} alt={store.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <Store className="w-5 h-5 text-[#22252A] dark:text-neutral-200" strokeWidth={1.8} />
-                            )}
-                          </Link>
-                        </div>
-
-                        <div className="mt-3">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <Link href={`/profile/${store.handle}`} className="min-w-0 truncate">
-                              <h3 className="text-[13px] sm:text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
-                                {store.name}
-                              </h3>
-                            </Link>
-                            {isVerifiedStudentStore && (
-                              <BadgeCheck
-                                className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                                aria-label="Verified student seller"
-                              />
-                            )}
-                          </div>
-                          <p className="text-[11px] font-medium text-[#8C929C] dark:text-neutral-400 mt-0.5 truncate">
-                            {store.category} · {store.activeListingsCount} listings
-                          </p>
-                          <p className="mt-1.5 text-[11.5px] text-[#5B636E] dark:text-neutral-400 leading-[1.4] line-clamp-2">
-                            {store.tagline}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-2.5 border-t border-[#F1F3F6] dark:border-white/5 flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-[#68707A] dark:text-neutral-400 truncate">
-                          {store.pickupLandmark}
-                        </span>
-                        <Link
-                          href={`/profile/${store.handle}`}
-                          className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-[#171717] dark:text-white shrink-0 transition-colors"
-                        >
-                          <span>Visit</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* 3. Wanted Cards (when activeContentType is 'wanted' or 'all') */}
-                {filteredWanted.map((req) => (
-                  <div
-                    key={req.id}
-                    className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
-                  >
-                    <div>
-                      {/* Visual Header Container */}
-                      <div className="radius-native relative h-[140px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex flex-col items-center justify-center p-3 text-center">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C929C] mb-1">
-                          Wanted
-                        </span>
-                        <p className="text-[12.5px] font-bold text-[#171717] dark:text-white line-clamp-2 px-2">
-                          {req.title}
-                        </p>
-
-                        <div className="absolute top-2 right-2">
-                          <span
-                            className={`radius-native inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold leading-tight shadow-xs ${
-                              req.urgency === "Urgent"
-                                ? "bg-[#FFF3DC] text-[#B45309] dark:bg-amber-500/20 dark:text-amber-300"
-                                : "bg-[#EDEEF2]/95 text-[#4A5058] dark:bg-neutral-800/90 dark:text-neutral-300"
-                            }`}
-                          >
-                            {req.urgency}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="pt-2.5 px-0.5">
-                        <Link href="/wanted">
-                          <h3 className="text-[13px] sm:text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug line-clamp-2 group-hover:underline">
-                            {req.title}
-                          </h3>
-                        </Link>
-                        <div className="mt-1 flex items-center gap-1 text-[11px] sm:text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">
-                          <MapPin className="w-3 h-3 shrink-0" strokeWidth={2} />
-                          <span className="truncate">{req.preferredLandmark}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 pt-1 px-0.5 flex items-center justify-between gap-1.5">
-                      <span className="text-[13.5px] sm:text-[15px] font-extrabold text-[#14171A] dark:text-white tracking-[-0.015em]">
-                        ₦{req.budgetMin.toLocaleString()}–₦{req.budgetMax.toLocaleString()}
-                      </span>
-                      <Link
-                        href="/wanted"
-                        className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#FFE182] hover:text-[#171717] dark:hover:bg-[#FFE182] dark:hover:text-[#171717] px-2 sm:px-2.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
-                      >
-                        <span>Help</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
           </div>
