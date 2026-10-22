@@ -306,7 +306,8 @@ async function runStageCAcceptanceSuite() {
       );
 
       const responses = await Promise.all(requests);
-      const statuses = responses.map((r) => r.status);
+      assert.ok(responses.every((r) => !!r), "All responses are defined");
+      const statuses = responses.map((r) => r!.status);
       const count201 = statuses.filter((s) => s === 201).length;
       const count200 = statuses.filter((s) => s === 200).length;
 
@@ -331,6 +332,7 @@ async function runStageCAcceptanceSuite() {
         }),
         { params: Promise.resolve({ id: convId }) }
       );
+      assert.ok(anchorRes, "anchorRes must be defined");
       const anchorData = await anchorRes.json();
       const anchorId = anchorData.message.id;
 

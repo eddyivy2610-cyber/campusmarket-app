@@ -14,6 +14,8 @@
     "test:seller-stats": "npx tsx scripts/test-phase4-seller-stats.ts",
     "test:orders": "npx tsx scripts/test-phase4-orders.ts",
     "test:follow": "npx tsx scripts/test-phase4-follow.ts",
+    "test:realtime": "npx tsx scripts/test-phase5-realtime-messaging.ts",
+    "test:acceptance": "npx tsx scripts/test-phase5-stage-c-acceptance.ts",
     "test:cache": "npx tsx scripts/test-cache-leak.ts",
     "test:all": "npx tsx scripts/test-all-ci.ts",
     "test:load": "npx tsx scripts/benchmark-load-concurrency.ts",
