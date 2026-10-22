@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
-import { isRequestSafeForPublicCache, applyCacheHeaders } from "../app/lib/cacheHeaders";
+import { isRequestSafeForPublicCache } from "../app/lib/cacheHeaders";
 import { GET as getListings } from "../app/api/listings/route";
 import { GET as getStores } from "../app/api/stores/route";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import mongoose from "mongoose";
+import UserModel from "../app/models/User";
+import ListingModel from "../app/models/Listing";
+import { createAccessToken } from "../app/lib/authTokens";
 
 let passed = 0;
 let failed = 0;
@@ -25,7 +28,59 @@ async function run() {
 
   const repl = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
   process.env.MONGODB_URI = repl.getUri();
+  process.env.AUTH_SECRET = "cache-isolation-test-secret-at-least-32-characters";
   await mongoose.connect(repl.getUri());
+
+  const privateUserA = await UserModel.create({
+    name: "Private Cache User A",
+    email: "private-cache-a@campushive.test",
+    role: "buyer",
+    accountStatus: "active",
+    isStudent: true,
+    studentVerified: true,
+  });
+  const privateUserB = await UserModel.create({
+    name: "Private Cache User B",
+    email: "private-cache-b@campushive.test",
+    role: "buyer",
+    accountStatus: "active",
+    isStudent: true,
+    studentVerified: true,
+  });
+  await ListingModel.create([
+    {
+      sellerId: privateUserA._id.toString(),
+      listingType: "product",
+      title: "PRIVATE-A-ONLY",
+      price: 10,
+      priceFormatted: "₦10",
+      description: "Private cache isolation fixture A",
+      category: "Test",
+      campus: "Main Campus",
+      location: "A",
+      status: "active",
+    },
+    {
+      sellerId: privateUserB._id.toString(),
+      listingType: "product",
+      title: "PRIVATE-B-ONLY",
+      price: 20,
+      priceFormatted: "₦20",
+      description: "Private cache isolation fixture B",
+      category: "Test",
+      campus: "Main Campus",
+      location: "B",
+      status: "active",
+    },
+  ]);
+  const privateTokenA = createAccessToken({
+    id: privateUserA._id.toString(), name: privateUserA.name, email: privateUserA.email,
+    role: privateUserA.role, isStudent: true, studentVerified: true,
+  });
+  const privateTokenB = createAccessToken({
+    id: privateUserB._id.toString(), name: privateUserB.name, email: privateUserB.email,
+    role: privateUserB.role, isStudent: true, studentVerified: true,
+  });
 
   // Test 1: Helper unit verification
   console.log("--- 1. Cache Helper Security Boundary Tests ---");
@@ -60,6 +115,14 @@ async function run() {
       "Request with campushive_token cookie is disqualified from public cache"
     );
 
+    const reqCampusTokenCookie = new NextRequest("http://localhost:3000/api/listings", {
+      headers: { Cookie: "campus_token=secret_session" },
+    });
+    assert(
+      isRequestSafeForPublicCache(reqCampusTokenCookie, { isPublicQuery: true }) === false,
+      "Request with the server auth campus_token cookie is disqualified from public cache"
+    );
+
     const reqNonPublicQuery = new NextRequest("http://localhost:3000/api/listings?unlinked=true");
     assert(
       isRequestSafeForPublicCache(reqNonPublicQuery, { isPublicQuery: false }) === false,
@@ -90,7 +153,46 @@ async function run() {
       `Request with Authorization header is strictly private no-store: '${ccAuth}'`
     );
 
-    // C: Request with auth cookie
+    // I: Two authenticated users must not share a personalized response or cache key.
+    const privateReqA = new NextRequest("http://localhost:3000/api/listings?sellerId=me", {
+      headers: { Authorization: `Bearer ${privateTokenA}`, "If-None-Match": '"shared-private-fixture"' },
+    });
+    const privateResA = await getListings(privateReqA);
+    const privateJsonA = await privateResA!.json();
+    const privateCacheA = privateResA!.headers.get("Cache-Control") || "";
+    assert(
+      privateCacheA.includes("private") && privateCacheA.includes("no-store") && !privateCacheA.includes("public"),
+      `Authenticated user A is never publicly cacheable: '${privateCacheA}'`
+    );
+    assert(
+      Number(privateResA!.status) === 200 && Number(privateResA!.status) !== 304 &&
+        privateJsonA.data.some((item: any) => item.title === "PRIVATE-A-ONLY") &&
+        !privateJsonA.data.some((item: any) => item.title === "PRIVATE-B-ONLY"),
+      "Authenticated user A receives only user A private data despite an If-None-Match conditional request"
+    );
+
+    const privateReqB = new NextRequest("http://localhost:3000/api/listings?sellerId=me", {
+      headers: {
+        Authorization: `Bearer ${privateTokenB}`,
+        "If-None-Match": '"shared-private-fixture"',
+        "If-Modified-Since": new Date().toUTCString(),
+      },
+    });
+    const privateResB = await getListings(privateReqB);
+    const privateJsonB = await privateResB!.json();
+    const privateCacheB = privateResB!.headers.get("Cache-Control") || "";
+    assert(
+      privateCacheB.includes("private") && privateCacheB.includes("no-store") && !privateCacheB.includes("public"),
+      `Authenticated user B is never publicly cacheable: '${privateCacheB}'`
+    );
+    assert(
+      Number(privateResB!.status) === 200 && Number(privateResB!.status) !== 304 &&
+        privateJsonB.data.some((item: any) => item.title === "PRIVATE-B-ONLY") &&
+        !privateJsonB.data.some((item: any) => item.title === "PRIVATE-A-ONLY"),
+      "Authenticated user B cannot receive user A data through ETag or If-Modified-Since conditional requests"
+    );
+
+    // J: Request with auth cookie
     const reqCookie = new NextRequest("http://localhost:3000/api/listings", {
       headers: { Cookie: "auth_token=jwt_sample_cookie" },
     });

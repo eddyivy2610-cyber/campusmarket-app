@@ -4,6 +4,7 @@ import { RebrandHero } from "../components/home/RebrandHero";
 import { RebrandPopularOnCampus } from "../components/home/RebrandPopularOnCampus";
 import { RebrandLowerSections } from "../components/home/RebrandLowerSections";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { PromotionalStrip } from "../components/promotions/PromotionalStrip";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <RebrandHeader />
       <main className="flex-1">
         <RebrandHero />
+        <PromotionalStrip placement="promo_strip" />
         <RebrandPopularOnCampus />
         <RebrandLowerSections />
       </main>

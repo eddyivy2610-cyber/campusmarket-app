@@ -95,6 +95,16 @@ async function runIndexMigration() {
   );
 
   // Seller, store catalog, and unlinked picker queries
+  await safeCreateIndex(
+    "listings",
+    { storeId: 1, status: 1, createdAt: -1, _id: -1 },
+    { name: "storeId_1_status_1_createdAt_-1__id_-1" }
+  );
+  await safeCreateIndex(
+    "listings",
+    { sellerId: 1, status: 1, createdAt: -1, _id: -1 },
+    { name: "sellerId_1_status_1_createdAt_-1__id_-1" }
+  );
   await safeCreateIndex("listings", { storeId: 1, status: 1 }, { name: "storeId_1_status_1" });
   await safeCreateIndex("listings", { sellerId: 1, status: 1 }, { name: "sellerId_1_status_1" });
   await safeCreateIndex(
@@ -130,6 +140,18 @@ async function runIndexMigration() {
     }
   );
 
+  // Account uniqueness is required in production because Mongoose autoIndex is disabled there.
+  await safeCreateIndex("users", { email: 1 }, { name: "email_1", unique: true });
+  await safeCreateIndex(
+    "users",
+    { "profile.handle": 1 },
+    {
+      name: "profile.handle_1",
+      unique: true,
+      partialFilterExpression: { "profile.handle": { $type: "string" } },
+    }
+  );
+
   // --- 2. STORES COLLECTION ---
   console.log("\n--- 2. Migrating Stores Collection Indexes ---");
   await safeDropIndex("stores", "status_1");
@@ -150,6 +172,8 @@ async function runIndexMigration() {
     { storeType: 1, status: 1 },
     { name: "storeType_1_status_1" }
   );
+  await safeCreateIndex("stores", { ownerId: 1 }, { name: "ownerId_1", unique: true });
+  await safeCreateIndex("stores", { slug: 1 }, { name: "slug_1", unique: true });
 
   // --- 3. CONVERSATIONS COLLECTION (Unified across Express & Next.js) ---
   console.log("\n--- 3. Migrating Conversations Collection Indexes ---");

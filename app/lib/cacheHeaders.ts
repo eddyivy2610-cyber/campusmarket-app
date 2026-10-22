@@ -32,7 +32,9 @@ export function isRequestSafeForPublicCache(
   const hasAuthCookie =
     Boolean(req.cookies.get("auth_token")) ||
     Boolean(req.cookies.get("campushive_token")) ||
+    Boolean(req.cookies.get("campus_token")) ||
     Boolean(req.cookies.get("token")) ||
+    Boolean(req.cookies.get("refreshToken")) ||
     Boolean(req.cookies.get("next-auth.session-token")) ||
     Boolean(req.cookies.get("__Secure-next-auth.session-token"));
 

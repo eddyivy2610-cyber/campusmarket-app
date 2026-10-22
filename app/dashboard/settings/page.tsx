@@ -15,6 +15,8 @@ import {
     Award
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { SlidersHorizontal } from "lucide-react";
+import { AppPreferencesPanel } from "../../components/settings/AppPreferencesPanel";
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -43,6 +45,7 @@ export default function SettingsPage() {
         { id: "profile", label: "Profile", icon: User },
         { id: "privacy", label: "Privacy & Trust", icon: Lock },
         { id: "permissions", label: "Permissions & Tier", icon: Shield },
+        { id: "preferences", label: "Preferences", icon: SlidersHorizontal },
         { id: "notifications", label: "Notifications", icon: Bell },
         { id: "security", label: "Security", icon: Lock },
     ];
@@ -298,11 +301,9 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    {activeTab === "notifications" && (
-                         <div className="p-8 text-center text-muted-foreground italic animate-in fade-in slide-in-from-right-4 duration-300">
-                             Notification preferences coming soon...
-                         </div>
-                    )}
+                    {activeTab === "preferences" && <AppPreferencesPanel />}
+
+                    {activeTab === "notifications" && <AppPreferencesPanel />}
 
                     {activeTab === "security" && (
                          <div className="p-8 text-center text-muted-foreground italic animate-in fade-in slide-in-from-right-4 duration-300">

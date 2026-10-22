@@ -11,6 +11,7 @@ import {
   publishConversationEvent,
   publishUserEvent,
 } from "../../../../../lib/realtimeServer";
+import { createNotification } from "../../../../../lib/notificationService";
 
 const ALLOWED_IMAGE_MIMES = [
   "image/jpeg",
@@ -344,6 +345,21 @@ export async function POST(
           lastMessage: result.conversation.lastMessage,
           unreadCount: 1,
         });
+        try {
+          await createNotification({
+            recipient: counterpartId,
+            sender: senderId,
+            type: "new_message",
+            category: "messages",
+            priority: "high",
+            title: "New message",
+            message: "You have a new message in a conversation.",
+            link: `/messages?conversation=${encodeURIComponent(conversationId)}`,
+            dedupeKey: clientMessageId ? `message:${clientMessageId}` : undefined,
+          });
+        } catch (notificationError) {
+          console.warn("[Notifications] Message notification failed:", notificationError);
+        }
       }
 
       if (!realtimePublished) {

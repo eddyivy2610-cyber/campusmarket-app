@@ -7,6 +7,8 @@ import { requireAuth } from "@/lib/authServer";
 import { validateOrderTransition, normalizeOrderStatus } from "@/lib/orderPolicy";
 import { OrderStatus } from "@/constants/enums";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
+import { createNotification } from "@/lib/notificationService";
 
 export const dynamic = "force-dynamic";
 
@@ -222,6 +224,7 @@ export async function PATCH(
         targetType: "order",
         targetId: updatedOrder._id.toString(),
         action: `order_status_${targetStatus}`,
+        requestId: getRequestId(req),
         reason: finalComment,
         details: {
           previousStatus: order.status,
@@ -229,6 +232,27 @@ export async function PATCH(
           orderId: updatedOrder.orderId,
         },
       });
+    }
+
+    const buyerId = (order.buyerId as any)?.toString?.() || String(order.buyerId || "");
+    const sellerId = (order.sellerId as any)?.toString?.() || String(order.sellerId || "");
+    const otherPartyId = user.id === buyerId ? sellerId : buyerId;
+    if (otherPartyId && otherPartyId !== user.id) {
+      try {
+        await createNotification({
+          recipient: otherPartyId,
+          sender: user.id,
+          type: "order_update",
+          category: "orders",
+          priority: "high",
+          title: "Order exchange update",
+          message: `An order was updated to ${targetStatus.replaceAll("_", " ")}.`,
+          link: `/orders/${updatedOrder._id}`,
+          dedupeKey: `order:${updatedOrder._id}:${targetStatus}`,
+        });
+      } catch (notificationError) {
+        console.warn("[Notifications] Order notification failed:", notificationError);
+      }
     }
 
     return NextResponse.json({

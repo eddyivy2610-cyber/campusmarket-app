@@ -27,8 +27,10 @@ import {
   Calendar,
   Lock,
   GraduationCap,
+  User,
 } from "lucide-react";
 import { RebrandHeader } from "../../components/header/RebrandHeader";
+import { useAuth } from "../../context/AuthContext";
 import { followService } from "@/lib/followService";
 
 export function formatSalesMilestone(sales: number): string {
@@ -503,14 +505,16 @@ type ProfileTab = "overview" | "listings" | "reviews" | "about";
 
 export default function ProfilePage() {
   const params = useParams();
-  const rawHandle = ((params?.handle as string) || "tundebello")
+  const rawHandle = ((params?.handle as string) || "me")
     .replace(/^@/, "")
     .toLowerCase();
 
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isFollowing, setIsFollowing] = useState(false);
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
-  const [followersCount, setFollowersCount] = useState<number>(1240);
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [liveUserListings, setLiveUserListings] = useState<ProfileListingItem[]>([]);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState(
@@ -542,14 +546,78 @@ export default function ProfilePage() {
 
   const customSavedHandle = savedOwnProfile?.username
     ? savedOwnProfile.username.replace(/^@/, "").toLowerCase()
-    : "tundebello";
+    : "";
 
-  const isOwnProfile =
-    rawHandle === "tundebello" || rawHandle === customSavedHandle;
+  const isOwnProfile = Boolean(
+    rawHandle === "me" ||
+    (user?.handle && rawHandle === user.handle.replace(/^@/, "").toLowerCase()) ||
+    (user?.id && rawHandle === user.id.toLowerCase()) ||
+    (customSavedHandle && rawHandle === customSavedHandle)
+  );
+
+  const isKnownProfile = isOwnProfile || Boolean(PROFILES_BY_HANDLE[rawHandle]);
+
+  // Fetch live listings if own profile
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    let isCancelled = false;
+    const sellerId = user?.id;
+    if (sellerId) {
+      fetch(`/api/listings?sellerId=${encodeURIComponent(sellerId)}&limit=50`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (!isCancelled && json.success && Array.isArray(json.data)) {
+            const mapped: ProfileListingItem[] = json.data.map((item: any) => ({
+              id: item._id || item.id,
+              title: item.title,
+              price: typeof item.price === "number" ? `₦${item.price.toLocaleString()}` : String(item.price || "0"),
+              status: item.status === "in_deal" ? "In deal" : item.status === "sold" ? "Sold" : "Available",
+              likes: 0,
+              views: item.views || 0,
+              image: item.images?.[0] || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
+              href: `/listings/${item._id || item.id}`,
+            }));
+            setLiveUserListings(mapped);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOwnProfile, user?.id]);
+
+  const ownBaseProfile: ProfilePreviewData = {
+    id: user?.id || "my-profile",
+    handle: user?.handle || customSavedHandle || "me",
+    name: user?.name || savedOwnProfile?.name || "Campus Student",
+    username: `@${(user?.handle || customSavedHandle || "student").replace(/^@/, "")}`,
+    isStudentSeller: Boolean(user?.isStudent),
+    isVerified: Boolean(user?.studentVerified),
+    location: savedOwnProfile?.location || "Campus",
+    bio: savedOwnProfile?.bio || "Campus student on Campus Hive.",
+    avatar: savedOwnProfile?.avatar || user?.avatar || user?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
+    coverImage: savedOwnProfile?.coverImage || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1400&auto=format&fit=crop&q=80",
+    sales: 0,
+    rating: 5.0,
+    reviewsCount: 0,
+    joined: "Recent",
+    followersCount: 0,
+    listingsCount: liveUserListings.length,
+    listings: liveUserListings,
+    reviews: [],
+    ratingBreakdown: [
+      { stars: 5, count: 0 },
+      { stars: 4, count: 0 },
+      { stars: 3, count: 0 },
+      { stars: 2, count: 0 },
+      { stars: 1, count: 0 },
+    ],
+  };
 
   const baseProfile: ProfilePreviewData = isOwnProfile
-    ? PROFILES_BY_HANDLE.tundebello
-    : PROFILES_BY_HANDLE[rawHandle] || PROFILES_BY_HANDLE.tundebello;
+    ? ownBaseProfile
+    : PROFILES_BY_HANDLE[rawHandle] || ownBaseProfile;
 
   // Merge user-editable profile fields for own profile while strictly keeping verification status read-only
   const profile: ProfilePreviewData =
@@ -632,6 +700,32 @@ export default function ProfilePage() {
     setReportNote("");
     showToast(`Report submitted for ${profile.name}`);
   };
+
+  if (!isKnownProfile) {
+    return (
+      <div
+        style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+        className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased"
+      >
+        <RebrandHeader />
+        <main className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-24 pb-32 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center mx-auto mb-4 text-[#8C929C]">
+            <User className="w-8 h-8" />
+          </div>
+          <h1 className="text-xl font-bold">Profile not found</h1>
+          <p className="text-[13px] text-[#8C929C] mt-1 mb-6">
+            The campus profile @{rawHandle} could not be found or has not been created yet.
+          </p>
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FFC928] text-[#171717] font-bold text-[13px] hover:bg-[#E5B524] transition-colors"
+          >
+            Back to Explore
+          </Link>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -960,7 +1054,12 @@ export default function ProfilePage() {
                       : "grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
                   }
                 >
-                  {profile.listings.map((item) => (
+                  {profile.listings.length === 0 ? (
+                    <div className="col-span-full py-10 text-center text-[13px] text-[#8C929C] w-full">
+                      No active listings posted yet.
+                    </div>
+                  ) : (
+                    profile.listings.map((item) => (
                     <div
                       key={item.id}
                       className={`radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#181B24] overflow-hidden flex flex-col hover:border-[#D5D9E0] transition-colors ${
@@ -1040,7 +1139,8 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ))
+                  )}
                 </div>
               </section>
             )}

@@ -7,7 +7,8 @@ export type UploadPurpose =
   | "store_logo"
   | "store_cover"
   | "listing_image"
-  | "business_document";
+  | "business_document"
+  | "banner_image";
 
 export interface PurposePolicy {
   purpose: UploadPurpose;
@@ -78,6 +79,15 @@ export const UPLOAD_POLICIES: Record<UploadPurpose, PurposePolicy> = {
     accessType: "authenticated", // Private isolated access
     resourceType: "raw", // Raw for PDFs or image for pictures
     folderPrefix: "campushive/private_docs",
+  },
+  banner_image: {
+    purpose: "banner_image",
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+    allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
+    maxSizeBytes: 8 * 1024 * 1024, // 8MB
+    accessType: "upload",
+    resourceType: "image",
+    folderPrefix: "campushive/banners",
   },
 };
 

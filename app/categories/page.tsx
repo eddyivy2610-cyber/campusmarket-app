@@ -5,16 +5,17 @@ import { Suspense, useState, useMemo, useEffect } from "react";
 import { Breadcrumb } from "../components/common/Breadcrumb";
 import { ShopSidebar } from "../components/shop/ShopSidebar";
 import { ShopGrid } from "../components/shop/ShopGrid";
-import { PRODUCTS, Product } from "../data/products";
+import type { Product } from "../data/products";
 import { Eye, Store, User } from "lucide-react";
+import { PageSkeleton } from "../components/common/LoadingSystem";
 
 type ViewAs = "private" | "public";
 
 export default function CategoriesPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <div className="min-h-screen bg-background">
+                <PageSkeleton title={true} cards={8} />
             </div>
         }>
             <CategoriesPageInner />
@@ -37,7 +38,7 @@ function CategoriesPageInner() {
             try {
                 const res = await fetch("/api/listings?status=active&limit=50");
                 const json = await res.json();
-                if (json.success && Array.isArray(json.data) && json.data.length > 0 && !isCancelled) {
+                if (json.success && Array.isArray(json.data) && !isCancelled) {
                     const mapped: Product[] = json.data.map((item: any, idx: number) => ({
                         id: item._id || idx + 1000,
                         title: item.title,
@@ -77,8 +78,7 @@ function CategoriesPageInner() {
     }, [categoryParam]);
 
     const sourceProducts = useMemo(() => {
-        if (liveProducts.length > 0) return liveProducts;
-        return PRODUCTS;
+        return liveProducts;
     }, [liveProducts]);
 
     const filteredProducts = useMemo(() => {

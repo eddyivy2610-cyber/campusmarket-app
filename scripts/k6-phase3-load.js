@@ -26,9 +26,12 @@ const messagesLatency = new Trend("messages_thread_duration", true);
 const errorRate = new Rate("failed_requests");
 
 export const options = {
+  // The staging gate runs this profile at 100 VUs. Keep the override useful
+  // for local smoke tests without weakening the deployment default.
+  maxVUs: Number(__ENV.K6_MAX_VUS || 100),
   stages: [
     { duration: "15s", target: 20 }, // Ramp up to 20 VUs
-    { duration: "45s", target: 50 }, // Sustain 50 VUs realistic traffic mix
+    { duration: "60s", target: Number(__ENV.K6_MAX_VUS || 100) }, // Sustain deployment gate load
     { duration: "15s", target: 0 },  // Ramp down
   ],
   thresholds: {

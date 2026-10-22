@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import { requireAdmin } from "@/lib/authServer";
 import ReviewModel from "@/models/Review";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
 import { recomputeSellerRating, recomputeStoreRating } from "@/lib/reviewService";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export async function PATCH(
     }
 
     const { id } = await context.params;
+    const requestId = getRequestId(req);
     await dbConnect();
 
     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -86,6 +88,7 @@ export async function PATCH(
       targetType: "review",
       targetId: id,
       action: `review_${status}`,
+      requestId,
       reason: reason || `Review status changed from ${previousStatus} to ${status}`,
       details: {
         previousStatus,
@@ -169,6 +172,7 @@ export async function DELETE(
       targetType: "review",
       targetId: id,
       action: "review_delete",
+      requestId: getRequestId(req),
       reason: "Administrative permanent deletion of review",
       details: {
         sellerId,

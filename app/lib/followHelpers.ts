@@ -3,7 +3,7 @@ import FollowerModel, { FollowTargetType } from "@/models/Follower";
 import UserModel from "@/models/User";
 import StoreModel from "@/models/Store";
 import { ListingModel } from "@/models/Listing";
-import NotificationModel from "@/models/Notification";
+import { createNotification } from "@/lib/notificationService";
 import { executeInTransaction } from "@/lib/transactionHelper";
 
 export const FOLLOW_LIMIT_PER_USER = 300;
@@ -191,13 +191,16 @@ export async function executeFollow(
 
         // Dispatch notification asynchronously without blocking transaction
         try {
-          await NotificationModel.create({
-            recipient: targetId,
-            sender: followerObjectId,
+          await createNotification({
+            recipient: targetId.toString(),
+            sender: followerObjectId.toString(),
             type: "new_follower",
-            title: "New Follower!",
-            message: `${followerInfo?.name || "A student"} is now following you!`,
+            category: "reviews",
+            title: "New follower",
+            message: `${followerInfo?.name || "A student"} is now following you.`,
             link: followerInfo?.handle ? `/profile/${followerInfo.handle}` : "",
+            dedupeKey: `follower:${targetId}:${followerObjectId}`,
+            session: session ? (session as any) : undefined,
           });
         } catch {
           // notification dispatch failure non-fatal
@@ -314,13 +317,15 @@ export async function executeToggle(
         $inc: { "businessProfile.followersCount": 1 },
       });
       try {
-        await NotificationModel.create({
-          recipient: targetId,
-          sender: followerObjectId,
+        await createNotification({
+          recipient: targetId.toString(),
+          sender: followerObjectId.toString(),
           type: "new_follower",
-          title: "New Follower!",
-          message: `${followerInfo?.name || "A student"} is now following you!`,
+          category: "reviews",
+          title: "New follower",
+          message: `${followerInfo?.name || "A student"} is now following you.`,
           link: followerInfo?.handle ? `/profile/${followerInfo.handle}` : "",
+          dedupeKey: `follower:${targetId}:${followerObjectId}`,
         });
       } catch {
         // Notification dispatch failure non-fatal

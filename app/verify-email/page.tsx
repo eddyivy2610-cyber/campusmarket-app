@@ -6,13 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Loader2, ArrowRight, CheckCircle2, RotateCw, AlertCircle } from "lucide-react";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { apiPost } from "@/lib/apiClient";
+import { AuthCardSkeleton, ButtonRing } from "../components/common/LoadingSystem";
 
 export default function VerifyEmailRoute() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#171717] dark:border-white border-t-transparent animate-spin" />
+        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+          <AuthCardSkeleton />
         </div>
       }
     >
@@ -206,7 +207,7 @@ function VerifyEmailContent() {
           disabled={isLoading || digits.join("").length < 6}
           className="radius-native w-full py-2.5 sm:py-3 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] font-extrabold text-[13.5px] shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isLoading && <ButtonRing size="sm" />}
           <span>Verify & continue</span>
           <ArrowRight className="w-4 h-4" />
         </button>

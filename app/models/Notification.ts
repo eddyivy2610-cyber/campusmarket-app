@@ -1,13 +1,28 @@
 import mongoose, { Schema, Model, Document, Types } from "mongoose";
 
+export const NOTIFICATION_CATEGORIES = [
+  "messages",
+  "orders",
+  "wishlist",
+  "followed_stores",
+  "reviews",
+  "account_security",
+  "announcements",
+] as const;
+export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[number];
+export type NotificationPriority = "high" | "normal";
+
 export interface INotification {
   id: string;
   recipient: Types.ObjectId | string;
   sender?: Types.ObjectId | string;
   type: string;
+  category: NotificationCategory;
+  priority: NotificationPriority;
   title: string;
   message: string;
   link?: string;
+  dedupeKey?: string;
   read: boolean;
   createdAt: string;
   updatedAt: string;
@@ -33,6 +48,17 @@ const NotificationSchema = new Schema<INotificationDocument>(
       default: "system",
       index: true,
     },
+    category: {
+      type: String,
+      enum: NOTIFICATION_CATEGORIES,
+      required: true,
+      index: true,
+    },
+    priority: {
+      type: String,
+      enum: ["high", "normal"],
+      default: "normal",
+    },
     title: {
       type: String,
       required: true,
@@ -44,6 +70,10 @@ const NotificationSchema = new Schema<INotificationDocument>(
     link: {
       type: String,
       default: "",
+    },
+    dedupeKey: {
+      type: String,
+      default: undefined,
     },
     read: {
       type: Boolean,
@@ -59,6 +89,8 @@ const NotificationSchema = new Schema<INotificationDocument>(
 );
 
 NotificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
+NotificationSchema.index({ recipient: 1, category: 1, createdAt: -1 });
+NotificationSchema.index({ dedupeKey: 1 }, { unique: true, sparse: true });
 
 export const NotificationModel: Model<INotificationDocument> =
   mongoose.models.Notification ||

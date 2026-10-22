@@ -12,12 +12,15 @@ import {
   CheckCircle2,
   Lock,
   BadgeCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
+import { AppPreferencesPanel } from "./AppPreferencesPanel";
 
 export type SettingsTabId =
   | "profile"
+  | "preferences"
   | "privacy"
   | "security"
   | "marketplace"
@@ -33,8 +36,9 @@ interface SettingsTabItem {
 
 const SETTINGS_TABS: SettingsTabItem[] = [
   { id: "profile", label: "Profile & Identity", icon: User },
-  { id: "privacy", label: "Contact & Privacy", icon: User },
-  { id: "security", label: "Account & Security", icon: Shield },
+  { id: "preferences", label: "App Preferences", icon: SlidersHorizontal },
+  { id: "privacy", label: "Contact & Privacy", icon: Shield },
+  { id: "security", label: "Account & Security", icon: Lock },
   { id: "marketplace", label: "Marketplace", icon: ShoppingBag },
   { id: "verification", label: "Trust & Verification", icon: ShieldCheck },
 ];
@@ -464,6 +468,9 @@ export function RebrandSettingsShell({
                   </div>
                 </form>
               )}
+
+              {/* SECTION: App Preferences */}
+              {activeTab === "preferences" && <AppPreferencesPanel />}
 
               {/* SECTION: Contact & Privacy */}
               {activeTab === "privacy" && (

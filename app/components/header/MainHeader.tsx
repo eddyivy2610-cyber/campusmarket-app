@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, Heart, ChevronDown, Star } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { AccountDropdown } from "./AccountDropdown";
 import Link from "next/link";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
@@ -15,6 +15,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSaved } from "../../context/SavedContext";
 import { useAuth } from "../../context/AuthContext";
 import { Logo } from "../ui/Logo";
+import { apiGet } from "@/lib/apiClient";
 
 export function MainHeader() {
     useScrollReveal();
@@ -24,6 +25,7 @@ export function MainHeader() {
     const pathname = usePathname();
     const router = useRouter();
     const { user } = useAuth();
+    const [notificationCount, setNotificationCount] = useState(0);
     const isSettingsPage = pathname === "/settings";
     const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register") || pathname?.startsWith("/forgot-password");
     const isDashboardPage = pathname?.startsWith("/dashboard");
@@ -33,7 +35,12 @@ export function MainHeader() {
     const isActuallyLegal = ["/about-us", "/terms-of-service", "/safety-guidelines", "/community-rules", "/usage-policy"].includes(pathname);
     const isAdminPage = pathname?.startsWith("/admin");
     const { savedItems } = useSaved();
-    const notificationCount = 0;
+    const refreshNotificationCount = useCallback(async () => {
+        if (!user) { setNotificationCount(0); return; }
+        try { const response: any = await apiGet("/api/notifications?limit=1"); setNotificationCount(response.unreadCount || 0); } catch { setNotificationCount(0); }
+    }, [user?.id]);
+
+    useEffect(() => { void refreshNotificationCount(); }, [refreshNotificationCount, pathname]);
 
     const accountRef = useRef<HTMLDivElement>(null);
     useClickOutside(accountRef, () => setIsAccountOpen(false));
@@ -131,7 +138,7 @@ export function MainHeader() {
                                     </span>
                                 )}
                             </button>
-                            <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
+                            <NotificationsModal isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} onChanged={refreshNotificationCount} />
                         </div>
 
                         <div className="w-px h-6 bg-white/20 mx-1"></div>

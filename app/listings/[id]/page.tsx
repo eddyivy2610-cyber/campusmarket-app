@@ -36,7 +36,7 @@ import {
 
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { RebrandFooter } from "../../components/sections/RebrandFooter";
-import { EXPLORE_LISTINGS, ExploreListingItem } from "../../data/exploreCatalog";
+import type { ExploreListingItem } from "../../data/exploreCatalog";
 
 interface QuickHighlight {
   icon: "cpu" | "ram" | "storage" | "display" | "os" | "tag" | "package" | "clock" | "check";
@@ -254,131 +254,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
 };
 
 function buildFallbackListing(id: string): DetailedListingData {
-  const found: ExploreListingItem | undefined = EXPLORE_LISTINGS.find(
-    (item) => String(item.id) === String(id)
-  );
-
-  if (!found) {
-    return DETAILED_CATALOG["101"];
-  }
-
-  const isService = found.itemType === "service";
-  const isFashion = found.category === "Fashion";
-  const isBook = found.category === "Books & Academic Supplies";
-
-  const quickHighlights: QuickHighlight[] = isService
-    ? [
-        { icon: "clock", label: found.serviceRateLabel || "Fast Turnaround" },
-        { icon: "check", label: "Campus Verified" },
-        { icon: "package", label: "Digital + Print" },
-        { icon: "tag", label: "Student Discount" },
-      ]
-    : isFashion
-    ? [
-        { icon: "tag", label: "Size: EUR 42 / L" },
-        { icon: "check", label: "Regular Fit" },
-        { icon: "package", label: "Premium Cotton/Leather" },
-        { icon: "clock", label: "Ready for Pickup" },
-      ]
-    : isBook
-    ? [
-        { icon: "package", label: "Complete Pack" },
-        { icon: "check", label: "Unmarked Pages" },
-        { icon: "tag", label: "200L / 300L" },
-        { icon: "clock", label: "Immediate Meetup" },
-      ]
-    : [
-        { icon: "check", label: "Tested & Working" },
-        { icon: "package", label: "Complete Accessories" },
-        { icon: "clock", label: "Long Battery Life" },
-        { icon: "tag", label: found.condition || "Good Condition" },
-      ];
-
-  const specifications: SpecRow[] = isService
-    ? [
-        { label: "Service Category", value: found.category },
-        { label: "Pricing Model", value: found.serviceRateLabel || "Per project / session" },
-        { label: "Turnaround Time", value: "24 – 48 Hours (Express available)" },
-        { label: "Revisions Included", value: "Up to 3 rounds of revisions" },
-        { label: "Meeting / Consultation", value: `${found.landmark}, ABU Zaria` },
-      ]
-    : isFashion
-    ? [
-        { label: "Category", value: found.category },
-        { label: "Condition", value: found.condition || "New" },
-        { label: "Size & Fit", value: "Standard Campus Sizing (True to fit)" },
-        { label: "Material", value: "High-grade breathable fabric / leather" },
-        { label: "Inspection", value: "Can inspect and try on at meetup point" },
-      ]
-    : [
-        { label: "Category", value: found.category },
-        { label: "Condition", value: `${found.condition || "Used"} · Well maintained` },
-        { label: "Campus Location", value: `${found.landmark}, ABU Zaria` },
-        { label: "Inspection Policy", value: "Full testing allowed before payment" },
-        { label: "Availability", value: "Available for immediate campus pickup" },
-      ];
-
-  const isVerifiedStudent =
-    found.sellerType === "verified_student" || found.sellerType === "student_store";
-
-  return {
-    id: String(found.id),
-    title: found.title,
-    price: found.price,
-    priceFormatted: found.priceFormatted,
-    category: found.category,
-    subCategory: isService ? "Campus Services" : found.category,
-    conditionLabel: isService ? "Service" : found.condition || "Used",
-    conditionNote: isService
-      ? found.serviceRateLabel || "Available now"
-      : `${found.condition || "Good"} condition`,
-    location: `${found.landmark}, ABU Zaria`,
-    postedAgo: "Posted 3 hours ago",
-    shortSummary: isService
-      ? `Professional campus service offered by ${found.sellerName}. Fast turnaround, student-friendly rates, and easy in-person coordination around ${found.landmark}.`
-      : `Well-maintained ${found.title.toLowerCase()} available for immediate campus pickup. Clean, tested, and priced fairly for students.`,
-    aboutDescription: isService
-      ? `We provide reliable, high-quality ${found.title.toLowerCase()} tailored specifically for ABU Zaria students, departments, and campus fellowships. Message directly to share your requirements and schedule.`
-      : `This ${found.title} is in ${
-          found.condition?.toLowerCase() || "great"
-        } working condition. Carefully used and kept clean in the hostel. You can inspect and test everything in person at ${
-          found.landmark
-        } before making payment.`,
-    whySelling: isService
-      ? "Official campus service provider on Campus Hive."
-      : "Clearing out extra gear before the end of semester.",
-    pickupDetails: `Meetup at ${found.landmark} (or nearby campus area)`,
-    includedItems: [
-      found.title,
-      isService ? "Source files / Printed copies" : "Original accessories included",
-      "In-person testing & verification",
-    ],
-    images: [
-      found.imageUrl,
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800&auto=format&fit=crop&q=80",
-    ],
-    quickHighlights,
-    specifications,
-    seller: {
-      name: found.sellerName,
-      handle: found.sellerHandle,
-      avatar:
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=250&auto=format&fit=crop&q=80",
-      department: `${found.landmark} · ABU Zaria`,
-      badgeLabel:
-        found.sellerType === "approved_business" ? "Approved business" : "Student seller",
-      isVerified: isVerifiedStudent,
-      bio: "Trusted campus seller offering quality items and fast meetup coordination around ABU Zaria.",
-      listingsCount: 5,
-      rating: "4.8",
-      reviewsCount: 28,
-      memberSince: "Jan 2026",
-      storeHref: `/profile/${found.sellerHandle}`,
-    },
-    reviews: DEFAULT_REVIEWS,
-  };
+  return DETAILED_CATALOG[id] || DETAILED_CATALOG["101"];
 }
 
 export default function ListingDetailPage() {
@@ -690,15 +566,51 @@ export default function ListingDetailPage() {
     showToast("Report submitted. Campus Hive safety team will review this listing.");
   };
 
-  const relatedListings = useMemo(() => {
-    const sameCat = EXPLORE_LISTINGS.filter(
-      (item) => String(item.id) !== String(listing.id) && item.category === listing.category
-    );
-    const others = EXPLORE_LISTINGS.filter(
-      (item) => String(item.id) !== String(listing.id) && item.category !== listing.category
-    );
-    return [...sameCat, ...others].slice(0, 4);
-  }, [listing]);
+  const [relatedListings, setRelatedListings] = useState<ExploreListingItem[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadRelated() {
+      try {
+        const cat = listing?.category ? `category=${encodeURIComponent(listing.category)}&` : "";
+        const res = await fetch(`/api/listings?${cat}limit=6&status=active`);
+        const json = await res.json();
+        if (!isCancelled && json.success && Array.isArray(json.data)) {
+          const mapped: ExploreListingItem[] = json.data
+            .filter((item: any) => String(item._id || item.id) !== String(listing?.id))
+            .slice(0, 4)
+            .map((item: any) => {
+              const isService = item.listingType === "service";
+              const sellerObj = typeof item.sellerId === "object" ? item.sellerId : null;
+              return {
+                id: item._id || item.id,
+                title: item.title,
+                price: typeof item.price === "number" ? item.price : 0,
+                priceFormatted: `₦${Number(item.price || 0).toLocaleString()}`,
+                category: item.category || "General",
+                itemType: isService ? "service" : "product",
+                landmark: item.location || item.campus || "Samaru",
+                condition: item.condition || "Used",
+                conditionTone: item.condition === "New" ? "green" : "neutral",
+                imageUrl: item.images?.[0] || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
+                sellerName: sellerObj?.name || "Campus Student",
+                sellerHandle: sellerObj?.handle || "campus-seller",
+                sellerType: item.storeId ? "student_store" : "verified_student",
+                isVerifiedStudent: true,
+                engagementText: "Active listing",
+                rating: "4.8",
+                keywords: [item.title, item.category].filter(Boolean),
+              };
+            });
+          setRelatedListings(mapped);
+        }
+      } catch {}
+    }
+    loadRelated();
+    return () => {
+      isCancelled = true;
+    };
+  }, [listing?.category, listing?.id]);
 
   const renderQuickIcon = (iconType: QuickHighlight["icon"]) => {
     const cls = "w-4 h-4 text-[#4A5058] dark:text-neutral-300 shrink-0";

@@ -24,12 +24,12 @@ import {
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { PageSkeleton, CardSkeleton } from "../components/common/LoadingSystem";
 import { useAuth } from "../context/AuthContext";
 import { followService } from "@/lib/followService";
 import {
   EXPLORE_CATEGORIES,
   CAMPUS_LANDMARKS,
-  EXPLORE_LISTINGS,
   ExploreCategory,
   ExploreListingItem,
 } from "../data/exploreCatalog";
@@ -76,8 +76,9 @@ export default function ExplorePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#171717] dark:border-white border-t-transparent animate-spin" />
+        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+          <RebrandHeader />
+          <PageSkeleton title={true} cards={8} />
         </div>
       }
     >
@@ -135,7 +136,7 @@ function ExploreContent() {
         if (!isCancelled) {
           if (listingsRes.ok) {
             const listJson = await listingsRes.json();
-            if (listJson.success && Array.isArray(listJson.data) && listJson.data.length > 0) {
+            if (listJson.success && Array.isArray(listJson.data)) {
               setDbListings(listJson.data.map(mapApiListingToExploreItem));
             }
           }
@@ -224,13 +225,12 @@ function ExploreContent() {
     setActiveContentType("all");
   };
 
-  // Primary source dataset: live DB with graceful fallback if empty
+  // Primary source dataset: live DB
   const sourceListings = useMemo(() => {
     if (activeContentType === "following") {
       return followingListings;
     }
-    if (dbListings.length > 0) return dbListings;
-    return EXPLORE_LISTINGS;
+    return dbListings;
   }, [activeContentType, followingListings, dbListings]);
 
   // Compute active filter count for badge indicator
@@ -674,15 +674,7 @@ function ExploreContent() {
                 } gap-3 sm:gap-4 lg:gap-5`}
               >
                 {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 animate-pulse"
-                  >
-                    <div className="h-[140px] sm:h-[160px] rounded-xl bg-neutral-200 dark:bg-white/10 mb-3" />
-                    <div className="h-4 bg-neutral-200 dark:bg-white/10 rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-neutral-200 dark:bg-white/10 rounded w-1/2 mb-3" />
-                    <div className="h-5 bg-neutral-200 dark:bg-white/10 rounded w-1/3" />
-                  </div>
+                  <CardSkeleton key={i} />
                 ))}
               </div>
             ) : totalResultsCount === 0 ? (

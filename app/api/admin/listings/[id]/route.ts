@@ -5,6 +5,7 @@ import { ListingModel } from "@/models/Listing";
 import StoreModel from "@/models/Store";
 import { requireAdmin } from "@/lib/authServer";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,7 @@ export async function PATCH(
     const { action, reason, notes } = body;
 
     const now = new Date().toISOString();
+    const requestId = getRequestId(req);
     let updateFields: Record<string, any>;
     let successMessage: string;
 
@@ -129,6 +131,7 @@ export async function PATCH(
       targetType: "listing",
       targetId: id,
       action: `listing_${action}`,
+      requestId,
       reason: reason || `Admin performed action: ${action}`,
       details: {
         newStatus: updateFields.status,

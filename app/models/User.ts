@@ -1,7 +1,10 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 import { USER_ROLES, USER_ACCOUNT_STATUSES, UserRole, UserAccountStatus } from "@/constants/enums";
+import { IUserPreferences, DEFAULT_USER_PREFERENCES } from "@/constants/preferences";
 
 export type { UserRole, UserAccountStatus };
+export type { IUserPreferences };
+export { DEFAULT_USER_PREFERENCES };
 
 export interface IUserProfile {
   displayName?: string;
@@ -26,6 +29,7 @@ export interface IUser {
   emailVerified?: boolean;
   onboardingStep?: string;
   profile?: IUserProfile;
+  preferences?: IUserPreferences;
   suspensionReason?: string;
   suspendedAt?: string;
   rating?: {
@@ -65,6 +69,61 @@ const UserSchema = new Schema<IUserDocument>(
       bio: { type: String },
       phone: { type: String },
       whatsapp: { type: String },
+    },
+    preferences: {
+      appearance: {
+        theme: { type: String, enum: ["system", "light", "dark"], default: "system" },
+        accentColor: { type: String, enum: ["amber", "emerald", "indigo", "rose", "sky", "violet"], default: "amber" },
+        textSize: { type: String, enum: ["normal", "compact", "large"], default: "normal" },
+        displayDensity: { type: String, enum: ["comfortable", "compact"], default: "comfortable" },
+      },
+      discovery: {
+        defaultLanding: { type: String, enum: ["explore", "feed", "radar"], default: "explore" },
+        preferredCampus: { type: String, default: "" },
+        preferredCategories: { type: [String], default: [] },
+        defaultSort: { type: String, enum: ["recent", "price_asc", "price_desc", "popular"], default: "recent" },
+        priceRange: {
+          min: { type: Number, default: 0 },
+          max: { type: Number, default: 0 },
+        },
+      },
+      notifications: {
+        inApp: { type: Boolean, default: true },
+        push: { type: Boolean, default: true },
+        email: { type: Boolean, default: false },
+        messages: { type: Boolean, default: true },
+        orderUpdates: { type: Boolean, default: true },
+        followedStores: { type: Boolean, default: true },
+        wishlistAlerts: { type: Boolean, default: true },
+        reviews: { type: Boolean, default: true },
+        accountSecurity: { type: Boolean, default: true },
+        promotions: { type: Boolean, default: false },
+        frequency: { type: String, enum: ["instant", "daily", "weekly"], default: "instant" },
+        quietHoursEnabled: { type: Boolean, default: false },
+        quietHoursStart: { type: String, default: "22:00" },
+        quietHoursEnd: { type: String, default: "07:00" },
+      },
+      privacy: {
+        profileVisibility: { type: String, enum: ["public", "campus_only"], default: "public" },
+        showOnlineStatus: { type: Boolean, default: true },
+        showSalesMilestones: { type: Boolean, default: true },
+        messagePermission: { type: String, enum: ["everyone", "verified", "listings"], default: "everyone" },
+      },
+      messaging: {
+        messagePreviews: { type: Boolean, default: true },
+        readReceipts: { type: Boolean, default: true },
+        contactChannel: { type: String, enum: ["in_app", "whatsapp"], default: "in_app" },
+      },
+      accessibility: {
+        reduceMotion: { type: Boolean, default: false },
+        highContrast: { type: Boolean, default: false },
+        dataSaver: { type: Boolean, default: false },
+      },
+      seller: {
+        vacationMode: { type: Boolean, default: false },
+        inquiryAlerts: { type: Boolean, default: true },
+        autoReply: { type: String, default: "" },
+      },
     },
     suspensionReason: { type: String, required: false },
     suspendedAt: { type: String, required: false },

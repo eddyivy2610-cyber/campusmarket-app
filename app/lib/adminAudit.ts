@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 export interface AdminAuditLogEntry {
   actorId: string;
   actorEmail?: string;
-  targetType: "user" | "store" | "listing" | "business_application" | "review" | "order";
+  targetType: "user" | "store" | "listing" | "business_application" | "review" | "order" | "banner";
   targetId: string;
   action: string;
   requestId?: string;
   reason?: string;
-  details?: Record<string, unknown>;
-  before?: Record<string, unknown>;
-  after?: Record<string, unknown>;
+  details?: Record<string, any>;
+  before?: Record<string, any>;
+  after?: Record<string, any>;
   session?: mongoose.ClientSession;
 }
 

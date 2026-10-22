@@ -168,7 +168,6 @@ function MessagesWorkspace() {
   const [activeFilter, setActiveFilter] = useState<
     "all" | "unread" | "unanswered" | "offers"
   >("all");
-  const [showEmptyDemo, setShowEmptyDemo] = useState<boolean>(false);
 
   // Centre Column: Active Conversation & Message History State
   const [selectedConvId, setSelectedConvId] = useState<string | null>(
@@ -363,7 +362,6 @@ function MessagesWorkspace() {
 
     const initiateContextualChat = async () => {
       try {
-        setShowEmptyDemo(false);
         setIsLoadingThread(true);
         const res = await fetch("/api/messages/conversations", {
           method: "POST",
@@ -983,34 +981,15 @@ function MessagesWorkspace() {
                   <h1 className="text-[18px] font-bold tracking-[-0.02em] text-[#171717] dark:text-white">
                     My messages
                   </h1>
-                  {!showEmptyDemo &&
-                    conversations.some((c) => c.unreadCount > 0) && (
-                      <span className="radius-native px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#FFC928] text-[#171717]">
-                        {conversations.reduce(
-                          (acc, c) => acc + c.unreadCount,
-                          0
-                        )}
-                      </span>
-                    )}
+                  {conversations.some((c) => c.unreadCount > 0) && (
+                    <span className="radius-native px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#FFC928] text-[#171717]">
+                      {conversations.reduce(
+                        (acc, c) => acc + c.unreadCount,
+                        0
+                      )}
+                    </span>
+                  )}
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEmptyDemo((prev) => {
-                      const next = !prev;
-                      if (next) {
-                        setSelectedConvId(null);
-                      }
-                      return next;
-                    });
-                  }}
-                  className="text-[11px] font-semibold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white underline cursor-pointer"
-                >
-                  {showEmptyDemo
-                    ? `Sample chats (${conversations.length})`
-                    : "Empty view"}
-                </button>
               </header>
 
               {/* Rounded Search Input with Right Icon */}
@@ -1018,12 +997,7 @@ function MessagesWorkspace() {
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    if (showEmptyDemo && e.target.value.trim()) {
-                      setShowEmptyDemo(false);
-                    }
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search"
                   aria-label="Search conversations"
                   className="radius-native w-full pl-3.5 pr-9 py-2 rounded-xl bg-white dark:bg-white/5 border border-[#DCE1E7] dark:border-white/15 text-[13px] text-[#171717] dark:text-white placeholder:text-[#8C929C] focus:outline-none focus:border-[#FFC928]"
@@ -1103,7 +1077,7 @@ function MessagesWorkspace() {
                     Retry
                   </button>
                 </div>
-              ) : showEmptyDemo || conversations.length === 0 ? (
+              ) : conversations.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
                   {/* Layered Speech Bubbles Illustration */}
                   <div className="w-[176px] h-[176px] rounded-full bg-[#F1F5F8] dark:bg-white/[0.04] flex items-center justify-center relative">
@@ -1275,7 +1249,7 @@ function MessagesWorkspace() {
                 <div className="max-w-sm">
                   <div className="text-[15px] text-[#3B4148] dark:text-neutral-200 leading-relaxed">
                     <div>
-                      {showEmptyDemo || conversations.length === 0
+                      {conversations.length === 0
                         ? "You have no messages yet."
                         : "Select a conversation to start messaging."}
                     </div>

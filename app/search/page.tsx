@@ -20,11 +20,11 @@ import {
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { PageSkeleton } from "../components/common/LoadingSystem";
 import {
-  EXPLORE_LISTINGS,
   ExploreListingItem,
 } from "../data/exploreCatalog";
-import { STOREFRONTS_DB, StorefrontItem, WANTED_REQUESTS_DB, WantedRequestItem } from "../data/mvpMockData";
+import type { StorefrontItem, WantedRequestItem } from "../data/mvpMockData";
 
 type SearchFeatureTab = "all" | "products" | "services" | "stores" | "wanted";
 
@@ -88,8 +88,9 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#171717] dark:border-white border-t-transparent animate-spin" />
+        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+          <RebrandHeader />
+          <PageSkeleton title={true} cards={8} />
         </div>
       }
     >
@@ -167,16 +168,14 @@ function SearchContent() {
     setSavedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Source listings: prioritize live DB search results, fallback to catalog if empty
+  // Source listings: canonical live DB search results
   const sourceListings = useMemo(() => {
-    if (dbListings.length > 0) return dbListings;
-    return EXPLORE_LISTINGS;
+    return dbListings;
   }, [dbListings]);
 
-  // Source stores: prioritize live DB search results, fallback to catalog if empty
+  // Source stores: canonical live DB search results
   const sourceStores = useMemo(() => {
-    if (dbStores.length > 0) return dbStores;
-    return STOREFRONTS_DB;
+    return dbStores;
   }, [dbStores]);
 
   // Filtered Products & Services
@@ -216,21 +215,49 @@ function SearchContent() {
     });
   }, [sourceStores, query, activeTab]);
 
-  // Filtered Wanted Requests
+  // Filtered Wanted Requests from local radar requests
   const matchingWanted = useMemo(() => {
     if (activeTab === "products" || activeTab === "services" || activeTab === "stores") return [];
     const q = query.toLowerCase().trim();
+    let localPosts: any[] = [];
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("ch_radar_posts");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) localPosts = parsed;
+        }
+      } catch {}
+    }
 
-    return WANTED_REQUESTS_DB.filter((req) => {
-      if (q) {
-        const matchesTitle = req.title.toLowerCase().includes(q);
-        const matchesDesc = req.description.toLowerCase().includes(q);
-        const matchesCat = req.category.toLowerCase().includes(q);
-        const matchesLoc = req.preferredLandmark.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesDesc && !matchesCat && !matchesLoc) return false;
-      }
-      return true;
-    });
+    return localPosts
+      .map((post: any): WantedRequestItem => ({
+        id: post.id,
+        title: post.requestText || "Wanted request",
+        description: post.requestText || "",
+        budgetMin: typeof post.budgetMin === "number" ? post.budgetMin : 5000,
+        budgetMax: typeof post.budgetMax === "number" ? post.budgetMax : 10000,
+        category: post.category || "Academics",
+        campusSlug: "abu-zaria-samaru",
+        campusShortName: "ABU Samaru",
+        preferredLandmark: post.requesterLocation || "Campus",
+        urgency: "Urgent",
+        status: "Open",
+        requesterName: post.requesterName || "Campus Student",
+        requesterHandle: post.requesterHandle || "student",
+        requesterDepartment: post.requesterDept || "Student",
+        responsesCount: Array.isArray(post.replies) ? post.replies.length : 0,
+        postedAt: post.timeAgo || "Recently",
+      }))
+      .filter((req) => {
+        if (q) {
+          const matchesTitle = req.title.toLowerCase().includes(q);
+          const matchesCat = req.category.toLowerCase().includes(q);
+          const matchesLoc = req.preferredLandmark.toLowerCase().includes(q);
+          if (!matchesTitle && !matchesCat && !matchesLoc) return false;
+        }
+        return true;
+      });
   }, [query, activeTab]);
 
   const totalCount =

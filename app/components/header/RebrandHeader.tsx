@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "../ui/Logo";
+import { useAuth } from "../../context/AuthContext";
+import { apiGet } from "@/lib/apiClient";
 import {
   MessageCircleMore,
   User,
@@ -11,6 +13,7 @@ import {
   Menu,
   X,
   Search,
+  Bell,
   Home,
   Compass,
   Radio,
@@ -25,6 +28,7 @@ import {
   Megaphone,
   ChevronRight,
   Check,
+  Clock,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -51,33 +55,59 @@ const MOBILE_CATEGORIES = [
   { label: "More Categories", href: "/explore", icon: LayoutGrid },
 ];
 
-const MOBILE_AROUND_CAMPUS = [
+const MOBILE_FEATURES = [
   {
     id: "sell",
     title: "Sell",
     price: "Post a listing",
     href: "/listings/create",
     icon: Tag,
+    isReady: true,
   },
   {
     id: "storefront",
     title: "Storefront",
-    price: "Manage your store",
+    price: "Dashboard & store manager",
     href: "/stores?view=storefront",
     icon: Store,
+    isReady: true,
   },
   {
     id: "ads",
     title: "Ads",
     price: "Promote on campus",
-    href: "/promotions/request",
+    href: "/coming-soon?feature=ads",
     icon: Megaphone,
+    isReady: false,
   },
 ];
 
 export function RebrandHeader() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState<number>(0);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    if (!user) {
+      setNotificationCount(0);
+      return;
+    }
+    let isMounted = true;
+    apiGet("/api/notifications?limit=1")
+      .then((res: any) => {
+        if (isMounted && typeof res?.unreadCount === "number") {
+          setNotificationCount(res.unreadCount);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setNotificationCount(0);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, pathname]);
 
   // Prevent body scroll when mobile drawer is open
   useEffect(() => {
@@ -148,7 +178,7 @@ export function RebrandHeader() {
             </nav>
           </div>
 
-          {/* Right: Utility Icons (Mobile: ONLY Search, Messages, Profile; Desktop: + Settings) */}
+          {/* Right: Utility Icons (Mobile: Search, Notifications, Messages, Profile) */}
           <div className="flex items-center gap-1 sm:gap-3">
             <Link
               href="/search"
@@ -157,6 +187,24 @@ export function RebrandHeader() {
               className="radius-native h-9 w-9 rounded-full flex items-center justify-center text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <Search className="w-[19px] h-[19px]" strokeWidth={1.8} />
+            </Link>
+
+            <Link
+              href="/notifications"
+              aria-label="Notifications"
+              title="Notifications"
+              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                pathname?.startsWith("/notifications")
+                  ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
+                  : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
+              }`}
+            >
+              <Bell className="w-[19px] h-[19px]" strokeWidth={1.8} />
+              {notificationCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[15px] h-[15px] px-0.5 rounded-full bg-[#EF4444] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[#14161D]">
+                  {notificationCount > 99 ? "99+" : notificationCount}
+                </span>
+              )}
             </Link>
 
             <Link
@@ -263,6 +311,36 @@ export function RebrandHeader() {
                     </Link>
                   );
                 })}
+
+                {/* Mobile Drawer Notifications */}
+                <Link
+                  href="/notifications"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-4 py-2.5 text-[13.5px] transition-colors ${
+                    pathname?.startsWith("/notifications")
+                      ? "font-bold text-[#171717] dark:text-white bg-[#FFF8E1] dark:bg-[#FFC928]/10"
+                      : "font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Bell
+                      className={`w-[18px] h-[18px] ${
+                        pathname?.startsWith("/notifications")
+                          ? "text-[#171717] dark:text-[#FFC928]"
+                          : "text-[#5B636E] dark:text-neutral-400"
+                      }`}
+                      strokeWidth={1.8}
+                    />
+                    <span>Notifications</span>
+                  </div>
+                  {notificationCount > 0 ? (
+                    <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-[#EF4444] text-white text-[10px] font-bold flex items-center justify-center">
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-[#8C929C]" strokeWidth={1.8} />
+                  )}
+                </Link>
               </div>
             </div>
 
@@ -305,23 +383,19 @@ export function RebrandHeader() {
               </div>
             </div>
 
-            {/* 3. Around Your Campus Section */}
+            {/* 3. Features Section with Pending Indicators */}
             <div className="py-2.5">
               <div className="px-4 py-1.5 flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8C929C] dark:text-neutral-400">
-                  Around Your Campus
+                  Features
                 </span>
-                <Link
-                  href="/explore"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-[11.5px] font-bold text-[#D99B00] dark:text-[#FFC928] hover:underline"
-                >
-                  See All
-                </Link>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F6F8] dark:bg-white/5 text-[#8C929C]">
+                  Preview
+                </span>
               </div>
 
               <div className="divide-y divide-[#F1F3F6] dark:divide-white/5 px-4">
-                {MOBILE_AROUND_CAMPUS.map((item) => {
+                {MOBILE_FEATURES.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
@@ -344,12 +418,23 @@ export function RebrandHeader() {
                         </div>
                       </div>
 
-                      <span
-                        title="Verified campus listing"
-                        className="w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
-                      >
-                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                      </span>
+                      {/* Indicator: Green Check for Ready, Amber Clock for Coming Soon */}
+                      {item.isReady ? (
+                        <span
+                          title="Feature ready to use"
+                          className="w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
+                        >
+                          <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                        </span>
+                      ) : (
+                        <span
+                          title="Feature in development - Coming soon"
+                          className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1 shrink-0"
+                        >
+                          <Clock className="w-2.5 h-2.5 stroke-[2.2]" />
+                          <span>Soon</span>
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

@@ -13,10 +13,13 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  Radio,
+  Sparkles,
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { RadarSkeleton } from "../components/common/LoadingSystem";
 
 interface OfferReplyItem {
   id: string;
@@ -54,263 +57,17 @@ interface SuggestedProfile {
   chatParams: Record<string, string>;
 }
 
-const SUGGESTED_FOR_YOU: SuggestedProfile[] = [
-  {
-    id: "sug-tunde",
-    name: "Tunde Bello",
-    handle: "@tundebello",
-    avatar:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
-    isVerified: true,
-    accountType: "student",
-    similarProducts: "HP EliteBook, Casio calculators & Study lamps",
-    location: "Suleiman Hall",
-    profileHref: "/profile/tundebello",
-    chatParams: {
-      contextType: "product",
-      contextId: "102",
-      title: "Scientific calculator",
-      price: "₦7,000",
-      numericPrice: "7000",
-      status: "Available",
-      href: "/listings/102",
-      participantId: "seller-tunde-bello",
-      participantName: "Tunde Bello",
-      participantSubtitle: "Student · Suleiman Hall",
-      participantVerified: "true",
-    },
-  },
-  {
-    id: "sug-closet",
-    name: "Campus Closet",
-    handle: "@campuscloset",
-    avatar:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200&auto=format&fit=crop&q=80",
-    isVerified: true,
-    accountType: "student",
-    similarProducts: "Varsity jackets, Sneakers & Campus totes",
-    location: "Student Social Centre",
-    profileHref: "/profile/campus-closet",
-    chatParams: {
-      contextType: "store",
-      contextId: "campus-closet",
-      title: "Campus Closet",
-      price: "5 active listings",
-      status: "Available",
-      href: "/profile/campus-closet",
-      participantId: "store-campus-closet",
-      participantName: "Campus Closet",
-      participantSubtitle: "Student Store · Social Centre",
-      participantVerified: "true",
-    },
-  },
-  {
-    id: "sug-tech",
-    name: "Tech Corner",
-    handle: "@techcorner",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    isVerified: true,
-    accountType: "student",
-    similarProducts: "MagSafe chargers, Anker power banks & NVMe SSDs",
-    location: "Faculty of Engineering",
-    profileHref: "/profile/tech-corner",
-    chatParams: {
-      contextType: "store",
-      contextId: "tech-corner",
-      title: "Tech Corner",
-      price: "4 active listings",
-      status: "Available",
-      href: "/profile/tech-corner",
-      participantId: "store-tech-corner",
-      participantName: "Tech Corner",
-      participantSubtitle: "Student Store · Faculty of Engineering",
-      participantVerified: "true",
-    },
-  },
-  {
-    id: "sug-printhub",
-    name: "The Print Hub",
-    handle: "@theprinthub",
-    avatar:
-      "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=200&auto=format&fit=crop&q=80",
-    isVerified: false,
-    accountType: "store",
-    similarProducts: "Hardcover thesis binding, A1/A2 CAD plotting & Flyers",
-    location: "Student Social Centre",
-    profileHref: "/profile/the-print-hub",
-    chatParams: {
-      contextType: "store",
-      contextId: "the-print-hub",
-      title: "The Print Hub",
-      price: "4 active listings",
-      status: "Available",
-      href: "/profile/the-print-hub",
-      participantId: "store-the-print-hub",
-      participantName: "The Print Hub",
-      participantSubtitle: "Campus Business · Social Centre",
-      participantVerified: "false",
-    },
-  },
-  {
-    id: "sug-kongo",
-    name: "Kongo Scholars Bookshop",
-    handle: "@kongoscholars",
-    avatar:
-      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&auto=format&fit=crop&q=80",
-    isVerified: false,
-    accountType: "store",
-    similarProducts: "Constitutional Law packs, ICAN study packs & Legal pads",
-    location: "ABU Kongo Campus",
-    profileHref: "/profile/kongo-scholars",
-    chatParams: {
-      contextType: "store",
-      contextId: "kongo-scholars",
-      title: "Kongo Scholars Bookshop",
-      price: "4 active listings",
-      status: "Available",
-      href: "/profile/kongo-scholars",
-      participantId: "store-kongo-scholars",
-      participantName: "Kongo Scholars Bookshop",
-      participantSubtitle: "Campus Business · ABU Kongo",
-      participantVerified: "false",
-    },
-  },
-];
+const SUGGESTED_FOR_YOU: SuggestedProfile[] = [];
 
-const INITIAL_RADAR_POSTS: RadarPost[] = [
-  {
-    id: "req-amina",
-    requesterName: "Campus Closet",
-    requesterHandle: "campus-closet",
-    requesterLocation: "Student Social Centre",
-    requesterAvatar:
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=200&auto=format&fit=crop&q=80",
-    timeAgo: "18m",
-    isVerified: true,
-    requestText:
-      "Does anyone have a Casio fx-991ES or fx-991EX scientific calculator for a test this week? Fairly used is fine as long as the display is clear. Budget is ₦5,000–₦8,000, can meet at Faculty of Science.",
-    category: "tech_cables",
-    replies: [
-      {
-        id: "off-a1",
-        authorName: "Tunde Bello",
-        authorHandle: "tundebello",
-        authorDept: "Suleiman Hall",
-        authorTime: "12m",
-        isVerified: true,
-        message:
-          "I have a Casio fx-991ES Plus in very good condition for ₦7,000. Can meet at the faculty lobby.",
-      },
-      {
-        id: "off-a2",
-        authorName: "Tech Corner",
-        authorHandle: "tech-corner",
-        authorDept: "Faculty of Engineering",
-        authorTime: "28m",
-        isVerified: true,
-        message:
-          "We have a clean Casio fx-991EX ClassWiz available around the Engineering complex.",
-      },
-    ],
-  },
-  {
-    id: "req-marcus",
-    requesterName: "Tunde Bello",
-    requesterHandle: "tundebello",
-    requesterLocation: "Suleiman Hall",
-    requesterAvatar:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
-    timeAgo: "32m",
-    isVerified: true,
-    requestText:
-      "Urgently need a USB-C to HDMI adapter for a 10:00 AM seminar in Lecture Theatre B. Just need it for 45 mins (can pay ₦1,500 to borrow or ₦4,500 to buy). Around Suleiman Hall right now.",
-    category: "urgent",
-    replies: [
-      {
-        id: "off-m1",
-        authorName: "Tech Corner",
-        authorHandle: "tech-corner",
-        authorDept: "Faculty of Engineering",
-        authorTime: "6m",
-        isVerified: true,
-        message:
-          "We have an Apple USB-C multiport adapter with HDMI ready at Faculty of Engineering right now.",
-      },
-    ],
-  },
-  {
-    id: "req-faruk",
-    requesterName: "Tech Corner",
-    requesterHandle: "tech-corner",
-    requesterLocation: "Faculty of Engineering",
-    requesterAvatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-    timeAgo: "1h",
-    isVerified: true,
-    requestText:
-      "Looking for Thermodynamics & Fluid Mechanics (ME 301) past test solutions (2019–2024) with worked calculations. Budget ₦3,500, can pick up at Engineering Complex.",
-    category: "course_packs",
-    replies: [
-      {
-        id: "off-f1",
-        authorName: "Kongo Scholars Bookshop",
-        authorHandle: "kongo-scholars",
-        authorDept: "ABU Kongo Campus",
-        authorTime: "20m",
-        isVerified: false,
-        message:
-          "We have clean spiral-bound past questions with worked solutions for ₦3,500.",
-      },
-    ],
-  },
-  {
-    id: "req-printhub",
-    requesterName: "The Print Hub",
-    requesterHandle: "the-print-hub",
-    requesterLocation: "Student Social Centre",
-    requesterAvatar:
-      "https://images.unsplash.com/photo-1562654501-a0ccc0fc3fb1?w=200&auto=format&fit=crop&q=80",
-    timeAgo: "2h",
-    isVerified: false,
-    requestText:
-      "Looking for a clean 20,000mAh power bank for our Student Social Centre desk. Budget is around ₦15,000–₦18,000.",
-    category: "all",
-    replies: [
-      {
-        id: "off-p1",
-        authorName: "Tech Corner",
-        authorHandle: "tech-corner",
-        authorDept: "Faculty of Engineering",
-        authorTime: "45m",
-        isVerified: true,
-        message:
-          "We have a sealed Anker PowerCore 20,000mAh for ₦18,000. Can deliver to SUB.",
-      },
-    ],
-  },
-  {
-    id: "req-kongo",
-    requesterName: "Kongo Scholars Bookshop",
-    requesterHandle: "kongo-scholars",
-    requesterLocation: "ABU Kongo Campus",
-    requesterAvatar:
-      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=200&auto=format&fit=crop&q=80",
-    timeAgo: "4h",
-    isVerified: false,
-    requestText:
-      "Anyone with extra clean copies of 200L Constitutional Law compendiums looking to sell or trade at Faculty of Law quadrangle today?",
-    category: "course_packs",
-    replies: [],
-  },
-];
+const INITIAL_RADAR_POSTS: RadarPost[] = [];
 
 export default function WantedPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
-          <div className="w-7 h-7 rounded-full border-2 border-[#171717] dark:border-white border-t-transparent animate-spin" />
+        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+          <RebrandHeader />
+          <RadarSkeleton count={5} />
         </div>
       }
     >
@@ -329,7 +86,9 @@ function RadarContent() {
         const stored = localStorage.getItem("ch_radar_posts");
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.filter((p: any) => !String(p.id).startsWith("req-"));
+          }
         }
       } catch {}
     }
@@ -343,7 +102,7 @@ function RadarContent() {
     } catch {}
   };
 
-  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>(SUGGESTED_FOR_YOU);
+  const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
 
   // Fetch live active stores/profiles for suggested campus contacts
   React.useEffect(() => {
@@ -558,7 +317,26 @@ function RadarContent() {
             {/* LEFT COLUMN: ULTRA-COMPACT RADAR POSTS (7/8 Cols)           */}
             {/* ----------------------------------------------------------- */}
             <div className="lg:col-span-7 xl:col-span-8 space-y-2.5">
-            {posts.map((post) => {
+            {posts.length === 0 ? (
+              <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-10 text-center">
+                <Radio className="w-10 h-10 mx-auto text-[#8C929C] mb-3 opacity-60" />
+                <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
+                  No radar requests yet
+                </h3>
+                <p className="text-[13px] text-[#667085] dark:text-neutral-400 max-w-md mx-auto mt-1 mb-5">
+                  Looking for a textbook, gadget, or campus service? Broadcast your request and let campus peers find you.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => desktopTextareaRef.current?.focus()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] text-[#171717] font-bold text-[13px] hover:bg-[#E5B524] transition-colors"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Post a Request
+                </button>
+              </div>
+            ) : (
+              posts.map((post) => {
               const isExpanded = Boolean(expandedPostIds[post.id]);
               const isMenuOpen = openMenuPostId === post.id;
               const postChatHref = `/messages?${new URLSearchParams({
@@ -774,7 +552,8 @@ function RadarContent() {
                   </div>
                 </article>
               );
-            })}
+            })
+            )}
           </div>
 
           {/* ------------------------------------------------------------- */}
@@ -823,51 +602,57 @@ function RadarContent() {
               </div>
 
               <div className="divide-y divide-[#F2F4F7] dark:divide-white/5">
-                {suggestedProfiles.map((person) => (
-                  <div
-                    key={person.id}
-                    className="py-3 flex items-center justify-between gap-2.5"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Link href={person.profileHref} className="shrink-0">
-                        <img
-                          src={person.avatar}
-                          alt={person.name}
-                          className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
-                        />
-                      </Link>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1 min-w-0">
-                          <Link
-                            href={person.profileHref}
-                            className="text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
-                          >
-                            {person.name}
-                          </Link>
-                          {person.isVerified && person.accountType === "student" && (
-                            <BadgeCheck
-                              className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                              aria-label="Verified student seller"
-                            />
-                          )}
-                        </div>
-                        <p className="text-[11px] text-[#68707A] dark:text-neutral-400 truncate">
-                          {person.similarProducts}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Link
-                      href={`/messages?${new URLSearchParams(
-                        person.chatParams
-                      ).toString()}`}
-                      className="radius-native shrink-0 px-2.5 py-1 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] text-[11px] font-bold text-[#171717] dark:text-white transition-colors"
-                    >
-                      Message
-                    </Link>
+                {suggestedProfiles.length === 0 ? (
+                  <div className="py-6 text-center text-[12px] text-[#8C929C]">
+                    No campus stores or contacts suggested yet.
                   </div>
-                ))}
+                ) : (
+                  suggestedProfiles.map((person) => (
+                    <div
+                      key={person.id}
+                      className="py-3 flex items-center justify-between gap-2.5"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Link href={person.profileHref} className="shrink-0">
+                          <img
+                            src={person.avatar}
+                            alt={person.name}
+                            className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
+                          />
+                        </Link>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <Link
+                              href={person.profileHref}
+                              className="text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
+                            >
+                              {person.name}
+                            </Link>
+                            {person.isVerified && person.accountType === "student" && (
+                              <BadgeCheck
+                                className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
+                                aria-label="Verified student seller"
+                              />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-[#68707A] dark:text-neutral-400 truncate">
+                            {person.similarProducts}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/messages?${new URLSearchParams(
+                          person.chatParams
+                        ).toString()}`}
+                        className="radius-native shrink-0 px-2.5 py-1 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] text-[11px] font-bold text-[#171717] dark:text-white transition-colors"
+                      >
+                        Message
+                      </Link>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="pt-2.5 border-t border-[#F2F4F7] dark:border-white/10">

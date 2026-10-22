@@ -22,7 +22,11 @@ export default function ProfileRedirect() {
     } catch {
       // ignore storage errors
     }
-    const targetHandle = savedHandle || user?.handle || "tundebello";
+    if (!user && !savedHandle) {
+      router.replace("/login?next=%2Fprofile");
+      return;
+    }
+    const targetHandle = savedHandle || user?.handle || user?.id || "me";
     router.replace(`/profile/${targetHandle}`);
   }, [isLoading, router, user]);
 

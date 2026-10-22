@@ -22,6 +22,7 @@ import {
   BadgeCheck,
   ChevronRight,
   Sparkles,
+  Megaphone,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Logo } from "../ui/Logo";
@@ -52,6 +53,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/moderation",
     icon: ShieldAlert,
     matchPrefixes: ["/admin/moderation", "/admin/listings"],
+  },
+  {
+    name: "Banner Management",
+    href: "/admin/banners",
+    icon: Megaphone,
+    matchPrefixes: ["/admin/banners"],
   },
   {
     name: "Stores",

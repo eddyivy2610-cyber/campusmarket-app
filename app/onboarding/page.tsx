@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
+import { ButtonRing } from "@/components/common/LoadingSystem";
 import { useAuth } from "@/context/AuthContext";
 import { uploadFileClient } from "@/lib/clientUpload";
 
@@ -476,7 +477,7 @@ export default function OnboardingPage() {
           disabled={isLoading}
           className="radius-native w-full py-2.5 sm:py-3 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] font-extrabold text-[13.5px] shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60 mt-2"
         >
-          {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {isLoading && <ButtonRing size="sm" />}
           <span>Complete setup</span>
           <ArrowRight className="w-4 h-4" />
         </button>

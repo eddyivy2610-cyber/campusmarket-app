@@ -28,9 +28,9 @@ import {
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { PageSkeleton } from "../components/common/LoadingSystem";
 import { StorefrontManager, StorefrontTab } from "../components/storefront/StorefrontManager";
 import {
-  STORES_DATABASE,
   StoreBusinessType,
   StoreCategory,
   StoreProfile,
@@ -40,8 +40,9 @@ export default function StoresPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#171717] dark:border-white border-t-transparent animate-spin" />
+        <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+          <RebrandHeader />
+          <PageSkeleton title={true} cards={8} />
         </div>
       }
     >
@@ -171,13 +172,9 @@ function StoresContent() {
     showToast(isNowSaved ? "Store saved to your favorites" : "Store removed from favorites");
   };
 
-  // Merged and Filtered Stores: prioritize canonical live stores from database
+  // Canonical live stores from database
   const allStores = useMemo(() => {
-    if (dbStores.length > 0) {
-      return dbStores;
-    }
-    // Fall back to seed database stores only when database has 0 active stores or offline
-    return STORES_DATABASE;
+    return dbStores;
   }, [dbStores]);
 
   const filteredStores = useMemo(() => {

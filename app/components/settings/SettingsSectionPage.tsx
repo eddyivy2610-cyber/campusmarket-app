@@ -10,7 +10,7 @@ const MAP_LEGACY_SECTION_ID: Record<SectionId, SettingsDestinationId> = {
   business: "marketplace",
   payment: "marketplace",
   security: "security",
-  preferences: "privacy",
+  preferences: "preferences",
   help: "verification",
   "account-status": "security",
   "profile-activity": "privacy",

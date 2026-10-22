@@ -1,7 +1,16 @@
+import React from "react";
+import { PageSkeleton } from "./LoadingSystem";
+
+/**
+ * Replaces the old full-page blocking spinner with a content-informed
+ * skeleton shimmer layout matching Campus Hive 2.0 design rules.
+ */
 export function GlobalLoader() {
-    return (
-        <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
-            <div className="w-10 h-10 border-[3px] border-border border-t-foreground rounded-full animate-spin" style={{ animationTimingFunction: "linear", animationDuration: "1s" }} />
-        </div>
-    );
+  return (
+    <div className="w-full min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] transition-colors">
+      <PageSkeleton title={true} cards={8} />
+    </div>
+  );
 }
+
+export default GlobalLoader;

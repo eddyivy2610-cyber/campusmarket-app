@@ -17,6 +17,7 @@ interface ExpectedIndex {
   name?: string;
   key: Record<string, number | string>;
   unique?: boolean;
+  partialFilterExpression?: Record<string, unknown>;
 }
 
 const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
@@ -26,12 +27,22 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
     { key: { status: 1, campus: 1, category: 1, createdAt: -1, _id: -1 } },
     { key: { status: 1, campus: 1, category: 1, listingType: 1, createdAt: -1, _id: -1 } },
     { key: { status: 1, listingType: 1, createdAt: -1, _id: -1 } },
-    { key: { sellerId: 1, storeId: 1, status: 1 } },
+    { key: { storeId: 1, status: 1, createdAt: -1, _id: -1 } },
+    { key: { sellerId: 1, status: 1, createdAt: -1, _id: -1 } },
     { key: { storeId: 1, status: 1 } },
     { key: { sellerId: 1, status: 1 } },
-    { key: { status: 1, _fts: "text", _ftsx: 1 } }, // Compound status-partitioned text index
-    { key: { slug: 1 }, unique: true },
-    { key: { listingCode: 1 }, unique: true },
+    { key: { sellerId: 1, storeId: 1, status: 1 } },
+    { key: { status: 1, title: "text", description: "text" } },
+    {
+      key: { slug: 1 },
+      unique: true,
+      partialFilterExpression: { slug: { $type: "string" } },
+    },
+    {
+      key: { listingCode: 1 },
+      unique: true,
+      partialFilterExpression: { listingCode: { $type: "string" } },
+    },
   ],
   stores: [
     { key: { status: 1, campus: 1, "metrics.rating": -1, createdAt: -1 } },
@@ -49,7 +60,11 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
   ],
   users: [
     { key: { email: 1 }, unique: true },
-    { key: { "profile.handle": 1 }, unique: true },
+    {
+      key: { "profile.handle": 1 },
+      unique: true,
+      partialFilterExpression: { "profile.handle": { $type: "string" } },
+    },
   ],
 };
 
@@ -58,6 +73,10 @@ function keysMatch(a: Record<string, any>, b: Record<string, any>): boolean {
   const keysB = Object.keys(b);
   if (keysA.length !== keysB.length) return false;
   return keysA.every((k) => a[k] === b[k]);
+}
+
+function valueMatches(actual: unknown, expected: unknown): boolean {
+  return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
 export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
@@ -78,7 +97,11 @@ export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
     try {
       existingIndexes = await coll.indexes();
     } catch (err: any) {
-      console.warn(`  ⚠️ Could not read indexes for '${collName}': ${err.message}`);
+      console.error(`  ❌ Could not read indexes for '${collName}': ${err.message}`);
+      totalMissing += expectedList.length;
+      totalChecked += expectedList.length;
+      console.log("");
+      continue;
     }
 
     // Inspect index memory stats if available
@@ -103,8 +126,20 @@ export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
         console.error(`  ❌ MISSING INDEX: Collection '${collName}' missing key:`, JSON.stringify(exp.key));
         totalMissing++;
       } else {
-        if (exp.unique && !found.unique) {
-          console.error(`  ❌ NON-UNIQUE INDEX: Index '${found.name}' on '${collName}' is missing unique: true constraint`);
+        const uniqueMismatch = Boolean(exp.unique) !== Boolean(found.unique);
+        const partialMismatch =
+          exp.partialFilterExpression !== undefined &&
+          !valueMatches(found.partialFilterExpression, exp.partialFilterExpression);
+
+        if (uniqueMismatch) {
+          console.error(
+            `  ❌ CONSTRAINT MISMATCH: Index '${found.name}' on '${collName}' expected unique=${Boolean(exp.unique)}, found unique=${Boolean(found.unique)}`
+          );
+          totalMissing++;
+        } else if (partialMismatch) {
+          console.error(
+            `  ❌ FILTER MISMATCH: Index '${found.name}' on '${collName}' expected partialFilterExpression=${JSON.stringify(exp.partialFilterExpression)}, found ${JSON.stringify(found.partialFilterExpression)}`
+          );
           totalMissing++;
         } else {
           console.log(`  ✅ ACTIVE: '${found.name}' on '${collName}' (${JSON.stringify(found.key)})`);
@@ -117,12 +152,14 @@ export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
   console.log("==================================================================");
   if (totalMissing > 0) {
     console.error(` ❌ POST-DEPLOY INDEX VERIFICATION FAILED: ${totalMissing} of ${totalChecked} indexes are missing or invalid!`);
-    console.error(" Run 'npx tsx scripts/run-phase3-indexes.ts' immediately to build missing indexes.");
+    console.error(" No indexes were dropped, rebuilt, or modified by this read-only verification.");
+    console.error(" Review the reported discrepancy and apply an approved production migration separately.");
     console.log("==================================================================");
     throw new Error(`Index Verification Failed: ${totalMissing} indexes missing.`);
   }
 
   console.log(` ✅ ALL ${totalChecked} REQUIRED PRODUCTION INDEXES VERIFIED ACTIVE & HEALTHY`);
+  console.log(" ℹ️ Query-plan usage is checked separately; this command only verifies index presence and constraints.");
   console.log("==================================================================");
   return { totalChecked, totalMissing: 0 };
 }

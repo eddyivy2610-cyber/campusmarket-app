@@ -47,7 +47,10 @@ async function run() {
 
   // Ensure unique indexes on users collection for complete verification
   await db.collection("users").createIndex({ email: 1 }, { unique: true });
-  await db.collection("users").createIndex({ "profile.handle": 1 }, { unique: true });
+  await db.collection("users").createIndex(
+    { "profile.handle": 1 },
+    { unique: true, partialFilterExpression: { "profile.handle": { $type: "string" } } }
+  );
   await db.collection("stores").createIndex({ ownerId: 1 }, { unique: true });
   await db.collection("stores").createIndex({ slug: 1 }, { unique: true });
 

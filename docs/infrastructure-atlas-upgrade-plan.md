@@ -123,6 +123,9 @@ Atlas supports seamless in-place cluster tier upgrades with zero scheduled downt
    - Once in sync, the existing Secondary nodes are upgraded sequentially.
    - A rolling primary election occurs: the old M0 Primary steps down to Secondary, and a freshly upgraded M10 node is elected Primary. The step-down takes < 2 seconds and is seamlessly retried by Mongoose via retryable writes (`retryWrites=true`).
 4. **Post-Upgrade Verification**:
-   - Run `npx tsx scripts/verify-production-indexes.ts` against the M10 connection string.
+   - Run `STAGING_MONGODB_URI=... STAGING_MONGODB_DATABASE=... PRODUCTION_MONGODB_URI=... PRODUCTION_MONGODB_DATABASE=... npm run verify:indexes:deployed`; both URIs must explicitly name distinct databases, staging is checked first, and production is not contacted if staging fails.
+   - Run `npm run test:plans` as a separate query-plan check. Index presence does not prove that the intended query path is selected.
+   - The verifier is read-only. Resolve discrepancies through a reviewed database migration, then rerun the gate.
+   - Run `BASE_URL=... ATLAS_STAGING_MONGODB_URI=... ATLAS_TIER=M10 ATLAS_CONNECTION_LIMIT=1500 npm run test:load:staging`; the 100-VU k6 profile samples peak connections every 250ms and fails at 80%. Confirm the tier limit against Atlas before running; this guardrail does not approve latency or error rates.
    - Verify connection pool gauges in the Atlas metrics dashboard.
    - Verify `test-query-plans-ci.ts` executes on the M10 instance.
