@@ -396,7 +396,27 @@ async function runFollowMvpTestSuite() {
     );
     assert.strictEqual(suspendedStoreRes.status, 404, "Suspended store must return 404 on follow");
 
-    console.log("  PASS: Cannot follow own store (400), non-existent or suspended store returns 404");
+    // Non-seller buyer follow restriction (Only stores/seller accounts/services can be followed)
+    const daveId = new mongoose.Types.ObjectId().toString();
+    await UserModel.create({
+      _id: daveId,
+      name: "Dave NonSeller",
+      email: "dave@campushive.edu.ng",
+      role: "buyer",
+      accountStatus: "active",
+      isStudent: true,
+      studentVerified: true,
+    });
+    const followBuyerRes = await handleExplicitFollow(
+      makeMockRequest(`/api/follow/${daveId}?targetType=user`, { method: "POST" }, tokenAlice),
+      { params: Promise.resolve({ targetId: daveId }) }
+    );
+    assert.ok(followBuyerRes);
+    assert.strictEqual(followBuyerRes.status, 400, "Following a non-seller buyer must return 400");
+    const followBuyerJson = await followBuyerRes.json();
+    assert.ok(followBuyerJson.error.includes("Only stores and seller accounts"));
+
+    console.log("  PASS: Cannot follow own store (400), non-seller buyer (400), or suspended store (404)");
 
     // -------------------------------------------------------------------------
     // TEST 6: Drift Checker & Auto-Repair

@@ -2,6 +2,7 @@ import mongoose, { Types } from "mongoose";
 import FollowerModel, { FollowTargetType } from "@/models/Follower";
 import UserModel from "@/models/User";
 import StoreModel from "@/models/Store";
+import { ListingModel } from "@/models/Listing";
 import NotificationModel from "@/models/Notification";
 import { executeInTransaction } from "@/lib/transactionHelper";
 
@@ -87,6 +88,8 @@ export async function resolveAndValidateTarget(
       return { valid: false, error: "You cannot follow yourself.", statusCode: 400, targetType: "user" };
     }
 
+
+
     return {
       valid: true,
       targetId: userDoc._id as Types.ObjectId,
@@ -117,6 +120,30 @@ export async function executeFollow(
 
   if (existing) {
     return { isFollowing: true, newlyFollowed: false };
+  }
+
+  // Enforce that only stores and seller accounts / service providers can be followed
+  if (targetType === "user") {
+    const userDoc = await UserModel.findById(targetId).select("role sellerStatus isStudentSeller").lean();
+    if (userDoc) {
+      const isSeller =
+        userDoc.role === "seller" ||
+        (userDoc as any).sellerStatus === "approved" ||
+        (userDoc as any).isStudentSeller === true;
+      if (!isSeller) {
+        const [ownsStore, hasListings] = await Promise.all([
+          StoreModel.exists({ ownerId: targetId.toString() }),
+          ListingModel.exists({ sellerId: targetId.toString() }),
+        ]);
+        if (!ownsStore && !hasListings) {
+          const error: any = new Error(
+            "Only stores and seller accounts offering products or services can be followed."
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+    }
   }
 
   // Enforce follow cap per user

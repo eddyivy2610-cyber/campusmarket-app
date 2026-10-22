@@ -41,7 +41,7 @@ export async function POST(
 
     await dbConnect();
 
-    const target = await resolveAndValidateTarget(targetId, targetTypeHint);
+    const target = await resolveAndValidateTarget(targetId, targetTypeHint, user.id);
     if (!target.valid || !target.targetId) {
       return NextResponse.json(
         { success: false, error: target.error || "Target entity not found." },
@@ -76,6 +76,12 @@ export async function POST(
       targetType: target.targetType,
     });
   } catch (error: any) {
+    if (error?.statusCode === 400) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400, headers: { "Cache-Control": "private, no-store, must-revalidate" } }
+      );
+    }
     console.error("[POST /api/follow/[targetId]] Error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to follow." },
@@ -111,7 +117,7 @@ export async function DELETE(
 
     await dbConnect();
 
-    const target = await resolveAndValidateTarget(targetId, targetTypeHint);
+    const target = await resolveAndValidateTarget(targetId, targetTypeHint, user.id);
     if (!target.valid || !target.targetId) {
       return NextResponse.json(
         { success: false, error: target.error || "Target entity not found." },
@@ -164,7 +170,7 @@ export async function GET(
 
     await dbConnect();
 
-    const target = await resolveAndValidateTarget(targetId, targetTypeHint);
+    const target = await resolveAndValidateTarget(targetId, targetTypeHint, user.id);
     if (!target.valid || !target.targetId) {
       return NextResponse.json(
         { success: false, error: target.error || "Target entity not found." },
