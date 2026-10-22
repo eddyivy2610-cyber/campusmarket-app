@@ -884,33 +884,129 @@ async function runReviewTestSuite() {
         "../campus-hive-backend/controllers/review.controller.js"
       );
 
-      const headersSent: Record<string, string> = {};
-      let statusSent = 200;
-      let jsonSent: any = null;
-
-      const mockRes: any = {
-        setHeader: (k: string, v: string) => {
-          headersSent[k] = v;
-        },
-        status: (s: number) => {
-          statusSent = s;
-          return mockRes;
-        },
-        json: (data: any) => {
-          jsonSent = data;
-        },
+      const makeExpressRes = () => {
+        const headers: Record<string, string> = {};
+        let status = 200;
+        let json: any = null;
+        const res: any = {
+          setHeader: (k: string, v: string) => {
+            headers[k] = v;
+          },
+          status: (s: number) => {
+            status = s;
+            return res;
+          },
+          json: (data: any) => {
+            json = data;
+          },
+        };
+        return { res, getHeaders: () => headers, getStatus: () => status, getJson: () => json };
       };
 
-      // Test GET /api/reviews/seller/:sellerId in Express
+      // 1. Test GET /api/reviews/seller/:sellerId in Express
+      const getRes = makeExpressRes();
       await expressGetReviews(
         { params: { sellerId: alice._id.toString() } } as any,
-        mockRes
+        getRes.res
       );
 
-      assert.strictEqual(headersSent["X-API-Deprecated"], "true", "Express sends deprecation header");
-      assert.strictEqual(headersSent["X-API-Replacement"], "/api/reviews", "Express points to /api/reviews");
-      assert.match(headersSent["Cache-Control"], /private/i, "Express sets private caching");
-      console.log("  PASS: Legacy Express review endpoint transmits deprecation and private cache headers");
+      assert.strictEqual(getRes.getHeaders()["X-API-Deprecated"], "true", "Express sends deprecation header");
+      assert.strictEqual(getRes.getHeaders()["X-API-Replacement"], "/api/reviews", "Express points to /api/reviews");
+      assert.match(getRes.getHeaders()["Cache-Control"], /private/i, "Express sets private caching");
+
+      // 2. Test POST /api/reviews without orderId -> 400 rejection
+      const postNoOrderRes = makeExpressRes();
+      await expressCreateReview(
+        {
+          user: { id: bob._id.toString() },
+          body: {
+            sellerId: alice._id.toString(),
+            rating: 5,
+            comment: "Direct review without orderId",
+          },
+        } as any,
+        postNoOrderRes.res
+      );
+      assert.strictEqual(postNoOrderRes.getStatus(), 400, "Express rejects review without orderId with 400");
+      assert.ok(
+        postNoOrderRes.getJson()?.message?.includes("A valid orderId is required"),
+        "Express error explains orderId is required"
+      );
+
+      // 3. Test POST /api/reviews with undelivered order -> 400 rejection
+      const pendingOrder = await OrderModel.create({
+        orderId: "ORD-EXP-PENDING-001",
+        buyerId: bob._id.toString(),
+        sellerId: alice._id.toString(),
+        storeId: aliceStore._id.toString(),
+        status: "pending",
+        totalAmount: 10000,
+        items: [{ listingId: laptopListing._id, title: "Phone", price: 10000, quantity: 1 }],
+        paymentMethod: "cash",
+        fulfillmentMethod: "pickup",
+        createdAt: new Date().toISOString(),
+      });
+
+      const postPendingOrderRes = makeExpressRes();
+      await expressCreateReview(
+        {
+          user: { id: bob._id.toString() },
+          body: {
+            orderId: pendingOrder._id.toString(),
+            rating: 5,
+            comment: "Review on pending order",
+          },
+        } as any,
+        postPendingOrderRes.res
+      );
+      assert.strictEqual(postPendingOrderRes.getStatus(), 400, "Express rejects review for non-delivered order with 400");
+      assert.strictEqual(postPendingOrderRes.getJson()?.message, "Order must be delivered before review");
+
+      // 4. Test POST /api/reviews with valid delivered order -> 201 Created and sets deprecation header
+      const deliveredOrder = await OrderModel.create({
+        orderId: "ORD-EXP-DELIV-002",
+        buyerId: bob._id.toString(),
+        sellerId: alice._id.toString(),
+        storeId: aliceStore._id.toString(),
+        status: "delivered",
+        totalAmount: 12000,
+        items: [{ listingId: laptopListing._id, title: "Charger", price: 12000, quantity: 1 }],
+        paymentMethod: "cash",
+        fulfillmentMethod: "pickup",
+        createdAt: new Date().toISOString(),
+      });
+
+      const postDeliveredRes = makeExpressRes();
+      await expressCreateReview(
+        {
+          user: { id: bob._id.toString() },
+          body: {
+            orderId: deliveredOrder._id.toString(),
+            rating: 5,
+            comment: "Delivered order review via Express",
+          },
+        } as any,
+        postDeliveredRes.res
+      );
+      assert.strictEqual(postDeliveredRes.getStatus(), 201, "Express creates review for delivered order with 201");
+      assert.strictEqual(postDeliveredRes.getHeaders()["X-API-Deprecated"], "true", "Express sends deprecation header on POST");
+
+      // 5. Test duplicate submission via Express -> 409 Conflict
+      const postDuplicateRes = makeExpressRes();
+      await expressCreateReview(
+        {
+          user: { id: bob._id.toString() },
+          body: {
+            orderId: deliveredOrder._id.toString(),
+            rating: 4,
+            comment: "Duplicate review attempt",
+          },
+        } as any,
+        postDuplicateRes.res
+      );
+      assert.strictEqual(postDuplicateRes.getStatus(), 409, "Express rejects duplicate review on same order with 409");
+
+      console.log("  PASS: Legacy Express review endpoint strictly enforces orderId, delivery status, and idempotency");
     }
 
     // -----------------------------------------------------------------

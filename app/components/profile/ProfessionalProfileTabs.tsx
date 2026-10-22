@@ -2,8 +2,8 @@
  * @BACKEND: PROFILE TABS — Review submission is client-only, listings use mock data.
  *
  * Replace with:
- *   - POST /api/users/:id/reviews  → submit a star rating + comment review
- *   - GET /api/users/:id/reviews   → fetch existing reviews (paginated)
+ *   - (write) reviews are created from delivered orders via POST /api/reviews { orderId }  → submit a star rating + comment review
+ *   - GET /api/reviews?sellerId=:id   → fetch existing reviews (paginated)
  *   - GET /api/users/:id/listings  → fetch vendor's listings (already handled by ProfessionalListingsArea)
  */
 
@@ -34,6 +34,7 @@ import { ProUpgradePrompt } from "../shared/ProUpgradePrompt";
 import { ProfessionalPerformanceArea } from "./ProfessionalPerformanceArea";
 
 import { useAuth } from "../../context/AuthContext";
+import { reviewClient, ReviewItem } from "@/lib/reviewClient";
 
 interface ProfessionalProfileTabsProps {
     profile: Profile;
@@ -42,10 +43,6 @@ interface ProfessionalProfileTabsProps {
 
 export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfileTabsProps) {
     const isProAccount = profile.accountType === "Pro";
-    const [reviewRating, setReviewRating] = useState(0);
-    const [hoverRating, setHoverRating] = useState(0);
-    const [comment, setComment] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const buyerTabs = [
         { name: "About", icon: User },
@@ -74,20 +71,21 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
         }
     }, [activeTab, tabs, defaultTab]);
 
-    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<ReviewItem[]>([]);
     const [isLoadingReviews, setIsLoadingReviews] = useState(false);
     const { user } = useAuth();
 
+    // Reads go through the canonical Next.js endpoint (GET /api/reviews?sellerId=...).
+    // Reviews are only created from a delivered order (POST /api/reviews with orderId),
+    // so this profile view is read-only.
     const fetchReviews = async () => {
         try {
             setIsLoadingReviews(true);
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/seller/${profile.id}`);
-            const data = await response.json();
-            if (data.data) {
-                setReviews(data.data);
-            }
+            const res = await reviewClient.getReviews({ sellerId: profile.id, limit: 20 });
+            setReviews(res?.success && Array.isArray(res.data) ? res.data : []);
         } catch (error) {
             console.error("Failed to fetch reviews:", error);
+            setReviews([]);
         } finally {
             setIsLoadingReviews(false);
         }
@@ -98,35 +96,6 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
             fetchReviews();
         }
     }, [activeTab, profile.id]);
-
-    const handleReviewSubmit = async () => {
-        if (!user) return;
-        try {
-            setIsSubmitting(true);
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("campus_token")}`
-                },
-                body: JSON.stringify({
-                    sellerId: profile.id,
-                    rating: reviewRating,
-                    comment
-                })
-            });
-
-            if (response.ok) {
-                setComment("");
-                setReviewRating(0);
-                fetchReviews();
-            }
-        } catch (error) {
-            console.error("Failed to submit review:", error);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     return (
         <div className="w-full space-y-8 font-heading">
@@ -291,44 +260,9 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
 
                     {activeTab === "Reviews" && (
                         <div className="space-y-8">
-                            {/* Condensed Single Textbox Review Input */}
                             {viewAs === 'public' && user && (
-                                <div className="relative group">
-                                    <input
-                                        type="text"
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        placeholder="Leave a review..."
-                                        className="w-full bg-secondary/10 border-2 border-border/20 rounded-2xl h-14 pl-5 pr-28 text-sm font-medium focus:border-[#FFD700] focus:bg-background transition-all outline-none"
-                                    />
-                                    <div className="absolute right-2 top-1.5 bottom-1.5 flex items-center gap-1 bg-background rounded-xl px-2 border border-border/40">
-                                        <div className="flex items-center gap-0.5 pr-1">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <button
-                                                    key={s}
-                                                    type="button"
-                                                    onClick={() => setReviewRating(s)}
-                                                    onMouseEnter={() => setHoverRating(s)}
-                                                    onMouseLeave={() => setHoverRating(0)}
-                                                    className="p-0.5 transition-transform hover:scale-125"
-                                                >
-                                                    <Star
-                                                        className={`w-4 h-4 transition-colors ${s <= (hoverRating || reviewRating)
-                                                            ? 'text-amber-400 fill-amber-400'
-                                                            : 'text-muted-foreground/20'
-                                                            }`}
-                                                    />
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button
-                                            onClick={handleReviewSubmit}
-                                            disabled={isSubmitting || reviewRating === 0 || !comment.trim()}
-                                            className="p-2 text-[#FFD700] hover:bg-[#FFD700]/10 rounded-lg disabled:opacity-20 transition-all font-bold text-[10px] uppercase"
-                                        >
-                                            {isSubmitting ? "..." : "Go"}
-                                        </button>
-                                    </div>
+                                <div className="p-4 rounded-2xl bg-secondary/10 border border-border/30 text-xs text-muted-foreground">
+                                    Reviews can only be left for orders you have received. Open a delivered order to rate this seller.
                                 </div>
                             )}
 
@@ -339,20 +273,20 @@ export function ProfessionalProfileTabs({ profile, viewAs }: ProfessionalProfile
                             ) : reviews.length > 0 ? (
                                 <div className="grid gap-6">
                                     {reviews.map((review) => (
-                                        <div key={review._id} className="p-6 bg-secondary/5 rounded-[24px] border border-border/40 space-y-3">
+                                        <div key={review.id} className="p-6 bg-secondary/5 rounded-[24px] border border-border/40 space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full overflow-hidden bg-secondary/20">
-                                                        {review.reviewerId?.profile?.avatar ? (
-                                                            <img src={review.reviewerId.profile.avatar} alt="" className="w-full h-full object-cover" />
+                                                        {review.reviewer?.avatar ? (
+                                                            <img src={review.reviewer.avatar} alt="" className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-primary font-bold">
-                                                                {review.reviewerId?.profile?.displayName?.charAt(0) || "U"}
+                                                                {review.reviewer?.name?.charAt(0) || "U"}
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold">{review.reviewerId?.profile?.displayName || "Anonymous"}</p>
+                                                        <p className="text-sm font-bold">{review.reviewer?.name || "Campus Buyer"}</p>
                                                         <div className="flex items-center gap-0.5">
                                                             {[1, 2, 3, 4, 5].map((s) => (
                                                                 <Star
