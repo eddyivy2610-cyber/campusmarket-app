@@ -45,7 +45,7 @@ export async function POST(
     await dbConnect();
 
     // Resolve and validate target entity
-    const target = await resolveAndValidateTarget(targetId, targetTypeHint);
+    const target = await resolveAndValidateTarget(targetId, targetTypeHint, user.id);
     if (!target.valid || !target.targetId) {
       return NextResponse.json(
         { success: false, error: target.error || "Target entity not found." },
