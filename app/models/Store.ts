@@ -21,6 +21,7 @@ export interface IStoreMetrics {
   reviewsCount: number;
   completedDeals: number;
   listingsCount: number;
+  followersCount: number;
 }
 
 export interface IStore {
@@ -161,6 +162,7 @@ const StoreSchema = new Schema<IStoreDocument>(
       reviewsCount: { type: Number, default: 0 },
       completedDeals: { type: Number, default: 0 },
       listingsCount: { type: Number, default: 0 },
+      followersCount: { type: Number, default: 0 },
     },
     schemaVersion: {
       type: Number,

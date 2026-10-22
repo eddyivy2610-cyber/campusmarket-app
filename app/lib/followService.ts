@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiDelete } from "./apiClient";
+import { apiGet, apiPost, apiPut, apiDelete } from "./apiClient";
 
 export type FollowTargetType = "user" | "store";
 
@@ -136,6 +136,74 @@ export const followService = {
    */
   getCounts: async (targetId: string, targetType: FollowTargetType = "user") => {
     return apiGet<FollowCountsResponse>(`/follow/counts/${targetId}?targetType=${targetType}`);
+  },
+
+  /**
+   * Idempotently follow a store (Canonical Patch 4.4 MVP)
+   */
+  followStore: async (storeId: string) => {
+    return apiPut<{
+      success: boolean;
+      message: string;
+      isFollowing: boolean;
+      newlyFollowed: boolean;
+      storeId: string;
+    }>(`/stores/${storeId}/follow`);
+  },
+
+  /**
+   * Idempotently unfollow a store (Canonical Patch 4.4 MVP)
+   */
+  unfollowStore: async (storeId: string) => {
+    return apiDelete<{
+      success: boolean;
+      message: string;
+      isFollowing: boolean;
+      newlyUnfollowed: boolean;
+      storeId: string;
+    }>(`/stores/${storeId}/follow`);
+  },
+
+  /**
+   * Check store follow status
+   */
+  getStoreFollowStatus: async (storeId: string) => {
+    return apiGet<{
+      success: boolean;
+      isFollowing: boolean;
+      storeId: string;
+    }>(`/stores/${storeId}/follow`);
+  },
+
+  /**
+   * Get paginated active stores followed by current user
+   */
+  getFollowedStores: async (cursor?: string, limit: number = 20) => {
+    const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+    return apiGet<{
+      success: boolean;
+      count: number;
+      hasMore: boolean;
+      nextCursor: string | null;
+      stores: any[];
+      data: any[];
+    }>(`/follows/stores?limit=${limit}${cursorParam}`);
+  },
+
+  /**
+   * Get following feed (active listings from followed stores and sellers)
+   */
+  getFollowingFeed: async (cursor?: string, limit: number = 20, type?: string) => {
+    const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+    const typeParam = type ? `&type=${type}` : "";
+    return apiGet<{
+      success: boolean;
+      count: number;
+      hasMore: boolean;
+      nextCursor: string | null;
+      listings: any[];
+      data: any[];
+    }>(`/feed/following?limit=${limit}${cursorParam}${typeParam}`);
   },
 };
 

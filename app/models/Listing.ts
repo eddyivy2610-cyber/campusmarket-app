@@ -240,6 +240,8 @@ ListingSchema.index({ status: 1, campus: 1, category: 1, listingType: 1, created
 ListingSchema.index({ status: 1, listingType: 1, createdAt: -1, _id: -1 });                            // global listingType feed
 
 // Seller & Store catalog query indexes
+ListingSchema.index({ storeId: 1, status: 1, createdAt: -1, _id: -1 });
+ListingSchema.index({ sellerId: 1, status: 1, createdAt: -1, _id: -1 });
 ListingSchema.index({ storeId: 1, status: 1 });
 ListingSchema.index({ sellerId: 1, status: 1 });
 ListingSchema.index({ sellerId: 1, storeId: 1, status: 1 });                                           // unlinked picker query

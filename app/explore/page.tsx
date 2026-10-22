@@ -24,6 +24,8 @@ import {
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
+import { useAuth } from "../context/AuthContext";
+import { followService } from "@/lib/followService";
 import {
   EXPLORE_CATEGORIES,
   CAMPUS_LANDMARKS,
@@ -31,7 +33,7 @@ import {
   ExploreCategory,
   ExploreListingItem,
 } from "../data/exploreCatalog";
-type ContentType = "all" | "products" | "services";
+type ContentType = "all" | "products" | "services" | "following";
 type SortOption = "recent" | "price_asc" | "price_desc";
 
 function mapApiListingToExploreItem(item: any): ExploreListingItem {
@@ -97,6 +99,11 @@ function ExploreContent() {
   const [savedIds, setSavedIds] = useState<Record<string | number, boolean>>({});
   const [showSavedOnly, setShowSavedOnly] = useState(false);
 
+  const { user } = useAuth();
+  const [followingListings, setFollowingListings] = useState<ExploreListingItem[]>([]);
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
+  const [hasFetchedFollowing, setHasFetchedFollowing] = useState(false);
+
   // Live database data state
   const [dbListings, setDbListings] = useState<ExploreListingItem[]>([]);
   const [isLoadingLive, setIsLoadingLive] = useState(true);
@@ -144,6 +151,32 @@ function ExploreContent() {
       isCancelled = true;
     };
   }, []);
+
+  // Fetch live following feed when Following tab is selected
+  useEffect(() => {
+    if (activeContentType === "following" && user?.id) {
+      let isCancelled = false;
+      setIsLoadingFollowing(true);
+      followService
+        .getFollowingFeed()
+        .then((res: any) => {
+          if (!isCancelled && res?.success && Array.isArray(res.listings || res.data)) {
+            const feedItems = (res.listings || res.data).map(mapApiListingToExploreItem);
+            setFollowingListings(feedItems);
+            setHasFetchedFollowing(true);
+          }
+        })
+        .catch((err) => {
+          console.warn("[ExplorePage] Failed to fetch following feed:", err);
+        })
+        .finally(() => {
+          if (!isCancelled) setIsLoadingFollowing(false);
+        });
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [activeContentType, user?.id]);
 
   // Sync category parameter if changed in URL
   useEffect(() => {
@@ -193,9 +226,12 @@ function ExploreContent() {
 
   // Primary source dataset: live DB with graceful fallback if empty
   const sourceListings = useMemo(() => {
+    if (activeContentType === "following") {
+      return followingListings;
+    }
     if (dbListings.length > 0) return dbListings;
     return EXPLORE_LISTINGS;
-  }, [dbListings]);
+  }, [activeContentType, followingListings, dbListings]);
 
   // Compute active filter count for badge indicator
   const activeFiltersCount = useMemo(() => {
@@ -354,6 +390,7 @@ function ExploreContent() {
                   { id: "all", label: "All Items" },
                   { id: "products", label: "Products" },
                   { id: "services", label: "Services" },
+                  { id: "following", label: "Following" },
                 ] as const
               ).map((tab) => (
                 <button
@@ -610,7 +647,25 @@ function ExploreContent() {
           {/* SECTION D: Listing Grid (Products, Services, Stores) */}
           {/* ========================================================= */}
           <div className="flex-1 min-w-0">
-            {isLoadingLive ? (
+            {activeContentType === "following" && !user ? (
+              <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto my-8">
+                <div className="radius-native w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 mx-auto flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
+                  Following Feed
+                </h3>
+                <p className="mt-1 text-[13px] text-[#5B636E] dark:text-neutral-400">
+                  Sign in to see products and services from students and stores you follow.
+                </p>
+                <Link
+                  href="/login"
+                  className="mt-5 radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] px-5 py-2 text-[12.5px] font-bold transition-all shadow-xs"
+                >
+                  Sign In
+                </Link>
+              </div>
+            ) : isLoadingLive || (activeContentType === "following" && isLoadingFollowing) ? (
               <div
                 className={`grid grid-cols-2 ${
                   showDesktopFilters
@@ -631,26 +686,47 @@ function ExploreContent() {
                 ))}
               </div>
             ) : totalResultsCount === 0 ? (
-              // Empty State
-              <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto my-8">
-                <div className="radius-native w-12 h-12 rounded-full bg-[#F5F6F8] dark:bg-white/5 mx-auto flex items-center justify-center text-[#8C929C] mb-4">
-                  <Search className="w-6 h-6" />
+              activeContentType === "following" ? (
+                <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto my-8">
+                  <div className="radius-native w-12 h-12 rounded-full bg-[#F5F6F8] dark:bg-white/5 mx-auto flex items-center justify-center text-[#8C929C] mb-4">
+                    <Store className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
+                    No items from followed sellers
+                  </h3>
+                  <p className="mt-1 text-[13px] text-[#5B636E] dark:text-neutral-400">
+                    You aren&apos;t following any sellers yet, or they haven&apos;t posted any new items. Follow campus stores and sellers to see their newest listings here.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveContentType("all")}
+                    className="mt-5 radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] dark:bg-white text-white dark:text-[#171717] px-4 py-2 text-[12.5px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <span>Browse All Items</span>
+                  </button>
                 </div>
-                <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
-                  No listings found
-                </h3>
-                <p className="mt-1 text-[13px] text-[#5B636E] dark:text-neutral-400">
-                  Try adjusting your search terms, changing the category, or clearing active filters.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleClearAllFilters}
-                  className="mt-5 radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] dark:bg-white text-white dark:text-[#171717] px-4 py-2 text-[12.5px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Clear all filters</span>
-                </button>
-              </div>
+              ) : (
+                // Empty State
+                <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto my-8">
+                  <div className="radius-native w-12 h-12 rounded-full bg-[#F5F6F8] dark:bg-white/5 mx-auto flex items-center justify-center text-[#8C929C] mb-4">
+                    <Search className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
+                    No listings found
+                  </h3>
+                  <p className="mt-1 text-[13px] text-[#5B636E] dark:text-neutral-400">
+                    Try adjusting your search terms, changing the category, or clearing active filters.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleClearAllFilters}
+                    className="mt-5 radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] dark:bg-white text-white dark:text-[#171717] px-4 py-2 text-[12.5px] font-semibold hover:opacity-90 transition-opacity cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Clear all filters</span>
+                  </button>
+                </div>
+              )
             ) : (
               <div
                 className={`grid grid-cols-2 ${

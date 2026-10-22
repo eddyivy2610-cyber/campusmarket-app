@@ -109,16 +109,23 @@ export async function GET(
         followedAt: r.createdAt,
       }));
 
-    return NextResponse.json({
-      success: true,
-      userId: userTarget.targetId.toString(),
-      total,
-      page,
-      pages: Math.ceil(total / limit),
-      count: following.length,
-      following,
-      data: following,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        userId: userTarget.targetId.toString(),
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        count: following.length,
+        following,
+        data: following,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-store, must-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[GET /api/follow/following] Error:", error);
     return NextResponse.json(

@@ -46,12 +46,19 @@ export async function GET(
       targetType: target.targetType,
     }).lean();
 
-    return NextResponse.json({
-      success: true,
-      isFollowing: Boolean(follow),
-      targetId: target.targetId.toString(),
-      targetType: target.targetType,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        isFollowing: Boolean(follow),
+        targetId: target.targetId.toString(),
+        targetType: target.targetType,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-store, must-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[GET /api/follow/status] Error:", error);
     return NextResponse.json(

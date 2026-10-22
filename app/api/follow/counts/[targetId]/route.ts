@@ -49,13 +49,20 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      targetId: targetObjectId.toString(),
-      targetType: target.targetType,
-      followersCount,
-      followingCount,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        targetId: targetObjectId.toString(),
+        targetType: target.targetType,
+        followersCount,
+        followingCount,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-store, must-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[GET /api/follow/counts] Error:", error);
     return NextResponse.json(

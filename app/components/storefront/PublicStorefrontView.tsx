@@ -25,8 +25,11 @@ import {
   XCircle,
   Copy,
   Check,
+  Plus,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
+import { useAuth } from "../../context/AuthContext";
+import { followService } from "@/lib/followService";
 import { RebrandFooter } from "../sections/RebrandFooter";
 
 export interface PublicStoreListing {
@@ -79,6 +82,7 @@ export interface PublicStoreData {
     reviewsCount: number;
     completedDeals: number;
     listingsCount: number;
+    followersCount?: number;
   };
   openingHours?: string;
   responseTime?: string;
@@ -106,7 +110,11 @@ export function PublicStorefrontView({
 
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services" | "about">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth();
   const [isSaved, setIsSaved] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowPending, setIsFollowPending] = useState(false);
+  const [followersCount, setFollowersCount] = useState<number>(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -117,12 +125,58 @@ export function PublicStorefrontView({
   // Check saved state from localStorage
   useEffect(() => {
     if (store?._id || store?.id) {
+      const storeId = (store._id || store.id)!;
+      setFollowersCount(store.metrics?.followersCount ?? 0);
       try {
-        const key = `ch_saved_store_${store._id || store.id}`;
+        const key = `ch_saved_store_${storeId}`;
         setIsSaved(localStorage.getItem(key) === "true");
       } catch {}
+
+      if (user?.id) {
+        followService
+          .getStoreFollowStatus(storeId)
+          .then((res) => {
+            if (res?.success) setIsFollowing(Boolean(res.isFollowing));
+          })
+          .catch(() => {});
+      }
     }
-  }, [store]);
+  }, [store, user?.id]);
+
+  const handleFollowToggle = async () => {
+    if (!user) {
+      showToast("Please sign in to follow stores.");
+      router.push("/login");
+      return;
+    }
+    const storeId = store?._id || store?.id;
+    if (!storeId) return;
+
+    setIsFollowPending(true);
+    const nextFollowing = !isFollowing;
+    setIsFollowing(nextFollowing);
+    setFollowersCount((prev) => (nextFollowing ? prev + 1 : Math.max(0, prev - 1)));
+
+    try {
+      const res = nextFollowing
+        ? await followService.followStore(storeId)
+        : await followService.unfollowStore(storeId);
+      if (res?.success) {
+        setIsFollowing(res.isFollowing);
+        showToast(res.isFollowing ? `Following ${store?.name}` : `Unfollowed ${store?.name}`);
+      } else {
+        setIsFollowing(!nextFollowing);
+        setFollowersCount((prev) => (nextFollowing ? Math.max(0, prev - 1) : prev + 1));
+        showToast((res as any)?.error || "Failed to update follow status.");
+      }
+    } catch (err: any) {
+      setIsFollowing(!nextFollowing);
+      setFollowersCount((prev) => (nextFollowing ? Math.max(0, prev - 1) : prev + 1));
+      showToast(err.message || "Failed to update follow status.");
+    } finally {
+      setIsFollowPending(false);
+    }
+  };
 
   // Fetch store and listings if not provided or to ensure fresh live data
   useEffect(() => {
@@ -370,6 +424,7 @@ export function PublicStorefrontView({
   const isStudentSeller =
     store.storeType === "student_store" || store.storeType === "student_owned";
   const isPaused = store.status === "paused";
+  const isOwner = Boolean(user?.id && store.ownerId && store.ownerId === user.id);
 
   const messageUrl = `/messages?recipient=${encodeURIComponent(
     store.ownerId || store._id || store.id || ""
@@ -532,10 +587,45 @@ export function PublicStorefrontView({
                         Listings
                       </div>
                     </div>
+
+                    <span className="text-[#DCE0E6] dark:text-white/20 select-none">|</span>
+
+                    <div className="text-center flex-1">
+                      <div className="text-[16px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                        {followersCount}
+                      </div>
+                      <div className="text-[11px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                        Followers
+                      </div>
+                    </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
+                    {!isOwner && (
+                      <button
+                        type="button"
+                        onClick={handleFollowToggle}
+                        disabled={isFollowPending}
+                        className={`radius-native h-10 px-3.5 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                          isFollowing
+                            ? "bg-[#171717] dark:bg-white text-white dark:text-[#171717] shadow-xs"
+                            : "border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] text-[#171717] dark:text-white"
+                        }`}
+                      >
+                        {isFollowing ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-[#22C55E]" />
+                            <span>Following</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Follow</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                     <Link
                       href={messageUrl}
                       className="radius-native flex-1 h-10 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors"
