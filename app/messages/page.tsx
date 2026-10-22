@@ -41,6 +41,11 @@ import {
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
+import {
+  subscribeToConversation,
+  sendTypingIndicator,
+  getRealtimeClient,
+} from "../lib/realtimeClient";
 import type {
   ChatMessageDTO,
   ChatParticipantProfile,
@@ -218,6 +223,22 @@ function MessagesWorkspace() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const entryContextProcessedRef = useRef<string | null>(null);
 
+  const [isCounterpartTyping, setIsCounterpartTyping] = useState<string | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const messagesRef = useRef<ChatMessageDTO[]>([]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  const getAuthHeaders = useCallback((extra: Record<string, string> = {}) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("campus_token") : null;
+    return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...extra,
+    };
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3200);
@@ -243,9 +264,9 @@ function MessagesWorkspace() {
       const res = await fetch(
         `/api/messages/conversations?${params.toString()}`,
         {
-          headers: {
+          headers: getAuthHeaders({
             "x-campus-user-id": currentUser.id,
-          },
+          }),
         }
       );
       if (!res.ok) throw new Error("Failed to load conversations");
@@ -271,7 +292,7 @@ function MessagesWorkspace() {
     } finally {
       setIsLoadingList(false);
     }
-  }, [searchQuery, activeFilter, currentUser.id]);
+  }, [searchQuery, activeFilter, currentUser.id, getAuthHeaders]);
 
   // Fetch Single Conversation + Messages
   const fetchConversationDetails = useCallback(
@@ -285,9 +306,9 @@ function MessagesWorkspace() {
             convId
           )}?page=${pageNum}&limit=50`,
           {
-            headers: {
+            headers: getAuthHeaders({
               "x-campus-user-id": currentUser.id,
-            },
+            }),
           }
         );
         if (!res.ok) {
@@ -346,10 +367,10 @@ function MessagesWorkspace() {
         setIsLoadingThread(true);
         const res = await fetch("/api/messages/conversations", {
           method: "POST",
-          headers: {
+          headers: getAuthHeaders({
             "Content-Type": "application/json",
             "x-campus-user-id": currentUser.id,
-          },
+          }),
           body: JSON.stringify({
             participantId,
             participantName,
@@ -408,6 +429,7 @@ function MessagesWorkspace() {
     fetchConversations,
     fetchConversationDetails,
     showToast,
+    getAuthHeaders,
   ]);
 
   useEffect(() => {
@@ -420,6 +442,109 @@ function MessagesWorkspace() {
       setMessages([]);
     }
   }, [selectedConvId, fetchConversationDetails]);
+
+  // Realtime subscription for incoming messages, typing events, and deal updates
+  useEffect(() => {
+    if (!activeConv?.id) return;
+
+    const unsubscribe = subscribeToConversation(activeConv.id, {
+      onMessage: ({ message, conversation }) => {
+        setMessages((prev) => {
+          // Deduplicate by message ID or clientMessageId
+          if (
+            prev.some(
+              (m) =>
+                m.id === message.id ||
+                (m.clientMessageId &&
+                  message.clientMessageId &&
+                  m.clientMessageId === message.clientMessageId)
+            )
+          ) {
+            return prev;
+          }
+          return [...prev, message];
+        });
+
+        if (conversation) {
+          setActiveConv(conversation);
+          setConversations((prev) => {
+            const others = prev.filter((c) => c.id !== conversation.id);
+            return [conversation, ...others];
+          });
+        }
+      },
+      onTyping: ({ userId, name, isTyping }) => {
+        if (userId === currentUser.id) return;
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        if (isTyping) {
+          setIsCounterpartTyping(name || "Counterpart");
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsCounterpartTyping(null);
+          }, 3000);
+        } else {
+          setIsCounterpartTyping(null);
+        }
+      },
+      onDealUpdate: (deal) => {
+        if (deal) {
+          setActiveConv((prev) => (prev ? { ...prev, activeDeal: deal } : prev));
+        }
+      },
+      onOfferUpdate: (offer) => {
+        if (offer) {
+          setActiveConv((prev) => (prev ? { ...prev, activeOffer: offer } : prev));
+        }
+      },
+    });
+
+    return () => {
+      unsubscribe();
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [activeConv?.id, currentUser.id]);
+
+  // Reconnect Recovery: Fetch any missed messages when socket reconnects
+  useEffect(() => {
+    const pusher = getRealtimeClient();
+    if (!pusher || !activeConv?.id) return;
+
+    const handleConnected = async () => {
+      const currentList = messagesRef.current;
+      const last = currentList[currentList.length - 1];
+      if (last?.id) {
+        try {
+          const res = await fetch(
+            `/api/messages/conversations/${encodeURIComponent(
+              activeConv.id
+            )}/messages?sinceId=${encodeURIComponent(last.id)}`,
+            {
+              headers: getAuthHeaders(),
+            }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.messages) && data.messages.length > 0) {
+              setMessages((prev) => {
+                const existing = new Set(prev.map((m) => m.id));
+                const additions = data.messages.filter(
+                  (m: ChatMessageDTO) => !existing.has(m.id)
+                );
+                return additions.length > 0 ? [...prev, ...additions] : prev;
+              });
+            }
+          }
+        } catch {
+          // Reconnect catch-up fallback
+        }
+      }
+    };
+
+    pusher.connection.bind("connected", handleConnected);
+    return () => {
+      pusher.connection.unbind("connected", handleConnected);
+    };
+  }, [activeConv?.id, getAuthHeaders]);
 
   useEffect(() => {
     if (messagePage === 1) {
@@ -435,10 +560,10 @@ function MessagesWorkspace() {
         `/api/messages/conversations/${encodeURIComponent(activeConv.id)}`,
         {
           method: "PATCH",
-          headers: {
+          headers: getAuthHeaders({
             "Content-Type": "application/json",
             "x-campus-user-id": effectiveActorId,
-          },
+          }),
           body: JSON.stringify({
             collapsed: activeConv.isBannerCollapsed,
             contextStatus: status,
@@ -514,10 +639,10 @@ function MessagesWorkspace() {
         )}/messages`,
         {
           method: "POST",
-          headers: {
+          headers: getAuthHeaders({
             "Content-Type": "application/json",
             "x-campus-user-id": effectiveActorId,
-          },
+          }),
           body: JSON.stringify({
             text: payload.text,
             clientMessageId: payload.tempId,
@@ -629,10 +754,10 @@ function MessagesWorkspace() {
         )}/deal`,
         {
           method: "POST",
-          headers: {
+          headers: getAuthHeaders({
             "Content-Type": "application/json",
             "x-campus-user-id": effectiveActorId,
-          },
+          }),
           body: JSON.stringify({
             agreedPriceFormatted:
               dealPriceInput || activeConv.context?.priceFormatted || "Agreed price",
@@ -665,10 +790,10 @@ function MessagesWorkspace() {
         )}/deal`,
         {
           method: "PATCH",
-          headers: {
+          headers: getAuthHeaders({
             "Content-Type": "application/json",
             "x-campus-user-id": effectiveActorId,
-          },
+          }),
           body: JSON.stringify({ choice }),
         }
       );
@@ -1549,6 +1674,13 @@ function MessagesWorkspace() {
                   </div>
                 )}
 
+                {isCounterpartTyping && (
+                  <div className="px-4 py-1.5 text-xs text-[#717680] dark:text-neutral-400 flex items-center gap-1.5 animate-pulse bg-white/70 dark:bg-[#111318]/70 border-t border-[#ECEEF2] dark:border-white/10">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FFC928]" />
+                    <span>{isCounterpartTyping} is typing...</span>
+                  </div>
+                )}
+
                 <form
                   onSubmit={handleSendMessage}
                   className="flex items-center gap-2.5"
@@ -1575,7 +1707,16 @@ function MessagesWorkspace() {
                     <textarea
                       rows={1}
                       value={composerText}
-                      onChange={(e) => setComposerText(e.target.value)}
+                      onChange={(e) => {
+                        setComposerText(e.target.value);
+                        if (activeConv?.id) {
+                          sendTypingIndicator(
+                            activeConv.id,
+                            { userId: currentUser.id, name: currentUser.name },
+                            true
+                          );
+                        }
+                      }}
                       onKeyDown={handleComposerKeyDown}
                       placeholder={`Message ${
                         activeConv.otherParticipant.name.split(" ")[0]

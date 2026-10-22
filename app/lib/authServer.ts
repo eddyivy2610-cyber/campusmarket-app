@@ -4,8 +4,8 @@ import StoreModel, { IStoreDocument } from "../models/Store";
 import UserModel, { User } from "../models/User";
 import dbConnect from "./dbConnect";
 import { verifyAuthToken, ServerAuthUser } from "./authTokens";
-import { getConversationDoc, ensureParticipant } from "./chatRepository";
-import { IConversationDoc } from "../models/ChatModels";
+import { getConversationDoc, ensureParticipant, registerConversationDoc } from "./chatRepository";
+import { IConversationDoc, ConversationModel } from "../models/ChatModels";
 
 export type { ServerAuthUser };
 
@@ -170,7 +170,52 @@ export async function requireParticipant(
     return { user: null, conversation: null, errorResponse };
   }
 
-  const conversation = getConversationDoc(conversationId);
+  let conversation = getConversationDoc(conversationId);
+
+  // Fallback to MongoDB collection "conversations" if not present in-memory
+  if (!conversation) {
+    await dbConnect();
+    if (typeof window === "undefined" && mongoose.connection.readyState === 1) {
+      try {
+        const isObjectId = mongoose.isValidObjectId(conversationId);
+        const filter: any = isObjectId
+          ? { $or: [{ _id: new mongoose.Types.ObjectId(conversationId) }, { conversationId }] }
+          : { conversationId };
+
+        const dbDoc = await ConversationModel.findOne(filter).lean();
+        if (dbDoc) {
+          const stringIds =
+            Array.isArray(dbDoc.participantIds) && dbDoc.participantIds.length > 0
+              ? dbDoc.participantIds
+              : (dbDoc.participants || []).map((p: any) => String(p?._id || p?.id || p));
+
+          const mappedDoc: IConversationDoc = {
+            conversationId: dbDoc.conversationId || dbDoc._id.toString(),
+            participantIds: stringIds,
+            participants: dbDoc.participants || [],
+            context: dbDoc.context || null,
+            additionalContexts: dbDoc.additionalContexts || [],
+            collapsedBy: dbDoc.collapsedBy || [],
+            unreadCounts: dbDoc.unreadCounts || {},
+            lastMessage: dbDoc.lastMessage || null,
+            status: dbDoc.status || "active",
+            schemaVersion: dbDoc.schemaVersion || 1,
+            createdAt: dbDoc.createdAt || new Date(),
+            updatedAt: dbDoc.updatedAt || new Date(),
+          } as any;
+
+          registerConversationDoc(conversationId, mappedDoc);
+          if (dbDoc._id) {
+            registerConversationDoc(dbDoc._id.toString(), mappedDoc);
+          }
+          conversation = mappedDoc;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
   // Non-members get 404 to strictly prevent conversation ID enumeration
   if (!conversation || !ensureParticipant(conversation, user.id)) {
     return {

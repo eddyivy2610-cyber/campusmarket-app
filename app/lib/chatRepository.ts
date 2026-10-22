@@ -439,6 +439,11 @@ export function getConversationDoc(conversationId: string): IConversationDoc | n
   return store.conversations.get(conversationId) || null;
 }
 
+export function registerConversationDoc(conversationId: string, doc: IConversationDoc): void {
+  const store = getStore();
+  store.conversations.set(conversationId, doc);
+}
+
 function getActiveOfferForConversation(
   store: InternalChatStore,
   conversationId: string
@@ -461,10 +466,31 @@ function toConversationDTO(
   doc: IConversationDoc,
   currentUserId: string
 ): ConversationDTO {
-  const other =
-    doc.participants.find((p) => p.id !== currentUserId) ||
-    doc.participants[0] ||
-    DEFAULT_CURRENT_USER;
+  const otherId =
+    doc.participantIds?.find((id) => id !== currentUserId) ||
+    doc.participantIds?.[0] ||
+    "";
+
+  let other = doc.participants?.find((p: any) => {
+    const pid = p?.id ? String(p.id) : p?._id ? p._id.toString() : p?.toString?.();
+    return pid && pid !== currentUserId;
+  });
+
+  if (!other || typeof other !== "object" || !("name" in other)) {
+    other = {
+      id: otherId,
+      name: (other as any)?.name || "Campus Member",
+      subtitle: (other as any)?.subtitle || "Campus Member",
+      avatar: (other as any)?.avatar,
+      isVerified: Boolean((other as any)?.isVerified),
+      accountType: (other as any)?.accountType || "student",
+    };
+  } else if (!other.id && otherId) {
+    other = {
+      ...other,
+      id: otherId,
+    };
+  }
 
   const activeOffer = getActiveOfferForConversation(store, doc.conversationId);
   const trackedDeal = store.dealsByConv.get(doc.conversationId) || null;

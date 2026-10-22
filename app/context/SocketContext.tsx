@@ -3,24 +3,30 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
+import { getRealtimeClient, disconnectRealtime } from "../lib/realtimeClient";
+import type Pusher from "pusher-js";
 
-interface SocketContextType {
+interface RealtimeContextType {
     socket: Socket | null;
+    pusher: Pusher | null;
     isConnected: boolean;
     onlineUsers: string[];
 }
 
-const SocketContext = createContext<SocketContextType>({
+const RealtimeContext = createContext<RealtimeContextType>({
     socket: null,
+    pusher: null,
     isConnected: false,
     onlineUsers: [],
 });
 
-export const useSocket = () => useContext(SocketContext);
+export const useSocket = () => useContext(RealtimeContext);
+export const useRealtime = () => useContext(RealtimeContext);
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth(); // user.id is the MongoDB _id
+    const { user } = useAuth();
     const [socket, setSocket] = useState<Socket | null>(null);
+    const [pusher, setPusher] = useState<Pusher | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
@@ -30,52 +36,81 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             if (socket) {
                 socket.disconnect();
                 setSocket(null);
-                setIsConnected(false);
             }
+            disconnectRealtime();
+            setPusher(null);
+            setIsConnected(false);
             return;
         }
 
         const token = localStorage.getItem("campus_token");
         if (!token) return;
 
-        const socketInstance = io(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000", {
-            auth: { token },
-            transports: ["websocket"], // force websocket
-        });
+        // 1. Initialize hosted Realtime Client (Pusher / Soketi)
+        const pusherClient = getRealtimeClient();
+        if (pusherClient) {
+            setPusher(pusherClient);
+            if (pusherClient.connection.state === "connected") {
+                setIsConnected(true);
+            }
 
-        socketInstance.on("connect", () => {
-            console.log("Socket connected:", socketInstance.id);
-            setIsConnected(true);
-        });
+            pusherClient.connection.bind("connected", () => {
+                setIsConnected(true);
+            });
+            pusherClient.connection.bind("disconnected", () => {
+                setIsConnected(false);
+            });
+            pusherClient.connection.bind("unavailable", () => {
+                setIsConnected(false);
+            });
+        }
 
-        socketInstance.on("disconnect", () => {
-            console.log("Socket disconnected");
-            setIsConnected(false);
-        });
+        // 2. Keep legacy Express Socket.IO operational in parallel during migration
+        let socketInstance: Socket | null = null;
+        const expressUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (expressUrl && expressUrl.startsWith("http")) {
+            try {
+                socketInstance = io(expressUrl, {
+                    auth: { token },
+                    transports: ["websocket"],
+                });
 
-        socketInstance.on("connect_error", (err) => {
-            console.error("Socket connection error:", err.message);
-        });
+                socketInstance.on("connect", () => {
+                    setIsConnected(true);
+                });
 
-        // Track online status
-        socketInstance.on("user_online", ({ userId }) => {
-            setOnlineUsers(prev => [...new Set([...prev, userId])]);
-        });
+                socketInstance.on("disconnect", () => {
+                    // Do not mark disconnected if pusher is still connected
+                    if (!pusherClient || pusherClient.connection.state !== "connected") {
+                        setIsConnected(false);
+                    }
+                });
 
-        socketInstance.on("user_offline", ({ userId }) => {
-            setOnlineUsers(prev => prev.filter(id => id !== userId));
-        });
+                // Track legacy online status
+                socketInstance.on("user_online", ({ userId }: { userId: string }) => {
+                    setOnlineUsers((prev) => [...new Set([...prev, userId])]);
+                });
 
-        setSocket(socketInstance);
+                socketInstance.on("user_offline", ({ userId }: { userId: string }) => {
+                    setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+                });
+
+                setSocket(socketInstance);
+            } catch (err) {
+                console.warn("[RealtimeProvider] Legacy socket connection skipped:", err);
+            }
+        }
 
         return () => {
-            socketInstance.disconnect();
+            if (socketInstance) {
+                socketInstance.disconnect();
+            }
         };
     }, [user]);
 
     return (
-        <SocketContext.Provider value={{ socket, isConnected, onlineUsers }}>
+        <RealtimeContext.Provider value={{ socket, pusher, isConnected, onlineUsers }}>
             {children}
-        </SocketContext.Provider>
+        </RealtimeContext.Provider>
     );
 }

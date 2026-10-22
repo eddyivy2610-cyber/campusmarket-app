@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import {
   appendMessageToConversation,
+  getConversationWithMessages,
 } from "../../../../../lib/chatRepository";
+import { MessageModel, ConversationModel } from "../../../../../models/ChatModels";
 import { requireParticipant } from "../../../../../lib/authServer";
+import dbConnect from "../../../../../lib/dbConnect";
+import {
+  publishConversationEvent,
+  publishUserEvent,
+} from "../../../../../lib/realtimeServer";
 
 const ALLOWED_IMAGE_MIMES = [
   "image/jpeg",
@@ -12,6 +20,88 @@ const ALLOWED_IMAGE_MIMES = [
 ] as const;
 
 const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: conversationId } = await context.params;
+    const { user, errorResponse } = await requireParticipant(req, conversationId, {
+      allowInactiveCounterpart: true,
+    });
+    if (!user || errorResponse) {
+      return errorResponse;
+    }
+
+    const { searchParams } = new URL(req.url);
+    const sinceId = searchParams.get("sinceId");
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+
+    // Reconnect Recovery: If sinceId is provided, retrieve messages newer than sinceId
+    if (sinceId) {
+      await dbConnect();
+      if (mongoose.connection.readyState === 1) {
+        try {
+          const pivotMsg = await MessageModel.findOne({
+            $or: [{ id: sinceId }, { _id: mongoose.isValidObjectId(sinceId) ? new mongoose.Types.ObjectId(sinceId) : undefined }].filter(Boolean),
+          }).select("createdAt _id").lean();
+
+          if (pivotMsg) {
+            const newerMessages = await MessageModel.find({
+              conversationId,
+              $or: [
+                { createdAt: { $gt: pivotMsg.createdAt } },
+                { createdAt: pivotMsg.createdAt, _id: { $gt: pivotMsg._id } },
+              ],
+            })
+              .sort({ createdAt: 1, _id: 1 })
+              .limit(limit)
+              .lean();
+
+            return NextResponse.json({
+              conversationId,
+              sinceId,
+              messages: newerMessages.map((m: any) => ({
+                id: m.id || m._id.toString(),
+                clientMessageId: m.clientMessageId,
+                conversationId: m.conversationId?.toString() || conversationId,
+                senderId: m.senderId?.toString(),
+                type: m.type || "text",
+                text: m.text,
+                attachment: m.attachment,
+                attachedContext: m.attachedContext,
+                deliveryStatus: m.deliveryStatus || "delivered",
+                createdAt: (m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt) || new Date().toISOString(),
+              })),
+            });
+          }
+        } catch (dbErr) {
+          console.warn("[MessagesGET] MongoDB sinceId lookup fallback to in-memory:", dbErr);
+        }
+      }
+    }
+
+    // Default repository fallback
+    const result = getConversationWithMessages({
+      conversationId,
+      userId: user.id,
+      limit,
+    });
+
+    if (!result) {
+      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : "";
+    if (errMessage === "FORBIDDEN_NOT_PARTICIPANT" || errMessage === "NOT_FOUND") {
+      return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Failed to load messages." }, { status: 500 });
+  }
+}
 
 export async function POST(
   req: NextRequest,
@@ -98,6 +188,22 @@ export async function POST(
       );
     }
 
+    // =========================================================================
+    // STEP 1: PERSISTENCE-FIRST RULE
+    // Message MUST be persisted to MongoDB before any realtime publication attempt.
+    // If the database write fails, the provider is NEVER invoked.
+    // =========================================================================
+    await dbConnect();
+    let isDbDuplicate = false;
+
+    if (mongoose.connection.readyState === 1 && clientMessageId) {
+      const existingDb = await MessageModel.findOne({ clientMessageId }).lean();
+      if (existingDb) {
+        isDbDuplicate = true;
+      }
+    }
+
+    // Append to conversation repository
     const result = appendMessageToConversation({
       conversationId,
       senderId,
@@ -107,9 +213,103 @@ export async function POST(
       attachedContext: body.attachedContext || undefined,
     });
 
-    return NextResponse.json(result, {
-      status: result.duplicate ? 200 : 201,
-    });
+    const isDuplicate = result.duplicate || isDbDuplicate;
+
+    // Persist to MongoDB collection "messages"
+    if (!isDuplicate && mongoose.connection.readyState === 1) {
+      try {
+        await MessageModel.create({
+          id: result.message.id,
+          clientMessageId,
+          conversationId: String(conversationId),
+          senderId: String(senderId),
+          type: result.message.type,
+          text: result.message.text,
+          attachment: validatedAttachment,
+          attachedContext: body.attachedContext || undefined,
+          deliveryStatus: "delivered",
+          schemaVersion: 1,
+          createdAt: new Date().toISOString(),
+        } as any);
+
+        // Update MongoDB collection "conversations" lastMessage metadata
+        const isConvObjId = mongoose.isValidObjectId(conversationId);
+        await ConversationModel.updateOne(
+          isConvObjId
+            ? { $or: [{ _id: new mongoose.Types.ObjectId(conversationId) }, { conversationId }] }
+            : { conversationId },
+          {
+            $set: {
+              lastMessage: {
+                text: result.message.text,
+                senderId: mongoose.isValidObjectId(senderId)
+                  ? new mongoose.Types.ObjectId(senderId)
+                  : senderId,
+                createdAt: new Date().toISOString(),
+                time: new Date(),
+                type: result.message.type,
+              },
+              updatedAt: new Date(),
+            },
+          }
+        );
+      } catch (dbErr: any) {
+        if (dbErr?.code === 11000) {
+          // Unique index conflict caught -> duplicate write
+          return NextResponse.json(result, { status: 200 });
+        }
+        console.error("[MessagesPOST] MongoDB persistence failed:", dbErr);
+        // Abort immediately: publication is never triggered if DB write fails
+        return NextResponse.json(
+          { error: "Database persistence failed. Message was not sent." },
+          { status: 500 }
+        );
+      }
+    }
+
+    // =========================================================================
+    // STEP 2: REALTIME PUBLICATION
+    // Only published after successful database persistence.
+    // Publication errors are caught and logged without losing the saved message.
+    // =========================================================================
+    let realtimePublished = false;
+
+    if (!isDuplicate) {
+      const counterpartId = result.conversation.otherParticipant?.id;
+
+      // Publish on conversation channel
+      const pubResult = await publishConversationEvent(conversationId, "new-message", {
+        message: result.message,
+        conversation: result.conversation,
+      });
+
+      realtimePublished = pubResult.published;
+
+      // Publish on counterpart user channel (inbox update)
+      if (counterpartId) {
+        await publishUserEvent(counterpartId, "conversation-updated", {
+          conversationId,
+          lastMessage: result.conversation.lastMessage,
+          unreadCount: 1,
+        });
+      }
+
+      if (!realtimePublished) {
+        console.warn(
+          `[RealtimeOutbox] Publication failed for message ${result.message.id}. Saved in DB and recoverable on client cursor reconnect.`
+        );
+      }
+    }
+
+    return NextResponse.json(
+      {
+        ...result,
+        realtimePublished,
+      },
+      {
+        status: isDuplicate ? 200 : 201,
+      }
+    );
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : "";
     if (errMessage === "FORBIDDEN_NOT_PARTICIPANT" || errMessage === "NOT_FOUND") {
