@@ -6,6 +6,7 @@ import ListingModel from "@/models/Listing";
 import { requireAdmin } from "@/lib/authServer";
 import { executeInTransaction } from "@/lib/transactionHelper";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,7 @@ export async function PATCH(
     }
 
     const now = new Date().toISOString();
+    const requestId = getRequestId(req);
 
     const result = await executeInTransaction(async (session) => {
       const sessionOpts = session ? { session } : {};
@@ -109,7 +111,10 @@ export async function PATCH(
           targetType: "store",
           targetId: id,
           action: "suspend",
+          requestId,
           reason: effectiveReason,
+          before: { status: store.status, isVerified: store.isVerified },
+          after: { status: updatedStore?.status, isVerified: updatedStore?.isVerified },
           details: {
             listingsPaused: listingRes.modifiedCount,
           },
@@ -164,6 +169,9 @@ export async function PATCH(
           targetType: "store",
           targetId: id,
           action: "restore",
+          requestId,
+          before: { status: store.status, isVerified: store.isVerified },
+          after: { status: updatedStore?.status, isVerified: updatedStore?.isVerified },
           details: {
             listingsRestored: listingRes.modifiedCount,
           },
@@ -196,6 +204,9 @@ export async function PATCH(
           targetType: "store",
           targetId: id,
           action: "pause",
+          requestId,
+          before: { status: store.status, isVerified: store.isVerified },
+          after: { status: updatedStore?.status, isVerified: updatedStore?.isVerified },
           details: {},
           session: session || undefined,
         });
@@ -230,7 +241,10 @@ export async function PATCH(
           targetType: "store",
           targetId: id,
           action: "approve",
+          requestId,
           reason: effectiveReason || "Storefront approved by administrator.",
+          before: { status: store.status, isVerified: store.isVerified },
+          after: { status: updatedStore?.status, isVerified: updatedStore?.isVerified },
           details: {},
           session: session || undefined,
         });

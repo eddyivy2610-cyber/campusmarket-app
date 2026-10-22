@@ -286,15 +286,26 @@ export function extractParticipantId(p: any): string {
 }
 
 // Synchronize both participants (ObjectId) and participantIds (String) for dual-ecosystem interoperability
+// Guarantees zero drift (drift = 0) whether document is written from Next.js or legacy Express
 ConversationSchema.pre("validate", function (this: any, next: any) {
+  // 1. Gather all candidate IDs from either participants or participantIds
+  const candidateIds = new Set<string>();
+
   if (this.participants && Array.isArray(this.participants)) {
-    const stringIds = this.participants.map(extractParticipantId).filter(Boolean);
-    this.participantIds = stringIds;
-    // Normalize participants to ObjectIds so Express queries and population work seamlessly
-    this.participants = stringIds
-      .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
-      .map((id: string) => new mongoose.Types.ObjectId(id));
+    this.participants.map(extractParticipantId).filter(Boolean).forEach((id: string) => candidateIds.add(id));
   }
+  if (this.participantIds && Array.isArray(this.participantIds)) {
+    this.participantIds.map(extractParticipantId).filter(Boolean).forEach((id: string) => candidateIds.add(id));
+  }
+
+  const normalizedStringIds = Array.from(candidateIds);
+  this.participantIds = normalizedStringIds;
+
+  // Normalize participants to ObjectIds so Express queries and population work seamlessly
+  this.participants = normalizedStringIds
+    .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
+    .map((id: string) => new mongoose.Types.ObjectId(id));
+
   if (!this.conversationId && this._id) {
     this.conversationId = String(this._id);
   }
@@ -305,12 +316,23 @@ ConversationSchema.pre("validate", function (this: any, next: any) {
   this.setOptions({ runValidators: true });
   const update = this.getUpdate();
   if (update) {
-    const parts = update.participants || update.$set?.participants;
-    if (parts && Array.isArray(parts)) {
-      const pIds = parts.map(extractParticipantId).filter(Boolean);
+    const rawParts = update.participants || update.$set?.participants;
+    const rawPartIds = update.participantIds || update.$set?.participantIds;
+
+    const candidateIds = new Set<string>();
+    if (rawParts && Array.isArray(rawParts)) {
+      rawParts.map(extractParticipantId).filter(Boolean).forEach((id: string) => candidateIds.add(id));
+    }
+    if (rawPartIds && Array.isArray(rawPartIds)) {
+      rawPartIds.map(extractParticipantId).filter(Boolean).forEach((id: string) => candidateIds.add(id));
+    }
+
+    if (candidateIds.size > 0) {
+      const pIds = Array.from(candidateIds);
       const pObjIds = pIds
         .filter((id: string) => mongoose.Types.ObjectId.isValid(id))
         .map((id: string) => new mongoose.Types.ObjectId(id));
+
       if (update.$set) {
         update.$set.participantIds = pIds;
         update.$set.participants = pObjIds;

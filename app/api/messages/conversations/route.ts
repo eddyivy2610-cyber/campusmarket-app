@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import {
   findOrCreateConversation,
   listConversationsForUser,
@@ -7,8 +8,10 @@ import {
   ChatParticipantProfile,
   ContextEntityType,
   ContextWorkflowStatus,
+  ConversationModel,
 } from "../../../models/ChatModels";
 import { requireAuth, ServerAuthUser } from "../../../lib/authServer";
+import dbConnect from "../../../lib/dbConnect";
 
 function buildChatParticipantProfile(user: ServerAuthUser): ChatParticipantProfile {
   return {
@@ -31,6 +34,7 @@ export async function GET(req: NextRequest) {
 
     const query = searchParams.get("q") || "";
     const filterParam = searchParams.get("filter") || "all";
+    const cursor = searchParams.get("cursor");
     const filter =
       filterParam === "unread" || filterParam === "offers"
         ? filterParam
@@ -40,6 +44,74 @@ export async function GET(req: NextRequest) {
       50,
       Math.max(1, parseInt(searchParams.get("limit") || "30", 10))
     );
+
+    await dbConnect();
+
+    // 1. Cursor Pagination on MongoDB if cursor is passed or DB has conversations
+    if (mongoose.connection.readyState === 1 && (cursor || !page || page === 1)) {
+      try {
+        let pivotConv: any = null;
+        if (cursor) {
+          pivotConv = await ConversationModel.findOne({
+            $or: [
+              { conversationId: cursor },
+              ...(mongoose.isValidObjectId(cursor) ? [{ _id: new mongoose.Types.ObjectId(cursor) }] : []),
+            ],
+          }).select("updatedAt _id").lean();
+        }
+
+        const queryFilter: any = {
+          $or: [
+            { participantIds: currentUser.id },
+            ...(mongoose.isValidObjectId(currentUser.id) ? [{ participants: new mongoose.Types.ObjectId(currentUser.id) }] : []),
+          ],
+        };
+
+        if (pivotConv) {
+          queryFilter.$and = [
+            {
+              $or: [
+                { updatedAt: { $lt: pivotConv.updatedAt } },
+                { updatedAt: pivotConv.updatedAt, _id: { $lt: pivotConv._id } },
+              ],
+            },
+          ];
+        }
+
+        const dbConversations = await ConversationModel.find(queryFilter)
+          .sort({ updatedAt: -1, _id: -1 })
+          .limit(limit + 1)
+          .lean();
+
+        if (dbConversations.length > 0 || cursor) {
+          const hasMore = dbConversations.length > limit;
+          const paginated = hasMore ? dbConversations.slice(0, limit) : dbConversations;
+          const nextCursor =
+            hasMore && paginated.length > 0
+              ? paginated[paginated.length - 1].conversationId || paginated[paginated.length - 1]._id.toString()
+              : null;
+
+          return NextResponse.json({
+            currentUser,
+            conversations: paginated.map((c: any) => ({
+              id: c.conversationId || c._id.toString(),
+              conversationId: c.conversationId || c._id.toString(),
+              participantIds: c.participantIds || [],
+              participants: c.participants || [],
+              lastMessage: c.lastMessage || null,
+              unreadCount: (c.unreadCounts && c.unreadCounts[currentUser.id]) || 0,
+              updatedAt: (c.updatedAt instanceof Date ? c.updatedAt.toISOString() : c.updatedAt) || new Date().toISOString(),
+              createdAt: (c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt) || new Date().toISOString(),
+            })),
+            nextCursor,
+            hasMore,
+            total: paginated.length,
+          });
+        }
+      } catch (dbErr) {
+        console.warn("[ConversationsGET] MongoDB cursor lookup fallback:", dbErr);
+      }
+    }
 
     const result = listConversationsForUser({
       userId: currentUser.id,

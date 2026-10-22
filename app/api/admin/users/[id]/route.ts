@@ -7,6 +7,7 @@ import ListingModel from "@/models/Listing";
 import { requireAdmin } from "@/lib/authServer";
 import { executeInTransaction } from "@/lib/transactionHelper";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,7 @@ export async function PATCH(
     }
 
     const now = new Date().toISOString();
+    const requestId = getRequestId(req);
 
     const result = await executeInTransaction(async (session) => {
       const sessionOpts = session ? { session } : {};
@@ -122,7 +124,16 @@ export async function PATCH(
           targetType: "user",
           targetId: id,
           action: "suspend",
+          requestId,
           reason: suspensionReason,
+          before: {
+            accountStatus: user.accountStatus,
+            suspensionReason: user.suspensionReason || null,
+          },
+          after: {
+            accountStatus: updatedUser?.accountStatus,
+            suspensionReason: updatedUser?.suspensionReason || null,
+          },
           details: {
             storesSuspended: storeRes.modifiedCount,
             listingsPaused: listingRes.modifiedCount,
@@ -222,6 +233,15 @@ export async function PATCH(
           targetType: "user",
           targetId: id,
           action: "restore",
+          requestId,
+          before: {
+            accountStatus: user.accountStatus,
+            suspensionReason: user.suspensionReason || null,
+          },
+          after: {
+            accountStatus: updatedUser?.accountStatus,
+            suspensionReason: updatedUser?.suspensionReason || null,
+          },
           details: {
             storesRestored: storeRes.modifiedCount,
             listingsRestored: totalListingsRestored,
@@ -293,7 +313,16 @@ export async function PATCH(
           targetType: "user",
           targetId: id,
           action: "ban",
+          requestId,
           reason: suspensionReason,
+          before: {
+            accountStatus: user.accountStatus,
+            suspensionReason: user.suspensionReason || null,
+          },
+          after: {
+            accountStatus: updatedUser?.accountStatus,
+            suspensionReason: updatedUser?.suspensionReason || null,
+          },
           details: {
             storesSuspended: storeRes.modifiedCount,
             listingsRemoved: listingRes.modifiedCount,
@@ -340,7 +369,10 @@ export async function PATCH(
           targetType: "user",
           targetId: id,
           action: "role_change",
+          requestId,
           reason: reason || `Administrative role change from ${previousRole} to ${newRole}`,
+          before: { role: previousRole },
+          after: { role: updatedUser?.role },
           details: {
             previousRole,
             newRole,
@@ -375,7 +407,16 @@ export async function PATCH(
           targetType: "user",
           targetId: id,
           action: "approve",
+          requestId,
           reason: reason || "User verified and approved by administrator.",
+          before: {
+            studentVerified: user.studentVerified,
+            isStudent: user.isStudent,
+          },
+          after: {
+            studentVerified: updatedUser?.studentVerified,
+            isStudent: updatedUser?.isStudent,
+          },
           details: {
             verifiedFields: ["studentVerified", "isStudent"],
           },

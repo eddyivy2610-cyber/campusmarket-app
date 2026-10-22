@@ -5,6 +5,7 @@ import BusinessApplicationModel from "@/models/BusinessApplication";
 import StoreModel from "@/models/Store";
 import { requireAdmin } from "@/lib/authServer";
 import { logAdminAudit } from "@/lib/adminAudit";
+import { getRequestId } from "@/lib/apiResponse";
 
 function generateSlug(name: string): string {
   const base = name
@@ -30,6 +31,7 @@ export async function PATCH(
     if (!admin || errorResponse) return errorResponse;
 
     const { id } = await context.params;
+    const requestId = getRequestId(req);
     await dbConnect();
 
     if (
@@ -50,6 +52,7 @@ export async function PATCH(
         { status: 404 }
       );
     }
+    const previousApplicationStatus = application.status;
 
     let body: any;
     try {
@@ -276,7 +279,13 @@ export async function PATCH(
         targetType: "business_application",
         targetId: id,
         action: "business_application_approve",
+        requestId,
         reason: "Admin approved business application and activated store",
+        before: { status: previousApplicationStatus, storeId: application.storeId || null },
+        after: {
+          status: approvedApplication?.status,
+          storeId: approvedApplication?.storeId || null,
+        },
         details: {
           storeId: createdOrLinkedStore?._id?.toString(),
           applicantId: approvedApplication?.userId?.toString(),
@@ -325,7 +334,10 @@ export async function PATCH(
         targetType: "business_application",
         targetId: id,
         action: "business_application_reject",
+        requestId,
         reason: reason || "Admin rejected business application",
+        before: { status: previousApplicationStatus, storeId: application.storeId || null },
+        after: { status: application.status, storeId: application.storeId || null },
         details: {
           applicantId: application.applicantId?.toString(),
           reason,
@@ -361,7 +373,10 @@ export async function PATCH(
         targetType: "business_application",
         targetId: id,
         action: "business_application_request_changes",
+        requestId,
         reason: reason || "Changes requested by administrator",
+        before: { status: previousApplicationStatus, storeId: application.storeId || null },
+        after: { status: application.status, storeId: application.storeId || null },
         details: {
           applicantId: application.applicantId?.toString(),
           reason,

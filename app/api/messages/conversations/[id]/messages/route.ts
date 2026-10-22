@@ -36,49 +36,101 @@ export async function GET(
 
     const { searchParams } = new URL(req.url);
     const sinceId = searchParams.get("sinceId");
+    const beforeId = searchParams.get("before") || searchParams.get("cursor");
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
 
-    // Reconnect Recovery: If sinceId is provided, retrieve messages newer than sinceId
-    if (sinceId) {
-      await dbConnect();
-      if (mongoose.connection.readyState === 1) {
-        try {
-          const pivotMsg = await MessageModel.findOne({
-            $or: [{ id: sinceId }, { _id: mongoose.isValidObjectId(sinceId) ? new mongoose.Types.ObjectId(sinceId) : undefined }].filter(Boolean),
-          }).select("createdAt _id").lean();
+    await dbConnect();
 
-          if (pivotMsg) {
-            const newerMessages = await MessageModel.find({
-              conversationId,
-              $or: [
-                { createdAt: { $gt: pivotMsg.createdAt } },
-                { createdAt: pivotMsg.createdAt, _id: { $gt: pivotMsg._id } },
-              ],
-            })
-              .sort({ createdAt: 1, _id: 1 })
-              .limit(limit)
-              .lean();
+    // 1. Reconnect Recovery: If sinceId is provided, retrieve messages newer than sinceId
+    if (sinceId && mongoose.connection.readyState === 1) {
+      try {
+        const pivotMsg = await MessageModel.findOne({
+          $or: [
+            { id: sinceId },
+            ...(mongoose.isValidObjectId(sinceId) ? [{ _id: new mongoose.Types.ObjectId(sinceId) }] : []),
+          ],
+        }).select("createdAt _id").lean();
 
-            return NextResponse.json({
-              conversationId,
-              sinceId,
-              messages: newerMessages.map((m: any) => ({
-                id: m.id || m._id.toString(),
-                clientMessageId: m.clientMessageId,
-                conversationId: m.conversationId?.toString() || conversationId,
-                senderId: m.senderId?.toString(),
-                type: m.type || "text",
-                text: m.text,
-                attachment: m.attachment,
-                attachedContext: m.attachedContext,
-                deliveryStatus: m.deliveryStatus || "delivered",
-                createdAt: (m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt) || new Date().toISOString(),
-              })),
-            });
-          }
-        } catch (dbErr) {
-          console.warn("[MessagesGET] MongoDB sinceId lookup fallback to in-memory:", dbErr);
+        if (pivotMsg) {
+          const newerMessages = await MessageModel.find({
+            conversationId,
+            $or: [
+              { createdAt: { $gt: pivotMsg.createdAt } },
+              { createdAt: pivotMsg.createdAt, _id: { $gt: pivotMsg._id } },
+            ],
+          })
+            .sort({ createdAt: 1, _id: 1 })
+            .limit(limit)
+            .lean();
+
+          return NextResponse.json({
+            conversationId,
+            sinceId,
+            messages: newerMessages.map((m: any) => ({
+              id: m.id || m._id.toString(),
+              clientMessageId: m.clientMessageId,
+              conversationId: m.conversationId?.toString() || conversationId,
+              senderId: m.senderId?.toString(),
+              type: m.type || "text",
+              text: m.text,
+              attachment: m.attachment,
+              attachedContext: m.attachedContext,
+              deliveryStatus: m.deliveryStatus || "delivered",
+              createdAt: (m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt) || new Date().toISOString(),
+            })),
+          });
         }
+      } catch (dbErr) {
+        console.warn("[MessagesGET] MongoDB sinceId lookup fallback to in-memory:", dbErr);
+      }
+    }
+
+    // 2. Cursor Pagination (Backward / History): If beforeId or cursor is provided
+    if (beforeId && mongoose.connection.readyState === 1) {
+      try {
+        const pivotMsg = await MessageModel.findOne({
+          $or: [
+            { id: beforeId },
+            ...(mongoose.isValidObjectId(beforeId) ? [{ _id: new mongoose.Types.ObjectId(beforeId) }] : []),
+          ],
+        }).select("createdAt _id").lean();
+
+        if (pivotMsg) {
+          const olderMessages = await MessageModel.find({
+            conversationId,
+            $or: [
+              { createdAt: { $lt: pivotMsg.createdAt } },
+              { createdAt: pivotMsg.createdAt, _id: { $lt: pivotMsg._id } },
+            ],
+          })
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(limit + 1)
+            .lean();
+
+          const hasMore = olderMessages.length > limit;
+          const paginated = hasMore ? olderMessages.slice(0, limit) : olderMessages;
+          const nextCursor = hasMore && paginated.length > 0 ? paginated[paginated.length - 1].id || paginated[paginated.length - 1]._id.toString() : null;
+
+          return NextResponse.json({
+            conversationId,
+            messages: paginated.reverse().map((m: any) => ({
+              id: m.id || m._id.toString(),
+              clientMessageId: m.clientMessageId,
+              conversationId: m.conversationId?.toString() || conversationId,
+              senderId: m.senderId?.toString(),
+              type: m.type || "text",
+              text: m.text,
+              attachment: m.attachment,
+              attachedContext: m.attachedContext,
+              deliveryStatus: m.deliveryStatus || "delivered",
+              createdAt: (m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt) || new Date().toISOString(),
+            })),
+            nextCursor,
+            hasMore,
+          });
+        }
+      } catch (dbErr) {
+        console.warn("[MessagesGET] MongoDB beforeId lookup fallback to in-memory:", dbErr);
       }
     }
 

@@ -17,6 +17,7 @@
     "test:realtime": "npx tsx scripts/test-phase5-realtime-messaging.ts",
     "test:acceptance": "npx tsx scripts/test-phase5-stage-c-acceptance.ts",
     "test:phase6": "npx tsx scripts/test-phase6-cross-cutting.ts",
+    "test:cursors": "npx tsx scripts/test-phase6-cursor-interop-orders.ts",
     "test:cache": "npx tsx scripts/test-cache-leak.ts",
     "test:all": "npx tsx scripts/test-all-ci.ts",
     "test:load": "npx tsx scripts/benchmark-load-concurrency.ts",
