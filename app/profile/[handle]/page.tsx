@@ -24,9 +24,30 @@ import {
   X,
   Settings,
   Store,
+  Calendar,
+  Lock,
+  GraduationCap,
 } from "lucide-react";
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { followService } from "@/lib/followService";
+
+export function formatSalesMilestone(sales: number): string {
+  if (sales >= 1000) return `${Math.floor(sales / 1000)}k+`;
+  if (sales >= 500) return "500+";
+  if (sales >= 250) return "250+";
+  if (sales >= 100) return "100+";
+  if (sales >= 50) return "50+";
+  if (sales >= 25) return "25+";
+  if (sales >= 10) return "10+";
+  if (sales >= 5) return "5+";
+  return sales > 0 ? "5+" : "New";
+}
+
+export function formatFollowers(count: number): string {
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1).replace(/\.0$/, "")}m`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+  return count.toLocaleString();
+}
 
 interface ProfileListingItem {
   id: string;
@@ -66,6 +87,7 @@ interface ProfilePreviewData {
   reviewsCount: number;
   joined: string;
   listingsCount: number;
+  followersCount?: number;
   listings: ProfileListingItem[];
   reviews: ProfileReviewItem[];
   ratingBreakdown: { stars: number; count: number }[];
@@ -89,6 +111,7 @@ const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
     rating: 4.8,
     reviewsCount: 18,
     joined: "Oct 2026",
+    followersCount: 1240,
     listingsCount: 12,
     listings: [
       {
@@ -486,6 +509,8 @@ export default function ProfilePage() {
 
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
+  const [followersCount, setFollowersCount] = useState<number>(1240);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState(
@@ -545,6 +570,32 @@ export default function ProfilePage() {
           isVerified: baseProfile.isVerified,
         }
       : baseProfile;
+
+  useEffect(() => {
+    if (baseProfile?.followersCount) {
+      setFollowersCount(baseProfile.followersCount);
+    }
+    try {
+      const storedPrivacy = localStorage.getItem("ch_privacy_show_sales_milestones");
+      if (storedPrivacy !== null) {
+        setShowSalesMilestone(storedPrivacy !== "false");
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    const handlePrivacySync = () => {
+      try {
+        const storedPrivacy = localStorage.getItem("ch_privacy_show_sales_milestones");
+        if (storedPrivacy !== null) {
+          setShowSalesMilestone(storedPrivacy !== "false");
+        }
+      } catch {}
+    };
+
+    window.addEventListener("ch_privacy_update", handlePrivacySync);
+    return () => window.removeEventListener("ch_privacy_update", handlePrivacySync);
+  }, [baseProfile?.followersCount]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -659,56 +710,64 @@ export default function ProfilePage() {
                         {profile.bio}
                       </p>
 
-                      {/* Row 3: Location with Pin Icon */}
-                      <div className="flex items-center gap-1.5 pt-0.5 text-[12.5px] font-medium text-[#68707A] dark:text-neutral-400">
-                        <MapPin className="w-3.5 h-3.5 text-[#8C929C] shrink-0" />
-                        <span>{profile.location}</span>
+                      {/* Row 3: Location with Pin Icon + Joined with Calendar */}
+                      <div className="flex flex-wrap items-center gap-y-1 gap-x-4 pt-0.5 text-[12.5px] font-medium text-[#68707A] dark:text-neutral-400">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-[#8C929C] shrink-0" />
+                          <span>{profile.location}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-[#8C929C] shrink-0" />
+                          <span>Joined {profile.joined}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Block: 3 Milestones (Sales · Rating · Joined) + Action Buttons */}
-                  <div className="md:w-[295px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-4">
-                    {/* 3 Milestones separated by centered dots */}
-                    <div className="flex items-center justify-between px-1">
-                      <div className="text-center">
-                        <div className="text-[16px] sm:text-[17px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                          {profile.sales}
+                  {/* Right Block: 4 Stats (Followers · Reviews · Rating · Status) + Action Buttons */}
+                  <div className="md:w-[320px] lg:w-[360px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-3">
+                    {/* Stat Card Box: 3 on mobile (<sm), 4 on sm and up */}
+                    <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
+                        {/* 1. Followers */}
+                        <div className="px-1 sm:px-2">
+                          <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                            {formatFollowers(followersCount)}
+                          </div>
+                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                            Followers
+                          </div>
                         </div>
-                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                          Sales
-                        </div>
-                      </div>
 
-                      <span
-                        className="text-[#9AA1AC] dark:text-neutral-500 font-bold select-none"
-                        aria-hidden="true"
-                      >
-                        ·
-                      </span>
-
-                      <div className="text-center">
-                        <div className="text-[16px] sm:text-[17px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                          {profile.rating}
+                        {/* 2. Review count */}
+                        <div className="px-1 sm:px-2">
+                          <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                            {profile.reviewsCount}
+                          </div>
+                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                            Reviews
+                          </div>
                         </div>
-                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                          Rating
-                        </div>
-                      </div>
 
-                      <span
-                        className="text-[#9AA1AC] dark:text-neutral-500 font-bold select-none"
-                        aria-hidden="true"
-                      >
-                        ·
-                      </span>
-
-                      <div className="text-center">
-                        <div className="text-[15px] sm:text-[16px] font-extrabold text-[#171717] dark:text-white leading-tight whitespace-nowrap">
-                          {profile.joined}
+                        {/* 3. Rating */}
+                        <div className="px-1 sm:px-2">
+                          <div className="inline-flex items-center justify-center gap-1 text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                            <span>{profile.rating}</span>
+                            <Star className="w-3.5 h-3.5 fill-[#FFC928] text-[#FFC928] shrink-0 -translate-y-0.5" />
+                          </div>
+                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                            Rating
+                          </div>
                         </div>
-                        <div className="text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                          Joined
+
+                        {/* 4. Status (Student or Store) — kept at 3 on mobile, 4th item appears on sm: and up */}
+                        <div className="hidden sm:block px-1 sm:px-2">
+                          <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight truncate">
+                            {profile.isStudentSeller ? "Student" : "Store"}
+                          </div>
+                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                            Status
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -744,6 +803,9 @@ export default function ProfilePage() {
                                 const res = await followService.toggleFollow(profile.id);
                                 if (res?.success) {
                                   setIsFollowing(res.isFollowing);
+                                  setFollowersCount((prev) =>
+                                    res.isFollowing ? prev + 1 : Math.max(0, prev - 1)
+                                  );
                                   showToast(
                                     res.isFollowing
                                       ? `Following ${profile.name}`
@@ -1134,7 +1196,7 @@ export default function ProfilePage() {
                     <span className="font-bold text-[#171717] dark:text-white">
                       Sales:{" "}
                     </span>
-                    {profile.sales}
+                    {showSalesMilestone ? formatSalesMilestone(profile.sales) : "Private"}
                   </div>
                 </div>
               </section>
@@ -1208,18 +1270,46 @@ export default function ProfilePage() {
                 <div className="py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
-                      <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
+                      {showSalesMilestone ? (
+                        <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
+                      ) : (
+                        <Lock className="w-4 h-4 text-[#8C929C]" />
+                      )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                        {profile.sales} confirmed exchanges
-                      </p>
-                      <p className="text-[11.5px] text-[#7A818C] truncate">
-                        Mutually verified transactions
-                      </p>
+                      {showSalesMilestone ? (
+                        <>
+                          <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                            {formatSalesMilestone(profile.sales)} confirmed exchanges
+                          </p>
+                          <p className="text-[11.5px] text-[#7A818C] truncate">
+                            Campus verified exchange milestone
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-[13px] font-bold text-[#7A818C] dark:text-neutral-400 truncate">
+                            Exchange milestone private
+                          </p>
+                          <p className="text-[11.5px] text-[#9AA1AC] truncate">
+                            Seller chose to keep milestone private
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                  {isOwnProfile ? (
+                    <Link
+                      href="/dashboard/settings"
+                      title="Manage milestone privacy in Dashboard"
+                      className="text-[11.5px] font-semibold text-[#8C929C] hover:text-[#171717] dark:hover:text-white flex items-center gap-1 shrink-0"
+                    >
+                      <span className="hidden sm:inline">Privacy</span>
+                      <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                    </Link>
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                  )}
                 </div>
 
                 <div className="py-3 last:pb-0 flex items-center justify-between gap-3">

@@ -9,16 +9,39 @@ import {
     CreditCard, 
     Palette, 
     Globe,
-    Check
+    Check,
+    Eye,
+    EyeOff,
+    Award
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 export default function SettingsPage() {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState("profile");
+    const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
+
+    useState(() => {
+        if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("ch_privacy_show_sales_milestones");
+            if (stored !== null) setShowSalesMilestone(stored !== "false");
+        }
+    });
+
+    const handleToggleSalesMilestone = () => {
+        setShowSalesMilestone((prev) => {
+            const next = !prev;
+            if (typeof window !== "undefined") {
+                localStorage.setItem("ch_privacy_show_sales_milestones", String(next));
+                window.dispatchEvent(new Event("ch_privacy_update"));
+            }
+            return next;
+        });
+    };
 
     const tabs = [
         { id: "profile", label: "Profile", icon: User },
+        { id: "privacy", label: "Privacy & Trust", icon: Lock },
         { id: "permissions", label: "Permissions & Tier", icon: Shield },
         { id: "notifications", label: "Notifications", icon: Bell },
         { id: "security", label: "Security", icon: Lock },
@@ -95,6 +118,47 @@ export default function SettingsPage() {
                                 </div>
                              </div>
 
+                             <div className="pt-6 border-t border-border/50">
+                                 <h3 className="text-sm font-bold text-foreground mb-1">Profile Privacy</h3>
+                                 <p className="text-xs text-muted-foreground mb-4">Choose what transaction information appears publicly to other campus members.</p>
+                                 <div className="flex items-center justify-between p-4 rounded-2xl bg-secondary/30 border border-border/50">
+                                     <div className="flex items-center gap-3">
+                                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                             {showSalesMilestone ? <Award className="w-5 h-5 text-amber-500" /> : <Lock className="w-5 h-5 text-muted-foreground" />}
+                                         </div>
+                                         <div>
+                                             <div className="text-sm font-bold flex items-center gap-2">
+                                                 Sales Milestone Visibility
+                                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${showSalesMilestone ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                                                     {showSalesMilestone ? "Public Milestone" : "Private"}
+                                                 </span>
+                                             </div>
+                                             <p className="text-xs text-muted-foreground mt-0.5">
+                                                 {showSalesMilestone
+                                                     ? "Displaying confirmed sales milestones (e.g. 25+, 50+, 100+) on your profile and trust card."
+                                                     : "Sales milestone is hidden. Your reviews & ratings remain visible."}
+                                             </p>
+                                         </div>
+                                     </div>
+                                     <button
+                                         type="button"
+                                         onClick={handleToggleSalesMilestone}
+                                         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                             showSalesMilestone ? "bg-primary" : "bg-muted"
+                                         }`}
+                                         role="switch"
+                                         aria-checked={showSalesMilestone}
+                                     >
+                                         <span
+                                             aria-hidden="true"
+                                             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                                 showSalesMilestone ? "translate-x-5" : "translate-x-0"
+                                             }`}
+                                         />
+                                     </button>
+                                 </div>
+                             </div>
+
                              <div className="pt-6 flex justify-end">
                                 <button className="bg-primary hover:bg-primary/90 text-black px-8 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all active:scale-95">
                                     Save Changes
@@ -157,6 +221,80 @@ export default function SettingsPage() {
                                     <li>• Achieve <span className="text-foreground font-bold italic">Elite Vendor</span> status through consistent high performance and campus trust</li>
                                 </ul>
                              </div>
+                        </div>
+                    )}
+
+                    {activeTab === "privacy" && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div>
+                                <h3 className="text-lg font-bold mb-1 text-foreground">Privacy & Trust Controls</h3>
+                                <p className="text-sm text-muted-foreground">Manage your public presence, verified achievements, and profile visibility across campus.</p>
+                            </div>
+
+                            <div className="p-6 rounded-3xl bg-secondary/20 border border-border/50 space-y-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-start gap-3.5">
+                                        <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                            <Award className="w-5 h-5 text-amber-500" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="text-sm font-bold text-foreground">Sales Milestone on Profile</h4>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                    showSalesMilestone 
+                                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                                                        : "bg-muted text-muted-foreground"
+                                                }`}>
+                                                    {showSalesMilestone ? "Visible" : "Hidden"}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+                                                Show campus milestone badges (e.g. <strong className="text-foreground font-semibold">25+</strong>, <strong className="text-foreground font-semibold">50+</strong>, <strong className="text-foreground font-semibold">100+</strong> confirmed exchanges) on your profile and trust section instead of raw counts. When toggled off, other students will see &ldquo;Exchange milestone private&rdquo;.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleSalesMilestone}
+                                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                            showSalesMilestone ? "bg-primary" : "bg-muted"
+                                        }`}
+                                        role="switch"
+                                        aria-checked={showSalesMilestone}
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                                showSalesMilestone ? "translate-x-5" : "translate-x-0"
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 border-t border-border/40">
+                                    <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                                        Public Profile Trust Card Preview
+                                    </div>
+                                    <div className="p-3.5 rounded-2xl bg-card border border-border/50 flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                            {showSalesMilestone ? <Award className="w-4 h-4 text-amber-500" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
+                                        </div>
+                                        <div className="text-xs">
+                                            {showSalesMilestone ? (
+                                                <>
+                                                    <span className="font-bold text-foreground">25+ confirmed exchanges</span>
+                                                    <span className="text-muted-foreground block text-[11px]">Campus verified exchange milestone</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="font-bold text-muted-foreground">Exchange milestone private</span>
+                                                    <span className="text-muted-foreground block text-[11px]">Seller chose to keep milestone private</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 

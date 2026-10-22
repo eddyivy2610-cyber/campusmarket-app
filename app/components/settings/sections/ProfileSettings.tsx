@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Instagram, Twitter, Linkedin, Phone, Loader2, CheckCircle2 } from "lucide-react";
+import { Instagram, Twitter, Linkedin, Phone, Loader2, CheckCircle2, Award, Lock } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import { apiGet, apiPatch } from "@/lib/apiClient";
 
@@ -18,6 +18,36 @@ export function ProfileSettings() {
     const [isSaving, setIsSaving] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [error, setError] = useState("");
+    const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem("ch_privacy_show_sales_milestones");
+            if (stored !== null) setShowSalesMilestone(stored !== "false");
+        } catch {}
+
+        const handlePrivacySync = () => {
+            try {
+                const stored = localStorage.getItem("ch_privacy_show_sales_milestones");
+                if (stored !== null) setShowSalesMilestone(stored !== "false");
+            } catch {}
+        };
+
+        window.addEventListener("ch_privacy_update", handlePrivacySync);
+        return () => window.removeEventListener("ch_privacy_update", handlePrivacySync);
+    }, []);
+
+    const handleToggleSalesMilestone = () => {
+        setShowSalesMilestone((prev) => {
+            const next = !prev;
+            try {
+                localStorage.setItem("ch_privacy_show_sales_milestones", String(next));
+                window.dispatchEvent(new Event("ch_privacy_update"));
+            } catch {}
+            return next;
+        });
+    };
+
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -195,6 +225,49 @@ export function ProfileSettings() {
                             </div>
                         );
                     })}
+                </div>
+            </div>
+
+            <div className="pt-6 border-t border-border/40 space-y-4">
+                <div>
+                    <h3 className="text-sm font-bold text-foreground">Public Milestone Privacy</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Control whether your sales milestones appear on your public profile trust section.</p>
+                </div>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-border/40 bg-secondary/10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                            {showSalesMilestone ? <Award className="w-5 h-5" /> : <Lock className="w-5 h-5 text-muted-foreground" />}
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold flex items-center gap-2 text-foreground">
+                                Show Sales Milestones (e.g. 25+, 50+, 100+)
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${showSalesMilestone ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                                    {showSalesMilestone ? "Public Milestone" : "Private"}
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                                {showSalesMilestone
+                                    ? "Students see your verified milestone on your profile trust card."
+                                    : "Exchange milestone is hidden. Your ratings and reviews remain public."}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleToggleSalesMilestone}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            showSalesMilestone ? "bg-primary" : "bg-muted"
+                        }`}
+                        role="switch"
+                        aria-checked={showSalesMilestone}
+                    >
+                        <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                showSalesMilestone ? "translate-x-5" : "translate-x-0"
+                            }`}
+                        />
+                    </button>
                 </div>
             </div>
 

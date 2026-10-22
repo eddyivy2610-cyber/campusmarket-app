@@ -26,6 +26,8 @@ import {
   DollarSign,
   AlertCircle,
   MoreHorizontal,
+  Award,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { CatalogManager } from "./CatalogManager";
@@ -182,6 +184,38 @@ export function StorefrontManager({
       isCancelled = true;
     };
   }, [user?.id]);
+
+  // Privacy & Milestone toggle
+  const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("ch_privacy_show_sales_milestones");
+      if (stored !== null) setShowSalesMilestone(stored !== "false");
+    } catch {}
+
+    const handlePrivacySync = () => {
+      try {
+        const stored = localStorage.getItem("ch_privacy_show_sales_milestones");
+        if (stored !== null) setShowSalesMilestone(stored !== "false");
+      } catch {}
+    };
+
+    window.addEventListener("ch_privacy_update", handlePrivacySync);
+    return () => window.removeEventListener("ch_privacy_update", handlePrivacySync);
+  }, []);
+
+  const handleToggleSalesMilestone = () => {
+    setShowSalesMilestone((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("ch_privacy_show_sales_milestones", String(next));
+        window.dispatchEvent(new Event("ch_privacy_update"));
+      } catch {}
+      showToast(next ? "Sales milestones are now visible on your public profile." : "Sales milestones are now private on your public profile.");
+      return next;
+    });
+  };
 
   // Store Settings Form state
   const [storeName, setStoreName] = useState(initialStore?.name || "Tunde Bello Campus Hub");
@@ -715,6 +749,50 @@ export function StorefrontManager({
                 <option value="in_app">In-app campus chat only (Recommended & verified)</option>
                 <option value="whatsapp">Allow WhatsApp handoff after inquiry starts</option>
               </select>
+            </div>
+
+            {/* Profile & Trust Privacy Toggle */}
+            <div className="pt-4 border-t border-[#ECEEF2] dark:border-white/10 space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Award className="w-4.5 h-4.5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold text-[#171717] dark:text-white">
+                        Public Sales Milestones
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        showSalesMilestone 
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                          : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                      }`}>
+                        {showSalesMilestone ? "Visible (Milestone)" : "Private"}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5 max-w-lg leading-relaxed">
+                      Show your confirmed exchange milestones (e.g. 25+, 50+, 100+) in your profile trust card instead of raw transaction numbers.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleSalesMilestone}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    showSalesMilestone ? "bg-[#FFC928]" : "bg-neutral-300 dark:bg-neutral-700"
+                  }`}
+                  role="switch"
+                  aria-checked={showSalesMilestone}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      showSalesMilestone ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             <div className="pt-3 flex items-center gap-3">
