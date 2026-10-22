@@ -112,7 +112,7 @@ export function RebrandHeader() {
             </button>
 
             {/* Campus Hive Logo */}
-            <Logo height={32} width={80} href="/home" />
+            <Logo height={28} width={70} href="/home" />
 
             {/* Desktop Navigation Links */}
             <nav

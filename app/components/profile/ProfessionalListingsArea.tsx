@@ -20,8 +20,8 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
             try {
                 setIsLoading(true);
                 const endpoint = isHost 
-                    ? `${process.env.NEXT_PUBLIC_API_URL}/api/listing/user/all`
-                    : `${process.env.NEXT_PUBLIC_API_URL}/api/listing/active?sellerId=${sellerId}`;
+                    ? `/api/listings?sellerId=me&status=all`
+                    : `/api/listings?sellerId=${encodeURIComponent(sellerId)}&status=active`;
                 
                 const response = await fetch(endpoint, {
                     headers: isHost ? {

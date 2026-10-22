@@ -443,10 +443,10 @@ export default function ListingDetailPage() {
                 { icon: "clock", label: "Campus pickup" },
               ];
 
-          let liveReviews = DEFAULT_REVIEWS;
+          let liveReviews: ReviewItem[] = [];
           try {
             const revRes = await fetch(`/api/reviews?sellerId=${item.sellerId}`).then((r) => r.json());
-            if (revRes?.success && Array.isArray(revRes.data) && revRes.data.length > 0) {
+            if (revRes?.success && Array.isArray(revRes.data)) {
               liveReviews = revRes.data.map((r: any) => ({
                 id: r.id,
                 reviewerName: r.reviewer?.name || "Campus Buyer",
@@ -458,7 +458,7 @@ export default function ListingDetailPage() {
               }));
             }
           } catch {
-            // fallback to default
+            liveReviews = [];
           }
 
           const mapped: DetailedListingData = {
@@ -576,7 +576,7 @@ export default function ListingDetailPage() {
                 memberSince: "Oct 2026",
                 storeHref: `/profile/${foundCreated.sellerHandle || "tundebello"}`,
               },
-              reviews: DEFAULT_REVIEWS,
+              reviews: [],
             };
           }
         }

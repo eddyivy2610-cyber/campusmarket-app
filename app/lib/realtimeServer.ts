@@ -24,6 +24,15 @@ export interface RealtimeServerConfig {
 }
 
 let pusherInstance: Pusher | null = null;
+let simulatedFailureMessage: string | null = null;
+
+/**
+ * Injects a simulated realtime provider outage for failure-injection testing.
+ * Set to null to restore normal operation.
+ */
+export function simulateRealtimeOutage(errorMessage: string | null): void {
+  simulatedFailureMessage = errorMessage;
+}
 
 export function getPusherConfig(): RealtimeServerConfig {
   return {
@@ -158,6 +167,16 @@ export async function publishConversationEvent(
   data: any
 ): Promise<PublishResult> {
   const channel = `private-conversation-${conversationId}`;
+
+  if (simulatedFailureMessage) {
+    return {
+      published: false,
+      channel,
+      event,
+      error: simulatedFailureMessage,
+    };
+  }
+
   const pusher = getRealtimeServer();
 
   if (!pusher) {
@@ -193,6 +212,16 @@ export async function publishUserEvent(
   data: any
 ): Promise<PublishResult> {
   const channel = `private-user-${userId}`;
+
+  if (simulatedFailureMessage) {
+    return {
+      published: false,
+      channel,
+      event,
+      error: simulatedFailureMessage,
+    };
+  }
+
   const pusher = getRealtimeServer();
 
   if (!pusher) {

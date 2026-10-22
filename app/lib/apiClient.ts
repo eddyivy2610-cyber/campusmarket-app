@@ -6,8 +6,9 @@ type ApiError = Error & {
 };
 
 export const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  (typeof window !== "undefined" ? "" : "http://localhost:3000");
+  typeof window !== "undefined"
+    ? ""
+    : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
 const API_BASE = BASE_URL.endsWith("/api") 
   ? BASE_URL 
   : `${BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL}/api`;
