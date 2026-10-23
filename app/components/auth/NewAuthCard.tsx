@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "../ui/Logo";
 
 interface NewAuthCardProps {
   children: ReactNode;
@@ -38,30 +38,14 @@ export function NewAuthCard({
         <div className="text-center mb-6">
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 group transition-transform active:scale-95"
+            className="inline-flex items-center group transition-transform active:scale-95"
           >
-            {/* Minimal Hexagonal Brand Mark */}
-            <div className="w-10 h-10 rounded-2xl bg-[#FFC928] flex items-center justify-center shadow-sm group-hover:bg-[#F2BD24] transition-colors">
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2L3 7V17L12 22L21 17V7L12 2Z"
-                  stroke="#171717"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle cx="12" cy="12" r="3" fill="#171717" />
-              </svg>
-            </div>
-            <span className="text-[20px] font-black text-[#171717] dark:text-white tracking-tight">
-              Campus Hive
-            </span>
+            <Logo
+              href={null}
+              height={42}
+              width={132}
+              imageClassName="transition-opacity group-hover:opacity-90"
+            />
           </Link>
         </div>
 
