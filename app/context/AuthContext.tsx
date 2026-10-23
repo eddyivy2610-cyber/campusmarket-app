@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { apiGet } from "@/lib/apiClient";
+import { apiPost } from "@/lib/apiClient";
 import { toast } from "sonner";
 
 interface User {
@@ -22,7 +22,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     login: (userData: User) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
     isLoading: boolean;
     refreshUser: () => Promise<User | null>;
 }
@@ -33,17 +33,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Mock initial load - check localStorage
+    // Restore local state first, then refresh it from the server when possible.
     useEffect(() => {
-        const storedUser = localStorage.getItem("campus_user");
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse stored user", e);
+        let isActive = true;
+        const restoreSession = async () => {
+            const storedUser = localStorage.getItem("campus_user");
+            if (storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch (e) {
+                    console.error("Failed to parse stored user", e);
+                }
             }
-        }
-        setIsLoading(false);
+
+            if (localStorage.getItem("campus_token")) {
+                await refreshUser();
+            }
+
+            if (isActive) setIsLoading(false);
+        };
+
+        void restoreSession();
+        return () => {
+            isActive = false;
+        };
     }, []);
 
     const login = (userData: User) => {
@@ -51,19 +64,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("campus_user", JSON.stringify(userData));
     };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem("campus_user");
-        localStorage.removeItem("campus_token");
-        if (typeof window !== "undefined") {
-            window.location.replace("/home");
+    const logout = async () => {
+        const token = localStorage.getItem("campus_token");
+        try {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            });
+        } catch {
+            // Clear local state even if the network is unavailable.
+        } finally {
+            setUser(null);
+            localStorage.removeItem("campus_user");
+            localStorage.removeItem("campus_token");
+            localStorage.removeItem("campus_email_verified");
+            localStorage.removeItem("ch_profile_identity_v1");
+            if (typeof window !== "undefined") {
+                window.location.replace("/home");
+            }
         }
     };
 
     const refreshUser = async () => {
         try {
             // Call the refresh-token endpoint to get latest data and a fresh JWT
-            const response: any = await apiGet("auth/refresh-token");
+            const response: any = await apiPost("auth/refresh");
             const userData = response?.user || response?.data || response;
             const newToken = response?.token;
 
@@ -77,8 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 email: userData.email || user?.email || "",
                 handle: userData.profile?.handle || user?.handle || "",
                 role: userData.role || user?.role || "buyer",
-                isStudent: userData.studentStatus?.isStudent || false,
-                studentVerified: userData.studentStatus?.isVerified || false,
+                isStudent: userData.isStudent ?? userData.studentStatus?.isStudent ?? user?.isStudent ?? false,
+                studentVerified: userData.studentVerified ?? userData.studentStatus?.isVerified ?? user?.studentVerified ?? false,
                 tier: user?.tier || "new",
                 sellerStatus: userData.sellerStatus || "none",
                 onboardingStep: userData.onboardingStep || "completed",

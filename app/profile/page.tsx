@@ -10,23 +10,11 @@ export default function ProfileRedirect() {
 
   useEffect(() => {
     if (isLoading) return;
-    let savedHandle = "";
-    try {
-      const raw = localStorage.getItem("ch_profile_identity_v1");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.username) {
-          savedHandle = String(parsed.username).replace(/^@/, "").toLowerCase();
-        }
-      }
-    } catch {
-      // ignore storage errors
-    }
-    if (!user && !savedHandle) {
+    if (!user) {
       router.replace("/login?next=%2Fprofile");
       return;
     }
-    const targetHandle = savedHandle || user?.handle || user?.id || "me";
+    const targetHandle = user.handle || user.id;
     router.replace(`/profile/${targetHandle}`);
   }, [isLoading, router, user]);
 

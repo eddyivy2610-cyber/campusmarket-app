@@ -1,8 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export function SignOutSettings() {
+    const { logout } = useAuth();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        await logout();
+    };
+
     return (
         <div className="space-y-6">
             <h2 className="text-sm font-semibold text-primary">Sign Out</h2>
@@ -14,8 +23,8 @@ export function SignOutSettings() {
                         Sign out of your account on this device.
                     </p>
                 </div>
-                <button className="px-4 py-2 text-[11px] font-semibold text-muted-foreground border border-border/60 bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                    Log Out
+                <button type="button" onClick={handleLogout} disabled={isLoggingOut} className="px-4 py-2 text-[11px] font-semibold text-muted-foreground border border-border/60 bg-secondary/30 hover:bg-secondary/50 transition-colors disabled:opacity-50">
+                    {isLoggingOut ? "Logging Out…" : "Log Out"}
                 </button>
             </div>
         </div>

@@ -32,6 +32,7 @@ import {
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { useAuth } from "../../context/AuthContext";
 import { followService } from "@/lib/followService";
+import { apiGet } from "@/lib/apiClient";
 
 export function formatSalesMilestone(sales: number): string {
   if (sales >= 1000) return `${Math.floor(sales / 1000)}k+`;
@@ -530,6 +531,7 @@ export default function ProfilePage() {
     avatar?: string;
     coverImage?: string;
   } | null>(null);
+  const [liveUserProfile, setLiveUserProfile] = useState<any>(null);
 
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -544,7 +546,7 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const customSavedHandle = savedOwnProfile?.username
+  const customSavedHandle = !user && savedOwnProfile?.username
     ? savedOwnProfile.username.replace(/^@/, "").toLowerCase()
     : "";
 
@@ -556,6 +558,21 @@ export default function ProfilePage() {
   );
 
   const isKnownProfile = isOwnProfile || Boolean(PROFILES_BY_HANDLE[rawHandle]);
+
+  useEffect(() => {
+    if (!isOwnProfile || !user?.id) return;
+    let isCancelled = false;
+    apiGet<any>("/api/users/profile")
+      .then((response) => {
+        if (!isCancelled) {
+          setLiveUserProfile(response?.data || response?.user || null);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOwnProfile, user?.id]);
 
   // Fetch live listings if own profile
   useEffect(() => {
@@ -588,15 +605,15 @@ export default function ProfilePage() {
   }, [isOwnProfile, user?.id]);
 
   const ownBaseProfile: ProfilePreviewData = {
-    id: user?.id || "my-profile",
-    handle: user?.handle || customSavedHandle || "me",
-    name: user?.name || savedOwnProfile?.name || "Campus Student",
-    username: `@${(user?.handle || customSavedHandle || "student").replace(/^@/, "")}`,
-    isStudentSeller: Boolean(user?.isStudent),
-    isVerified: Boolean(user?.studentVerified),
-    location: savedOwnProfile?.location || "Campus",
-    bio: savedOwnProfile?.bio || "Campus student on Campus Hive.",
-    avatar: savedOwnProfile?.avatar || user?.avatar || user?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
+    id: liveUserProfile?._id || liveUserProfile?.id || user?.id || "my-profile",
+    handle: liveUserProfile?.profile?.handle || user?.handle || customSavedHandle || "me",
+    name: liveUserProfile?.name || liveUserProfile?.profile?.displayName || user?.name || savedOwnProfile?.name || "Campus Student",
+    username: `@${(liveUserProfile?.profile?.handle || user?.handle || customSavedHandle || "student").replace(/^@/, "")}`,
+    isStudentSeller: Boolean(liveUserProfile?.isStudent ?? user?.isStudent),
+    isVerified: Boolean(liveUserProfile?.studentVerified ?? user?.studentVerified),
+    location: liveUserProfile?.campus || (!user ? savedOwnProfile?.location : "") || "Campus",
+    bio: liveUserProfile?.profile?.bio || (!user ? savedOwnProfile?.bio : "") || "Campus student on Campus Hive.",
+    avatar: liveUserProfile?.profile?.avatar || (!user ? savedOwnProfile?.avatar : "") || user?.avatar || user?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
     coverImage: savedOwnProfile?.coverImage || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1400&auto=format&fit=crop&q=80",
     sales: 0,
     rating: 5.0,
@@ -621,7 +638,7 @@ export default function ProfilePage() {
 
   // Merge user-editable profile fields for own profile while strictly keeping verification status read-only
   const profile: ProfilePreviewData =
-    isOwnProfile && savedOwnProfile
+    isOwnProfile && savedOwnProfile && !user
       ? {
           ...baseProfile,
           name: savedOwnProfile.name || baseProfile.name,

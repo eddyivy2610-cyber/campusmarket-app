@@ -7,6 +7,47 @@ import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 export const dynamic = "force-dynamic";
 
 /**
+ * GET /api/users/profile
+ * Returns the authenticated user's live profile data.
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const { user, errorResponse } = await requireAuth(req);
+    if (!user || errorResponse) return errorResponse;
+
+    await dbConnect();
+    const dbUser = await UserModel.findOne({ email: user.email.toLowerCase() })
+      .select("-password")
+      .lean();
+
+    if (!dbUser) {
+      return NextResponse.json(
+        { success: false, error: "User record not found." },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...dbUser,
+        id: String(dbUser._id),
+      },
+      user: {
+        ...dbUser,
+        id: String(dbUser._id),
+      },
+    });
+  } catch (error: any) {
+    console.error("[GET /api/users/profile] Error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to load profile." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PATCH /api/users/profile
  * Updates authenticated user's profile information (avatar, cover, bio, personalDetails):
  * - Strict session ownership: Always operates on authenticated user.

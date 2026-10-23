@@ -4,6 +4,7 @@ import {
   RebrandSettingsShell,
   SettingsDestinationId,
 } from "./RebrandSettingsShell";
+import { SignOutSettings } from "./sections/SignOutSettings";
 
 const MAP_LEGACY_SECTION_ID: Record<SectionId, SettingsDestinationId> = {
   profile: "profile",
@@ -19,6 +20,10 @@ const MAP_LEGACY_SECTION_ID: Record<SectionId, SettingsDestinationId> = {
 };
 
 export function SettingsSectionPage({ sectionId }: { sectionId: SectionId }) {
+  if (sectionId === "logout") {
+    return <SignOutSettings />;
+  }
+
   const mappedDestination = MAP_LEGACY_SECTION_ID[sectionId] || "profile";
 
   return (

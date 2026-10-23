@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Loader2, ArrowRight, CheckCircle2, RotateCw, AlertCircle } from "lucide-react";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { apiPost } from "@/lib/apiClient";
+import { useAuth } from "@/context/AuthContext";
 import { AuthCardSkeleton, ButtonRing } from "../components/common/LoadingSystem";
 
 export default function VerifyEmailRoute() {
@@ -25,6 +26,7 @@ export default function VerifyEmailRoute() {
 function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
@@ -111,6 +113,21 @@ function VerifyEmailContent() {
 
         if (res?.token) {
           localStorage.setItem("campus_token", res.token);
+        }
+        if (res?.user) {
+          login({
+            id: res.user.id,
+            name: res.user.name || res.user.profile?.displayName || "Campus Student",
+            email: res.user.email,
+            handle: res.user.profile?.handle || res.user.id,
+            role: res.user.role || "buyer",
+            isStudent: Boolean(res.user.isStudent),
+            studentVerified: Boolean(res.user.studentVerified),
+            sellerStatus: "none",
+            onboardingStep: res.user.onboardingStep || "profile_completed",
+            avatar: res.user.profile?.avatar,
+            image: res.user.profile?.avatar,
+          });
         }
       }
 

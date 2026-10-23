@@ -17,6 +17,8 @@ import {
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
 import { AppPreferencesPanel } from "./AppPreferencesPanel";
+import { useAuth } from "@/context/AuthContext";
+import { apiGet, apiPatch } from "@/lib/apiClient";
 
 export type SettingsTabId =
   | "profile"
@@ -74,6 +76,7 @@ export function RebrandSettingsShell({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, login } = useAuth();
   const querySection = searchParams.get("section") as SettingsTabId | null;
 
   const [activeTab, setActiveTab] = useState<SettingsTabId>(
@@ -125,6 +128,30 @@ export function RebrandSettingsShell({
     }
   }, []);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    apiGet<any>("/api/users/profile")
+      .then((response) => {
+        const data = response?.data || response?.user;
+        if (!data) return;
+        const liveData: ProfileIdentityData = {
+          ...DEFAULT_PROFILE_DATA,
+          name: data.name || data.profile?.displayName || user.name || "Campus Student",
+          username: String(data.profile?.handle || user.handle || user.id).replace(/^@/, "").toLowerCase(),
+          bio: data.profile?.bio || "",
+          school: data.campus || "",
+          major: data.profile?.department || "",
+          year: data.profile?.level || "",
+          avatar: data.profile?.avatar || user.avatar || "/placeholder.png",
+          location: data.campus || "",
+        };
+        setProfileData(liveData);
+        setInitialData(liveData);
+        setEmail(data.email || user.email || "");
+      })
+      .catch(() => {});
+  }, [user?.id]);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -142,9 +169,6 @@ export function RebrandSettingsShell({
     setIsSaving(true);
     setSaveSuccessMsg(null);
 
-    // Simulate save
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
     const finalData: ProfileIdentityData = {
       ...profileData,
       avatar: avatarPreview || profileData.avatar,
@@ -152,10 +176,25 @@ export function RebrandSettingsShell({
     };
 
     try {
+      const response = await apiPatch<any>("/api/users/profile", {
+        displayName: finalData.name,
+        bio: finalData.bio,
+        campus: finalData.location || finalData.school,
+      });
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
       setProfileData(finalData);
       setInitialData(finalData);
       setAvatarPreview(null);
+      const saved = response?.data || response?.user;
+      if (saved && user) {
+        login({
+          ...user,
+          name: saved.name || finalData.name,
+          handle: saved.profile?.handle || finalData.username,
+          avatar: saved.profile?.avatar || finalData.avatar,
+          image: saved.profile?.avatar || finalData.avatar,
+        });
+      }
       setIsSaving(false);
       setSaveSuccessMsg("Profile & Identity updated successfully.");
       setTimeout(() => setSaveSuccessMsg(null), 3000);
@@ -171,7 +210,7 @@ export function RebrandSettingsShell({
   };
 
   const effectiveAvatar = avatarPreview || profileData.avatar;
-  const backProfileHandle = profileData.username || "tundebello";
+  const backProfileHandle = profileData.username || user?.handle || user?.id || "me";
 
   return (
     <div

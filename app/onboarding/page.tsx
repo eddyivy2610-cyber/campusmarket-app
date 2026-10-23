@@ -22,7 +22,7 @@ import {
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { ButtonRing } from "@/components/common/LoadingSystem";
 import { useAuth } from "@/context/AuthContext";
-import { uploadFileClient } from "@/lib/clientUpload";
+import { apiPatch } from "@/lib/apiClient";
 
 const CAMPUSES = [
   { id: "abu-samaru", name: "Ahmadu Bello University (ABU Samaru Main Campus)", city: "Zaria, Kaduna" },
@@ -36,32 +36,9 @@ const CAMPUSES = [
   { id: "abuth", name: "ABU Teaching Hospital (ABUTH)", city: "Shika, Zaria" },
 ];
 
-const DEPARTMENTS = [
-  "Computer Science & Engineering",
-  "Electrical & Electronics Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Medicine & Surgery",
-  "Pharmacy",
-  "Accounting & Finance",
-  "Business Administration",
-  "Architecture",
-  "Law",
-  "Mass Communication",
-  "Economics",
-  "Biochemistry",
-  "Agricultural Science",
-  "Other / General Studies",
-];
-
-const LEVELS = ["100 Level", "200 Level", "300 Level", "400 Level", "500 Level", "Postgraduate"];
-
-const SAMPLE_AVATARS = [
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
-];
+const DEPARTMENTS: string[] = [];
+const LEVELS: string[] = [];
+const SAMPLE_AVATARS: string[] = [];
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -74,10 +51,14 @@ export default function OnboardingPage() {
   const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0].name);
   const [campusSearch, setCampusSearch] = useState("");
   const [department, setDepartment] = useState("");
-  const [level, setLevel] = useState("300 Level");
+  const [level, setLevel] = useState("");
   const [displayName, setDisplayName] = useState(user?.name || "Tunde Bello");
-  const [avatarUrl, setAvatarUrl] = useState(SAMPLE_AVATARS[0]);
+  const [avatarUrl, setAvatarUrl] = useState("/placeholder.png");
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleAvatarUpload = () => {
+    // Profile image uploads are intentionally deferred to Profile Settings.
+  };
 
   // Search filtered campuses
   const filteredCampuses = CAMPUSES.filter((c) =>
@@ -85,51 +66,45 @@ export default function OnboardingPage() {
     c.city.toLowerCase().includes(campusSearch.toLowerCase().trim())
   );
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file (JPG, PNG, WEBP).");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image must be smaller than 5MB.");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const res = await uploadFileClient(file, "avatar");
-      if (res.success && res.url) {
-        setAvatarUrl(res.url);
-      } else {
-        alert(res.error || "Failed to upload avatar image.");
-      }
-    } catch (err: any) {
-      alert(err.message || "Failed to upload avatar.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleFinishSetup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
 
-    // Save profile preferences
+    let persistedProfile: any = null;
+    try {
+      const response: any = await apiPatch("users/profile", {
+        displayName: displayName.trim(),
+        campus: selectedCampus,
+      });
+      persistedProfile = response?.data || response?.user || null;
+    } catch {
+      // Keep onboarding usable if the profile write is temporarily unavailable.
+    }
+
+    const profileHandle =
+      persistedProfile?.profile?.handle ||
+      user?.handle ||
+      displayName.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+      "student";
+    const profileAvatar =
+      persistedProfile?.profile?.avatar ||
+      user?.avatar ||
+      user?.image ||
+      "/placeholder.png";
+
+    // Save the authenticated user's live profile locally for immediate UI updates.
     const updatedUser = {
       id: user?.id || "usr-" + Date.now().toString().slice(-6),
       name: displayName || user?.name || "Campus Student",
       email: user?.email || "student@university.edu.ng",
-      handle: (displayName || "student").toLowerCase().replace(/[^a-z0-9]/g, ""),
+      handle: profileHandle,
       role: "buyer" as const,
       isStudent: true,
       studentVerified: true,
       sellerStatus: "approved" as const,
       onboardingStep: "completed" as const,
-      avatar: avatarUrl,
+      avatar: profileAvatar,
+      image: profileAvatar,
     };
 
     login(updatedUser);
@@ -137,10 +112,10 @@ export default function OnboardingPage() {
     try {
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify({
         name: displayName,
-        username: `@${(displayName || "student").toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+        username: "@" + profileHandle,
         bio: `Student at ${selectedCampus}.`,
         location: `${selectedCampus.split("(")[0].trim()}`,
-        avatar: avatarUrl,
+        avatar: profileAvatar,
       }));
     } catch {}
 
@@ -274,15 +249,8 @@ export default function OnboardingPage() {
       </div>
 
       <form onSubmit={handleFinishSetup} className="space-y-4">
-        {/* Hidden file input for custom avatar upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleAvatarUpload}
-          className="hidden"
-        />
-
+        {false && (
+        <>
         {/* Avatar Selection */}
         <div className="flex items-center gap-3.5 pt-1">
           <div
@@ -334,6 +302,9 @@ export default function OnboardingPage() {
             </div>
           </div>
         </div>
+
+        </>
+        )}
 
         {/* Display Name */}
         <div className="space-y-1.5">
@@ -431,6 +402,8 @@ export default function OnboardingPage() {
           )}
         </div>
 
+        {false && (
+        <>
         {/* Department & Level Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Department */}
@@ -470,6 +443,9 @@ export default function OnboardingPage() {
             </select>
           </div>
         </div>
+
+        </>
+        )}
 
         {/* Submit Button */}
         <button

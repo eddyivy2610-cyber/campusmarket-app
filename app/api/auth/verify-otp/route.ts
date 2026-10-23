@@ -76,6 +76,13 @@ export async function POST(req: NextRequest) {
         role: user.role,
         isStudent: user.isStudent,
         studentVerified: user.studentVerified,
+        campus: user.campus,
+        onboardingStep: user.onboardingStep,
+        profile: {
+          handle: user.profile?.handle,
+          avatar: user.profile?.avatar,
+          displayName: user.profile?.displayName,
+        },
       },
     });
 

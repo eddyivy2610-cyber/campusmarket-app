@@ -54,9 +54,9 @@ export async function POST(req: NextRequest) {
 
     if (isUserDbAvailable) {
       try {
-        const dbUser = mongoose.isValidObjectId(user.id)
-          ? await User.findById(user.id).select("role accountStatus tokenVersion").lean()
-          : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus tokenVersion").lean();
+          const dbUser = mongoose.isValidObjectId(user.id)
+          ? await User.findById(user.id).select("role accountStatus tokenVersion name email isStudent studentVerified campus profile").lean()
+          : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus tokenVersion name email isStudent studentVerified campus profile").lean();
 
         if (dbUser) {
           if (dbUser.accountStatus !== "active") {
@@ -88,6 +88,13 @@ export async function POST(req: NextRequest) {
 
           user.tokenVersion = currentVersion;
           user.role = (dbUser.role as any) || user.role;
+          user.name = dbUser.name || user.name;
+          user.email = dbUser.email || user.email;
+          user.isStudent = Boolean(dbUser.isStudent);
+          user.studentVerified = Boolean(dbUser.studentVerified);
+          user.campus = dbUser.campus;
+          (user as any).handle = dbUser.profile?.handle;
+          (user as any).avatar = dbUser.profile?.avatar;
         }
       } catch {
         // Fall through for offline tests
@@ -107,6 +114,13 @@ export async function POST(req: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
+          isStudent: user.isStudent,
+          studentVerified: user.studentVerified,
+          campus: user.campus,
+          profile: {
+            handle: (user as any).handle,
+            avatar: (user as any).avatar,
+          },
         },
       },
       { status: 200 }
