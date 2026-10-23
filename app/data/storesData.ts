@@ -61,7 +61,7 @@ export interface StoreProfile {
 export const STORES_DATABASE: StoreProfile[] = [
   {
     id: "store-tunde-bello",
-    slug: "tundebello",
+    slug: "legacy-seller",
     name: "Tunde Bello",
     businessType: "student_owned",
     verificationBadgeText: "Verified student seller",
@@ -81,7 +81,7 @@ export const STORES_DATABASE: StoreProfile[] = [
     avatarBg: "bg-[#FFF2D9] text-[#7A5210] dark:bg-amber-500/10 dark:text-amber-300",
     avatarIcon: "headphones",
     coverGradient: "from-amber-100/70 via-stone-100 to-amber-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900",
-    contactHandle: "tundebello",
+    contactHandle: "legacy-seller",
     products: [
       {
         id: "101",

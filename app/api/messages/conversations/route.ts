@@ -10,7 +10,7 @@ import {
   ContextWorkflowStatus,
   ConversationModel,
 } from "../../../models/ChatModels";
-import { requireAuth, ServerAuthUser } from "../../../lib/authServer";
+import { requireAuth, requireCompletedOnboarding, ServerAuthUser } from "../../../lib/authServer";
 import dbConnect from "../../../lib/dbConnect";
 
 function buildChatParticipantProfile(user: ServerAuthUser): ChatParticipantProfile {
@@ -136,7 +136,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireAuth(req);
+    const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) {
       return errorResponse;
     }

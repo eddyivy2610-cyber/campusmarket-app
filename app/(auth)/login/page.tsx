@@ -37,6 +37,7 @@ function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [canResendVerification, setCanResendVerification] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +48,7 @@ function LoginFormContent() {
 
     setIsLoading(true);
     setErrorMessage("");
+    setCanResendVerification(false);
 
     try {
       const response: any = await apiPost("auth/login", {
@@ -54,67 +56,46 @@ function LoginFormContent() {
         password,
       });
 
-      const token = response?.token || response?.data?.token || "demo_token_signed";
-      if (token) {
-        localStorage.setItem("campus_token", token);
-      }
-
-      const userData = response?.user || response?.data?.user || response?.data || {
-        id: "usr-" + Date.now().toString().slice(-6),
-        name: email.split("@")[0].replace(".", " "),
-        email: email.trim(),
-        handle: email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, ""),
-        role: "buyer",
-        isStudent: true,
-        studentVerified: true,
-        sellerStatus: "approved",
-        onboardingStep: "completed",
-      };
-
-      login(userData);
+      const serverUser = response?.user || response?.data?.user || response?.data;
+      if (!serverUser) throw new Error("Unable to load your account.");
+      login({
+        id: serverUser.id || serverUser._id,
+        name: serverUser.name || serverUser.profile?.displayName || "Campus Student",
+        email: serverUser.email,
+        handle: serverUser.profile?.handle || serverUser.handle,
+        role: serverUser.role || "buyer",
+        isStudent: Boolean(serverUser.isStudent),
+        studentVerified: Boolean(serverUser.studentVerified),
+        emailVerified: Boolean(serverUser.emailVerified ?? true),
+        sellerStatus: serverUser.sellerStatus || "none",
+        onboardingStep: serverUser.onboardingStep || "profile_completed",
+        avatar: serverUser.profile?.avatar || serverUser.avatar,
+        image: serverUser.profile?.avatar || serverUser.avatar,
+      });
 
       // If user came with a specific redirect, route there; otherwise to explore or home
       router.push(redirectUrl);
     } catch (err: any) {
-      console.warn("Backend auth offline or error:", err);
-      // Seamless mock login for demo when backend is offline
-      const fallbackUser = {
-        id: "usr-demo",
-        name: email.split("@")[0] || "Campus Student",
-        email: email.trim(),
-        handle: (email.split("@")[0] || "student").toLowerCase().replace(/[^a-z0-9]/g, ""),
-        role: "seller" as const,
-        isStudent: true,
-        studentVerified: true,
-        sellerStatus: "approved" as const,
-        onboardingStep: "completed" as const,
-      };
-
-      login(fallbackUser);
-      router.push(redirectUrl);
+      setErrorMessage(err?.message || "Unable to sign in. Please try again.");
+      setCanResendVerification(Boolean(err?.data?.canResendVerification));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const resendVerification = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      const googleUser = {
-        id: "usr-google-auth",
-        name: "Campus Student",
-        email: "student@university.edu.ng",
-        handle: "student",
-        role: "buyer" as const,
-        isStudent: true,
-        studentVerified: true,
-        sellerStatus: "none" as const,
-        onboardingStep: "completed" as const,
-      };
-      login(googleUser);
-      router.push(redirectUrl);
-    }, 600);
+    try {
+      await apiPost("auth/resend-verification", { email: email.trim(), password });
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Unable to resend verification code.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";
 
   return (
     <NewAuthCard
@@ -136,6 +117,12 @@ function LoginFormContent() {
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{errorMessage}</span>
         </div>
+      )}
+
+      {canResendVerification && (
+        <button type="button" onClick={resendVerification} disabled={isLoading} className="w-full text-left text-[12px] font-bold text-primary hover:underline disabled:opacity-50">
+          Verify your email or resend the code
+        </button>
       )}
 
       <form onSubmit={handleLogin} className="space-y-4">
@@ -223,16 +210,12 @@ function LoginFormContent() {
           <span>Log in</span>
         </button>
 
-        {/* Google Social Login */}
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="radius-native w-full py-2.5 sm:py-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 text-[#171717] dark:text-white font-bold text-[13px] flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
-        >
-          <img src="/google.svg" alt="Google" className="w-4 h-4" />
-          <span>Log in with Google</span>
-        </button>
+        {googleEnabled && (
+          <button type="button" disabled className="radius-native w-full py-2.5 sm:py-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[#171717] dark:text-white font-bold text-[13px] flex items-center justify-center gap-2.5 transition-colors cursor-not-allowed opacity-60">
+            <img src="/google.svg" alt="Google" className="w-4 h-4" />
+            <span>Google sign-in unavailable</span>
+          </button>
+        )}
       </form>
 
       {/* Switch to Register */}

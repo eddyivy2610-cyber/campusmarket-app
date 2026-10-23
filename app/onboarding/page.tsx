@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -52,9 +52,13 @@ export default function OnboardingPage() {
   const [campusSearch, setCampusSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [level, setLevel] = useState("");
-  const [displayName, setDisplayName] = useState(user?.name || "Tunde Bello");
-  const [avatarUrl, setAvatarUrl] = useState("/placeholder.png");
+  const [displayName, setDisplayName] = useState(user?.name || "");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.name && !displayName) setDisplayName(user.name);
+  }, [user?.name, displayName]);
 
   const handleAvatarUpload = () => {
     // Profile image uploads are intentionally deferred to Profile Settings.
@@ -68,6 +72,10 @@ export default function OnboardingPage() {
 
   const handleFinishSetup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!user?.id) {
+      router.replace("/login?next=/onboarding");
+      return;
+    }
     setIsLoading(true);
 
     let persistedProfile: any = null;
@@ -78,30 +86,34 @@ export default function OnboardingPage() {
       });
       persistedProfile = response?.data || response?.user || null;
     } catch {
-      // Keep onboarding usable if the profile write is temporarily unavailable.
+      setIsLoading(false);
+      return;
     }
 
     const profileHandle =
       persistedProfile?.profile?.handle ||
-      user?.handle ||
-      displayName.toLowerCase().replace(/[^a-z0-9]/g, "") ||
-      "student";
+      user.handle;
+    if (!profileHandle) {
+      setIsLoading(false);
+      return;
+    }
     const profileAvatar =
       persistedProfile?.profile?.avatar ||
       user?.avatar ||
       user?.image ||
-      "/placeholder.png";
+      "";
 
     // Save the authenticated user's live profile locally for immediate UI updates.
     const updatedUser = {
-      id: user?.id || "usr-" + Date.now().toString().slice(-6),
-      name: displayName || user?.name || "Campus Student",
-      email: user?.email || "student@university.edu.ng",
+      id: user.id,
+      name: displayName || user.name,
+      email: user.email,
       handle: profileHandle,
-      role: "buyer" as const,
-      isStudent: true,
-      studentVerified: true,
-      sellerStatus: "approved" as const,
+      role: user.role,
+      isStudent: Boolean(user.isStudent),
+      studentVerified: Boolean(user.studentVerified),
+      emailVerified: Boolean(user.emailVerified),
+      sellerStatus: user.sellerStatus || "none",
       onboardingStep: "completed" as const,
       avatar: profileAvatar,
       image: profileAvatar,

@@ -43,9 +43,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        const token = localStorage.getItem("campus_token");
-        if (!token) return;
-
         // 1. Initialize hosted Realtime Client (Pusher / Soketi)
         const pusherClient = getRealtimeClient();
         if (pusherClient) {
@@ -71,7 +68,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         if (expressUrl && expressUrl.startsWith("http")) {
             try {
                 socketInstance = io(expressUrl, {
-                    auth: { token },
+                    withCredentials: true,
                     transports: ["websocket"],
                 });
 

@@ -28,6 +28,7 @@ export interface IUser {
   studentVerified: boolean;
   emailVerified?: boolean;
   onboardingStep?: string;
+  sellerStatus?: "none" | "pending" | "approved" | "rejected";
   profile?: IUserProfile;
   preferences?: IUserPreferences;
   suspensionReason?: string;
@@ -53,7 +54,7 @@ const UserSchema = new Schema<IUserDocument>(
     accountStatus: {
       type: String,
       enum: USER_ACCOUNT_STATUSES,
-      default: "active",
+      default: "pending",
       index: true,
     },
     campus: { type: String, required: false, index: true },
@@ -61,6 +62,12 @@ const UserSchema = new Schema<IUserDocument>(
     studentVerified: { type: Boolean, default: false, index: true },
     emailVerified: { type: Boolean, default: false, index: true },
     onboardingStep: { type: String, default: "pending" },
+    sellerStatus: {
+      type: String,
+      enum: ["none", "pending", "approved", "rejected"],
+      default: "none",
+      index: true,
+    },
     profile: {
       displayName: { type: String },
       handle: { type: String, lowercase: true, trim: true },

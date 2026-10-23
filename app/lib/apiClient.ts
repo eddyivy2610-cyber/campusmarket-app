@@ -33,9 +33,6 @@ const apiRequest = async <T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> => {
-  // Get token from localStorage if it exists (client-side only)
-  const token = typeof window !== 'undefined' ? localStorage.getItem('campus_token') : null;
-  
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;
 
@@ -49,7 +46,6 @@ const apiRequest = async <T>(
     ...options,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(token && { "Authorization": `Bearer ${token}` }),
       ...(options.headers ?? {}),
     },
   });
@@ -76,8 +72,7 @@ const apiRequest = async <T>(
       if (refreshRes.ok) {
         const refreshData = await refreshRes.json();
         if (refreshData?.token) {
-          localStorage.setItem("campus_token", refreshData.token);
-          // Retry the original request once with the newly refreshed access token
+          // The refreshed access token is delivered in an httpOnly cookie.
           return apiRequest<T>(path, options);
         }
       }

@@ -57,15 +57,14 @@ interface ProfileIdentityData {
   location?: string;
 }
 
-const DEFAULT_PROFILE_DATA: ProfileIdentityData = {
-  name: "Tunde Bello",
-  username: "tundebello",
-  bio: "Final year Computer Engineering student. Selling neatly used gadgets, engineering textbooks, and lab gear around Samaru campus.",
-  school: "Ahmadu Bello University",
-  major: "Computer Engineering",
-  year: "500 Level",
-  avatar:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
+const EMPTY_PROFILE_DATA: ProfileIdentityData = {
+  name: "",
+  username: "",
+  bio: "",
+  school: "",
+  major: "",
+  year: "",
+  avatar: "",
   location: "Suleiman Hostel · Samaru Campus",
 };
 
@@ -86,9 +85,9 @@ export function RebrandSettingsShell({
   );
 
   const [profileData, setProfileData] =
-    useState<ProfileIdentityData>(DEFAULT_PROFILE_DATA);
+    useState<ProfileIdentityData>(EMPTY_PROFILE_DATA);
   const [initialData, setInitialData] =
-    useState<ProfileIdentityData>(DEFAULT_PROFILE_DATA);
+    useState<ProfileIdentityData>(EMPTY_PROFILE_DATA);
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
@@ -100,7 +99,7 @@ export function RebrandSettingsShell({
   const [showOnlineStatus, setShowOnlineStatus] = useState(true);
 
   // Account & Security state
-  const [email, setEmail] = useState("tunde.bello@abu.edu.ng");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -113,12 +112,12 @@ export function RebrandSettingsShell({
       if (raw) {
         const parsed = JSON.parse(raw);
         const merged: ProfileIdentityData = {
-          ...DEFAULT_PROFILE_DATA,
+          ...EMPTY_PROFILE_DATA,
           ...parsed,
-          school: parsed.school || parsed.faculty || DEFAULT_PROFILE_DATA.school,
-          major: parsed.major || parsed.department || DEFAULT_PROFILE_DATA.major,
-          year: parsed.year || parsed.level || DEFAULT_PROFILE_DATA.year,
-          username: String(parsed.username || DEFAULT_PROFILE_DATA.username).replace(/^@/, "").toLowerCase(),
+          school: parsed.school || parsed.faculty || EMPTY_PROFILE_DATA.school,
+          major: parsed.major || parsed.department || EMPTY_PROFILE_DATA.major,
+          year: parsed.year || parsed.level || EMPTY_PROFILE_DATA.year,
+          username: String(parsed.username || EMPTY_PROFILE_DATA.username).replace(/^@/, "").toLowerCase(),
         };
         setProfileData(merged);
         setInitialData(merged);
@@ -135,14 +134,14 @@ export function RebrandSettingsShell({
         const data = response?.data || response?.user;
         if (!data) return;
         const liveData: ProfileIdentityData = {
-          ...DEFAULT_PROFILE_DATA,
+          ...EMPTY_PROFILE_DATA,
           name: data.name || data.profile?.displayName || user.name || "Campus Student",
           username: String(data.profile?.handle || user.handle || user.id).replace(/^@/, "").toLowerCase(),
           bio: data.profile?.bio || "",
           school: data.campus || "",
           major: data.profile?.department || "",
           year: data.profile?.level || "",
-          avatar: data.profile?.avatar || user.avatar || "/placeholder.png",
+          avatar: data.profile?.avatar || user.avatar || "",
           location: data.campus || "",
         };
         setProfileData(liveData);
@@ -770,7 +769,7 @@ export function RebrandSettingsShell({
 
                     <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                      <span>Institutional email: <strong className="text-[#171717] dark:text-white font-semibold">tunde.bello@abu.edu.ng</strong> • Student ID confirmed</span>
+                      <span>Institutional email: <strong className="text-[#171717] dark:text-white font-semibold">{email || "Not provided"}</strong></span>
                     </div>
                   </div>
                 </div>

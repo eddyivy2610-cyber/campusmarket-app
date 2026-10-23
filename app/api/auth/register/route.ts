@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import dbConnect from "@/lib/dbConnect";
 import UserModel, { saveUserWithHandleRetry } from "@/models/User";
 import { requestOtpCode } from "@/lib/otpService";
+import { sendExistingAccountNotice } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -68,23 +69,39 @@ export async function POST(req: NextRequest) {
         Boolean(existingUser.studentVerified);
 
       if (isVerified) {
+        try {
+          await sendExistingAccountNotice(cleanEmail);
+        } catch (noticeError: any) {
+          console.error("[POST /api/auth/register] Existing-account notice failed:", noticeError?.message);
+        }
         return NextResponse.json(
           {
-            success: false,
-            message: "An account with this email already exists. Please log in.",
+            success: true,
+            message: "If this email is eligible, a verification message has been dispatched.",
           },
-          { status: 409 }
+          { status: 202 }
         );
       }
 
-      // If user exists but is unverified, update credentials and send fresh OTP
+      // Pending registrations are replaced only after a fresh OTP succeeds.
       const hashedPassword = await argon2.hash(password);
-      existingUser.name = fullName.trim();
-      existingUser.password = hashedPassword;
-      if (existingUser.profile) {
-        existingUser.profile.displayName = fullName.trim();
-      }
-      await existingUser.save();
+      const forwardedFor = req.headers.get("x-forwarded-for");
+      const clientIp =
+        forwardedFor?.split(",")[0]?.trim() ||
+        req.headers.get("x-real-ip") ||
+        "127.0.0.1";
+      const otpResult = await requestOtpCode(cleanEmail, clientIp, {
+        name: fullName.trim(),
+        passwordHash: hashedPassword,
+      });
+      return NextResponse.json(
+        {
+          success: otpResult.success,
+          email: cleanEmail,
+          message: otpResult.message,
+        },
+        { status: otpResult.success ? 201 : otpResult.status }
+      );
     } else {
       // 3. Create fresh user
       const hashedPassword = await argon2.hash(password);

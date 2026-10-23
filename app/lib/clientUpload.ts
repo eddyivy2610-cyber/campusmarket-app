@@ -17,8 +17,7 @@ export async function uploadFileClient(
   file: File,
   purpose: UploadPurpose = "listing_image"
 ): Promise<ClientUploadResult> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("campus_token") : null;
-  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const authHeaders: Record<string, string> = {};
 
   // Extract file extension
   const fileName = file.name || "file.jpg";

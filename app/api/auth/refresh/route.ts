@@ -5,6 +5,7 @@ import {
   createAccessToken,
   createRefreshToken,
   setRefreshTokenCookie,
+  setAccessTokenCookie,
   clearRefreshTokenCookie,
   getRefreshTokenFromRequest,
 } from "@/lib/authTokens";
@@ -44,8 +45,22 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
+    if (user.emailVerified === false) {
+      const res = NextResponse.json(
+        { success: false, error: "Email verification is required." },
+        { status: 403 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
     // 3. Database status re-check: Account suspension or revocation stops refresh immediately
-    await dbConnect();
+    const dbConnection = await dbConnect();
+    if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
+      const res = NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 });
+      clearRefreshTokenCookie(res);
+      return res;
+    }
     const isUserDbAvailable =
       typeof window === "undefined" &&
       (UserModel.db?.readyState === 1 ||
@@ -55,10 +70,18 @@ export async function POST(req: NextRequest) {
     if (isUserDbAvailable) {
       try {
           const dbUser = mongoose.isValidObjectId(user.id)
-          ? await User.findById(user.id).select("role accountStatus tokenVersion name email isStudent studentVerified campus profile").lean()
-          : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus tokenVersion name email isStudent studentVerified campus profile").lean();
+          ? await User.findById(user.id).select("role accountStatus emailVerified tokenVersion name email isStudent studentVerified campus profile").lean()
+          : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified tokenVersion name email isStudent studentVerified campus profile").lean();
 
         if (dbUser) {
+          if (!dbUser.emailVerified) {
+            const res = NextResponse.json(
+              { success: false, error: "Email verification is required." },
+              { status: 403 }
+            );
+            clearRefreshTokenCookie(res);
+            return res;
+          }
           if (dbUser.accountStatus !== "active") {
             const res = NextResponse.json(
               {
@@ -97,7 +120,11 @@ export async function POST(req: NextRequest) {
           (user as any).avatar = dbUser.profile?.avatar;
         }
       } catch {
-        // Fall through for offline tests
+        if (process.env.NODE_ENV === "production") {
+          const res = NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 });
+          clearRefreshTokenCookie(res);
+          return res;
+        }
       }
     }
 
@@ -116,6 +143,7 @@ export async function POST(req: NextRequest) {
           role: user.role,
           isStudent: user.isStudent,
           studentVerified: user.studentVerified,
+          emailVerified: user.emailVerified,
           campus: user.campus,
           profile: {
             handle: (user as any).handle,
@@ -127,6 +155,7 @@ export async function POST(req: NextRequest) {
     );
 
     // 5. Update httpOnly, Secure, SameSite refresh token cookie
+    setAccessTokenCookie(res, newAccessToken);
     setRefreshTokenCookie(res, newRefreshToken);
 
     return res;

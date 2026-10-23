@@ -417,8 +417,8 @@ export function CreateListingForm() {
       location: `${landmark}, ${campusBranch}`,
       specs,
       features: selectedFeatures,
-      sellerName: user?.name || "Tunde Bello",
-      sellerHandle: user?.handle || "tundebello",
+      sellerName: user?.name || "Campus Student",
+      sellerHandle: user?.handle || "me",
       sellerType: user?.isStudent ? "student_seller" : "approved_business",
       isStudentSeller: true,
       isVerified: true,
@@ -1692,7 +1692,7 @@ export function CreateListingForm() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
                       <span className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                        {user?.name || "Tunde Bello"}
+                        {user?.name || "Campus Student"}
                       </span>
                       <BadgeCheck className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0" />
                     </div>

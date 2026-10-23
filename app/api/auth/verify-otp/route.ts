@@ -4,6 +4,7 @@ import UserModel from "@/models/User";
 import {
   createAccessToken,
   createRefreshToken,
+  setAccessTokenCookie,
   setRefreshTokenCookie,
 } from "@/lib/authTokens";
 import dbConnect from "@/lib/dbConnect";
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
       role: user.role || "buyer",
       isStudent: Boolean(user.isStudent),
       studentVerified: Boolean(user.studentVerified),
+      emailVerified: Boolean(user.emailVerified),
       campus: user.campus,
       tokenVersion: user.tokenVersion || 0,
     };
@@ -76,6 +78,7 @@ export async function POST(req: NextRequest) {
         role: user.role,
         isStudent: user.isStudent,
         studentVerified: user.studentVerified,
+        emailVerified: user.emailVerified,
         campus: user.campus,
         onboardingStep: user.onboardingStep,
         profile: {
@@ -87,13 +90,7 @@ export async function POST(req: NextRequest) {
     });
 
     setRefreshTokenCookie(res, refreshToken);
-    res.cookies.set("campus_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 15 * 60, // 15 minutes short-lived
-    });
+    setAccessTokenCookie(res, accessToken);
     return res;
   } catch (error: any) {
     console.error("[POST /api/auth/verify-otp] Error:", error);

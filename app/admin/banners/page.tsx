@@ -269,16 +269,9 @@ function AdminBannersPage() {
       formData.append("file", file);
       formData.append("purpose", "banner_image");
 
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("campus_token")
-          : null;
-
       const res = await fetch("/api/upload", {
         method: "POST",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        credentials: "include",
         body: formData,
       });
 

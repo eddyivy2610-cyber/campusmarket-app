@@ -342,6 +342,9 @@ export async function PATCH(
         if (!newRole || !["buyer", "seller", "admin"].includes(newRole)) {
           throw new Error("Invalid role specified. Role must be 'buyer', 'seller', or 'admin'.");
         }
+        if (newRole === "seller") {
+          throw new Error("Seller role is assigned only by the approved storefront workflows.");
+        }
 
         const existingUser = await UserModel.findById(id).session(session || null);
         if (!existingUser) {

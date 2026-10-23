@@ -27,7 +27,6 @@ export function getAdminSession(): AdminSession | null {
 export function clearAdminSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ADMIN_SESSION_KEY);
-  localStorage.removeItem("campus_token");
 }
 
 export async function signInAdmin(
@@ -50,8 +49,6 @@ export async function signInAdmin(
         lastActive: Date.now(),
       };
 
-      // Store cryptographically signed token in standard campus_token for apiClient to use
-      localStorage.setItem("campus_token", response.token);
       // Store admin-specific session for UI rendering
       localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
 

@@ -23,11 +23,7 @@ export function ProfessionalListingsArea({ viewAs, sellerId }: ProfessionalListi
                     ? `/api/listings?sellerId=me&status=all`
                     : `/api/listings?sellerId=${encodeURIComponent(sellerId)}&status=active`;
                 
-                const response = await fetch(endpoint, {
-                    headers: isHost ? {
-                        "Authorization": `Bearer ${localStorage.getItem("campus_token")}`
-                    } : {}
-                });
+                const response = await fetch(endpoint, { credentials: "include" });
                 
                 const data = await response.json();
 

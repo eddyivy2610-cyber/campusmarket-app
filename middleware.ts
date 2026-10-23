@@ -4,6 +4,7 @@ import {
   applyRateLimitAsync,
   RATE_LIMIT_PRESETS,
 } from "@/lib/rateLimit";
+import { validateSameOrigin } from "@/lib/csrf";
 
 export async function middleware(request: NextRequest) {
   // Extract or generate a unique request ID
@@ -18,6 +19,11 @@ export async function middleware(request: NextRequest) {
 
   // 1. Rate Limiting Enforcement in Middleware for APIs
   if (pathname.startsWith("/api/")) {
+    const csrfResponse = validateSameOrigin(request);
+    if (csrfResponse) {
+      csrfResponse.headers.set("x-request-id", requestId);
+      return csrfResponse;
+    }
     // Health probe and static internal routes bypass rate limiting
     if (pathname === "/api/health") {
       // Allow health probes unimpeded
@@ -66,7 +72,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set("x-request-id", requestId);
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Referrer-Policy", pathname === "/forgot-password" ? "no-referrer" : "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
   return response;

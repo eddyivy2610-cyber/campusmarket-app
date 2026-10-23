@@ -96,18 +96,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     setIsMounted(true);
     const existing = getAdminSession();
-    const token = typeof window !== "undefined" ? localStorage.getItem("campus_token") : null;
 
-    if (!existing || !token) {
+    if (!existing) {
       setSession(null);
       setIsCheckingAuth(false);
       return;
     }
 
     // Verify token validity with server admin endpoint
-    fetch("/api/admin/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch("/api/admin/auth/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           clearAdminSession();

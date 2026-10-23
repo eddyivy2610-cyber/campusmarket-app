@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import BusinessApplicationModel from "@/models/BusinessApplication";
 import StoreModel from "@/models/Store";
+import UserModel from "@/models/User";
 import { requireAdmin } from "@/lib/authServer";
 import { logAdminAudit } from "@/lib/adminAudit";
 import { getRequestId } from "@/lib/apiResponse";
@@ -187,6 +188,12 @@ export async function PATCH(
         // Link storeId to application within the same transaction
         updatedApp.storeId = storeToLink._id.toString();
         await (session ? updatedApp.save({ session }) : updatedApp.save());
+
+        await UserModel.findByIdAndUpdate(
+          updatedApp.applicantId,
+          { $set: { role: "seller", sellerStatus: "approved" } },
+          session ? { session } : undefined
+        );
 
         approvedApplication = updatedApp;
         createdOrLinkedStore = storeToLink;

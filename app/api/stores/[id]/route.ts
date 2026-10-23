@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import StoreModel, { sanitizeStoreInput } from "@/models/Store";
+import UserModel from "@/models/User";
 import { requireAuth, assertUserOwnsStore } from "@/lib/authServer";
+import { executeInTransaction } from "@/lib/transactionHelper";
 
 /**
  * GET /api/stores/[id]
@@ -178,12 +180,17 @@ export async function DELETE(
       );
     }
 
-    // Unlink any associated catalog listings
     const ListingModel = (await import("@/models/Listing")).default;
-    await ListingModel.updateMany({ storeId: id }, { $unset: { storeId: "" } });
-
-    // Delete storefront
-    await StoreModel.findByIdAndDelete(id);
+    await executeInTransaction(async (session) => {
+      const sessionOptions = session ? { session } : undefined;
+      await ListingModel.updateMany({ storeId: id }, { $unset: { storeId: "" } }, sessionOptions);
+      await StoreModel.findByIdAndDelete(id, sessionOptions);
+      await UserModel.findByIdAndUpdate(
+        user.id,
+        { $set: { role: "buyer", sellerStatus: "none" }, $inc: { tokenVersion: 1 } },
+        sessionOptions
+      );
+    });
 
     return NextResponse.json({
       success: true,

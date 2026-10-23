@@ -150,6 +150,8 @@ export async function POST(req: NextRequest) {
           }
           // Upgrade role to admin if existing non-admin user
           existing.role = "admin";
+          existing.emailVerified = true;
+          existing.accountStatus = "active";
           await existing.save();
           return NextResponse.json({
             success: true,
@@ -164,6 +166,7 @@ export async function POST(req: NextRequest) {
           email: cleanEmail,
           role: "admin",
           accountStatus: "active",
+          emailVerified: true,
           isStudent: false,
           studentVerified: false,
           profile: {

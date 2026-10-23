@@ -12,6 +12,7 @@ interface User {
     role: "buyer" | "seller" | "admin";
     isStudent?: boolean;
     studentVerified?: boolean;
+    emailVerified?: boolean;
     tier?: "new" | "rising" | "trusted" | "elite";
     sellerStatus: "none" | "pending" | "approved" | "rejected";
     onboardingStep: "otp_verified" | "profile_completed" | "onboarding_choice" | "seller_pending" | "completed";
@@ -28,6 +29,16 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function cacheableProfile(userData: User) {
+    return {
+        id: userData.id,
+        name: userData.name,
+        handle: userData.handle,
+        avatar: userData.avatar,
+        image: userData.image,
+    };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -46,9 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            if (localStorage.getItem("campus_token")) {
-                await refreshUser();
-            }
+            await refreshUser();
 
             if (isActive) setIsLoading(false);
         };
@@ -61,23 +70,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = (userData: User) => {
         setUser(userData);
-        localStorage.setItem("campus_user", JSON.stringify(userData));
+        localStorage.setItem("campus_user", JSON.stringify(cacheableProfile(userData)));
     };
 
     const logout = async () => {
-        const token = localStorage.getItem("campus_token");
         try {
             await fetch("/api/auth/logout", {
                 method: "POST",
                 credentials: "include",
-                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
             });
         } catch {
             // Clear local state even if the network is unavailable.
         } finally {
             setUser(null);
             localStorage.removeItem("campus_user");
-            localStorage.removeItem("campus_token");
             localStorage.removeItem("campus_email_verified");
             localStorage.removeItem("ch_profile_identity_v1");
             if (typeof window !== "undefined") {
@@ -89,14 +95,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshUser = async () => {
         try {
             // Call the refresh-token endpoint to get latest data and a fresh JWT
-            const response: any = await apiPost("auth/refresh");
-            const userData = response?.user || response?.data || response;
-            const newToken = response?.token;
-
-            if (newToken) {
-                localStorage.setItem("campus_token", newToken);
+            let response: any;
+            for (let attempt = 0; attempt < 3; attempt += 1) {
+                try {
+                    response = await apiPost("auth/refresh");
+                    break;
+                } catch (error: any) {
+                    if (error?.status !== 503 || attempt === 2) throw error;
+                    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+                }
             }
-
+            const userData = response?.user || response?.data || response;
             const refreshed: User = {
                 id: userData._id || userData.id || user?.id || "",
                 name: userData.personalDetails?.fullName || userData.profile?.displayName || userData.name || user?.name || "",
@@ -105,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 role: userData.role || user?.role || "buyer",
                 isStudent: userData.isStudent ?? userData.studentStatus?.isStudent ?? user?.isStudent ?? false,
                 studentVerified: userData.studentVerified ?? userData.studentStatus?.isVerified ?? user?.studentVerified ?? false,
+                emailVerified: userData.emailVerified ?? user?.emailVerified ?? false,
                 tier: user?.tier || "new",
                 sellerStatus: userData.sellerStatus || "none",
                 onboardingStep: userData.onboardingStep || "completed",
@@ -113,11 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             
             setUser(refreshed);
-            localStorage.setItem("campus_user", JSON.stringify(refreshed));
+            localStorage.setItem("campus_user", JSON.stringify(cacheableProfile(refreshed)));
             return refreshed;
         } catch (e: any) {
             console.error("Failed to refresh user", e);
-            toast.error("Session refresh failed: " + (e.message || "Unknown error"));
+            if (e?.status !== 401) {
+                toast.error("Session refresh failed: " + (e.message || "Unknown error"));
+            }
             return null;
         }
     };

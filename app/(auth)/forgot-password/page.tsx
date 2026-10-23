@@ -2,11 +2,14 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Mail, ArrowRight, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 
 export default function ForgotPasswordPage() {
-  const [step, setStep] = useState<"email" | "verify" | "success">("email");
+  const searchParams = useSearchParams();
+  const resetToken = searchParams.get("token") || "";
+  const [step, setStep] = useState<"email" | "verify" | "success">(resetToken ? "verify" : "email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -22,15 +25,19 @@ export default function ForgotPasswordPage() {
     }
     setIsLoading(true);
     setErrorMessage("");
-    await new Promise((r) => setTimeout(r, 800));
-    setIsLoading(false);
-    setStep("verify");
+    try {
+      const response = await fetch("/api/auth/password-reset/request", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email }) });
+      if (!response.ok) throw new Error("Unable to process request.");
+      setStep("verify");
+    } catch (error: any) { setErrorMessage(error?.message || "Unable to process request."); }
+    finally { setIsLoading(false); }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (code.length < 6) {
-      setErrorMessage("Please enter the 6-digit recovery code.");
+    const submittedToken = code.trim() || resetToken;
+    if (!submittedToken) {
+      setErrorMessage("Open the reset link from your email to continue.");
       return;
     }
     if (newPassword.length < 8) {
@@ -39,9 +46,13 @@ export default function ForgotPasswordPage() {
     }
     setIsLoading(true);
     setErrorMessage("");
-    await new Promise((r) => setTimeout(r, 800));
-    setIsLoading(false);
-    setStep("success");
+    try {
+      const response = await fetch("/api/auth/password-reset/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: submittedToken, password: newPassword }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Invalid or expired reset link.");
+      setStep("success");
+    } catch (error: any) { setErrorMessage(error?.message || "Unable to reset password."); }
+    finally { setIsLoading(false); }
   };
 
   return (
@@ -57,7 +68,7 @@ export default function ForgotPasswordPage() {
         step === "email"
           ? "Enter your university or personal email to receive a password reset code."
           : step === "verify"
-          ? `We sent a 6-digit recovery code to ${email}.`
+          ? (resetToken ? "Choose a new password." : `We sent a reset link to ${email}.`)
           : "Your password has been successfully reset. You can now sign in."
       }
       showBackToHome={true}
@@ -104,14 +115,14 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleResetPassword} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
-              6-digit recovery code
+              Reset link token
             </label>
             <input
               type="text"
-              maxLength={6}
+              maxLength={128}
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="123456"
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Paste the token from your email"
               required
               className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[15px] font-extrabold tracking-widest text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717]"
             />

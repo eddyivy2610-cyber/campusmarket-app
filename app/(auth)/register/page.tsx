@@ -74,12 +74,7 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleSignup = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      router.push("/onboarding");
-    }, 600);
-  };
+  const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";
 
   return (
     <NewAuthCard
@@ -238,16 +233,12 @@ export default function RegisterPage() {
           <span>Create account</span>
         </button>
 
-        {/* Social Sign up */}
-        <button
-          type="button"
-          onClick={handleGoogleSignup}
-          disabled={isLoading}
-          className="radius-native w-full py-2.5 sm:py-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 text-[#171717] dark:text-white font-bold text-[13px] flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
-        >
-          <img src="/google.svg" alt="Google" className="w-4 h-4" />
-          <span>Sign up with Google</span>
-        </button>
+        {googleEnabled && (
+          <button type="button" disabled className="radius-native w-full py-2.5 sm:py-3 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[#171717] dark:text-white font-bold text-[13px] flex items-center justify-center gap-2.5 transition-colors cursor-not-allowed opacity-60">
+            <img src="/google.svg" alt="Google" className="w-4 h-4" />
+            <span>Google sign-in unavailable</span>
+          </button>
+        )}
       </form>
 
       {/* Switch to Sign In */}

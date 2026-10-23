@@ -8,6 +8,7 @@ export interface ServerAuthUser {
   role: "buyer" | "seller" | "admin";
   isStudent: boolean;
   studentVerified: boolean;
+  emailVerified?: boolean;
   campus?: string;
   tokenVersion?: number;
 }
@@ -82,6 +83,7 @@ export function createAuthToken(
     role: user.role,
     isStudent: Boolean(user.isStudent),
     studentVerified: Boolean(user.studentVerified),
+    emailVerified: user.emailVerified !== false,
     campus: user.campus || undefined,
     tokenType: "access",
     iat: now,
@@ -122,6 +124,7 @@ export function createRefreshToken(
     role: user.role,
     isStudent: Boolean(user.isStudent),
     studentVerified: Boolean(user.studentVerified),
+    emailVerified: user.emailVerified !== false,
     campus: user.campus || undefined,
     tokenVersion: typeof user.tokenVersion === "number" ? user.tokenVersion : 0,
     tokenType: "refresh",
@@ -222,6 +225,7 @@ export function verifyAuthToken(token: string): ServerAuthUser | null {
       role: role as "buyer" | "seller" | "admin",
       isStudent: Boolean(payload.isStudent ?? true),
       studentVerified: Boolean(payload.studentVerified ?? false),
+      emailVerified: payload.emailVerified !== false,
       campus: payload.campus ? String(payload.campus) : undefined,
       tokenVersion: typeof payload.tokenVersion === "number" ? payload.tokenVersion : 0,
     };
@@ -308,6 +312,7 @@ export function verifyRefreshToken(token: string): ServerAuthUser | null {
       role: role as "buyer" | "seller" | "admin",
       isStudent: Boolean(payload.isStudent ?? true),
       studentVerified: Boolean(payload.studentVerified ?? false),
+      emailVerified: payload.emailVerified !== false,
       campus: payload.campus ? String(payload.campus) : undefined,
       tokenVersion: typeof payload.tokenVersion === "number" ? payload.tokenVersion : 0,
     };
@@ -355,6 +360,26 @@ export function setRefreshTokenCookie(
   res.cookies.set(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
     ...defaultOptions,
     ...options,
+  });
+}
+
+export function setAccessTokenCookie(res: any, accessToken: string): void {
+  res.cookies.set("campus_token", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
+  });
+}
+
+export function clearAccessTokenCookie(res: any): void {
+  res.cookies.set("campus_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
   });
 }
 

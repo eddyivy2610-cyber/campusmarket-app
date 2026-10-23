@@ -61,13 +61,9 @@ export function getRealtimeClient(): Pusher | null {
     enabledTransports: ["ws", "wss"],
     authorizer: (channel) => ({
       authorize: (socketId, callback) => {
-        const token = localStorage.getItem("campus_token");
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
 
         fetch(config.authEndpoint, {
           method: "POST",

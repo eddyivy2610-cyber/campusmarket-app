@@ -96,12 +96,14 @@ interface ProfilePreviewData {
   ratingBreakdown: { stars: number; count: number }[];
 }
 
-const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
-  tundebello: {
+const PUBLIC_PROFILE_DATA: Record<string, ProfilePreviewData> = {};
+/* Legacy mock profile data removed from runtime.
+const LEGACY_PROFILE_DATA: Record<string, ProfilePreviewData> = {
+  legacySeller: {
     id: "user-tunde-bello",
-    handle: "tundebello",
+    handle: "legacy-seller",
     name: "Tunde Bello",
-    username: "@tundebello",
+    username: "@legacy-seller",
     isStudentSeller: true,
     isVerified: true,
     location: "Samaru, Zaria · Main Campus",
@@ -265,7 +267,7 @@ const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
       {
         id: "rev-cc-1",
         authorName: "Tunde Bello",
-        authorHandle: "tundebello",
+        authorHandle: "legacy-seller",
         authorAvatar:
           "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
         dateLabel: "3 days ago",
@@ -352,7 +354,7 @@ const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
       {
         id: "rev-tc-1",
         authorName: "Tunde Bello",
-        authorHandle: "tundebello",
+        authorHandle: "legacy-seller",
         authorAvatar:
           "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
         dateLabel: "5 days ago",
@@ -500,7 +502,7 @@ const PROFILES_BY_HANDLE: Record<string, ProfilePreviewData> = {
       { stars: 1, count: 0 },
     ],
   },
-};
+}; */
 
 type ProfileTab = "overview" | "listings" | "reviews" | "about";
 
@@ -532,6 +534,7 @@ export default function ProfilePage() {
     coverImage?: string;
   } | null>(null);
   const [liveUserProfile, setLiveUserProfile] = useState<any>(null);
+  const [liveProfileError, setLiveProfileError] = useState(false);
 
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -557,7 +560,7 @@ export default function ProfilePage() {
     (customSavedHandle && rawHandle === customSavedHandle)
   );
 
-  const isKnownProfile = isOwnProfile || Boolean(PROFILES_BY_HANDLE[rawHandle]);
+  const isKnownProfile = isOwnProfile || Boolean(PUBLIC_PROFILE_DATA[rawHandle]);
 
   useEffect(() => {
     if (!isOwnProfile || !user?.id) return;
@@ -566,9 +569,12 @@ export default function ProfilePage() {
       .then((response) => {
         if (!isCancelled) {
           setLiveUserProfile(response?.data || response?.user || null);
+          setLiveProfileError(!response?.data && !response?.user);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!isCancelled) setLiveProfileError(true);
+      });
     return () => {
       isCancelled = true;
     };
@@ -613,8 +619,8 @@ export default function ProfilePage() {
     isVerified: Boolean(liveUserProfile?.studentVerified ?? user?.studentVerified),
     location: liveUserProfile?.campus || (!user ? savedOwnProfile?.location : "") || "Campus",
     bio: liveUserProfile?.profile?.bio || (!user ? savedOwnProfile?.bio : "") || "Campus student on Campus Hive.",
-    avatar: liveUserProfile?.profile?.avatar || (!user ? savedOwnProfile?.avatar : "") || user?.avatar || user?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=320&auto=format&fit=crop&q=80",
-    coverImage: savedOwnProfile?.coverImage || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1400&auto=format&fit=crop&q=80",
+    avatar: liveUserProfile?.profile?.avatar || (!user ? savedOwnProfile?.avatar : "") || user?.avatar || user?.image || "",
+    coverImage: liveUserProfile?.profile?.coverImage || (!user ? savedOwnProfile?.coverImage : "") || "",
     sales: 0,
     rating: 5.0,
     reviewsCount: 0,
@@ -634,7 +640,7 @@ export default function ProfilePage() {
 
   const baseProfile: ProfilePreviewData = isOwnProfile
     ? ownBaseProfile
-    : PROFILES_BY_HANDLE[rawHandle] || ownBaseProfile;
+    : PUBLIC_PROFILE_DATA[rawHandle] || ownBaseProfile;
 
   // Merge user-editable profile fields for own profile while strictly keeping verification status read-only
   const profile: ProfilePreviewData =
@@ -744,6 +750,18 @@ export default function ProfilePage() {
     );
   }
 
+  if (isOwnProfile && liveProfileError) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased">
+        <RebrandHeader />
+        <main className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-24 pb-32 text-center">
+          <h1 className="text-xl font-bold">Profile temporarily unavailable</h1>
+          <p className="text-[13px] text-[#8C929C] mt-2">We could not load your live profile. Please try again shortly.</p>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
@@ -771,11 +789,9 @@ export default function ProfilePage() {
             <section className="radius-native relative rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               {/* Banner / Cover Image */}
               <div className="relative h-28 sm:h-32 w-full bg-[#E8ECF2] dark:bg-white/5 rounded-t-2xl overflow-hidden">
-                <img
-                  src={profile.coverImage}
-                  alt={`${profile.name} cover`}
-                  className="w-full h-full object-cover"
-                />
+                {profile.coverImage ? (
+                  <img src={profile.coverImage} alt={`${profile.name} cover`} className="w-full h-full object-cover" />
+                ) : null}
               </div>
 
               {/* Profile Header Body matching wireframe:
@@ -788,11 +804,11 @@ export default function ProfilePage() {
                   <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5 min-w-0 flex-1">
                     {/* Avatar overlapping cover */}
                     <div className="-mt-14 sm:-mt-16 shrink-0 relative z-10">
-                      <img
-                        src={profile.avatar}
-                        alt={profile.name}
-                        className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white"
-                      />
+                      {profile.avatar ? (
+                        <img src={profile.avatar} alt={profile.name} className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white" />
+                      ) : (
+                        <div className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10" aria-label="Profile image unavailable" />
+                      )}
                     </div>
 
                     {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio) -> Row 3 (Location) */}

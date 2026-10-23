@@ -124,9 +124,9 @@ export function extractAuthIdentifier(req: NextRequest): string | null {
 }
 
 /**
- * Executes rate limit check against Upstash Redis via REST if configured,
- * otherwise falls back to memory bucket.
- * Resilient: If Upstash throws or times out, fails open to prevent outage.
+ * Executes rate limit checks against Upstash Redis in production. The process
+ * memory bucket is development/test-only and is never a production substitute
+ * for a distributed limiter.
  */
 export async function checkRateLimitAsync(
   key: string,
@@ -184,12 +184,19 @@ export async function checkRateLimitAsync(
         };
       }
     } catch (err) {
-      // Upstash infrastructure failure: log and fail-open to local memory fallback
-      console.warn("[RateLimit] Upstash REST unavailable, falling back to local bucket:", err);
+      if (process.env.NODE_ENV === "production") {
+        console.error("[ALERT] [RateLimit] Upstash unavailable; failing open for non-OTP middleware limit:", err);
+        return { allowed: true, limit: config.maxRequests, remaining: config.maxRequests, resetTimeMs: Date.now() + config.windowMs, retryAfterSec: Math.ceil(config.windowMs / 1000), source: "upstash" };
+      }
     }
   }
 
-  // Fallback to in-memory rate limiting
+  if (process.env.NODE_ENV === "production") {
+    console.error("[ALERT] [RateLimit] Upstash is not configured; failing open for non-OTP middleware limit.");
+    return { allowed: true, limit: config.maxRequests, remaining: config.maxRequests, resetTimeMs: Date.now() + config.windowMs, retryAfterSec: Math.ceil(config.windowMs / 1000), source: "upstash" };
+  }
+
+  // Development/test fallback only.
   return { ...checkRateLimit(key, config), source: "memory" };
 }
 

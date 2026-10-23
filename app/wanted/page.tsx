@@ -181,7 +181,7 @@ function RadarContent() {
     const newPost: RadarPost = {
       id: `post-${Date.now()}`,
       requesterName: "Tunde Bello",
-      requesterHandle: "tundebello",
+      requesterHandle: "legacy-seller",
       requesterLocation: "Suleiman Hall",
       requesterAvatar:
         "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
@@ -207,7 +207,7 @@ function RadarContent() {
     const newReply: OfferReplyItem = {
       id: `rep-${Date.now()}`,
       authorName: "Tunde Bello",
-      authorHandle: "tundebello",
+      authorHandle: "legacy-seller",
       authorDept: "Suleiman Hall",
       authorTime: "Just now",
       isVerified: true,

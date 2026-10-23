@@ -3,6 +3,7 @@ import {
   clearRefreshTokenCookie,
   getRefreshTokenFromRequest,
   verifyRefreshToken,
+  clearAccessTokenCookie,
 } from "@/lib/authTokens";
 import { getServerAuthUser } from "@/lib/authServer";
 import UserModel from "@/models/User";
@@ -15,6 +16,7 @@ export async function POST(req?: NextRequest) {
       { status: 200 }
     );
     clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
 
     // Identify user from access token or refresh token to bump tokenVersion (revokes all active refresh tokens)
     if (req) {
@@ -48,6 +50,7 @@ export async function POST(req?: NextRequest) {
       { status: 200 }
     );
     clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
     return res;
   }
 }

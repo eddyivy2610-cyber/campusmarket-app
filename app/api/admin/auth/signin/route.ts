@@ -4,6 +4,7 @@ import {
   createAuthToken,
   createRefreshToken,
   setRefreshTokenCookie,
+  setAccessTokenCookie,
   ACCESS_TOKEN_EXPIRY_SECONDS,
   ServerAuthUser,
 } from "@/lib/authTokens";
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
         role: "admin",
         isStudent: false,
         studentVerified: false,
+        emailVerified: true,
       };
     }
 
@@ -82,6 +84,7 @@ export async function POST(req: NextRequest) {
               role: "admin",
               isStudent: Boolean(user.isStudent),
               studentVerified: Boolean(user.studentVerified),
+              emailVerified: true,
               tokenVersion: typeof (user as any).tokenVersion === "number" ? (user as any).tokenVersion : 0,
             };
           }
@@ -120,6 +123,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Set refresh token as httpOnly, Secure, SameSite cookie
+    setAccessTokenCookie(res, token);
     setRefreshTokenCookie(res, refreshToken);
 
     return res;

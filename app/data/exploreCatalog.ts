@@ -75,7 +75,7 @@ export const EXPLORE_LISTINGS: ExploreListingItem[] = [
     conditionTone: "neutral",
     landmark: "Suleiman Hall",
     sellerName: "Tunde Bello",
-    sellerHandle: "tundebello",
+    sellerHandle: "legacy-seller",
     sellerType: "verified_student",
     imageUrl:
       "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
@@ -94,7 +94,7 @@ export const EXPLORE_LISTINGS: ExploreListingItem[] = [
     conditionTone: "green",
     landmark: "Suleiman Hall",
     sellerName: "Tunde Bello",
-    sellerHandle: "tundebello",
+    sellerHandle: "legacy-seller",
     sellerType: "verified_student",
     imageUrl:
       "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=600&auto=format&fit=crop&q=80",
@@ -132,7 +132,7 @@ export const EXPLORE_LISTINGS: ExploreListingItem[] = [
     conditionTone: "neutral",
     landmark: "Hostel Area",
     sellerName: "Tunde Bello",
-    sellerHandle: "tundebello",
+    sellerHandle: "legacy-seller",
     sellerType: "verified_student",
     imageUrl:
       "https://images.unsplash.com/photo-1618941716939-553df3c6c278?w=600&auto=format&fit=crop&q=80",
@@ -170,7 +170,7 @@ export const EXPLORE_LISTINGS: ExploreListingItem[] = [
     conditionTone: "green",
     landmark: "Hostel Area",
     sellerName: "Tunde Bello",
-    sellerHandle: "tundebello",
+    sellerHandle: "legacy-seller",
     sellerType: "verified_student",
     imageUrl:
       "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80",

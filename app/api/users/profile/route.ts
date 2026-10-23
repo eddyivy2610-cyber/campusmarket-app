@@ -128,6 +128,8 @@ export async function PATCH(req: NextRequest) {
       updateFields["campus"] = body.campus.trim();
     }
 
+    updateFields["onboardingStep"] = "profile_completed";
+
     // Atomic update
     const updatedUser = await UserModel.findByIdAndUpdate(
       user.id,

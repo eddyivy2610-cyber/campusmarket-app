@@ -118,8 +118,8 @@ export const WANTED_REQUESTS_DB: WantedRequestItem[] = [
 export const STOREFRONTS_DB: StorefrontItem[] = [
   {
     id: "store-tunde-bello",
-    slug: "tundebello",
-    handle: "tundebello",
+    slug: "legacy-seller",
+    handle: "legacy-seller",
     name: "Tunde Bello",
     tagline: "Clean student laptops, scientific calculators & study electronics",
     category: "Electronics",

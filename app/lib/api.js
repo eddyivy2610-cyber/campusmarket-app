@@ -4,19 +4,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Helper function for all API calls
 async function apiCall(endpoint, options = {}) {
-  const token = localStorage.getItem('token');
-  
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers,
   });
   
@@ -46,23 +41,15 @@ export async function register(userData) {
 }
 
 export async function getCurrentUser() {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  
   try {
-    return await apiCall('/api/users/me');
+    return await apiCall('/api/users/profile');
   } catch (error) {
-    // Token might be expired
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     return null;
   }
 }
 
 export async function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('campus_token');
+  await apiCall('/api/auth/logout', { method: 'POST' });
   localStorage.removeItem('campus_user');
   window.location.href = '/home';
 }

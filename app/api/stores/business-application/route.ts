@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import BusinessApplicationModel from "@/models/BusinessApplication";
 import StoreModel from "@/models/Store";
-import { requireAuth } from "@/lib/authServer";
+import { requireAuth, requireCompletedOnboarding } from "@/lib/authServer";
 
 /**
  * GET /api/stores/business-application
@@ -10,7 +10,7 @@ import { requireAuth } from "@/lib/authServer";
  */
 export async function GET(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireAuth(req);
+    const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) return errorResponse;
 
     await dbConnect();
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireAuth(req);
+    const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) return errorResponse;
 
     await dbConnect();

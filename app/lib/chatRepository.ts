@@ -12,7 +12,7 @@ import {
   TrackedDealDTO,
 } from "../models/ChatModels";
 
-export const DEFAULT_CURRENT_USER: ChatParticipantProfile = {
+export const EMPTY_PARTICIPANT: ChatParticipantProfile = {
   id: "user-current-student",
   name: "Usman Ibrahim",
   subtitle: "Student · Ribadu Hall",
@@ -69,7 +69,7 @@ function createSeededStore(): InternalChatStore {
   const dealsByConv = new Map<string, TrackedDealDTO>();
   const reviewsByConv = new Map<string, DealReviewDTO[]>();
 
-  const me = DEFAULT_CURRENT_USER;
+  const me = EMPTY_PARTICIPANT;
 
   // ==========================================================================
   // 1. Tunde Bello — Verified Student Seller (Product Listing + Deal Tracking)
@@ -1240,7 +1240,7 @@ export function submitOptionalDealReview(params: {
   }
 
   const reviewer =
-    doc.participants.find((p) => p.id === reviewerId) || DEFAULT_CURRENT_USER;
+    doc.participants.find((p) => p.id === reviewerId) || EMPTY_PARTICIPANT;
   const reviewee =
     doc.participants.find((p) => p.id !== reviewerId) || doc.participants[0];
 

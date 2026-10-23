@@ -3,6 +3,7 @@ import dbConnect from "./dbConnect";
 import EmailVerificationModel from "../models/EmailVerification";
 import UserModel from "../models/User";
 import { sendOtpVerificationEmail } from "./email";
+import { checkUpstashLimit } from "./upstashRateLimit";
 
 // -------------------------------------------------------------------
 // CONFIGURATION & PEPPER
@@ -13,19 +14,13 @@ const EMAIL_COOLDOWN_MS = 60 * 1000; // 60 seconds
 const MAX_VERIFICATION_ATTEMPTS = 5;
 
 // In-memory sliding window rate limiter per IP for OTP dispatches
-const ipRequestHistory = new Map<string, number[]>();
 const IP_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_IP = 10; // max 10 requests per 10 minutes per IP
 
 export function getOtpPepper(): string {
-  const pepper = process.env.OTP_PEPPER || process.env.AUTH_SECRET;
+  const pepper = process.env.OTP_PEPPER;
   if (!pepper) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "FATAL: OTP_PEPPER or AUTH_SECRET is not configured in production environment."
-      );
-    }
-    return "campushive-default-otp-hmac-pepper-32-chars-long";
+    throw new Error("FATAL: OTP_PEPPER is not configured.");
   }
   return pepper;
 }
@@ -33,26 +28,20 @@ export function getOtpPepper(): string {
 /**
  * Checks sliding-window IP rate limit.
  */
-export function checkIpRateLimit(ip: string): boolean {
-  if (!ip) return true;
-  const now = Date.now();
-  const timestamps = (ipRequestHistory.get(ip) || []).filter(
-    (t) => now - t < IP_WINDOW_MS
+export async function checkIpRateLimit(ip: string): Promise<boolean> {
+  const result = await checkUpstashLimit(
+    `campushive:otp:ip:${ip || "unknown"}`,
+    MAX_REQUESTS_PER_IP,
+    IP_WINDOW_MS / 1000
   );
-  if (timestamps.length >= MAX_REQUESTS_PER_IP) {
-    ipRequestHistory.set(ip, timestamps);
-    return false;
-  }
-  timestamps.push(now);
-  ipRequestHistory.set(ip, timestamps);
-  return true;
+  return result.allowed;
 }
 
 /**
  * Resets IP rate limits (for testing purposes).
  */
 export function resetIpRateLimits(): void {
-  ipRequestHistory.clear();
+  // Upstash counters expire automatically; this is retained as a test API.
 }
 
 /**
@@ -77,11 +66,25 @@ export function hashOtp(email: string, otp: string): string {
     .digest("hex");
 }
 
+export function isUniversityEmail(email: string): boolean {
+  const domain = String(email).toLowerCase().trim().split("@").pop() || "";
+  const allowlist = String(process.env.UNIVERSITY_EMAIL_DOMAINS || "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase().replace(/^@/, ""))
+    .filter(Boolean);
+  return Boolean(domain && allowlist.includes(domain));
+}
+
 export interface RequestOtpResult {
   success: boolean;
   status: number;
   message: string;
   remainingCooldownSeconds?: number;
+}
+
+export interface PendingRegistrationData {
+  name?: string;
+  passwordHash?: string;
 }
 
 export interface VerifyOtpResult {
@@ -103,7 +106,8 @@ export interface VerifyOtpResult {
  */
 export async function requestOtpCode(
   email: string,
-  clientIp: string = "127.0.0.1"
+  clientIp: string = "127.0.0.1",
+  pendingRegistration?: PendingRegistrationData
 ): Promise<RequestOtpResult> {
   const cleanEmail = email?.toLowerCase().trim();
   if (!cleanEmail || !cleanEmail.includes("@")) {
@@ -115,7 +119,14 @@ export async function requestOtpCode(
   }
 
   // 1. IP Rate Limiting
-  if (!checkIpRateLimit(clientIp)) {
+  let ipAllowed: boolean;
+  try {
+    ipAllowed = await checkIpRateLimit(clientIp);
+  } catch (error: any) {
+    console.error("[ALERT] [OTP] Rate limiter unavailable; failing closed:", error?.message || error);
+    return { success: false, status: 503, message: "Verification service is temporarily unavailable. Please try again later." };
+  }
+  if (!ipAllowed) {
     return {
       success: false,
       status: 429,
@@ -156,6 +167,8 @@ export async function requestOtpCode(
         expiresAt,
         lastSentAt: now,
         attempts: 0,
+        pendingName: pendingRegistration?.name,
+        pendingPasswordHash: pendingRegistration?.passwordHash,
       },
     },
     { upsert: true }
@@ -233,13 +246,18 @@ export async function verifyOtpCode(
     verificationCode: candidateHash,
     expiresAt: { $gt: new Date() },
     attempts: { $lt: MAX_VERIFICATION_ATTEMPTS },
-  });
+  }).select("+pendingPasswordHash");
 
   if (redeemed) {
     // 2. Update live user account if exists
-    const user = await UserModel.findOne({ email: cleanEmail });
+    const user = await UserModel.findOne({ email: cleanEmail }).select("+password");
     if (user) {
-      user.studentVerified = true;
+      if ((redeemed as any).pendingName && (redeemed as any).pendingPasswordHash) {
+        user.name = String((redeemed as any).pendingName).trim();
+        user.password = String((redeemed as any).pendingPasswordHash);
+        if (user.profile) user.profile.displayName = user.name;
+      }
+      user.studentVerified = isUniversityEmail(cleanEmail);
       (user as any).emailVerified = true;
       user.accountStatus = "active";
       if ((user as any).onboardingStep === "pending" || !(user as any).onboardingStep) {

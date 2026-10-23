@@ -177,7 +177,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
     ],
     seller: {
       name: "Tunde Bello",
-      handle: "tundebello",
+      handle: "legacy-seller",
       avatar:
         "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=250&auto=format&fit=crop&q=80",
       department: "Suleiman Hall · ABU Samaru",
@@ -188,7 +188,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/profile/tundebello",
+      storeHref: "/profile/legacy-seller",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -236,7 +236,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
     ],
     seller: {
       name: "Tunde Bello",
-      handle: "tundebello",
+      handle: "legacy-seller",
       avatar:
         "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=250&auto=format&fit=crop&q=80",
       department: "Suleiman Hall · ABU Samaru",
@@ -247,7 +247,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/profile/tundebello",
+      storeHref: "/profile/legacy-seller",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -370,7 +370,7 @@ export default function ListingDetailPage() {
               rating: String(storeData?.metrics?.rating ?? "4.8"),
               reviewsCount: storeData?.metrics?.reviewsCount ?? 12,
               memberSince: "2026",
-              storeHref: storeData ? `/stores/${storeData.slug || storeData._id}` : `/profile/tundebello`,
+              storeHref: storeData ? `/stores/${storeData.slug || storeData._id}` : `/profile/legacy-seller`,
             },
             reviews: liveReviews,
           };
@@ -440,7 +440,7 @@ export default function ListingDetailPage() {
               specifications: specRows,
               seller: {
                 name: foundCreated.sellerName || "Tunde Bello",
-                handle: foundCreated.sellerHandle || "tundebello",
+                handle: foundCreated.sellerHandle || "me",
                 avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
                 department: `${foundCreated.landmark || "Samaru"} · ABU Zaria`,
                 badgeLabel: "Student seller",
@@ -450,7 +450,7 @@ export default function ListingDetailPage() {
                 rating: "4.8",
                 reviewsCount: 18,
                 memberSince: "Oct 2026",
-                storeHref: `/profile/${foundCreated.sellerHandle || "tundebello"}`,
+                storeHref: `/profile/${foundCreated.sellerHandle || "me"}`,
               },
               reviews: [],
             };

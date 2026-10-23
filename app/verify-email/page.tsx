@@ -111,9 +111,6 @@ function VerifyEmailContent() {
           otp: code,
         });
 
-        if (res?.token) {
-          localStorage.setItem("campus_token", res.token);
-        }
         if (res?.user) {
           login({
             id: res.user.id,
@@ -123,6 +120,7 @@ function VerifyEmailContent() {
             role: res.user.role || "buyer",
             isStudent: Boolean(res.user.isStudent),
             studentVerified: Boolean(res.user.studentVerified),
+            emailVerified: Boolean(res.user.emailVerified ?? true),
             sellerStatus: "none",
             onboardingStep: res.user.onboardingStep || "profile_completed",
             avatar: res.user.profile?.avatar,

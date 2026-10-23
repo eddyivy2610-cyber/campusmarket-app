@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
+import UserModel from "@/models/User";
 import StoreModel, {
   isDuplicateOwnerError,
   sanitizeStoreInput,
@@ -8,9 +9,11 @@ import StoreModel, {
 } from "@/models/Store";
 import {
   requireAuth,
+  requireCompletedOnboarding,
   checkStudentVendorEligibility,
 } from "@/lib/authServer";
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
+import { executeInTransaction } from "@/lib/transactionHelper";
 
 function generateSlug(name: string): string {
   const base = name
@@ -94,7 +97,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireAuth(req);
+    const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) return errorResponse;
 
     await dbConnect();
@@ -169,7 +172,14 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    await saveStoreWithSlugRetry(newStore);
+    await executeInTransaction(async (session) => {
+      await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+      await UserModel.findByIdAndUpdate(
+        user.id,
+        { $set: { role: "seller", sellerStatus: "approved" } },
+        session ? { session } : undefined
+      );
+    });
 
     return NextResponse.json(
       {

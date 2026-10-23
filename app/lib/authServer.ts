@@ -60,8 +60,21 @@ export async function requireAuth(req: NextRequest): Promise<{
     };
   }
 
+  if (user.emailVerified === false) {
+    return {
+      user: null,
+      errorResponse: NextResponse.json(
+        { success: false, error: "Email verification is required." },
+        { status: 403 }
+      ),
+    };
+  }
+
   // Live database account status re-check (blocks suspended and banned accounts immediately)
-  await dbConnect();
+  const dbConnection = await dbConnect();
+  if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
+    return { user: null, errorResponse: NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 }) };
+  }
   const isUserDbAvailable =
     typeof window === "undefined" &&
     (UserModel.db?.readyState === 1 ||
@@ -70,8 +83,17 @@ export async function requireAuth(req: NextRequest): Promise<{
   if (isUserDbAvailable) {
     try {
       const dbUser = mongoose.isValidObjectId(user.id)
-        ? await User.findById(user.id).select("role accountStatus").lean()
-        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus").lean();
+        ? await User.findById(user.id).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep").lean()
+        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep").lean();
+      if (dbUser && !dbUser.emailVerified) {
+        return {
+          user: null,
+          errorResponse: NextResponse.json(
+            { success: false, error: "Email verification is required." },
+            { status: 403 }
+          ),
+        };
+      }
       if (dbUser && dbUser.accountStatus !== "active") {
         return {
           user: null,
@@ -84,12 +106,45 @@ export async function requireAuth(req: NextRequest): Promise<{
           ),
         };
       }
+      if (dbUser) {
+        user.role = dbUser.role as ServerAuthUser["role"];
+        user.isStudent = Boolean(dbUser.isStudent);
+        user.studentVerified = Boolean(dbUser.studentVerified);
+        user.campus = dbUser.campus;
+      }
     } catch {
-      // offline fallback
+      if (process.env.NODE_ENV === "production") {
+        return { user: null, errorResponse: NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 }) };
+      }
     }
   }
 
   return { user };
+}
+
+export async function requireCompletedOnboarding(req: NextRequest): Promise<{
+  user: ServerAuthUser | null;
+  errorResponse?: NextResponse;
+}> {
+  const auth = await requireAuth(req);
+  if (!auth.user || auth.errorResponse) return auth;
+
+  const dbConnection = await dbConnect();
+  if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
+    return { user: null, errorResponse: NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 }) };
+  }
+  const record = await User.findById(auth.user.id).select("onboardingStep").lean();
+  const allowed = ["profile_completed", "onboarding_choice", "seller_pending", "completed"];
+  if (!record || !allowed.includes(String(record.onboardingStep || "pending"))) {
+    return {
+      user: null,
+      errorResponse: NextResponse.json(
+        { success: false, error: "Complete your profile setup before using this feature." },
+        { status: 403 }
+      ),
+    };
+  }
+  return auth;
 }
 
 /**

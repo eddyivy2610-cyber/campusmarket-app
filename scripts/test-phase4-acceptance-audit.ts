@@ -327,7 +327,7 @@ async function runAcceptanceAudit() {
     assert.strictEqual(regPage.includes("proceeding to verify-email for demo"), false, "Mock demo register fallback must be absent");
 
     const verifyPage = fs.readFileSync(path.join(process.cwd(), "app/verify-email/page.tsx"), "utf8");
-    assert.ok(verifyPage.includes("localStorage.setItem(\"campus_token\", res.token)"), "Verify page must store real session token");
+    assert.ok(!verifyPage.includes("localStorage.setItem(\"campus_token\""), "Verify page must not store session tokens in localStorage");
 
     const expressRoutes = fs.readFileSync(path.join(process.cwd(), "campus-hive-backend/routes/auth.routes.js"), "utf8");
     assert.strictEqual(expressRoutes.includes("/send-otp-to-email"), false, "Express send-otp route must be removed");

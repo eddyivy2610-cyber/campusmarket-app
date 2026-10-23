@@ -11,6 +11,8 @@ export interface IEmailVerification {
   schemaVersion: number;
   createdAt: Date;
   updatedAt: Date;
+  pendingName?: string;
+  pendingPasswordHash?: string;
 }
 
 export interface IEmailVerificationDocument extends Omit<IEmailVerification, "id">, Document {}
@@ -43,6 +45,8 @@ const EmailVerificationSchema = new Schema<IEmailVerificationDocument>(
     verifiedAt: {
       type: Date,
     },
+    pendingName: { type: String, required: false, trim: true },
+    pendingPasswordHash: { type: String, required: false, select: false },
     schemaVersion: {
       type: Number,
       default: 1,

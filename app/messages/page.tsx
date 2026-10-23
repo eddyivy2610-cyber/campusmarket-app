@@ -61,7 +61,7 @@ function getParticipantProfileHref(participant: ChatParticipantProfile): string 
   if (n.includes("tech corner")) return "/profile/tech-corner";
   if (n.includes("print hub")) return "/profile/the-print-hub";
   if (n.includes("kongo")) return "/profile/kongo-scholars";
-  return "/profile/tundebello";
+  return "/profile/me";
 }
 
 function formatMessageTime(iso: string): string {
@@ -231,9 +231,7 @@ function MessagesWorkspace() {
   }, [messages]);
 
   const getAuthHeaders = useCallback((extra: Record<string, string> = {}) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("campus_token") : null;
     return {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...extra,
     };
   }, []);

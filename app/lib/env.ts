@@ -49,9 +49,13 @@ export const envSchema = z.object({
     .default("dev-smtp-password"),
   SMTP_HOST: z.string().default("smtp.gmail.com"),
   SMTP_PORT: z.coerce.number().default(587),
+  OTP_PEPPER: z.string().optional(),
+  UNIVERSITY_EMAIL_DOMAINS: z.string().default(""),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   ADMIN_REGISTRATION_KEY: z
     .string()
-    .default("dev_admin_key_campus_hive_2026"),
+    .optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -65,6 +69,10 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
     SMTP_PASSWORD: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD,
     SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
     SMTP_PORT: process.env.SMTP_PORT || "587",
+    OTP_PEPPER: process.env.OTP_PEPPER,
+    UNIVERSITY_EMAIL_DOMAINS: process.env.UNIVERSITY_EMAIL_DOMAINS || "",
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     ADMIN_REGISTRATION_KEY: process.env.ADMIN_REGISTRATION_KEY,
   };
 
@@ -84,6 +92,23 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
         .map((i) => `${i.path.join(".")}: ${i.message}`)
         .join("; ")}`
     );
+  }
+
+  if (result.data.NODE_ENV === "production") {
+    const missing: string[] = [];
+    if (!result.data.OTP_PEPPER) missing.push("OTP_PEPPER");
+    if (!result.data.ADMIN_REGISTRATION_KEY) missing.push("ADMIN_REGISTRATION_KEY");
+    if (!result.data.UPSTASH_REDIS_REST_URL) missing.push("UPSTASH_REDIS_REST_URL");
+    if (!result.data.UPSTASH_REDIS_REST_TOKEN) missing.push("UPSTASH_REDIS_REST_TOKEN");
+    if (!process.env.RESEND_API_KEY && !process.env.POSTMARK_SERVER_TOKEN) {
+      missing.push("RESEND_API_KEY or POSTMARK_SERVER_TOKEN");
+    }
+    if (result.data.SMTP_PASSWORD === "dev-smtp-password") {
+      missing.push("SMTP_PASSWORD (development fallback is not allowed)");
+    }
+    if (missing.length) {
+      throw new Error(`FATAL: Production configuration is incomplete: ${missing.join(", ")}`);
+    }
   }
 
   return result.data;

@@ -218,7 +218,7 @@ export function StorefrontManager({
   };
 
   // Store Settings Form state
-  const [storeName, setStoreName] = useState(initialStore?.name || "Tunde Bello Campus Hub");
+  const [storeName, setStoreName] = useState(initialStore?.name || "");
   const [tagline, setTagline] = useState(initialStore?.description || "Quality student laptops, tech accessories, and academic essentials.");
   const [category, setCategory] = useState(initialStore?.category || "Laptops & Computers");
   const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Kashim Ibrahim Library (KIL)");

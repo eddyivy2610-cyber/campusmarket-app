@@ -5,7 +5,7 @@ import ListingModel, {
   sanitizeListingInput,
 } from "@/models/Listing";
 import StoreModel from "@/models/Store";
-import { requireAuth, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
+import { requireAuth, requireCompletedOnboarding, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 
@@ -220,7 +220,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireAuth(req);
+    const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) return errorResponse;
 
     await dbConnect();

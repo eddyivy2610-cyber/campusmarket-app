@@ -196,3 +196,30 @@ export async function sendOtpVerificationEmail(
     text,
   });
 }
+
+export async function sendExistingAccountNotice(toEmail: string): Promise<EmailSendResult> {
+  return sendEmail({
+    to: toEmail,
+    subject: "Your CampusHive account already exists",
+    html: "<p>We received a new signup request for this email address. If you own the account, sign in or use the password reset flow.</p>",
+    text: "We received a new signup request for this email address. If you own the account, sign in or use the password reset flow.",
+  });
+}
+
+export async function sendPasswordResetEmail(toEmail: string, resetUrl: string): Promise<EmailSendResult> {
+  return sendEmail({
+    to: toEmail,
+    subject: "Reset your CampusHive password",
+    html: `<p>Use the link below to reset your CampusHive password. It expires in 30 minutes and can only be used once.</p><p><a href="${resetUrl}">Reset password</a></p>`,
+    text: `Reset your CampusHive password: ${resetUrl}\n\nThis link expires in 30 minutes and can only be used once.`,
+  });
+}
+
+export async function sendPasswordResetNotice(toEmail: string): Promise<EmailSendResult> {
+  return sendEmail({
+    to: toEmail,
+    subject: "Your CampusHive password was changed",
+    html: "<p>Your CampusHive password was changed successfully. If you did not do this, contact CampusHive support immediately.</p>",
+    text: "Your CampusHive password was changed successfully. If you did not do this, contact CampusHive support immediately.",
+  });
+}
