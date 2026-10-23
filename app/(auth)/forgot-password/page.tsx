@@ -1,21 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Mail, ArrowRight, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 
 export default function ForgotPasswordPage() {
-  const searchParams = useSearchParams();
-  const resetToken = searchParams.get("token") || "";
-  const [step, setStep] = useState<"email" | "verify" | "success">(resetToken ? "verify" : "email");
+  const [resetToken, setResetToken] = useState("");
+  const [step, setStep] = useState<"email" | "verify" | "success">("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    const token = hash.startsWith("#token=")
+      ? new URLSearchParams(hash.slice(1)).get("token") || ""
+      : new URLSearchParams(window.location.search).get("token") || "";
+    if (token) {
+      setResetToken(token);
+      setStep("verify");
+      // Keep the bearer token out of the address bar and subsequent navigation.
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,19 +46,22 @@ export default function ForgotPasswordPage() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const submittedToken = code.trim() || resetToken;
-    if (!submittedToken) {
-      setErrorMessage("Open the reset link from your email to continue.");
+    if (!resetToken) {
+      setErrorMessage("Please open the password reset link from your email again.");
       return;
     }
-    if (newPassword.length < 8) {
-      setErrorMessage("Password must be at least 8 characters.");
+    if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setErrorMessage("Password must be at least 8 characters and contain letters and numbers.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
       return;
     }
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const response = await fetch("/api/auth/password-reset/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: submittedToken, password: newPassword }) });
+      const response = await fetch("/api/auth/password-reset/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: resetToken, password: newPassword }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "Invalid or expired reset link.");
       setStep("success");
@@ -61,14 +75,14 @@ export default function ForgotPasswordPage() {
         step === "email"
           ? "Reset password"
           : step === "verify"
-          ? "Enter recovery code"
+          ? "Choose a new password"
           : "Password updated!"
       }
       subtitle={
         step === "email"
-          ? "Enter your university or personal email to receive a password reset code."
+          ? "Enter your email and we’ll send you a secure password reset link."
           : step === "verify"
-          ? (resetToken ? "Choose a new password." : `We sent a reset link to ${email}.`)
+          ? "Your reset link is verified. Choose a new password."
           : "Your password has been successfully reset. You can now sign in."
       }
       showBackToHome={true}
@@ -105,7 +119,7 @@ export default function ForgotPasswordPage() {
             className="radius-native w-full py-2.5 sm:py-3 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] font-extrabold text-[13.5px] shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>Send reset code</span>
+            <span>Send reset link</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -115,21 +129,6 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleResetPassword} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
-              Reset link token
-            </label>
-            <input
-              type="text"
-              maxLength={128}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Paste the token from your email"
-              required
-              className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[15px] font-extrabold tracking-widest text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717]"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
               New password
             </label>
             <div className="relative">
@@ -137,7 +136,7 @@ export default function ForgotPasswordPage() {
                 type={showPassword ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                placeholder="At least 8 characters, letters and numbers"
                 required
                 className="radius-native w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717]"
               />
@@ -149,6 +148,19 @@ export default function ForgotPasswordPage() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">Confirm new password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter your new password"
+              required
+              autoComplete="new-password"
+              className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717]"
+            />
           </div>
 
           <button

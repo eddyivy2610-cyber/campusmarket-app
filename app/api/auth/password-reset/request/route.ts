@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       await PasswordResetTokenModel.create({ userId: user._id, tokenHash, expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS) });
       const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
       after(async () => {
-        try { await sendPasswordResetEmail(email, `${origin}/forgot-password?token=${encodeURIComponent(token)}`); }
+        try { await sendPasswordResetEmail(email, `${origin}/forgot-password#token=${encodeURIComponent(token)}`); }
         catch (error: any) { console.error("[POST /api/auth/password-reset/request] email delivery failed:", error?.message || error); }
       });
     }

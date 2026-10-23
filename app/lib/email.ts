@@ -145,6 +145,12 @@ export async function sendOtpVerificationEmail(
   toEmail: string,
   otpCode: string
 ): Promise<EmailSendResult> {
+  const appBaseUrl = (process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""))
+    .replace(/\/$/, "");
+  const logoMarkup = appBaseUrl
+    ? `<img src="${appBaseUrl}/logo-light.png" width="140" alt="CampusHive" style="display:block;width:140px;height:auto;margin:0 auto;border:0;" />`
+    : `<span style="font-size:24px;font-weight:800;color:#171717;">Campus<span style="color:#ffc928;">Hive</span></span>`;
   const html = `
 <!DOCTYPE html>
 <html>
@@ -155,7 +161,7 @@ export async function sendOtpVerificationEmail(
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f8fa; margin: 0; padding: 24px; color: #171717;">
   <div style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; overflow: hidden; padding: 32px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
     <div style="margin-bottom: 24px; text-align: center;">
-      <h2 style="color: #171717; margin: 0; font-size: 24px; font-weight: 800;">Campus<span style="color: #ffc928;">Hive</span></h2>
+      ${logoMarkup}
       <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Student Marketplace & Community</p>
     </div>
 
