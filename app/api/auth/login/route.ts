@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import { createAccessToken, createRefreshToken, setAccessTokenCookie, setRefreshTokenCookie } from "@/lib/authTokens";
 import { checkLoginRateLimit } from "@/lib/upstashRateLimit";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 const GENERIC_LOGIN_ERROR = "Invalid email or password.";
 
@@ -38,7 +39,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await dbConnect();
+  try {
+    await dbConnect();
+  } catch (error) {
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
+    throw error;
+  }
   const user = await UserModel.findOne({ email }).select("+password");
 
   if (user?.accountStatus === "suspended" || user?.accountStatus === "banned") {

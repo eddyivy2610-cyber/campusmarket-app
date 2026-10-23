@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import UserModel, { saveUserWithHandleRetry } from "@/models/User";
 import { requestOtpCode } from "@/lib/otpService";
 import { sendExistingAccountNotice } from "@/lib/email";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 export const dynamic = "force-dynamic";
 
@@ -166,6 +167,7 @@ export async function POST(req: NextRequest) {
     );
   } catch (error: any) {
     console.error("[POST /api/auth/register] Error:", error);
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
     if (error?.code === 11000) {
       return NextResponse.json(
         {

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import StoreModel, { IStoreDocument } from "../models/Store";
 import UserModel, { User } from "../models/User";
 import dbConnect from "./dbConnect";
+import { databaseUnavailableResponse } from "./databaseErrors";
 import { verifyAuthToken, ServerAuthUser } from "./authTokens";
 import { getConversationDoc, ensureParticipant, registerConversationDoc } from "./chatRepository";
 import { IConversationDoc, ConversationModel } from "../models/ChatModels";
@@ -71,7 +72,9 @@ export async function requireAuth(req: NextRequest): Promise<{
   }
 
   // Live database account status re-check (blocks suspended and banned accounts immediately)
-  const dbConnection = await dbConnect();
+  let dbConnection;
+  try { dbConnection = await dbConnect(); }
+  catch { return { user: null, errorResponse: databaseUnavailableResponse() }; }
   if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
     return { user: null, errorResponse: NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 }) };
   }
@@ -129,7 +132,9 @@ export async function requireCompletedOnboarding(req: NextRequest): Promise<{
   const auth = await requireAuth(req);
   if (!auth.user || auth.errorResponse) return auth;
 
-  const dbConnection = await dbConnect();
+  let dbConnection;
+  try { dbConnection = await dbConnect(); }
+  catch { return { user: null, errorResponse: databaseUnavailableResponse() }; }
   if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
     return { user: null, errorResponse: NextResponse.json({ success: false, error: "Authentication service temporarily unavailable." }, { status: 503 }) };
   }
@@ -175,7 +180,8 @@ export async function requireAdmin(req: NextRequest): Promise<{
   }
 
   // Live database role and account status re-check
-  await dbConnect();
+  try { await dbConnect(); }
+  catch { return { admin: null, errorResponse: databaseUnavailableResponse() }; }
   const isAdminDbAvailable =
     typeof window === "undefined" &&
     (UserModel.db?.readyState === 1 ||
@@ -199,7 +205,7 @@ export async function requireAdmin(req: NextRequest): Promise<{
         };
       }
     } catch {
-      // offline fallback
+      return { admin: null, errorResponse: databaseUnavailableResponse() };
     }
   }
 

@@ -24,7 +24,9 @@ async function verifyConversationParticipant(
   userId: string
 ): Promise<boolean> {
   // 1. Check in-memory / pre-seeded conversations
-  const inMemory = getConversationDoc(conversationId);
+  const inMemory = process.env.NODE_ENV !== "production" && process.env.ALLOW_LOCAL_DB_FALLBACK === "true"
+    ? getConversationDoc(conversationId)
+    : null;
   if (inMemory) {
     return Array.isArray(inMemory.participantIds) && inMemory.participantIds.includes(userId);
   }

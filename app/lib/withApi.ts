@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z, ZodError } from "zod";
 import dbConnect from "./dbConnect";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "./databaseErrors";
 import { getServerAuthUser, requireAuth, requireAdmin } from "./authServer";
 import { apiError, getRequestId } from "./apiResponse";
 import { logger } from "./logger";
@@ -230,6 +231,11 @@ export function withApi<TBody = any, TQuery = any, TParams = any>(
       });
     } catch (error: any) {
       const durationMs = Date.now() - startTime;
+
+      if (isDatabaseUnavailable(error)) {
+        logger.error(`[API] ${method} ${path} database unavailable`, { requestId, durationMs });
+        return databaseUnavailableResponse();
+      }
 
       // 8. Error Mapping
       // A. Zod Validation Error

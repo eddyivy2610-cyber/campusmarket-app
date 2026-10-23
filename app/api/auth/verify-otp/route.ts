@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 import { verifyOtpCode } from "@/lib/otpService";
 import UserModel from "@/models/User";
 import {
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (error: any) {
     console.error("[POST /api/auth/verify-otp] Error:", error);
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
     return NextResponse.json(
       {
         success: false,

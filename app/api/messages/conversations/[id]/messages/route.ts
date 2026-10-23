@@ -7,6 +7,7 @@ import {
 import { MessageModel, ConversationModel } from "../../../../../models/ChatModels";
 import { requireParticipant } from "../../../../../lib/authServer";
 import dbConnect from "../../../../../lib/dbConnect";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "../../../../../lib/databaseErrors";
 import {
   publishConversationEvent,
   publishUserEvent,
@@ -82,7 +83,8 @@ export async function GET(
           });
         }
       } catch (dbErr) {
-        console.warn("[MessagesGET] MongoDB sinceId lookup fallback to in-memory:", dbErr);
+        if (isDatabaseUnavailable(dbErr)) throw dbErr;
+        console.warn("[MessagesGET] MongoDB sinceId lookup failed:", dbErr);
       }
     }
 
@@ -131,7 +133,8 @@ export async function GET(
           });
         }
       } catch (dbErr) {
-        console.warn("[MessagesGET] MongoDB beforeId lookup fallback to in-memory:", dbErr);
+        if (isDatabaseUnavailable(dbErr)) throw dbErr;
+        console.warn("[MessagesGET] MongoDB beforeId lookup failed:", dbErr);
       }
     }
 
@@ -148,6 +151,7 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error: unknown) {
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
     const errMessage = error instanceof Error ? error.message : "";
     if (errMessage === "FORBIDDEN_NOT_PARTICIPANT" || errMessage === "NOT_FOUND") {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });

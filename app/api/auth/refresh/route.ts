@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     if (!refreshToken) {
       return NextResponse.json(
-        { success: false, error: "Refresh token is required." },
+        { success: false, error: "No active session." },
         { status: 401 }
       );
     }

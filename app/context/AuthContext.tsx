@@ -126,8 +126,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("campus_user", JSON.stringify(cacheableProfile(refreshed)));
             return refreshed;
         } catch (e: any) {
-            console.error("Failed to refresh user", e);
-            if (e?.status !== 401) {
+            if (e?.status === 401) {
+                // A missing or expired refresh cookie is an ordinary signed-out state.
+                setUser(null);
+                localStorage.removeItem("campus_user");
+                localStorage.removeItem("campus_email_verified");
+            } else {
+                console.error("Failed to refresh user", e);
                 toast.error("Session refresh failed: " + (e.message || "Unknown error"));
             }
             return null;

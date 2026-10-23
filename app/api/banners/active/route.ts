@@ -9,6 +9,7 @@ import {
   isRequestSafeForPublicCache,
 } from "@/lib/cacheHeaders";
 import { BannerPlacement } from "@/models/Banner";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 export const dynamic = "force-dynamic";
 
@@ -125,16 +126,8 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[BannersActiveAPI] Error fetching eligible banners:", error);
 
-    // Deterministic fallback: never throw or break public pages on transient DB issues
-    const fallbackPayload = placementParam === "homepage_hero" ? null : [];
-    const fallbackRes = NextResponse.json({
-      success: true,
-      data: fallbackPayload,
-      fallback: true,
-    });
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
 
-    return applyCacheHeaders(fallbackRes, {
-      isPublic: false,
-    });
+    return NextResponse.json({ success: false, error: "Failed to load banners." }, { status: 500 });
   }
 }

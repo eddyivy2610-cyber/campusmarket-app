@@ -14,6 +14,7 @@ import {
 } from "@/lib/authServer";
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { executeInTransaction } from "@/lib/transactionHelper";
+import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 function generateSlug(name: string): string {
   const base = name
@@ -82,6 +83,7 @@ export async function GET(req: NextRequest) {
     return res;
   } catch (error: any) {
     console.error("[GET /api/stores] Error:", error);
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse();
     return NextResponse.json(
       { success: false, error: "Failed to retrieve stores." },
       { status: 500 }
