@@ -2,11 +2,12 @@
 /**
  * Provider-agnostic transactional email service.
  *
- * Providers:
- * 1. Resend
- * 2. Postmark
- * 3. SMTP (Gmail supported)
- * 4. Development mock (non-production only)
+ * Provider selection:
+ * - If SMTP_USER and SMTP_PASS are configured, use SMTP exclusively.
+ *   SMTP failure throws; it never silently falls back to Resend/Postmark.
+ * - If SMTP is not configured, try Resend, then Postmark.
+ * - Development mock is available only when no real provider is configured.
+ * - Production never reports a mock email as delivered.
  *
  * Uses native fetch for cloud APIs and Nodemailer for SMTP.
  */
@@ -188,74 +189,68 @@ async function sendViaSmtp(
 }
 
 /**
- * Sends transactional email through configured providers.
+ * Sends transactional email using the configured provider strategy.
  *
- * Order: Resend -> Postmark -> SMTP -> Development Mock.
+ * IMPORTANT: When SMTP credentials exist, SMTP is the exclusive provider.
+ * If SMTP fails, this function throws instead of trying Resend or Postmark.
+ * This ensures presentation OTP emails cannot silently switch providers.
  *
- * In production, if every configured provider fails, the
- * function throws. It never reports a mock email as delivered.
+ * When SMTP credentials are absent, Resend and then Postmark may be used.
+ * A development mock is allowed only when no real provider is configured.
  */
 export async function sendEmail(
   options: SendEmailOptions
 ): Promise<EmailSendResult> {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
-  const smtpConfigured = Boolean(
-    process.env.SMTP_USER && process.env.SMTP_PASS
-  );
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const smtpConfigured = Boolean(smtpUser && smtpPass);
 
-  let configuredProviderCount = 0;
-
-  // 1. Try Resend.
-  if (resendApiKey) {
-    configuredProviderCount++;
-
-    try {
-      return await sendViaResend(resendApiKey, options);
-    } catch {
-      // Do not log provider response bodies, OTPs, or credentials.
-      console.warn("[Email] Resend delivery failed; trying next provider.");
-    }
-  }
-
-  // 2. Try Postmark.
-  if (postmarkToken) {
-    configuredProviderCount++;
-
-    try {
-      return await sendViaPostmark(postmarkToken, options);
-    } catch {
-      console.warn("[Email] Postmark delivery failed; trying next provider.");
-    }
-  }
-
-  // 3. Try SMTP, including Gmail SMTP.
+  // 1. If SMTP is configured, use it exclusively. Never fall back to Resend.
   if (smtpConfigured) {
-    configuredProviderCount++;
-
     try {
       return await sendViaSmtp(options);
     } catch {
-      console.warn("[Email] SMTP delivery failed.");
+      // Do not log credentials, recipient addresses, OTPs, or provider bodies.
+      console.error("[Email] SMTP delivery failed; no provider fallback attempted.");
+      throw new Error("Email service is temporarily unavailable.");
+    }
+  }
+
+  // 2. SMTP is not configured. Try Resend if configured.
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (resendApiKey) {
+    try {
+      return await sendViaResend(resendApiKey, options);
+    } catch {
+      console.warn("[Email] Resend delivery failed.");
+    }
+  }
+
+  // 3. Try Postmark only when SMTP is not configured.
+  const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
+  if (postmarkToken) {
+    try {
+      return await sendViaPostmark(postmarkToken, options);
+    } catch {
+      console.warn("[Email] Postmark delivery failed.");
     }
   }
 
   // 4. Never simulate successful delivery in production.
   if (process.env.NODE_ENV === "production") {
-    console.error(
-      configuredProviderCount === 0
-        ? "[Email] No transactional email provider is configured."
-        : "[Email] All configured email providers failed."
-    );
+    if (!resendApiKey && !postmarkToken) {
+      console.error("[Email] No transactional email provider is configured.");
+    } else {
+      console.error("[Email] All configured email providers failed.");
+    }
 
     throw new Error("Email service is temporarily unavailable.");
   }
 
-  // Development/test fallback only.
+  // Development mock only when no SMTP credentials are configured and
+  // no configured cloud provider succeeded.
   if (process.env.NODE_ENV !== "test") {
-    console.info(
-      `[Email Mock Dev] Email delivery simulated. Subject: "${options.subject}"`
-    );
+    console.info("[Email Mock Dev] Email delivery simulated.");
   }
 
   return {
