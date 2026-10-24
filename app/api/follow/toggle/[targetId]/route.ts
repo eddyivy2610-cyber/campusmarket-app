@@ -90,6 +90,12 @@ export async function POST(
       targetType: target.targetType,
     });
   } catch (error: any) {
+    if (error?.statusCode === 400) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      );
+    }
     console.error("[POST /api/follow/toggle] Error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to toggle follow status." },

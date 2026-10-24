@@ -657,7 +657,12 @@ export default function ProfilePage() {
     sales: 0,
     rating: 5.0,
     reviewsCount: 0,
-    joined: "Recent",
+    joined: liveUserProfile?.createdAt
+      ? new Date(liveUserProfile.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+      : "Recent",
     followersCount: 0,
     listingsCount: liveUserListings.length,
     listings: liveUserListings,
@@ -734,8 +739,21 @@ export default function ProfilePage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isSellerAccount = Boolean(
+    liveUserProfile?.role === "seller" ||
+      liveUserProfile?.sellerStatus === "approved" ||
+      liveUserProfile?.sellerStatus === "verified" ||
+      (isOwnProfile &&
+        (user?.role === "seller" ||
+          user?.sellerStatus === "approved" ||
+          user?.sellerStatus === "verified")) ||
+      PUBLIC_PROFILE_DATA[rawHandle]
+  );
+
+  const isFollowableSeller = isSellerAccount;
+
   useEffect(() => {
-    if (!isOwnProfile && profile?.id) {
+    if (!isOwnProfile && isFollowableSeller && profile?.id) {
       followService
         .checkFollowingStatus(profile.id)
         .then((res) => {
@@ -743,7 +761,7 @@ export default function ProfilePage() {
         })
         .catch(() => {});
     }
-  }, [isOwnProfile, profile?.id]);
+  }, [isOwnProfile, isFollowableSeller, profile?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -868,7 +886,7 @@ export default function ProfilePage() {
                       )}
                     </div>
 
-                    {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio) -> Row 3 (Location) */}
+                    {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio for sellers) -> Row 3 (Location + Join Date) */}
                     <div className="min-w-0 flex-1 space-y-2">
                       {/* Row 1: Name + Single Tick + @username inline */}
                       <div className="flex items-baseline gap-2 flex-wrap">
@@ -876,7 +894,7 @@ export default function ProfilePage() {
                           <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                             {profile.name}
                           </h1>
-                          {profile.isStudentSeller && profile.isVerified && (
+                          {isSellerAccount && profile.isStudentSeller && profile.isVerified && (
                             <BadgeCheck
                               className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0 translate-y-[1px]"
                               aria-label="Verified student seller"
@@ -889,10 +907,12 @@ export default function ProfilePage() {
                         </span>
                       </div>
 
-                      {/* Row 2: Bio */}
-                      <p className="text-[13px] text-[#3F454D] dark:text-neutral-300 leading-[1.55] max-w-[490px]">
-                        {profile.bio}
-                      </p>
+                      {/* Row 2: Bio (Only for seller accounts) */}
+                      {isSellerAccount && (
+                        <p className="text-[13px] text-[#3F454D] dark:text-neutral-300 leading-[1.55] max-w-[490px]">
+                          {profile.bio}
+                        </p>
+                      )}
 
                       {/* Row 3: Location with Pin Icon + Joined with Calendar */}
                       <div className="flex flex-wrap items-center gap-y-1 gap-x-4 pt-0.5 text-[12.5px] font-medium text-[#68707A] dark:text-neutral-400">
@@ -908,53 +928,45 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Right Block: 4 Stats (Followers · Reviews · Rating · Status) + Action Buttons */}
+                  {/* Right Block: Stats (Sellers Only) + Action Buttons */}
                   <div className="md:w-[320px] lg:w-[360px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-3">
-                    {/* Stat Card Box: 3 on mobile (<sm), 4 on sm and up */}
-                    <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
-                        {/* 1. Followers */}
-                        <div className="px-1 sm:px-2">
-                          <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                            {formatFollowers(followersCount)}
+                    {/* Stat Card Box (Only for seller accounts): 3 stats (Followers · Reviews · Rating) */}
+                    {isSellerAccount && (
+                      <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
+                        <div className="grid grid-cols-3 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
+                          {/* 1. Followers */}
+                          <div className="px-1 sm:px-2">
+                            <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                              {formatFollowers(followersCount)}
+                            </div>
+                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                              Followers
+                            </div>
                           </div>
-                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                            Followers
-                          </div>
-                        </div>
 
-                        {/* 2. Review count */}
-                        <div className="px-1 sm:px-2">
-                          <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                            {profile.reviewsCount}
+                          {/* 2. Review count */}
+                          <div className="px-1 sm:px-2">
+                            <div className="text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                              {profile.reviewsCount}
+                            </div>
+                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                              Reviews
+                            </div>
                           </div>
-                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                            Reviews
-                          </div>
-                        </div>
 
-                        {/* 3. Rating */}
-                        <div className="px-1 sm:px-2">
-                          <div className="inline-flex items-center justify-center gap-1 text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                            <span>{profile.rating}</span>
-                            <Star className="w-3.5 h-3.5 fill-[#FFC928] text-[#FFC928] shrink-0 -translate-y-0.5" />
-                          </div>
-                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                            Rating
-                          </div>
-                        </div>
-
-                        {/* 4. Status (Student or Store) — kept at 3 on mobile, 4th item appears on sm: and up */}
-                        <div className="hidden sm:block px-1 sm:px-2">
-                          <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight truncate">
-                            {profile.isStudentSeller ? "Student" : "Store"}
-                          </div>
-                          <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                            Status
+                          {/* 3. Rating */}
+                          <div className="px-1 sm:px-2">
+                            <div className="inline-flex items-center justify-center gap-1 text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
+                              <span>{profile.rating}</span>
+                              <Star className="w-3.5 h-3.5 fill-[#FFC928] text-[#FFC928] shrink-0 -translate-y-0.5" />
+                            </div>
+                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                              Rating
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Action Buttons Row */}
                     <div className="flex items-center gap-2 w-full">
@@ -980,44 +992,46 @@ export default function ProfilePage() {
                         </>
                       ) : (
                         <>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                const res = await followService.toggleFollow(profile.id);
-                                if (res?.success) {
-                                  setIsFollowing(res.isFollowing);
-                                  setFollowersCount((prev) =>
-                                    res.isFollowing ? prev + 1 : Math.max(0, prev - 1)
-                                  );
-                                  showToast(
-                                    res.isFollowing
-                                      ? `Following ${profile.name}`
-                                      : `Unfollowed ${profile.name}`
-                                  );
+                          {isFollowableSeller && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const res = await followService.toggleFollow(profile.id);
+                                  if (res?.success) {
+                                    setIsFollowing(res.isFollowing);
+                                    setFollowersCount((prev) =>
+                                      res.isFollowing ? prev + 1 : Math.max(0, prev - 1)
+                                    );
+                                    showToast(
+                                      res.isFollowing
+                                        ? `Following ${profile.name}`
+                                        : `Unfollowed ${profile.name}`
+                                    );
+                                  }
+                                } catch (err: any) {
+                                  showToast(err.message || "Failed to update follow status");
                                 }
-                              } catch (err: any) {
-                                showToast(err.message || "Failed to update follow status");
-                              }
-                            }}
-                            className={`radius-native flex-1 h-9 px-3.5 rounded-lg border text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                              isFollowing
-                                ? "bg-[#171717] border-[#171717] text-white dark:bg-white dark:border-white dark:text-[#171717]"
-                                : "bg-white dark:bg-white/5 border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white hover:border-[#171717]"
-                            }`}
-                          >
-                            {isFollowing ? (
-                              <>
-                                <UserCheck className="w-3.5 h-3.5 stroke-[2.2]" />
-                                <span>Following</span>
-                              </>
-                            ) : (
-                              <>
-                                <UserPlus className="w-3.5 h-3.5 stroke-[2.2]" />
-                                <span>Follow</span>
-                              </>
-                            )}
-                          </button>
+                              }}
+                              className={`radius-native flex-1 h-9 px-3.5 rounded-lg border text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                                isFollowing
+                                  ? "bg-[#171717] border-[#171717] text-white dark:bg-white dark:border-white dark:text-[#171717]"
+                                  : "bg-white dark:bg-white/5 border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white hover:border-[#171717]"
+                              }`}
+                            >
+                              {isFollowing ? (
+                                <>
+                                  <UserCheck className="w-3.5 h-3.5 stroke-[2.2]" />
+                                  <span>Following</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="w-3.5 h-3.5 stroke-[2.2]" />
+                                  <span>Follow</span>
+                                </>
+                              )}
+                            </button>
+                          )}
 
                           <Link
                             href={`/messages?user=${encodeURIComponent(
@@ -1081,51 +1095,57 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            {/* 2. PROFILE TABS BAR */}
-            <div className="border-b border-[#E5E8EE] dark:border-white/10 flex items-center gap-6 sm:gap-8 px-1">
-              {(
-                [
-                  { id: "overview", label: "Overview" },
-                  {
-                    id: "listings",
-                    label: `Listings (${profile.listings.length})`,
-                  },
-                  {
-                    id: "reviews",
-                    label: `Reviews (${profile.reviewsCount})`,
-                  },
-                  { id: "about", label: "About" },
-                ] as { id: ProfileTab; label: string }[]
-              ).map((tab) => {
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative pb-3 text-[13.5px] transition-colors cursor-pointer ${
-                      isActive
-                        ? "font-bold text-[#171717] dark:text-white"
-                        : "font-medium text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                    }`}
-                  >
-                    {tab.label}
-                    {isActive && (
-                      <span className="absolute left-0 right-0 bottom-0 h-[3px] rounded-full bg-[#FFC928]" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            {/* 2. PROFILE TABS BAR (Seller Accounts Only) */}
+            {isSellerAccount && (
+              <div className="border-b border-[#E5E8EE] dark:border-white/10 flex items-center gap-6 sm:gap-8 px-1">
+                {(
+                  [
+                    { id: "overview", label: "Overview" },
+                    {
+                      id: "listings",
+                      label: `Listings (${profile.listings.length})`,
+                    },
+                    {
+                      id: "reviews",
+                      label: `Reviews (${profile.reviewsCount})`,
+                    },
+                    { id: "about", label: "About" },
+                  ] as { id: ProfileTab; label: string }[]
+                ).map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`relative pb-3 text-[13.5px] transition-colors cursor-pointer ${
+                        isActive
+                          ? "font-bold text-[#171717] dark:text-white"
+                          : "font-medium text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
+                      }`}
+                    >
+                      {tab.label}
+                      {isActive && (
+                        <span className="absolute left-0 right-0 bottom-0 h-[3px] rounded-full bg-[#FFC928]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-            {/* 3. RECENT LISTINGS SECTION */}
-            {(activeTab === "overview" || activeTab === "listings") && (
+            {/* 3. RECENT LISTINGS (Seller) / PROMOTIONS (Non-Seller) SECTION */}
+            {(!isSellerAccount || activeTab === "overview" || activeTab === "listings") && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                    {activeTab === "listings" ? "All Listings" : "Recent Listings"}
+                    {!isSellerAccount
+                      ? "Promotions"
+                      : activeTab === "listings"
+                        ? "All Listings"
+                        : "Recent Listings"}
                   </h2>
-                  {activeTab === "overview" && (
+                  {isSellerAccount && activeTab === "overview" && (
                     <button
                       type="button"
                       onClick={() => setActiveTab("listings")}
@@ -1139,21 +1159,23 @@ export default function ProfilePage() {
 
                 <div
                   className={
-                    activeTab === "overview"
+                    isSellerAccount && activeTab === "overview"
                       ? "flex sm:grid sm:grid-cols-2 xl:grid-cols-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-3 sm:gap-4 pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-none"
                       : "grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
                   }
                 >
                   {profile.listings.length === 0 ? (
                     <div className="col-span-full py-10 text-center text-[13px] text-[#8C929C] w-full">
-                      No active listings posted yet.
+                      {!isSellerAccount
+                        ? "No active promotions posted yet."
+                        : "No active listings posted yet."}
                     </div>
                   ) : (
                     profile.listings.map((item) => (
                     <div
                       key={item.id}
                       className={`radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#181B24] overflow-hidden flex flex-col hover:border-[#D5D9E0] transition-colors ${
-                        activeTab === "overview"
+                        isSellerAccount && activeTab === "overview"
                           ? "w-[41vw] min-w-[148px] max-w-[180px] sm:w-auto sm:min-w-0 sm:max-w-none shrink-0 snap-start"
                           : ""
                       }`}
@@ -1235,8 +1257,8 @@ export default function ProfilePage() {
               </section>
             )}
 
-            {/* 4. REVIEWS SECTION */}
-            {(activeTab === "overview" || activeTab === "reviews") && (
+            {/* 4. REVIEWS SECTION (Seller Accounts Only) */}
+            {isSellerAccount && (activeTab === "overview" || activeTab === "reviews") && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
@@ -1360,8 +1382,8 @@ export default function ProfilePage() {
               </section>
             )}
 
-            {/* 5. ABOUT TAB VIEW */}
-            {activeTab === "about" && (
+            {/* 5. ABOUT TAB VIEW (Seller Accounts Only) */}
+            {isSellerAccount && activeTab === "about" && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white">
                   About {profile.name}
@@ -1397,157 +1419,187 @@ export default function ProfilePage() {
           {/* RIGHT COLUMN: TRUST AT A GLANCE + MARKETPLACE PROMO             */}
           {/* =============================================================== */}
           <aside className="space-y-5 lg:sticky lg:top-[88px] lg:self-start">
-            {/* Trust at a glance Card */}
-            <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-              <h2 className="text-[15px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                Trust at a glance
-              </h2>
+            {/* Trust at a glance Card (Seller Accounts Only) */}
+            {isSellerAccount && (
+              <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <h2 className="text-[15px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                  Trust at a glance
+                </h2>
 
-              <div className="divide-y divide-[#F1F3F6] dark:divide-white/10">
-                {profile.isStudentSeller && profile.isVerified ? (
-                  <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
-                        <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928]" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                          Campus verified
-                        </p>
-                        <p className="text-[11.5px] text-[#7A818C] truncate">
-                          Verified student seller at ABU Zaria
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                  </div>
-                ) : (
-                  <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
-                        <ShieldCheck className="w-4.5 h-4.5 text-[#5B636E]" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                          Non-student seller
-                        </p>
-                        <p className="text-[11.5px] text-[#7A818C] truncate">
-                          Unverified · Active campus vendor
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                  </div>
-                )}
-
-                <div className="py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
-                      <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                        Reliable seller
-                      </p>
-                      <p className="text-[11.5px] text-[#7A818C] truncate">
-                        Consistently positive feedback
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                </div>
-
-                <div className="py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
-                      {showSalesMilestone ? (
-                        <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
-                      ) : (
-                        <Lock className="w-4 h-4 text-[#8C929C]" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      {showSalesMilestone ? (
-                        <>
+                <div className="divide-y divide-[#F1F3F6] dark:divide-white/10">
+                  {profile.isStudentSeller && profile.isVerified ? (
+                    <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
+                          <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928]" />
+                        </div>
+                        <div className="min-w-0">
                           <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                            {formatSalesMilestone(profile.sales)} confirmed exchanges
+                            Campus verified
                           </p>
                           <p className="text-[11.5px] text-[#7A818C] truncate">
-                            Campus verified exchange milestone
+                            Verified student seller at ABU Zaria
                           </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-[13px] font-bold text-[#7A818C] dark:text-neutral-400 truncate">
-                            Exchange milestone private
-                          </p>
-                          <p className="text-[11.5px] text-[#9AA1AC] truncate">
-                            Seller chose to keep milestone private
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {isOwnProfile ? (
-                    <Link
-                      href="/dashboard/settings"
-                      title="Manage milestone privacy in Dashboard"
-                      className="text-[11.5px] font-semibold text-[#8C929C] hover:text-[#171717] dark:hover:text-white flex items-center gap-1 shrink-0"
-                    >
-                      <span className="hidden sm:inline">Privacy</span>
+                        </div>
+                      </div>
                       <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                    </Link>
+                    </div>
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                    <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-4.5 h-4.5 text-[#5B636E]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                            Non-student seller
+                          </p>
+                          <p className="text-[11.5px] text-[#7A818C] truncate">
+                            Unverified · Active campus vendor
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                    </div>
                   )}
-                </div>
 
-                <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
-                      <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
+                  <div className="py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                          Reliable seller
+                        </p>
+                        <p className="text-[11.5px] text-[#7A818C] truncate">
+                          Consistently positive feedback
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                        {profile.rating} · {profile.reviewsCount} reviews
-                      </p>
-                      <p className="text-[11.5px] text-[#7A818C] truncate">
-                        From eligible transactions
-                      </p>
-                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                </div>
-              </div>
-            </div>
 
-            {/* Looking for something else? Card */}
-            <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
-                  <Lightbulb className="w-4 h-4 text-[#B45309]" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
-                    Looking for something else?
-                  </h3>
-                  <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
-                    Check out more listings from {profile.name} or browse
-                    similar sellers.
-                  </p>
-                </div>
-              </div>
+                  <div className="py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
+                        {showSalesMilestone ? (
+                          <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
+                        ) : (
+                          <Lock className="w-4 h-4 text-[#8C929C]" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        {showSalesMilestone ? (
+                          <>
+                            <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                              {formatSalesMilestone(profile.sales)} confirmed exchanges
+                            </p>
+                            <p className="text-[11.5px] text-[#7A818C] truncate">
+                              Campus verified exchange milestone
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-[13px] font-bold text-[#7A818C] dark:text-neutral-400 truncate">
+                              Exchange milestone private
+                            </p>
+                            <p className="text-[11.5px] text-[#9AA1AC] truncate">
+                              Seller chose to keep milestone private
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {isOwnProfile ? (
+                      <Link
+                        href="/dashboard/settings"
+                        title="Manage milestone privacy in Dashboard"
+                        className="text-[11.5px] font-semibold text-[#8C929C] hover:text-[#171717] dark:hover:text-white flex items-center gap-1 shrink-0"
+                      >
+                        <span className="hidden sm:inline">Privacy</span>
+                        <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                      </Link>
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                    )}
+                  </div>
 
-              <div className="pl-11">
-                <Link
-                  href="/explore"
-                  className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
-                >
-                  <span>Explore marketplace</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                  <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
+                        <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                          {profile.rating} · {profile.reviewsCount} reviews
+                        </p>
+                        <p className="text-[11.5px] text-[#7A818C] truncate">
+                          From eligible transactions
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Seller / Non-Seller Right Promo Card */}
+            {isSellerAccount ? (
+              <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
+                    <Lightbulb className="w-4 h-4 text-[#B45309]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                      Looking for something else?
+                    </h3>
+                    <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
+                      Check out more listings from {profile.name} or browse
+                      similar sellers.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pl-11">
+                  <Link
+                    href="/explore"
+                    className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <span>Explore marketplace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
+                    <Store className="w-4 h-4 text-[#B45309]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                      Register as a seller for more features
+                    </h3>
+                    <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
+                      Open a campus storefront to unlock full catalog management, verified trust badges, customer reviews, and followers.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pl-11">
+                  <Link
+                    href="/onboarding/seller"
+                    className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <span>Register as a seller</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
       </main>

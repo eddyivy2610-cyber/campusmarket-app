@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   User,
   Shield,
@@ -13,6 +13,7 @@ import {
   Lock,
   BadgeCheck,
   SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -33,16 +34,47 @@ export type SettingsDestinationId = SettingsTabId;
 interface SettingsTabItem {
   id: SettingsTabId;
   label: string;
+  subtitle: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 }
 
 const SETTINGS_TABS: SettingsTabItem[] = [
-  { id: "profile", label: "Profile & Identity", icon: User },
-  { id: "preferences", label: "App Preferences", icon: SlidersHorizontal },
-  { id: "privacy", label: "Contact & Privacy", icon: Shield },
-  { id: "security", label: "Account & Security", icon: Lock },
-  { id: "marketplace", label: "Marketplace", icon: ShoppingBag },
-  { id: "verification", label: "Trust & Verification", icon: ShieldCheck },
+  {
+    id: "profile",
+    label: "Profile & Identity",
+    subtitle: "Display name, avatar, bio, and academic details",
+    icon: User,
+  },
+  {
+    id: "preferences",
+    label: "App Preferences",
+    subtitle: "Theme, discovery defaults, notifications, and layout",
+    icon: SlidersHorizontal,
+  },
+  {
+    id: "privacy",
+    label: "Contact & Privacy",
+    subtitle: "Messaging permissions, contact channel, and online status",
+    icon: Shield,
+  },
+  {
+    id: "security",
+    label: "Account & Security",
+    subtitle: "Login email and password management",
+    icon: Lock,
+  },
+  {
+    id: "marketplace",
+    label: "Marketplace",
+    subtitle: "Quick access to your listings, requests, and stores",
+    icon: ShoppingBag,
+  },
+  {
+    id: "verification",
+    label: "Trust & Verification",
+    subtitle: "Campus verification badge and account standing",
+    icon: ShieldCheck,
+  },
 ];
 
 interface ProfileIdentityData {
@@ -73,15 +105,23 @@ export function RebrandSettingsShell({
 }: {
   initialDestination?: SettingsTabId;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user, login } = useAuth();
   const querySection = searchParams.get("section") as SettingsTabId | null;
 
-  const [activeTab, setActiveTab] = useState<SettingsTabId>(
+  const validQuerySection =
     querySection && SETTINGS_TABS.some((t) => t.id === querySection)
       ? querySection
-      : initialDestination
+      : null;
+
+  // Desktop active tab (always shows one panel on the right)
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(
+    validQuerySection || initialDestination
+  );
+
+  // Mobile accordion state: stays hidden inside until clicked (unless deep-linked via ?section=)
+  const [mobileOpenTab, setMobileOpenTab] = useState<SettingsTabId | null>(
+    validQuerySection
   );
 
   const [profileData, setProfileData] =
@@ -117,7 +157,9 @@ export function RebrandSettingsShell({
           school: parsed.school || parsed.faculty || EMPTY_PROFILE_DATA.school,
           major: parsed.major || parsed.department || EMPTY_PROFILE_DATA.major,
           year: parsed.year || parsed.level || EMPTY_PROFILE_DATA.year,
-          username: String(parsed.username || EMPTY_PROFILE_DATA.username).replace(/^@/, "").toLowerCase(),
+          username: String(parsed.username || EMPTY_PROFILE_DATA.username)
+            .replace(/^@/, "")
+            .toLowerCase(),
         };
         setProfileData(merged);
         setInitialData(merged);
@@ -135,8 +177,14 @@ export function RebrandSettingsShell({
         if (!data) return;
         const liveData: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
-          name: data.name || data.profile?.displayName || user.name || "Campus Student",
-          username: String(data.profile?.handle || user.handle || user.id).replace(/^@/, "").toLowerCase(),
+          name:
+            data.name ||
+            data.profile?.displayName ||
+            user.name ||
+            "Campus Student",
+          username: String(data.profile?.handle || user.handle || user.id)
+            .replace(/^@/, "")
+            .toLowerCase(),
           bio: data.profile?.bio || "",
           school: data.campus || "",
           major: data.profile?.department || "",
@@ -209,7 +257,535 @@ export function RebrandSettingsShell({
   };
 
   const effectiveAvatar = avatarPreview || profileData.avatar;
-  const backProfileHandle = profileData.username || user?.handle || user?.id || "me";
+  const backProfileHandle =
+    profileData.username || user?.handle || user?.id || "me";
+
+  const renderCategoryContent = (tabId: SettingsTabId, isMobileAccordion = false) => {
+    switch (tabId) {
+      case "profile":
+        return (
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            {!isMobileAccordion && (
+              <div>
+                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                  Profile & Identity
+                </h2>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
+                  Manage your public campus presence, display information, and academic department.
+                </p>
+                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
+              </div>
+            )}
+
+            {saveSuccessMsg && (
+              <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{saveSuccessMsg}</span>
+              </div>
+            )}
+
+            <div className="space-y-4 sm:space-y-5">
+              {/* Avatar Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Avatar
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-[#ECEEF2] dark:ring-white/15 ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] bg-[#F3F4F6] dark:bg-white/5 flex items-center justify-center shrink-0">
+                    {effectiveAvatar ? (
+                      <img
+                        src={effectiveAvatar}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-6 h-6 text-[#9CA3AF]" />
+                    )}
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="radius-native px-3.5 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12.5px] font-bold text-[#171717] dark:text-white hover:border-[#FFC928] dark:hover:border-[#FFC928] hover:bg-[#FFC928]/10 transition-colors cursor-pointer"
+                  >
+                    Change photo
+                  </button>
+                </div>
+              </div>
+
+              {/* Display Name Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
+                <label
+                  htmlFor="displayNameInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
+                >
+                  Display Name
+                </label>
+                <input
+                  id="displayNameInput"
+                  type="text"
+                  value={profileData.name}
+                  onChange={(e) =>
+                    setProfileData({ ...profileData, name: e.target.value })
+                  }
+                  placeholder="Enter your display name"
+                  className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                />
+              </div>
+
+              {/* Username Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
+                <label
+                  htmlFor="usernameInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
+                >
+                  Username
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
+                    @
+                  </span>
+                  <input
+                    id="usernameInput"
+                    type="text"
+                    value={profileData.username}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        username: e.target.value
+                          .replace(/^@/, "")
+                          .toLowerCase(),
+                      })
+                    }
+                    placeholder="username"
+                    className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Bio Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
+                <label
+                  htmlFor="bioInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
+                >
+                  Bio
+                </label>
+                <div>
+                  <textarea
+                    id="bioInput"
+                    rows={3}
+                    value={profileData.bio}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, bio: e.target.value })
+                    }
+                    placeholder="Tell others about what you sell or study..."
+                    className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs resize-y"
+                  />
+                  <div className="text-right text-[11px] text-[#8C929C] mt-1 font-medium">
+                    {profileData.bio.length}/180 characters
+                  </div>
+                </div>
+              </div>
+
+              {/* Academic Details Section */}
+              <div className="pt-2">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                    Academic Details
+                  </h3>
+                  <span className="text-[11px] font-semibold text-[#8C929C] bg-[#F2F4F8] dark:bg-white/5 px-2 py-0.5 rounded-md">
+                    Campus Identity
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  <div>
+                    <label
+                      htmlFor="schoolInput"
+                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
+                    >
+                      School
+                    </label>
+                    <input
+                      id="schoolInput"
+                      type="text"
+                      value={profileData.school}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          school: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Ahmadu Bello University"
+                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="majorInput"
+                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
+                    >
+                      Major / Department
+                    </label>
+                    <input
+                      id="majorInput"
+                      type="text"
+                      value={profileData.major}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          major: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. Computer Science"
+                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="yearSelect"
+                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
+                    >
+                      Year / Level
+                    </label>
+                    <select
+                      id="yearSelect"
+                      value={profileData.year}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, year: e.target.value })
+                      }
+                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
+                    >
+                      <option value="">Select year</option>
+                      <option value="100 Level">100 Level</option>
+                      <option value="200 Level">200 Level</option>
+                      <option value="300 Level">300 Level</option>
+                      <option value="400 Level">400 Level</option>
+                      <option value="500 Level">500 Level</option>
+                      <option value="Graduate">Graduate</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-3">
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
+              >
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelProfile}
+                className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        );
+
+      case "preferences":
+        return <AppPreferencesPanel />;
+
+      case "privacy":
+        return (
+          <div className="space-y-6">
+            {!isMobileAccordion && (
+              <div>
+                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                  Contact & Privacy
+                </h2>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
+                  Control who can message you and manage your visibility in campus chat.
+                </p>
+                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
+              </div>
+            )}
+
+            {saveSuccessMsg && (
+              <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{saveSuccessMsg}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Who can message you
+                </label>
+                <select
+                  value={messagingPreference}
+                  onChange={(e) => setMessagingPreference(e.target.value)}
+                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
+                >
+                  <option value="everyone">Everyone on campus</option>
+                  <option value="verified">Verified students only</option>
+                  <option value="listings">
+                    Inquiries on active listings only
+                  </option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Contact channel
+                </label>
+                <select
+                  value={contactChannel}
+                  onChange={(e) => setContactChannel(e.target.value)}
+                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
+                >
+                  <option value="in_app">
+                    In-app messages only (Recommended)
+                  </option>
+                  <option value="whatsapp">
+                    Allow WhatsApp handoff after deal starts
+                  </option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Online presence
+                </label>
+                <label className="inline-flex items-center gap-2.5 cursor-pointer text-[13px] font-medium text-[#4B5563] dark:text-neutral-300">
+                  <input
+                    type="checkbox"
+                    checked={showOnlineStatus}
+                    onChange={(e) => setShowOnlineStatus(e.target.checked)}
+                    className="w-4 h-4 rounded border-[#DCE0E6] text-[#FFC928] focus:ring-[#FFC928] accent-[#FFC928] cursor-pointer"
+                  />
+                  <span>Show when I am active in chat threads</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setSaveSuccessMsg("Privacy preferences saved.");
+                  setTimeout(() => setSaveSuccessMsg(null), 3000);
+                }}
+                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        );
+
+      case "security":
+        return (
+          <div className="space-y-6">
+            {!isMobileAccordion && (
+              <div>
+                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                  Account & Security
+                </h2>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
+                  Update your account credentials, login email, and authentication passwords.
+                </p>
+                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
+              </div>
+            )}
+
+            {saveSuccessMsg && (
+              <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{saveSuccessMsg}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setSaveSuccessMsg("Security settings updated.");
+                  setTimeout(() => setSaveSuccessMsg(null), 3000);
+                }}
+                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Save Changes
+              </button>
+              <button
+                type="button"
+                className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        );
+
+      case "marketplace":
+        return (
+          <div className="space-y-6">
+            {!isMobileAccordion && (
+              <div>
+                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                  Marketplace
+                </h2>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
+                  Manage your campus inventory, wanted requests, and public seller links.
+                </p>
+                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
+                Quick shortcuts to your active campus commerce tools:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <Link
+                  href={`/profile/${backProfileHandle}`}
+                  className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
+                >
+                  <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
+                    My Listings
+                  </h4>
+                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
+                    View and manage items listed for sale
+                  </p>
+                </Link>
+
+                <Link
+                  href="/wanted"
+                  className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
+                >
+                  <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
+                    My Requests
+                  </h4>
+                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
+                    Track requests on Campus Radar
+                  </p>
+                </Link>
+
+                <Link
+                  href="/stores"
+                  className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
+                >
+                  <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
+                    Store Directory
+                  </h4>
+                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
+                    Browse verified campus stores
+                  </p>
+                </Link>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "verification":
+        return (
+          <div className="space-y-6">
+            {!isMobileAccordion && (
+              <div>
+                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                  Trust & Verification
+                </h2>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
+                  Check your university verification status and buyer trust tier.
+                </p>
+                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
+              </div>
+            )}
+
+            <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-3.5 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0" />
+                <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                  Verified Student Seller
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border border-[#A7F3D0] dark:border-emerald-500/20">
+                  Active
+                </span>
+              </div>
+
+              <p className="text-[13px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
+                Your identity and university standing have been confirmed. Your profile displays the yellow-black verification tick and your product listings carry the green verified check.
+              </p>
+
+              <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                <span>
+                  Institutional email:{" "}
+                  <strong className="text-[#171717] dark:text-white font-semibold">
+                    {email || "Not provided"}
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
     <div
@@ -218,18 +794,99 @@ export function RebrandSettingsShell({
     >
       <RebrandHeader />
 
-      <main className="flex-1 w-full max-w-[1380px] mx-auto px-5 sm:px-8 lg:px-12 py-7 sm:py-9">
-        {/* Main Settings Card Container */}
-        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-6 sm:p-8 md:p-9">
-          <div className="flex flex-col md:flex-row items-stretch gap-8 lg:gap-12 min-h-[520px]">
-            {/* Left Sidebar */}
-            <aside className="w-full md:w-[220px] lg:w-[240px] shrink-0 flex flex-col justify-between space-y-6">
+      <main className="flex-1 w-full max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-9">
+        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-8 md:p-9">
+          {/* =============================================================== */}
+          {/* MOBILE VIEW (< md): Facebook-Style Dropdown Accordion           */}
+          {/* =============================================================== */}
+          <div className="md:hidden space-y-3">
+            <div className="flex items-center justify-between pb-2">
+              <h1 className="text-[20px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                Settings
+              </h1>
+              <Link
+                href={`/profile/${backProfileHandle}`}
+                className="radius-native inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[12px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white bg-[#F7F8FA] dark:bg-white/5 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 stroke-[2.2]" />
+                <span>Back to Profile</span>
+              </Link>
+            </div>
+
+            <div className="space-y-2.5">
+              {SETTINGS_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isOpen = mobileOpenTab === tab.id;
+
+                return (
+                  <div
+                    key={tab.id}
+                    className={`radius-native rounded-2xl border transition-colors overflow-hidden ${
+                      isOpen
+                        ? "border-[#FFC928]/60 bg-white dark:bg-[#14161D] shadow-xs"
+                        : "border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.02]"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() => {
+                        setMobileOpenTab((prev) =>
+                          prev === tab.id ? null : tab.id
+                        );
+                        setActiveTab(tab.id);
+                        setSaveSuccessMsg(null);
+                      }}
+                      className="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            isOpen
+                              ? "bg-[#FFC928] text-[#171717]"
+                              : "bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-300"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" strokeWidth={2} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[14px] font-extrabold text-[#171717] dark:text-white truncate">
+                            {tab.label}
+                          </div>
+                          <div className="text-[11.5px] text-[#68707A] dark:text-neutral-400 truncate">
+                            {tab.subtitle}
+                          </div>
+                        </div>
+                      </div>
+
+                      <ChevronDown
+                        className={`w-4 h-4 text-[#8C929C] shrink-0 transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-[#171717] dark:text-[#FFC928]" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-4 pb-5 pt-2 border-t border-[#ECEEF2] dark:border-white/10 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {renderCategoryContent(tab.id, true)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* =============================================================== */}
+          {/* DESKTOP VIEW (md+): Left Sidebar + Right Active Category Panel   */}
+          {/* =============================================================== */}
+          <div className="hidden md:flex flex-row items-stretch gap-8 lg:gap-12 min-h-[520px]">
+            <aside className="w-[220px] lg:w-[240px] shrink-0 flex flex-col justify-between space-y-6">
               <div>
-                <h1 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em] mb-4">
+                <h1 className="text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em] mb-4">
                   Settings
                 </h1>
 
-                {/* Navigation items matching reference with Campus Hive blended highlight */}
                 <nav className="space-y-1.5" aria-label="Settings navigation">
                   {SETTINGS_TABS.map((tab) => {
                     const Icon = tab.icon;
@@ -264,8 +921,7 @@ export function RebrandSettingsShell({
                 </nav>
               </div>
 
-              {/* Back to Profile at the bottom of left sidebar */}
-              <div className="pt-4 border-t border-[#ECEEF2] dark:border-white/10 md:border-t-0">
+              <div className="pt-4">
                 <Link
                   href={`/profile/${backProfileHandle}`}
                   className="radius-native inline-flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-[#F2F4F8] dark:hover:bg-white/5 transition-colors"
@@ -276,504 +932,8 @@ export function RebrandSettingsShell({
               </div>
             </aside>
 
-            {/* Right Form / Panel */}
-            <div className="flex-1 min-w-0 md:pl-8 lg:pl-10 md:border-l border-[#ECEEF2] dark:border-white/10">
-              {/* SECTION: Profile & Identity */}
-              {activeTab === "profile" && (
-                <form onSubmit={handleSaveProfile} className="space-y-6">
-                  {/* Title & Divider Line matching reference with cohesive heading */}
-                  <div>
-                    <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                      Profile & Identity
-                    </h2>
-                    <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                      Manage your public campus presence, display information, and academic department.
-                    </p>
-                    <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-                  </div>
-
-                  {saveSuccessMsg && (
-                    <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span>{saveSuccessMsg}</span>
-                    </div>
-                  )}
-
-                  {/* Form fields in clean minimalist grid */}
-                  <div className="space-y-4 sm:space-y-5">
-                    {/* Avatar Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Avatar
-                      </label>
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-[#ECEEF2] dark:ring-white/15 ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] bg-[#F3F4F6] dark:bg-white/5 flex items-center justify-center shrink-0">
-                          {effectiveAvatar ? (
-                            <img
-                              src={effectiveAvatar}
-                              alt="Avatar"
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <User className="w-6 h-6 text-[#9CA3AF]" />
-                          )}
-                        </div>
-
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarChange}
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="radius-native px-3.5 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12.5px] font-bold text-[#171717] dark:text-white hover:border-[#FFC928] dark:hover:border-[#FFC928] hover:bg-[#FFC928]/10 transition-colors cursor-pointer"
-                        >
-                          Change photo
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Display Name Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
-                      <label
-                        htmlFor="displayNameInput"
-                        className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
-                      >
-                        Display Name
-                      </label>
-                      <input
-                        id="displayNameInput"
-                        type="text"
-                        value={profileData.name}
-                        onChange={(e) =>
-                          setProfileData({ ...profileData, name: e.target.value })
-                        }
-                        placeholder="Enter your display name"
-                        className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                      />
-                    </div>
-
-                    {/* Username Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
-                      <label
-                        htmlFor="usernameInput"
-                        className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
-                      >
-                        Username
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
-                          @
-                        </span>
-                        <input
-                          id="usernameInput"
-                          type="text"
-                          value={profileData.username}
-                          onChange={(e) =>
-                            setProfileData({
-                              ...profileData,
-                              username: e.target.value.replace(/^@/, "").toLowerCase(),
-                            })
-                          }
-                          placeholder="username"
-                          className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bio Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
-                      <label
-                        htmlFor="bioInput"
-                        className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
-                      >
-                        Bio
-                      </label>
-                      <div>
-                        <textarea
-                          id="bioInput"
-                          rows={3}
-                          value={profileData.bio}
-                          onChange={(e) =>
-                            setProfileData({ ...profileData, bio: e.target.value })
-                          }
-                          placeholder="Tell others about what you sell or study..."
-                          className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs resize-y"
-                        />
-                        <div className="text-right text-[11px] text-[#8C929C] mt-1 font-medium">
-                          {profileData.bio.length}/180 characters
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Academic Details Section matching reference */}
-                    <div className="pt-2">
-                      <div className="flex items-center gap-2 mb-2.5">
-                        <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                          Academic Details
-                        </h3>
-                        <span className="text-[11px] font-semibold text-[#8C929C] bg-[#F2F4F8] dark:bg-white/5 px-2 py-0.5 rounded-md">
-                          Campus Identity
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <div>
-                          <label
-                            htmlFor="schoolInput"
-                            className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                          >
-                            School
-                          </label>
-                          <input
-                            id="schoolInput"
-                            type="text"
-                            value={profileData.school}
-                            onChange={(e) =>
-                              setProfileData({ ...profileData, school: e.target.value })
-                            }
-                            placeholder="e.g. Ahmadu Bello University"
-                            className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="majorInput"
-                            className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                          >
-                            Major / Department
-                          </label>
-                          <input
-                            id="majorInput"
-                            type="text"
-                            value={profileData.major}
-                            onChange={(e) =>
-                              setProfileData({ ...profileData, major: e.target.value })
-                            }
-                            placeholder="e.g. Computer Science"
-                            className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="yearSelect"
-                            className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                          >
-                            Year / Level
-                          </label>
-                          <select
-                            id="yearSelect"
-                            value={profileData.year}
-                            onChange={(e) =>
-                              setProfileData({ ...profileData, year: e.target.value })
-                            }
-                            className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                          >
-                            <option value="">Select year</option>
-                            <option value="100 Level">100 Level</option>
-                            <option value="200 Level">200 Level</option>
-                            <option value="300 Level">300 Level</option>
-                            <option value="400 Level">400 Level</option>
-                            <option value="500 Level">500 Level</option>
-                            <option value="Graduate">Graduate</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons with Campus Hive signature styling */}
-                  <div className="flex items-center gap-3 pt-3">
-                    <button
-                      type="submit"
-                      disabled={isSaving}
-                      className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
-                    >
-                      {isSaving ? "Saving..." : "Save Changes"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelProfile}
-                      className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* SECTION: App Preferences */}
-              {activeTab === "preferences" && <AppPreferencesPanel />}
-
-              {/* SECTION: Contact & Privacy */}
-              {activeTab === "privacy" && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                      Contact & Privacy
-                    </h2>
-                    <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                      Control who can message you and manage your visibility in campus chat.
-                    </p>
-                    <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-                  </div>
-
-                  {saveSuccessMsg && (
-                    <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span>{saveSuccessMsg}</span>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Who can message you
-                      </label>
-                      <select
-                        value={messagingPreference}
-                        onChange={(e) => setMessagingPreference(e.target.value)}
-                        className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                      >
-                        <option value="everyone">Everyone on campus</option>
-                        <option value="verified">Verified students only</option>
-                        <option value="listings">Inquiries on active listings only</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Contact channel
-                      </label>
-                      <select
-                        value={contactChannel}
-                        onChange={(e) => setContactChannel(e.target.value)}
-                        className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                      >
-                        <option value="in_app">In-app messages only (Recommended)</option>
-                        <option value="whatsapp">Allow WhatsApp handoff after deal starts</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Online presence
-                      </label>
-                      <label className="inline-flex items-center gap-2.5 cursor-pointer text-[13px] font-medium text-[#4B5563] dark:text-neutral-300">
-                        <input
-                          type="checkbox"
-                          checked={showOnlineStatus}
-                          onChange={(e) => setShowOnlineStatus(e.target.checked)}
-                          className="w-4 h-4 rounded border-[#DCE0E6] text-[#FFC928] focus:ring-[#FFC928] accent-[#FFC928] cursor-pointer"
-                        />
-                        <span>Show when I am active in chat threads</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSaveSuccessMsg("Privacy preferences saved.");
-                        setTimeout(() => setSaveSuccessMsg(null), 3000);
-                      }}
-                      className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                    >
-                      Save Changes
-                    </button>
-                    <button
-                      type="button"
-                      className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION: Account & Security */}
-              {activeTab === "security" && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                      Account & Security
-                    </h2>
-                    <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                      Update your account credentials, login email, and authentication passwords.
-                    </p>
-                    <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-                  </div>
-
-                  {saveSuccessMsg && (
-                    <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span>{saveSuccessMsg}</span>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        Current Password
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                      <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="Enter new password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentPassword("");
-                        setNewPassword("");
-                        setSaveSuccessMsg("Security settings updated.");
-                        setTimeout(() => setSaveSuccessMsg(null), 3000);
-                      }}
-                      className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-                    >
-                      Save Changes
-                    </button>
-                    <button
-                      type="button"
-                      className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION: Marketplace */}
-              {activeTab === "marketplace" && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                      Marketplace
-                    </h2>
-                    <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                      Manage your campus inventory, wanted requests, and public seller links.
-                    </p>
-                    <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-                  </div>
-
-                  <div className="space-y-3">
-                    <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
-                      Quick shortcuts to your active campus commerce tools:
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                      <Link
-                        href={`/profile/${backProfileHandle}`}
-                        className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
-                      >
-                        <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
-                          My Listings
-                        </h4>
-                        <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
-                          View and manage items listed for sale
-                        </p>
-                      </Link>
-
-                      <Link
-                        href="/wanted"
-                        className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
-                      >
-                        <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
-                          My Requests
-                        </h4>
-                        <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
-                          Track requests on Campus Radar
-                        </p>
-                      </Link>
-
-                      <Link
-                        href="/stores"
-                        className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
-                      >
-                        <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
-                          Store Directory
-                        </h4>
-                        <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-1 leading-snug">
-                          Browse verified campus stores
-                        </p>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION: Trust & Verification */}
-              {activeTab === "verification" && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                      Trust & Verification
-                    </h2>
-                    <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                      Check your university verification status and buyer trust tier.
-                    </p>
-                    <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-                  </div>
-
-                  <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-3.5 shadow-xs">
-                    <div className="flex items-center gap-2.5">
-                      <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0" />
-                      <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
-                        Verified Student Seller
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border border-[#A7F3D0] dark:border-emerald-500/20">
-                        Active
-                      </span>
-                    </div>
-
-                    <p className="text-[13px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
-                      Your identity and university standing have been confirmed. Your profile displays the yellow-black verification tick and your product listings carry the green verified check.
-                    </p>
-
-                    <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                      <span>Institutional email: <strong className="text-[#171717] dark:text-white font-semibold">{email || "Not provided"}</strong></span>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="flex-1 min-w-0 pl-8 lg:pl-10 border-l border-[#ECEEF2] dark:border-white/10">
+              {renderCategoryContent(activeTab, false)}
             </div>
           </div>
         </div>

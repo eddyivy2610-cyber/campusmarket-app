@@ -18,6 +18,36 @@ export interface ResolveTargetResult {
 }
 
 /**
+ * Strictly enforces that when following a user account, the target user
+ * is an active seller or service owner (role === "seller", sellerStatus === "approved",
+ * owns a store, or has product/service listings).
+ */
+export async function assertUserIsFollowableSeller(targetId: Types.ObjectId): Promise<void> {
+  const userDoc = await UserModel.findById(targetId)
+    .select("role sellerStatus isStudentSeller")
+    .lean();
+  if (userDoc) {
+    const isSeller =
+      userDoc.role === "seller" ||
+      (userDoc as any).sellerStatus === "approved" ||
+      (userDoc as any).isStudentSeller === true;
+    if (!isSeller) {
+      const [ownsStore, hasListings] = await Promise.all([
+        StoreModel.exists({ ownerId: targetId.toString() }),
+        ListingModel.exists({ sellerId: targetId.toString() }),
+      ]);
+      if (!ownsStore && !hasListings) {
+        const error: any = new Error(
+          "Only stores and seller accounts offering products or services can be followed."
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+  }
+}
+
+/**
  * Resolves a target identifier (ObjectId or user handle) and validates existence, eligibility,
  * and prevents self-follow across both personal profiles and owned storefronts.
  */
@@ -88,8 +118,6 @@ export async function resolveAndValidateTarget(
       return { valid: false, error: "You cannot follow yourself.", statusCode: 400, targetType: "user" };
     }
 
-
-
     return {
       valid: true,
       targetId: userDoc._id as Types.ObjectId,
@@ -124,26 +152,7 @@ export async function executeFollow(
 
   // Enforce that only stores and seller accounts / service providers can be followed
   if (targetType === "user") {
-    const userDoc = await UserModel.findById(targetId).select("role sellerStatus isStudentSeller").lean();
-    if (userDoc) {
-      const isSeller =
-        userDoc.role === "seller" ||
-        (userDoc as any).sellerStatus === "approved" ||
-        (userDoc as any).isStudentSeller === true;
-      if (!isSeller) {
-        const [ownsStore, hasListings] = await Promise.all([
-          StoreModel.exists({ ownerId: targetId.toString() }),
-          ListingModel.exists({ sellerId: targetId.toString() }),
-        ]);
-        if (!ownsStore && !hasListings) {
-          const error: any = new Error(
-            "Only stores and seller accounts offering products or services can be followed."
-          );
-          error.statusCode = 400;
-          throw error;
-        }
-      }
-    }
+    await assertUserIsFollowableSeller(targetId);
   }
 
   // Enforce follow cap per user
@@ -218,7 +227,6 @@ export async function executeFollow(
   } catch (err: any) {
     if (err.code === 11000) {
       // Caught outside transaction: race condition resolved by unique compound index.
-      // Another competing concurrent follow inserted the record and incremented the counter.
       return { isFollowing: true, newlyFollowed: false };
     }
     throw err;
@@ -270,7 +278,7 @@ export async function executeUnfollow(
 
 /**
  * Atomically toggles follow status for a target entity (User or Store).
- * Preserved for legacy clients with full transaction protection.
+ * Preserved for legacy clients with full transaction protection and seller-only enforcement.
  */
 export async function executeToggle(
   followerUserId: string,
@@ -303,7 +311,20 @@ export async function executeToggle(
     return { isFollowing: false };
   }
 
-  // Relationship did not exist at the time of deletion: attempt creation
+  // Relationship did not exist at the time of deletion: strictly enforce seller-only follow rule
+  if (targetType === "user") {
+    await assertUserIsFollowableSeller(targetId);
+  }
+
+  const currentCount = await FollowerModel.countDocuments({ followerId: followerObjectId });
+  if (currentCount >= FOLLOW_LIMIT_PER_USER) {
+    const error: any = new Error(
+      `Follow limit reached. You can follow a maximum of ${FOLLOW_LIMIT_PER_USER} stores and sellers.`
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
   try {
     await FollowerModel.create({
       followerId: followerObjectId,

@@ -254,9 +254,10 @@ function ExploreContent() {
     showSavedOnly,
   ]);
 
-  // Filter listings based on all active criteria
+  // Filter listings based on all active criteria (strictly products and services only)
   const filteredListings = useMemo(() => {
     return sourceListings.filter((item) => {
+      if (item.itemType !== "product" && item.itemType !== "service") return false;
       // Content type filter
       if (activeContentType === "products" && item.itemType !== "product") return false;
       if (activeContentType === "services" && item.itemType !== "service") return false;
@@ -359,7 +360,7 @@ function ExploreContent() {
               Explore
             </h1>
             <p className="text-[12.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5 font-normal">
-              Discover products, student services, and businesses across your campus.
+              Discover products and student services across your campus.
             </p>
           </div>
 

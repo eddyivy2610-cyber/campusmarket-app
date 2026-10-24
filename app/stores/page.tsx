@@ -84,10 +84,19 @@ function StoresContent() {
           const mapped: StoreProfile[] = json.data.map((item: any) => {
             const isStudent =
               item.storeType === "student_store" || item.storeType === "student_owned";
+            const catLower = String(item.category || "").toLowerCase();
+            const isServiceCategory =
+              catLower.includes("service") ||
+              catLower.includes("printing") ||
+              catLower.includes("photography") ||
+              catLower.includes("creative") ||
+              catLower.includes("beauty");
+            const totalListings = item.metrics?.listingsCount || 0;
             return {
               id: item._id || item.id,
               slug: item.slug || item._id,
               name: item.name,
+              logo: item.logo || "",
               businessType: isStudent ? "student_owned" : "approved_business",
               verificationBadgeText: isStudent
                 ? "Verified student seller"
@@ -106,9 +115,9 @@ function StoresContent() {
               avatarIcon: "store",
               coverGradient: "from-amber-400 to-yellow-500",
               contactHandle: item.slug || item._id,
-              products: Array(item.metrics?.listingsCount || 0).fill(null),
-              services: [],
-            };
+              products: isServiceCategory ? [] : Array(totalListings).fill(null),
+              services: isServiceCategory ? Array(Math.max(1, totalListings)).fill(null) : [],
+            } as StoreProfile & { logo?: string };
           });
           setDbStores(mapped);
         }
@@ -285,7 +294,7 @@ function StoresContent() {
                   Stores
                 </h1>
                 <p className="text-[12.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5 font-normal">
-                  Explore student entrepreneurs and campus sellers.
+                  Explore campus sellers and service owners.
                 </p>
               </div>
 
@@ -487,7 +496,15 @@ function StoresContent() {
                             href={storeHref}
                             className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl ${store.avatarBg} overflow-hidden flex items-center justify-center cursor-pointer group-hover:scale-[1.01] transition-transform duration-200`}
                           >
-                            {renderStoreIcon(store.avatarIcon, "w-10 h-10 opacity-75")}
+                            {(store as any).logo ? (
+                              <img
+                                src={(store as any).logo}
+                                alt={store.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              renderStoreIcon(store.avatarIcon, "w-10 h-10 opacity-75")
+                            )}
 
                             {/* Top-Right Badge Stack: Category Pill + Save Button */}
                             <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10">

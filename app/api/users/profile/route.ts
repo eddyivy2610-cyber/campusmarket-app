@@ -13,6 +13,59 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req: NextRequest) {
   try {
+    const searchQuery = req.nextUrl.searchParams.get("q")?.trim();
+    if (searchQuery) {
+      await dbConnect();
+      const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(escaped, "i");
+      const limit = Math.min(
+        30,
+        Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") || "20", 10))
+      );
+
+      const matchedUsers = await UserModel.find({
+        accountStatus: "active",
+        $or: [
+          { name: regex },
+          { "profile.displayName": regex },
+          { "profile.handle": regex },
+          { "profile.bio": regex },
+          { campus: regex },
+        ],
+      })
+        .select(
+          "name role sellerStatus campus isStudent studentVerified profile rating createdAt"
+        )
+        .limit(limit)
+        .lean();
+
+      const safeProfiles = matchedUsers.map((u: any) => ({
+        _id: String(u._id),
+        id: String(u._id),
+        name: u.profile?.displayName || u.name || "Campus Member",
+        handle:
+          u.profile?.handle ||
+          String(u.name || "user")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "") ||
+          String(u._id),
+        role: u.role || "buyer",
+        sellerStatus: u.sellerStatus || "none",
+        campus: u.campus || "Campus",
+        isStudent: Boolean(u.isStudent),
+        studentVerified: Boolean(u.studentVerified),
+        avatar: u.profile?.avatar || "",
+        bio: u.profile?.bio || "",
+        rating: u.rating || { average: 5.0, count: 0 },
+        createdAt: u.createdAt,
+      }));
+
+      return NextResponse.json({
+        success: true,
+        data: safeProfiles,
+      });
+    }
+
     const requestedHandle = req.nextUrl.searchParams.get("handle")?.replace(/^@/, "").trim().toLowerCase();
 
     if (requestedHandle && requestedHandle !== "me") {
@@ -22,7 +75,7 @@ export async function GET(req: NextRequest) {
         : { "profile.handle": requestedHandle };
 
       const publicUser = await UserModel.findOne(query)
-        .select("name campus isStudent studentVerified profile rating createdAt accountStatus")
+        .select("name role sellerStatus campus isStudent studentVerified profile rating createdAt accountStatus")
         .lean();
 
       if (!publicUser || (publicUser.accountStatus && publicUser.accountStatus !== "active")) {
@@ -36,6 +89,8 @@ export async function GET(req: NextRequest) {
         _id: String(publicUser._id),
         id: String(publicUser._id),
         name: publicUser.name,
+        role: publicUser.role,
+        sellerStatus: publicUser.sellerStatus,
         campus: publicUser.campus,
         isStudent: publicUser.isStudent,
         studentVerified: publicUser.studentVerified,

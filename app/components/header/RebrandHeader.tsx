@@ -87,11 +87,13 @@ export function RebrandHeader() {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState<number>(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
 
-  // Fetch unread notification count
+  // Fetch unread notification and message counts
   useEffect(() => {
     if (!user) {
       setNotificationCount(0);
+      setUnreadMessagesCount(0);
       return;
     }
     let isMounted = true;
@@ -104,6 +106,21 @@ export function RebrandHeader() {
       .catch(() => {
         if (isMounted) setNotificationCount(0);
       });
+
+    apiGet("/api/messages/conversations?limit=30")
+      .then((res: any) => {
+        if (isMounted && Array.isArray(res?.conversations)) {
+          const totalUnread = res.conversations.reduce(
+            (sum: number, conv: any) => sum + (Number(conv?.unreadCount) || 0),
+            0
+          );
+          setUnreadMessagesCount(totalUnread);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setUnreadMessagesCount(0);
+      });
+
     return () => {
       isMounted = false;
     };
@@ -201,9 +218,12 @@ export function RebrandHeader() {
             >
               <Bell className="w-[19px] h-[19px]" strokeWidth={1.8} />
               {notificationCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[15px] h-[15px] px-0.5 rounded-full bg-[#EF4444] text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[#14161D]">
-                  {notificationCount > 99 ? "99+" : notificationCount}
-                </span>
+                <span
+                  aria-label={`${notificationCount} unread notifications`}
+                  className="
+                    absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#14161D]
+                  "
+                />
               )}
             </Link>
 
@@ -218,6 +238,14 @@ export function RebrandHeader() {
               }`}
             >
               <MessageCircleMore className="w-[19px] h-[19px]" strokeWidth={1.8} />
+              {unreadMessagesCount > 0 && (
+                <span
+                  aria-label={`${unreadMessagesCount} unread messages`}
+                  className="
+                    absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#14161D]
+                  "
+                />
+              )}
             </Link>
 
             <Link

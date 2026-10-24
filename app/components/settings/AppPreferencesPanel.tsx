@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Save,
   Check,
+  ChevronDown,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { apiGet, apiPatch } from "@/lib/apiClient";
@@ -60,6 +61,7 @@ export function AppPreferencesPanel() {
     | "accessibility"
     | "seller"
   >("appearance");
+  const [mobileOpenSection, setMobileOpenSection] = useState<string | null>(null);
 
   // State matching IUserPreferences
   const [appearance, setAppearance] = useState(DEFAULT_USER_PREFERENCES.appearance);
@@ -311,8 +313,8 @@ export function AppPreferencesPanel() {
           </div>
         )}
 
-        {/* Section Navigation Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 mt-2 border-b border-[#ECEEF2] dark:border-white/10 scrollbar-none">
+        {/* Desktop Section Navigation Tabs */}
+        <div className="hidden md:flex items-center gap-1.5 overflow-x-auto py-2.5 mt-2 border-b border-[#ECEEF2] dark:border-white/10 scrollbar-none">
           {SECTIONS.map((sec) => {
             const Icon = sec.icon;
             const isActive = activeSection === sec.id;
@@ -335,8 +337,68 @@ export function AppPreferencesPanel() {
         </div>
       </div>
 
+      {/* Mobile Dropdown Accordion for Preference Sub-Sections */}
+      <div className="md:hidden space-y-2.5">
+        {SECTIONS.map((sec) => {
+          const Icon = sec.icon;
+          const isOpen = mobileOpenSection === sec.id;
+          return (
+            <div
+              key={sec.id}
+              className="radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-[#FAFAFC] dark:bg-white/[0.02] overflow-hidden"
+            >
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={() =>
+                  setMobileOpenSection((prev) =>
+                    prev === sec.id ? null : sec.id
+                  )
+                }
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      isOpen
+                        ? "bg-[#FFC928] text-[#171717]"
+                        : "bg-white dark:bg-white/5 text-[#5B636E] dark:text-neutral-400"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                    {sec.label}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-[#5B636E] dark:text-neutral-400 transition-transform duration-200 ${
+                    isOpen ? "rotate-180 text-[#171717] dark:text-white" : ""
+                  }`}
+                />
+              </button>
+              {isOpen && (
+                <div className="border-t border-[#ECEEF2] dark:border-white/10 p-4 bg-white dark:bg-[#14161D] animate-in slide-in-from-top-2 fade-in duration-200">
+                  {renderSectionBody(sec.id)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Active Section Content */}
+      <div className="hidden md:block">
+        {renderSectionBody(activeSection)}
+      </div>
+    </div>
+  );
+
+  function renderSectionBody(sectionId: string) {
+    return (
+      <>
       {/* SECTION 1: Appearance */}
-      {activeSection === "appearance" && (
+      {sectionId === "appearance" && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -472,7 +534,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 2: Discovery Preferences */}
-      {activeSection === "discovery" && (
+      {sectionId === "discovery" && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -626,7 +688,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 3: Notifications */}
-      {activeSection === "notifications" && (
+      {sectionId === "notifications" && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -722,7 +784,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 4: Privacy & Security */}
-      {activeSection === "privacy" && (
+      {sectionId === "privacy" && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -805,7 +867,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 5: Messaging */}
-      {activeSection === "messaging" && (
+      {sectionId === "messaging" && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -857,7 +919,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 6: Accessibility & Data Saver */}
-      {activeSection === "accessibility" && (
+      {sectionId === "accessibility" && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -907,7 +969,7 @@ export function AppPreferencesPanel() {
       )}
 
       {/* SECTION 7: Storefront Settings (Eligible Sellers Only) */}
-      {activeSection === "seller" && isSeller && (
+      {sectionId === "seller" && isSeller && (
         <div className="space-y-5 animate-in fade-in duration-200">
           <div>
             <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
@@ -953,8 +1015,9 @@ export function AppPreferencesPanel() {
           </div>
         </div>
       )}
-    </div>
-  );
+      </>
+    );
+  }
 }
 
 /**

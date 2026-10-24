@@ -453,46 +453,41 @@ export default function SellerOnboardingPage() {
     >
       <RebrandHeader />
 
-      <main className="flex-1 relative py-8 sm:py-12 px-4 sm:px-6">
+      <main className="flex-1 relative py-6 sm:py-8 px-4 sm:px-6">
         {/* Subtle Brand Ambient Glow */}
         <div
           className="pointer-events-none absolute w-96 h-96 rounded-full bg-[#FFE182]/20 dark:bg-[#FFC928]/5 blur-3xl top-0 left-1/2 -translate-x-1/2"
           aria-hidden="true"
         />
 
-        <div className="relative z-10 max-w-2xl mx-auto">
-          {/* Back Navigation */}
-          <div className="mb-5">
+        <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+          {/* Global Page Header Style: Text at Left, Back at Far Right */}
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-[18px] sm:text-[20px] font-extrabold tracking-[-0.02em] text-[#14171A] dark:text-white shrink-0">
+                Open Your Campus Storefront
+              </h1>
+              <p className="text-[12.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5 font-normal">
+                Fill in your basic store details below to start selling to students and campus buyers.
+              </p>
+            </div>
+
+            <div
+              className="hidden sm:block flex-1 h-[1px] bg-[#E8EAEE] dark:bg-white/10"
+              aria-hidden="true"
+            />
+
             <Link
               href="/stores"
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors"
+              className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#FFC928] hover:bg-[#FFC928]/10 px-3.5 py-1.5 text-[12.5px] font-bold text-[#171717] dark:text-white shrink-0 transition-all cursor-pointer shadow-2xs"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Stores
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
             </Link>
           </div>
 
           {/* Main Onboarding Card */}
           <div className="radius-native bg-white dark:bg-[#14161D] rounded-3xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.03)] p-6 sm:p-9">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 pb-6 mb-6 border-b border-[#ECEEF2] dark:border-white/10">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF7DB] dark:bg-[#FFC928]/15 text-[#9A6B00] dark:text-[#FFC928] text-[11px] font-extrabold uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Seller Onboarding
-                </div>
-                <h1 className="text-[22px] sm:text-[26px] font-black tracking-[-0.02em] text-[#171717] dark:text-white">
-                  Open Your Campus Storefront
-                </h1>
-                <p className="text-[13px] text-[#68707A] dark:text-neutral-400 leading-relaxed">
-                  Fill in your basic store details below to start selling to students and campus buyers.
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-[#FFF7DB] dark:bg-[#FFC928]/10 border border-[#FFE599] dark:border-[#FFC928]/20 flex items-center justify-center text-[#171717] dark:text-[#FFC928] shrink-0">
-                <Store className="w-6 h-6" />
-              </div>
-            </div>
-
             {error && (
               <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 flex items-start gap-3 text-red-700 dark:text-red-300 text-[13px] font-medium">
                 <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
