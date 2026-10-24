@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { requireAuth } from "@/lib/authServer";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
@@ -8,17 +9,66 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/users/profile
- * Returns the authenticated user's live profile data.
+ * Returns the authenticated user's live profile data, or a public campus profile when ?handle= is provided.
  */
 export async function GET(req: NextRequest) {
   try {
+    const requestedHandle = req.nextUrl.searchParams.get("handle")?.replace(/^@/, "").trim().toLowerCase();
+
+    if (requestedHandle && requestedHandle !== "me") {
+      await dbConnect();
+      const query = mongoose.isValidObjectId(requestedHandle)
+        ? { $or: [{ _id: new mongoose.Types.ObjectId(requestedHandle) }, { "profile.handle": requestedHandle }] }
+        : { "profile.handle": requestedHandle };
+
+      const publicUser = await UserModel.findOne(query)
+        .select("name campus isStudent studentVerified profile rating createdAt accountStatus")
+        .lean();
+
+      if (!publicUser || (publicUser.accountStatus && publicUser.accountStatus !== "active")) {
+        return NextResponse.json(
+          { success: false, error: "User record not found." },
+          { status: 404 }
+        );
+      }
+
+      const safePublic = {
+        _id: String(publicUser._id),
+        id: String(publicUser._id),
+        name: publicUser.name,
+        campus: publicUser.campus,
+        isStudent: publicUser.isStudent,
+        studentVerified: publicUser.studentVerified,
+        profile: {
+          displayName: publicUser.profile?.displayName,
+          handle: publicUser.profile?.handle,
+          avatar: publicUser.profile?.avatar,
+          coverImage: publicUser.profile?.coverImage,
+          bio: publicUser.profile?.bio,
+        },
+        rating: publicUser.rating,
+        createdAt: publicUser.createdAt,
+      };
+
+      return NextResponse.json({
+        success: true,
+        data: safePublic,
+        user: safePublic,
+      });
+    }
+
     const { user, errorResponse } = await requireAuth(req);
     if (!user || errorResponse) return errorResponse;
 
     await dbConnect();
-    const dbUser = await UserModel.findOne({ email: user.email.toLowerCase() })
-      .select("-password")
-      .lean();
+    let dbUser = mongoose.isValidObjectId(user.id)
+      ? await UserModel.findById(user.id).select("-password").lean()
+      : null;
+    if (!dbUser && user.email) {
+      dbUser = await UserModel.findOne({ email: user.email.toLowerCase() })
+        .select("-password")
+        .lean();
+    }
 
     if (!dbUser) {
       return NextResponse.json(

@@ -28,6 +28,17 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/api/health") {
       // Allow health probes unimpeded
     } else if (
+      pathname === "/api/auth/refresh" ||
+      pathname === "/api/auth/logout" ||
+      pathname === "/api/admin/auth/refresh" ||
+      pathname === "/api/admin/auth/me"
+    ) {
+      const rateLimit = await applyRateLimitAsync(request, "session", RATE_LIMIT_PRESETS.DEFAULT);
+      if (!rateLimit.allowed && rateLimit.response) {
+        rateLimit.response.headers.set("x-request-id", requestId);
+        return rateLimit.response;
+      }
+    } else if (
       pathname.startsWith("/api/auth/") ||
       pathname.startsWith("/api/admin/auth/")
     ) {

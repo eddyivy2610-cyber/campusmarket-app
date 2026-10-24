@@ -10,24 +10,14 @@ import {
   TrendingUp,
   Eye,
   MessageSquare,
-  Share2,
   ExternalLink,
   ArrowRight,
-  Edit3,
   CheckCircle2,
-  Clock,
   Sparkles,
   MapPin,
   Megaphone,
-  Check,
-  X,
-  Search,
-  Filter,
   DollarSign,
-  AlertCircle,
-  MoreHorizontal,
   Award,
-  Lock,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { CatalogManager } from "./CatalogManager";
@@ -47,112 +37,29 @@ interface StorefrontListing {
   image: string;
 }
 
-const INITIAL_CATALOG: StorefrontListing[] = [
-  {
-    id: "lst-hp-elitebook",
-    title: "HP EliteBook 840 G5 (16GB RAM, 512GB SSD)",
-    price: "₦185,000",
-    category: "Laptops & Computers",
-    condition: "Used - Good",
-    status: "Available",
-    views: 142,
-    inquiries: 6,
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "lst-iphone-11",
-    title: "iPhone 11 (128GB, 88% Battery)",
-    price: "₦160,000",
-    category: "Phones & Tablets",
-    condition: "Used - Good",
-    status: "Available",
-    views: 210,
-    inquiries: 8,
-    image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=500&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "lst-casio-991es",
-    title: "Casio Scientific Calculator FX-991ES Plus",
-    price: "₦8,500",
-    category: "Books & Academics",
-    condition: "Like New",
-    status: "Available",
-    views: 78,
-    inquiries: 3,
-    image: "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?w=500&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "lst-sony-whch520",
-    title: "Sony WH-CH520 Wireless Bluetooth Headphones",
-    price: "₦32,000",
-    category: "Electronics & Audio",
-    condition: "Like New",
-    status: "In deal",
-    views: 52,
-    inquiries: 1,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80",
-  },
-];
-
-interface RecentInquiry {
-  id: string;
-  buyerName: string;
-  buyerAvatar: string;
-  itemTitle: string;
-  offerPrice: string;
-  status: "In deal" | "Completed" | "New message";
-  timeAgo: string;
-}
-
-const RECENT_INQUIRIES: RecentInquiry[] = [
-  {
-    id: "inq-1",
-    buyerName: "Ibrahim Musa",
-    buyerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    itemTitle: "Sony WH-CH520 Wireless",
-    offerPrice: "₦30,000",
-    status: "In deal",
-    timeAgo: "25m ago",
-  },
-  {
-    id: "inq-2",
-    buyerName: "Fatima Aliyu",
-    buyerAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80",
-    itemTitle: "HP EliteBook 840 G5",
-    offerPrice: "₦185,000",
-    status: "New message",
-    timeAgo: "1h ago",
-  },
-  {
-    id: "inq-3",
-    buyerName: "Chinedu Okafor",
-    buyerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-    itemTitle: "Casio Scientific Calculator",
-    offerPrice: "₦8,500",
-    status: "Completed",
-    timeAgo: "1d ago",
-  },
-];
+const INITIAL_CATALOG: StorefrontListing[] = [];
 
 interface StorefrontManagerProps {
   activeTab?: StorefrontTab;
   onTabChange?: (tab: StorefrontTab) => void;
   initialStore?: any;
+  initialHasStore?: boolean | null;
 }
 
 export function StorefrontManager({
   activeTab = "dashboard",
   onTabChange,
   initialStore,
+  initialHasStore,
 }: StorefrontManagerProps) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [currentTab, setCurrentTab] = useState<StorefrontTab>(activeTab);
   const [storeData, setStoreData] = useState<any>(initialStore || null);
-  const [hasStore, setHasStore] = useState<boolean | null>(initialStore ? true : null);
+  const [hasStore, setHasStore] = useState<boolean | null>(
+    initialStore ? true : initialHasStore !== undefined ? initialHasStore : null
+  );
 
   const [catalog, setCatalog] = useState<StorefrontListing[]>(INITIAL_CATALOG);
-  const [catalogFilter, setCatalogFilter] = useState<"all" | "Available" | "In deal" | "Sold">("all");
-  const [searchCatalogQuery, setSearchCatalogQuery] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Live seller stats state
@@ -160,8 +67,69 @@ export function StorefrontManager({
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-  // Fetch canonical seller statistics from Next.js API
+  // Store Settings Form state
+  const [storeName, setStoreName] = useState(initialStore?.name || "");
+  const [tagline, setTagline] = useState(initialStore?.description || "");
+  const [category, setCategory] = useState(initialStore?.category || "Laptops & Computers");
+  const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Samaru Main Campus");
+  const [contactChannel, setContactChannel] = useState("in_app");
+
+  // Sync when parent passes updated initialHasStore / initialStore
   useEffect(() => {
+    if (initialStore) {
+      setStoreData(initialStore);
+      setHasStore(true);
+      setStoreName(initialStore.name || "My Campus Store");
+      setTagline(initialStore.description || "Student campus storefront");
+      setCategory(initialStore.category || "Laptops & Computers");
+      setLandmark(initialStore.operatingLocation || "Samaru Main Campus");
+    } else if (initialHasStore !== undefined) {
+      setHasStore(initialHasStore);
+    }
+  }, [initialStore, initialHasStore]);
+
+  // Fetch real store from backend when not already resolved by parent
+  useEffect(() => {
+    if (authLoading) return;
+    if (initialStore) return;
+
+    let isCancelled = false;
+
+    async function loadStore() {
+      try {
+        const res = await fetch("/api/stores/me", { credentials: "include" });
+        const data = await res.json();
+        if (!isCancelled) {
+          if (res.ok && data.success) {
+            setHasStore(Boolean(data.data.hasStore));
+            if (data.data.store) {
+              const st = data.data.store;
+              setStoreData(st);
+              setStoreName(st.name || "My Campus Store");
+              setTagline(st.description || "Student campus storefront");
+              setCategory(st.category || "Laptops & Computers");
+              setLandmark(st.operatingLocation || "Samaru Main Campus");
+            }
+          } else {
+            setHasStore(false);
+          }
+        }
+      } catch {
+        if (!isCancelled) {
+          setHasStore(false);
+        }
+      }
+    }
+
+    loadStore();
+    return () => {
+      isCancelled = true;
+    };
+  }, [authLoading, user?.id, initialStore]);
+
+  // Fetch canonical seller statistics from Next.js API only when store exists
+  useEffect(() => {
+    if (hasStore !== true) return;
     let isCancelled = false;
     async function loadStats() {
       try {
@@ -183,7 +151,7 @@ export function StorefrontManager({
     return () => {
       isCancelled = true;
     };
-  }, [user?.id]);
+  }, [hasStore, user?.id]);
 
   // Privacy & Milestone toggle
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
@@ -212,48 +180,14 @@ export function StorefrontManager({
         localStorage.setItem("ch_privacy_show_sales_milestones", String(next));
         window.dispatchEvent(new Event("ch_privacy_update"));
       } catch {}
-      showToast(next ? "Sales milestones are now visible on your public profile." : "Sales milestones are now private on your public profile.");
+      showToast(
+        next
+          ? "Sales milestones are now visible on your public profile."
+          : "Sales milestones are now private on your public profile."
+      );
       return next;
     });
   };
-
-  // Store Settings Form state
-  const [storeName, setStoreName] = useState(initialStore?.name || "");
-  const [tagline, setTagline] = useState(initialStore?.description || "Quality student laptops, tech accessories, and academic essentials.");
-  const [category, setCategory] = useState(initialStore?.category || "Laptops & Computers");
-  const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Kashim Ibrahim Library (KIL)");
-  const [contactChannel, setContactChannel] = useState("in_app");
-
-  // Fetch real store from backend
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadStore() {
-      try {
-        const res = await fetch("/api/stores/me");
-        const data = await res.json();
-        if (data.success && !isCancelled) {
-          setHasStore(data.data.hasStore);
-          if (data.data.store) {
-            const st = data.data.store;
-            setStoreData(st);
-            setStoreName(st.name || "My Campus Store");
-            setTagline(st.description || "Student campus storefront");
-            setCategory(st.category || "Laptops & Computers");
-            setLandmark(st.operatingLocation || "Samaru Main Campus");
-          }
-        }
-      } catch {
-        // Fallback to initial mock store if offline
-        setHasStore(true);
-      }
-    }
-
-    loadStore();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     setCurrentTab(activeTab);
@@ -269,25 +203,43 @@ export function StorefrontManager({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleUpdateStatus = (id: string, newStatus: "Available" | "In deal" | "Sold") => {
-    setCatalog((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+  if (hasStore === null || authLoading) {
+    return (
+      <div
+        aria-label="Loading storefront..."
+        aria-busy="true"
+        role="status"
+        className="space-y-6 animate-in fade-in duration-200"
+      >
+        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4 w-full">
+            <div className="hive-skeleton w-14 h-14 rounded-2xl shrink-0" />
+            <div className="space-y-2 flex-1 max-w-md">
+              <div className="hive-skeleton h-5 w-48 rounded-lg" />
+              <div className="hive-skeleton h-3.5 w-72 rounded-md" />
+              <div className="hive-skeleton h-3 w-40 rounded-md" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
+            <div className="hive-skeleton h-9 w-28 rounded-xl" />
+            <div className="hive-skeleton h-9 w-28 rounded-xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-4 sm:p-5 space-y-2.5"
+            >
+              <div className="hive-skeleton h-3.5 w-28 rounded" />
+              <div className="hive-skeleton h-7 w-20 rounded-lg" />
+              <div className="hive-skeleton h-3 w-32 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
     );
-    showToast(`Listing status updated to ${newStatus}`);
-  };
-
-  const handleDeleteListing = (id: string) => {
-    setCatalog((prev) => prev.filter((item) => item.id !== id));
-    showToast("Listing removed from your catalog.");
-  };
-
-  const filteredCatalog = catalog.filter((item) => {
-    if (catalogFilter !== "all" && item.status !== catalogFilter) return false;
-    if (searchCatalogQuery.trim()) {
-      return item.title.toLowerCase().includes(searchCatalogQuery.toLowerCase());
-    }
-    return true;
-  });
+  }
 
   if (hasStore === false) {
     return (
@@ -364,7 +316,7 @@ export function StorefrontManager({
                   <span>{landmark}</span>
                 </span>
                 <span>·</span>
-                <span>Samaru Main Campus</span>
+                <span>{storeData?.campus || "Samaru Main Campus"}</span>
               </div>
             </div>
           </div>
@@ -407,7 +359,7 @@ export function StorefrontManager({
               </div>
               <div className="text-[11.5px] font-semibold text-[#22C55E] mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                <span>{liveStats ? `${liveStats.orders.completedOrdersCount} delivered exchanges` : "Delivered sales"}</span>
+                <span>{liveStats ? `${liveStats.orders.completedOrdersCount} delivered exchanges` : "0 delivered exchanges"}</span>
               </div>
             </div>
 
@@ -433,7 +385,7 @@ export function StorefrontManager({
                 {liveStats ? liveStats.audience.impressions : totalViews}
               </div>
               <div className="text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400 mt-1">
-                {liveStats ? `${liveStats.audience.followersCount} campus followers` : "Across ABU Zaria campuses"}
+                {liveStats ? `${liveStats.audience.followersCount} campus followers` : "0 campus followers"}
               </div>
             </div>
 
@@ -446,7 +398,7 @@ export function StorefrontManager({
                 {liveStats ? liveStats.orders.totalOrders : totalInquiries}
               </div>
               <div className="text-[11.5px] font-semibold text-[#A855F7] mt-1">
-                {liveStats ? `${liveStats.orders.activeOrdersCount} in progress` : "3 deals in progress"}
+                {liveStats ? `${liveStats.orders.activeOrdersCount} in progress` : "0 in progress"}
               </div>
             </div>
           </div>
@@ -474,7 +426,22 @@ export function StorefrontManager({
               </div>
 
               <div className="divide-y divide-[#F1F3F6] dark:divide-white/5">
-                {liveStats && liveStats.recentActivity.length > 0 ? (
+                {statsLoading ? (
+                  <div className="py-4 space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between gap-3 py-2">
+                        <div className="flex items-center gap-3">
+                          <div className="hive-skeleton w-9 h-9 rounded-full shrink-0" />
+                          <div className="space-y-1.5">
+                            <div className="hive-skeleton h-3.5 w-32 rounded" />
+                            <div className="hive-skeleton h-3 w-48 rounded" />
+                          </div>
+                        </div>
+                        <div className="hive-skeleton h-7 w-16 rounded-lg" />
+                      </div>
+                    ))}
+                  </div>
+                ) : liveStats && liveStats.recentActivity.length > 0 ? (
                   liveStats.recentActivity.map((activity) => (
                     <div key={activity.id} className="py-3.5 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
@@ -499,7 +466,10 @@ export function StorefrontManager({
                             </span>
                           </div>
                           <div className="text-[12px] text-[#68707A] dark:text-neutral-400 truncate mt-0.5">
-                            Order #{activity.orderId}: <strong className="font-semibold text-[#171717] dark:text-neutral-200">{activity.itemSummary}</strong>
+                            Order #{activity.orderId}:{" "}
+                            <strong className="font-semibold text-[#171717] dark:text-neutral-200">
+                              {activity.itemSummary}
+                            </strong>
                           </div>
                         </div>
                       </div>
@@ -524,56 +494,15 @@ export function StorefrontManager({
                     </div>
                   ))
                 ) : (
-                  RECENT_INQUIRIES.map((inq) => (
-                    <div key={inq.id} className="py-3.5 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-neutral-200 shrink-0">
-                          <img
-                            src={inq.buyerAvatar}
-                            alt={inq.buyerName}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                              {inq.buyerName}
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10.5px] font-bold ${
-                                inq.status === "In deal"
-                                  ? "bg-[#FFF8E6] text-[#D97706] border border-[#FFE182]"
-                                  : inq.status === "Completed"
-                                  ? "bg-[#E8F8F0] text-[#15803D]"
-                                  : "bg-blue-50 text-blue-600 dark:bg-blue-950/30"
-                              }`}
-                            >
-                              {inq.status}
-                            </span>
-                          </div>
-                          <div className="text-[12px] text-[#68707A] dark:text-neutral-400 truncate mt-0.5">
-                            Inquiry on: <strong className="font-semibold text-[#171717] dark:text-neutral-200">{inq.itemTitle}</strong>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right hidden sm:block">
-                          <div className="text-[13px] font-extrabold text-[#171717] dark:text-white">
-                            {inq.offerPrice}
-                          </div>
-                          <div className="text-[11px] text-[#8C929C]">{inq.timeAgo}</div>
-                        </div>
-
-                        <Link
-                          href="/messages"
-                          className="radius-native px-3 py-1.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#FFC928] text-[12px] font-bold text-[#171717] dark:text-white transition-colors"
-                        >
-                          Reply
-                        </Link>
-                      </div>
-                    </div>
-                  ))
+                  <div className="py-10 text-center space-y-1.5">
+                    <MessageSquare className="w-8 h-8 text-[#8C929C] mx-auto opacity-40" />
+                    <p className="text-[13px] font-bold text-[#171717] dark:text-white">
+                      No recent orders or inquiries yet
+                    </p>
+                    <p className="text-[12px] text-[#68707A] dark:text-neutral-400 max-w-xs mx-auto">
+                      When students place orders or inquire about your storefront listings, they will appear here.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -763,11 +692,13 @@ export function StorefrontManager({
                       <span className="text-[13px] font-bold text-[#171717] dark:text-white">
                         Public Sales Milestones
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        showSalesMilestone 
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
-                          : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          showSalesMilestone
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                        }`}
+                      >
                         {showSalesMilestone ? "Visible (Milestone)" : "Private"}
                       </span>
                     </div>

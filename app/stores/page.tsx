@@ -58,7 +58,8 @@ function StoresContent() {
 
   const [isStorefrontView, setIsStorefrontView] = useState(viewParam === "storefront");
   const [storefrontTab, setStorefrontTab] = useState<StorefrontTab>("dashboard");
-  const [hasOpenedStore, setHasOpenedStore] = useState(true);
+  const [hasOpenedStore, setHasOpenedStore] = useState<boolean | null>(null);
+  const [myStore, setMyStore] = useState<any>(null);
 
   const [activeFilterTab, setActiveFilterTab] = useState<
     "all" | "student_owned" | "approved_business" | "services"
@@ -126,17 +127,22 @@ function StoresContent() {
     let isCancelled = false;
     async function checkMyStore() {
       try {
-        const res = await fetch("/api/stores/me");
+        const res = await fetch("/api/stores/me", { credentials: "include" });
         const data = await res.json();
-        if (data.success && !isCancelled) {
-          setHasOpenedStore(Boolean(data.data.hasStore));
+        if (!isCancelled) {
+          if (res.ok && data.success) {
+            setHasOpenedStore(Boolean(data.data.hasStore));
+            setMyStore(data.data.store || null);
+          } else {
+            setHasOpenedStore(false);
+            setMyStore(null);
+          }
         }
       } catch {
-        // Fallback to localStorage
-        try {
-          const stored = localStorage.getItem("ch_has_opened_store_v1");
-          if (stored !== null) setHasOpenedStore(stored === "true");
-        } catch {}
+        if (!isCancelled) {
+          setHasOpenedStore(false);
+          setMyStore(null);
+        }
       }
     }
     checkMyStore();
@@ -321,34 +327,38 @@ function StoresContent() {
                   <span>All stores</span>
                 </button>
 
-                <div className="w-px h-5 bg-[#E8EAEE] dark:bg-white/10 hidden sm:block mx-1" />
+                {hasOpenedStore === true && (
+                  <>
+                    <div className="w-px h-5 bg-[#E8EAEE] dark:bg-white/10 hidden sm:block mx-1" />
 
-                {(
-                  [
-                    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-                    { id: "catalog", label: "Catalog", icon: Layers },
-                    { id: "settings", label: "Settings", icon: SettingsIcon },
-                    { id: "ads", label: "Ads", icon: Megaphone },
-                  ] as const
-                ).map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = storefrontTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setStorefrontTab(tab.id)}
-                      className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all cursor-pointer shrink-0 ${
-                        isActive
-                          ? "bg-[#FFC928]/20 border border-[#FFC928]/50 text-[#171717] dark:text-white shadow-xs"
-                          : "bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
+                    {(
+                      [
+                        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+                        { id: "catalog", label: "Catalog", icon: Layers },
+                        { id: "settings", label: "Settings", icon: SettingsIcon },
+                        { id: "ads", label: "Ads", icon: Megaphone },
+                      ] as const
+                    ).map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = storefrontTab === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setStorefrontTab(tab.id)}
+                          className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all cursor-pointer shrink-0 ${
+                            isActive
+                              ? "bg-[#FFC928]/20 border border-[#FFC928]/50 text-[#171717] dark:text-white shadow-xs"
+                              : "bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
               </div>
 
               {/* CENTER DIVIDER LINE */}
@@ -377,6 +387,8 @@ function StoresContent() {
             <StorefrontManager
               activeTab={storefrontTab}
               onTabChange={setStorefrontTab}
+              initialStore={myStore}
+              initialHasStore={hasOpenedStore}
             />
           ) : (
             /* STORES DIRECTORY VIEW */

@@ -29,9 +29,42 @@ const normalizeUrl = (path: string) => {
   return `${prefix}${normalizedPath}`;
 };
 
+let refreshPromise: Promise<boolean> | null = null;
+
+async function performSilentRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    try {
+      const refreshRes = await fetch(normalizeUrl("/api/auth/refresh"), {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        if (refreshData?.token) {
+          if (typeof window !== "undefined" && refreshData.user) {
+            window.dispatchEvent(
+              new CustomEvent("campus_auth_refreshed", { detail: refreshData.user })
+            );
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+  return refreshPromise;
+}
+
 const apiRequest = async <T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  isRetry = false
 ): Promise<T> => {
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;
@@ -57,27 +90,17 @@ const apiRequest = async <T>(
   // Handle silent token refresh on 401 Unauthorized for client-side requests
   if (
     response.status === 401 &&
+    !isRetry &&
     typeof window !== "undefined" &&
     !url.includes("/auth/login") &&
     !url.includes("/auth/refresh") &&
     !url.includes("/admin/auth/signin") &&
     !url.includes("/admin/auth/refresh")
   ) {
-    try {
-      const refreshRes = await fetch(normalizeUrl("/api/auth/refresh"), {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        if (refreshData?.token) {
-          // The refreshed access token is delivered in an httpOnly cookie.
-          return apiRequest<T>(path, options);
-        }
-      }
-    } catch {
-      // Refresh failed, proceed with throwing standard 401 error
+    const refreshed = await performSilentRefresh();
+    if (refreshed) {
+      // The refreshed access token is delivered in an httpOnly cookie.
+      return apiRequest<T>(path, options, true);
     }
   }
 

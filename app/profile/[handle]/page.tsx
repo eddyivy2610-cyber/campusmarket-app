@@ -512,7 +512,7 @@ export default function ProfilePage() {
     .replace(/^@/, "")
     .toLowerCase();
 
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isFollowing, setIsFollowing] = useState(false);
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
@@ -535,6 +535,7 @@ export default function ProfilePage() {
   } | null>(null);
   const [liveUserProfile, setLiveUserProfile] = useState<any>(null);
   const [liveProfileError, setLiveProfileError] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -557,36 +558,68 @@ export default function ProfilePage() {
     rawHandle === "me" ||
     (user?.handle && rawHandle === user.handle.replace(/^@/, "").toLowerCase()) ||
     (user?.id && rawHandle === user.id.toLowerCase()) ||
+    (user?.id && liveUserProfile && String(liveUserProfile._id || liveUserProfile.id).toLowerCase() === user.id.toLowerCase()) ||
     (customSavedHandle && rawHandle === customSavedHandle)
   );
 
-  const isKnownProfile = isOwnProfile || Boolean(PUBLIC_PROFILE_DATA[rawHandle]);
+  const isKnownProfile =
+    isOwnProfile || Boolean(liveUserProfile) || Boolean(PUBLIC_PROFILE_DATA[rawHandle]);
 
   useEffect(() => {
-    if (!isOwnProfile || !user?.id) return;
+    if (authLoading) return;
     let isCancelled = false;
-    apiGet<any>("/api/users/profile")
+    setIsProfileLoading(true);
+    setLiveProfileError(false);
+
+    const endpoint =
+      isOwnProfile && user?.id
+        ? "/api/users/profile"
+        : rawHandle && rawHandle !== "me"
+          ? `/api/users/profile?handle=${encodeURIComponent(rawHandle)}`
+          : null;
+
+    if (!endpoint) {
+      setIsProfileLoading(false);
+      return;
+    }
+
+    apiGet<any>(endpoint)
       .then((response) => {
         if (!isCancelled) {
-          setLiveUserProfile(response?.data || response?.user || null);
-          setLiveProfileError(!response?.data && !response?.user);
+          const loaded = response?.data || response?.user || null;
+          setLiveUserProfile(loaded);
+          if (isOwnProfile && !loaded) {
+            setLiveProfileError(true);
+          }
         }
       })
       .catch(() => {
-        if (!isCancelled) setLiveProfileError(true);
+        if (!isCancelled && isOwnProfile && !user) {
+          setLiveProfileError(true);
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsProfileLoading(false);
+        }
       });
+
     return () => {
       isCancelled = true;
     };
-  }, [isOwnProfile, user?.id]);
+  }, [authLoading, isOwnProfile, rawHandle, user?.id]);
 
-  // Fetch live listings if own profile
+  // Fetch live listings for the resolved profile (own or public)
   useEffect(() => {
-    if (!isOwnProfile) return;
     let isCancelled = false;
-    const sellerId = user?.id;
+    const sellerId =
+      liveUserProfile?._id ||
+      liveUserProfile?.id ||
+      (isOwnProfile ? user?.id : null);
     if (sellerId) {
-      fetch(`/api/listings?sellerId=${encodeURIComponent(sellerId)}&limit=50`)
+      fetch(`/api/listings?sellerId=${encodeURIComponent(sellerId)}&limit=50`, {
+        credentials: "include",
+      })
         .then((res) => res.json())
         .then((json) => {
           if (!isCancelled && json.success && Array.isArray(json.data)) {
@@ -608,7 +641,7 @@ export default function ProfilePage() {
     return () => {
       isCancelled = true;
     };
-  }, [isOwnProfile, user?.id]);
+  }, [isOwnProfile, liveUserProfile?._id, liveUserProfile?.id, user?.id]);
 
   const ownBaseProfile: ProfilePreviewData = {
     id: liveUserProfile?._id || liveUserProfile?.id || user?.id || "my-profile",
@@ -723,6 +756,30 @@ export default function ProfilePage() {
     setReportNote("");
     showToast(`Report submitted for ${profile.name}`);
   };
+
+  if (!isKnownProfile && (authLoading || isProfileLoading)) {
+    return (
+      <div
+        style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+        className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased"
+      >
+        <RebrandHeader />
+        <main className="max-w-[1380px] mx-auto px-5 sm:px-8 lg:px-12 py-6 sm:py-8 space-y-5">
+          <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 overflow-hidden">
+            <div className="hive-skeleton h-28 sm:h-32 w-full" />
+            <div className="px-5 sm:px-7 pb-6 pt-4 flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+              <div className="-mt-14 sm:-mt-16 w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] hive-skeleton shrink-0" />
+              <div className="space-y-2 flex-1 pt-2">
+                <div className="hive-skeleton h-6 w-48 rounded-lg" />
+                <div className="hive-skeleton h-4 w-72 rounded-md" />
+                <div className="hive-skeleton h-3.5 w-40 rounded-md" />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!isKnownProfile) {
     return (

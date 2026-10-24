@@ -27,6 +27,7 @@ export interface IStoreMetrics {
 export interface IStore {
   id: string;
   ownerId: string; // Crucial: One user account can only own one storefront!
+  ownerFullName?: string;
   name: string;
   slug: string;
   description: string;
@@ -41,6 +42,9 @@ export interface IStore {
   status: StoreStatus;
   isVerified: boolean;
   verificationType: StoreVerificationType;
+  studentIdImage?: string;
+  studentIdExpiryDate?: string;
+  locationProofDocument?: string;
   businessApplicationId?: string; // Links to BusinessApplication if local_business
   contact?: IStoreContact;
   suspensionReason?: string;
@@ -61,6 +65,11 @@ const StoreSchema = new Schema<IStoreDocument>(
       required: true,
       unique: true, // STRICT CONSTRAINT: One storefront per account
       index: true,
+    },
+    ownerFullName: {
+      type: String,
+      required: false,
+      trim: true,
     },
     name: {
       type: String,
@@ -132,6 +141,18 @@ const StoreSchema = new Schema<IStoreDocument>(
       type: String,
       enum: ["student", "business"],
       default: "student",
+    },
+    studentIdImage: {
+      type: String,
+      required: false,
+    },
+    studentIdExpiryDate: {
+      type: String,
+      required: false,
+    },
+    locationProofDocument: {
+      type: String,
+      required: false,
     },
     businessApplicationId: {
       type: String,

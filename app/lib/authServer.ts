@@ -4,7 +4,7 @@ import StoreModel, { IStoreDocument } from "../models/Store";
 import UserModel, { User } from "../models/User";
 import dbConnect from "./dbConnect";
 import { databaseUnavailableResponse } from "./databaseErrors";
-import { verifyAuthToken, ServerAuthUser } from "./authTokens";
+import { verifyAuthToken, verifyRefreshToken, getRefreshTokenFromRequest, ServerAuthUser } from "./authTokens";
 import { getConversationDoc, ensureParticipant, registerConversationDoc } from "./chatRepository";
 import { IConversationDoc, ConversationModel } from "../models/ChatModels";
 
@@ -17,29 +17,31 @@ export type { ServerAuthUser };
  */
 export function getServerAuthUser(req: NextRequest): ServerAuthUser | null {
   const authHeader = req.headers.get("authorization");
-  let token: string | null = null;
 
-  if (authHeader?.startsWith("Bearer ")) {
-    token = authHeader.substring(7).trim();
-  } else if (authHeader?.startsWith("bearer ")) {
-    token = authHeader.substring(7).trim();
+  if (authHeader?.startsWith("Bearer ") || authHeader?.startsWith("bearer ")) {
+    const headerToken = authHeader.substring(7).trim();
+    if (!headerToken) return null;
+    // Cryptographically verifies HMAC signature, claims (iss, aud, exp), and tokenType !== "refresh"
+    return verifyAuthToken(headerToken);
   }
 
-  // Also check secure session cookie
-  if (!token) {
-    const cookieToken =
-      req.cookies.get("campus_token")?.value || req.cookies.get("token")?.value;
-    if (cookieToken) {
-      token = cookieToken.trim();
+  // Check short-lived access token cookie first
+  const cookieToken =
+    req.cookies.get("campus_token")?.value || req.cookies.get("token")?.value;
+  if (cookieToken) {
+    const verifiedAccess = verifyAuthToken(cookieToken.trim());
+    if (verifiedAccess) {
+      return verifiedAccess;
     }
   }
 
-  if (!token) {
-    return null;
+  // Fallback to httpOnly refresh token cookie when the 15-minute access cookie has expired
+  const refreshCookie = getRefreshTokenFromRequest(req);
+  if (refreshCookie) {
+    return verifyRefreshToken(refreshCookie.trim());
   }
 
-  // Cryptographically verifies HMAC signature, claims (iss, aud, exp), and role
-  return verifyAuthToken(token);
+  return null;
 }
 
 /**
@@ -86,9 +88,9 @@ export async function requireAuth(req: NextRequest): Promise<{
   if (isUserDbAvailable) {
     try {
       const dbUser = mongoose.isValidObjectId(user.id)
-        ? await User.findById(user.id).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep").lean()
-        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep").lean();
-      if (dbUser && !dbUser.emailVerified) {
+        ? await User.findById(user.id).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion").lean()
+        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion").lean();
+      if (dbUser && dbUser.emailVerified === false) {
         return {
           user: null,
           errorResponse: NextResponse.json(
@@ -106,6 +108,20 @@ export async function requireAuth(req: NextRequest): Promise<{
               error: `Forbidden: Account is ${dbUser.accountStatus || "inactive"}. Please contact support.`,
             },
             { status: 403 }
+          ),
+        };
+      }
+      if (
+        dbUser &&
+        typeof user.tokenVersion === "number" &&
+        typeof (dbUser as any).tokenVersion === "number" &&
+        user.tokenVersion !== (dbUser as any).tokenVersion
+      ) {
+        return {
+          user: null,
+          errorResponse: NextResponse.json(
+            { success: false, error: "Session has expired or was revoked. Please log in again." },
+            { status: 401 }
           ),
         };
       }

@@ -85,6 +85,13 @@ export async function POST(req: NextRequest) {
     campus: user.campus,
     tokenVersion: user.tokenVersion || 0,
   } as const;
+  const resolvedHandle =
+    user.profile?.handle ||
+    (payload.name || user.email.split("@")[0] || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") ||
+    user._id.toString();
+
   const accessToken = createAccessToken(payload);
   const refreshToken = createRefreshToken(payload);
   const response = NextResponse.json({
@@ -94,6 +101,7 @@ export async function POST(req: NextRequest) {
       id: user._id.toString(),
       name: payload.name,
       email: user.email,
+      handle: resolvedHandle,
       role: user.role,
       sellerStatus: (user as any).sellerStatus || "none",
       isStudent: user.isStudent,
@@ -101,8 +109,8 @@ export async function POST(req: NextRequest) {
       onboardingStep: user.onboardingStep,
       campus: user.campus,
       profile: {
-        handle: user.profile?.handle,
-        displayName: user.profile?.displayName,
+        handle: resolvedHandle,
+        displayName: user.profile?.displayName || payload.name,
         avatar: user.profile?.avatar,
       },
     },
