@@ -26,7 +26,7 @@ export function RebrandFooter() {
             <Logo height={34} width={85} href="/home" />
 
             <p className="text-[#5B636E] dark:text-neutral-400 text-[13px] leading-relaxed max-w-[340px]">
-              The trusted student marketplace for Ahmadu Bello University. Buy, sell, and connect safely across campus.
+              The trusted student marketplace for your university campus. Buy, sell, and connect safely across campus.
             </p>
 
             <div className="flex items-center gap-2 pt-1">
@@ -130,7 +130,7 @@ export function RebrandFooter() {
 
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#8C929C] dark:text-neutral-400">
             <MapPin className="w-3 h-3 text-[#FFC928]" />
-            <span>ABU Zaria · Samaru & Kongo Campuses</span>
+            <span>University Campuses Nationwide</span>
           </div>
 
           <div className="flex items-center gap-4 text-[12px]">

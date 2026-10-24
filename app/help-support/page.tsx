@@ -145,7 +145,7 @@ export default function HelpSupportPage() {
                     <div>
                       <div className="text-[12px] font-bold text-[#171717] dark:text-white">Campus Desk</div>
                       <div className="text-[12.5px] text-[#5B636E] dark:text-neutral-400">
-                        Student Social Centre (SUB) · Samaru Campus
+                        Student Social Centre (SUB) · Main Campus
                       </div>
                     </div>
                   </div>
@@ -166,7 +166,7 @@ export default function HelpSupportPage() {
                 <div className="pt-3 border-t border-[#ECEEF2] dark:border-white/10 space-y-2">
                   <div className="text-[11.5px] font-bold uppercase tracking-wider text-[#8C929C]">Emergency Escalation</div>
                   <p className="text-[12px] text-[#5B636E] dark:text-neutral-400 leading-snug">
-                    For active safety incidents on campus, contact ABU University Security Division or report immediately via our safety protocol.
+                    For active safety incidents on campus, contact your University Campus Security Division or report immediately via our safety protocol.
                   </p>
                 </div>
               </div>

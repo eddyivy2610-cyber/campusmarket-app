@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import {
   findOrCreateConversation,
   listConversationsForUser,
+  registerConversationDoc,
+  getConversationDoc,
 } from "../../../lib/chatRepository";
 import {
   ChatParticipantProfile,
@@ -91,22 +93,90 @@ export async function GET(req: NextRequest) {
               ? paginated[paginated.length - 1].conversationId || paginated[paginated.length - 1]._id.toString()
               : null;
 
-          return NextResponse.json({
-            currentUser,
-            conversations: paginated.map((c: any) => ({
-              id: c.conversationId || c._id.toString(),
-              conversationId: c.conversationId || c._id.toString(),
-              participantIds: c.participantIds || [],
-              participants: c.participants || [],
+          const mappedConversations = paginated.map((c: any) => {
+            const convId = c.conversationId || c._id.toString();
+            const participantIds: string[] = Array.isArray(c.participantIds) && c.participantIds.length > 0
+              ? c.participantIds.map(String)
+              : Array.isArray(c.participants)
+                ? c.participants.map((p: any) => String(p?.id || p?._id || p))
+                : [];
+            const otherId =
+              participantIds.find((id) => id !== currentUser.id) ||
+              participantIds[0] ||
+              "";
+            const rawOther = Array.isArray(c.participants)
+              ? c.participants.find((p: any) => {
+                  const pid = p?.id ? String(p.id) : p?._id ? String(p._id) : String(p);
+                  return pid && pid !== currentUser.id;
+                })
+              : null;
+            const otherParticipant: ChatParticipantProfile =
+              rawOther && typeof rawOther === "object" && "name" in rawOther
+                ? {
+                    ...rawOther,
+                    id: rawOther.id ? String(rawOther.id) : otherId,
+                  }
+                : {
+                    id: otherId,
+                    name: (rawOther as any)?.name || "Campus Member",
+                    subtitle: (rawOther as any)?.subtitle || "Campus Member",
+                    avatar: (rawOther as any)?.avatar,
+                    isVerified: Boolean((rawOther as any)?.isVerified),
+                    accountType: (rawOther as any)?.accountType || "student",
+                  };
+
+            const updatedAtIso =
+              (c.updatedAt instanceof Date ? c.updatedAt.toISOString() : c.updatedAt) ||
+              new Date().toISOString();
+            const createdAtIso =
+              (c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt) ||
+              new Date().toISOString();
+
+            registerConversationDoc(convId, {
+              conversationId: convId,
+              participantIds,
+              participants:
+                Array.isArray(c.participants) &&
+                c.participants.every((p: any) => p && typeof p === "object" && "name" in p)
+                  ? c.participants
+                  : [currentUser, otherParticipant],
+              context: c.context || null,
+              additionalContexts: c.additionalContexts || [],
+              collapsedBy: c.collapsedBy || [],
+              unreadCounts: c.unreadCounts || { [currentUser.id]: 0 },
+              lastMessage: c.lastMessage || undefined,
+              createdAt: createdAtIso,
+              updatedAt: updatedAtIso,
+            });
+
+            return {
+              id: convId,
+              conversationId: convId,
+              participantIds,
+              participants: c.participants || [currentUser, otherParticipant],
+              otherParticipant,
+              context: c.context || null,
+              additionalContexts: c.additionalContexts || [],
+              isBannerCollapsed: Array.isArray(c.collapsedBy) && c.collapsedBy.includes(currentUser.id),
               lastMessage: c.lastMessage || null,
               unreadCount: (c.unreadCounts && c.unreadCounts[currentUser.id]) || 0,
-              updatedAt: (c.updatedAt instanceof Date ? c.updatedAt.toISOString() : c.updatedAt) || new Date().toISOString(),
-              createdAt: (c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt) || new Date().toISOString(),
-            })),
-            nextCursor,
-            hasMore,
-            total: paginated.length,
+              activeOffer: null,
+              trackedDeal: null,
+              reviews: [],
+              updatedAt: updatedAtIso,
+              createdAt: createdAtIso,
+            };
           });
+
+          if (cursor) {
+            return NextResponse.json({
+              currentUser,
+              conversations: mappedConversations,
+              nextCursor,
+              hasMore,
+              total: mappedConversations.length,
+            });
+          }
         }
       } catch (dbErr) {
         console.warn("[ConversationsGET] MongoDB cursor lookup fallback:", dbErr);
@@ -136,7 +206,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { user, errorResponse } = await requireCompletedOnboarding(req);
+    const { user, errorResponse } = await requireAuth(req);
     if (!user || errorResponse) {
       return errorResponse;
     }

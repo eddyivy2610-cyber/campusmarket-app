@@ -95,17 +95,14 @@ export const QUICK_FEATURE_PRESETS: Record<string, string[]> = {
 };
 
 export const CAMPUS_LANDMARKS = [
-  "Kashim Ibrahim Library (KIL)",
+  "University Main Library",
   "Senate Building Foyer",
   "Faculty of Science Complex",
   "Faculty of Engineering / Architecture",
-  "Sub Hall / Food Court Area",
+  "Student Union (SUB) / Food Court Area",
   "Main Gate Security Post",
-  "ICSA / RAMAT Hall Foyer",
-  "Suleiman Hall Common Area",
-  "Amina / Ribadu Hall Gate",
+  "Student Hostels Common Area",
   "Gymnasium & Sports Complex",
-  "Kongo Campus Main Gate",
   "Custom Agreed Public Spot",
 ];
 
@@ -189,9 +186,9 @@ export function CreateListingForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 4 State: Location & Meetup
-  const [campus, setCampus] = useState("Ahmadu Bello University (ABU Zaria)");
-  const [campusBranch, setCampusBranch] = useState("Samaru Main Campus");
-  const [landmark, setLandmark] = useState("Kashim Ibrahim Library (KIL)");
+  const [campus, setCampus] = useState(user?.campus || "Main University Campus");
+  const [campusBranch, setCampusBranch] = useState("Main Campus");
+  const [landmark, setLandmark] = useState("University Main Library");
   const [meetupTiming, setMeetupTiming] = useState("Daylight public hours (10:00 AM – 5:00 PM)");
   const [meetupPreference, setMeetupPreference] = useState("In-person campus meetup (Recommended)");
   const [sellerNotes, setSellerNotes] = useState("Buyer can test the device thoroughly before making payment.");
@@ -510,7 +507,7 @@ export function CreateListingForm() {
                 Your listing is now published!
               </h1>
               <p className="text-[13.5px] text-[#68707A] dark:text-neutral-400 max-w-md mx-auto mt-2 leading-relaxed">
-                Students and verified members at ABU Zaria can now discover{" "}
+                Students and verified members on your campus can now discover{" "}
                 <strong className="text-[#171717] dark:text-white font-semibold">"{title}"</strong> and message you directly.
               </p>
             </div>
@@ -1337,13 +1334,14 @@ export function CreateListingForm() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[13px] font-bold text-[#3F454D] dark:text-neutral-200 mb-1.5">
-                          University
+                          University / Campus
                         </label>
                         <input
                           type="text"
-                          disabled
                           value={campus}
-                          className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-[#F2F4F8] dark:bg-white/5 px-3.5 py-2.5 text-[13.5px] text-[#5B636E] dark:text-neutral-400 font-semibold cursor-not-allowed"
+                          onChange={(e) => setCampus(e.target.value)}
+                          placeholder="e.g. Your University Name"
+                          className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] transition-colors"
                         />
                       </div>
 
@@ -1352,7 +1350,7 @@ export function CreateListingForm() {
                           htmlFor="campusBranchSelect"
                           className="block text-[13px] font-bold text-[#3F454D] dark:text-neutral-200 mb-1.5"
                         >
-                          Campus Branch
+                          Campus Area
                         </label>
                         <select
                           id="campusBranchSelect"
@@ -1360,8 +1358,10 @@ export function CreateListingForm() {
                           onChange={(e) => setCampusBranch(e.target.value)}
                           className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] transition-colors cursor-pointer"
                         >
-                          <option value="Samaru Main Campus">Samaru Main Campus</option>
-                          <option value="Kongo Campus">Kongo Campus</option>
+                          <option value="Main Campus">Main Campus</option>
+                          <option value="Annex / Second Campus">Annex / Second Campus</option>
+                          <option value="Student Hostels Area">Student Hostels Area</option>
+                          <option value="Off-Campus">Off-Campus</option>
                         </select>
                       </div>
                     </div>

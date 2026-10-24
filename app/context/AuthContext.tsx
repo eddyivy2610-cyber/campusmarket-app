@@ -13,10 +13,11 @@ interface User {
     studentVerified?: boolean;
     emailVerified?: boolean;
     tier?: "new" | "rising" | "trusted" | "elite";
-    sellerStatus: "none" | "pending" | "approved" | "rejected";
+    sellerStatus: "none" | "pending" | "approved" | "verified" | "rejected";
     onboardingStep: "otp_verified" | "profile_completed" | "onboarding_choice" | "seller_pending" | "completed";
     avatar?: string;
     image?: string;
+    campus?: string;
 }
 
 interface AuthContextType {
@@ -48,6 +49,7 @@ function cacheableProfile(userData: User) {
         onboardingStep: userData.onboardingStep,
         avatar: userData.avatar,
         image: userData.image,
+        campus: userData.campus,
     };
 }
 
@@ -88,6 +90,11 @@ function normalizeUserPayload(userData: any, fallback?: Partial<User> | null): U
         onboardingStep: userData?.onboardingStep || fallback?.onboardingStep || "completed",
         avatar: userData?.profile?.avatar || userData?.avatar || fallback?.avatar,
         image: userData?.profile?.avatar || userData?.image || userData?.avatar || fallback?.image,
+        campus:
+            userData?.campus ||
+            userData?.profile?.campus ||
+            userData?.studentStatus?.universityName ||
+            fallback?.campus,
     };
 }
 

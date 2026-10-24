@@ -170,9 +170,7 @@ function MessagesWorkspace() {
   >("all");
 
   // Centre Column: Active Conversation & Message History State
-  const [selectedConvId, setSelectedConvId] = useState<string | null>(
-    "conv-tunde-calculator"
-  );
+  const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
   const [mobileShowThread, setMobileShowThread] = useState(false);
   const [activeConv, setActiveConv] = useState<ConversationDTO | null>(null);
   const [messages, setMessages] = useState<ChatMessageDTO[]>([]);
@@ -231,10 +229,53 @@ function MessagesWorkspace() {
   }, [messages]);
 
   const getAuthHeaders = useCallback((extra: Record<string, string> = {}) => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
+        : null;
     return {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...extra,
     };
   }, []);
+
+  const fetchWithAuth = useCallback(
+    async (url: string, init: RequestInit = {}): Promise<Response> => {
+      const doRequest = () =>
+        fetch(url, {
+          ...init,
+          credentials: "include",
+          headers: getAuthHeaders(
+            (init.headers as Record<string, string>) || {}
+          ),
+        });
+
+      let res = await doRequest();
+      if (res.status === 401) {
+        try {
+          const refreshRes = await fetch("/api/auth/refresh", {
+            method: "POST",
+            credentials: "include",
+          });
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json().catch(() => null);
+            const newToken =
+              refreshData?.data?.accessToken ||
+              refreshData?.data?.token ||
+              refreshData?.token;
+            if (newToken && typeof window !== "undefined") {
+              localStorage.setItem("auth_token", newToken);
+            }
+            res = await doRequest();
+          }
+        } catch {
+          // ignore refresh error
+        }
+      }
+      return res;
+    },
+    [getAuthHeaders]
+  );
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -258,14 +299,18 @@ function MessagesWorkspace() {
         q: searchQuery,
         filter: apiFilter,
       });
-      const res = await fetch(
+      const res = await fetchWithAuth(
         `/api/messages/conversations?${params.toString()}`,
         {
-          headers: getAuthHeaders({
+          headers: {
             "x-campus-user-id": currentUser.id,
-          }),
+          },
         }
       );
+      if (res.status === 401) {
+        setConversations([]);
+        return;
+      }
       if (!res.ok) throw new Error("Failed to load conversations");
       const data = await res.json();
       if (data.currentUser) {
@@ -277,19 +322,23 @@ function MessagesWorkspace() {
           rawList.filter(
             (c) =>
               c.lastMessage &&
-              c.lastMessage.senderId !== currentUser.id &&
+              c.lastMessage.senderId !== (data.currentUser?.id || currentUser.id) &&
               c.unreadCount > 0
           )
         );
       } else {
         setConversations(rawList);
       }
+      setSelectedConvId((prev) => {
+        if (prev && rawList.some((c) => c.id === prev)) return prev;
+        return rawList.length > 0 ? rawList[0].id : null;
+      });
     } catch {
       setListError("Could not load conversations.");
     } finally {
       setIsLoadingList(false);
     }
-  }, [searchQuery, activeFilter, currentUser.id, getAuthHeaders]);
+  }, [searchQuery, activeFilter, currentUser.id, fetchWithAuth]);
 
   // Fetch Single Conversation + Messages
   const fetchConversationDetails = useCallback(
@@ -298,14 +347,14 @@ function MessagesWorkspace() {
         if (!appendOlder) setIsLoadingThread(true);
         setThreadError(null);
 
-        const res = await fetch(
+        const res = await fetchWithAuth(
           `/api/messages/conversations/${encodeURIComponent(
             convId
           )}?page=${pageNum}&limit=50`,
           {
-            headers: getAuthHeaders({
+            headers: {
               "x-campus-user-id": currentUser.id,
-            }),
+            },
           }
         );
         if (!res.ok) {
@@ -336,19 +385,26 @@ function MessagesWorkspace() {
         setIsLoadingThread(false);
       }
     },
-    [currentUser.id]
+    [currentUser.id, fetchWithAuth]
   );
 
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Handle Entry Points (Product, Service, Wanted/Radar, Store)
+  // Handle Entry Points (Product, Service, Wanted/Radar, Store, Profile)
   useEffect(() => {
     const contextType = searchParams.get("contextType");
-    const participantId = searchParams.get("participantId");
-    const participantName = searchParams.get("participantName");
-    const title = searchParams.get("title");
+    const participantId =
+      searchParams.get("participantId") || searchParams.get("user");
+    const participantName =
+      searchParams.get("participantName") || searchParams.get("name");
+    const title =
+      searchParams.get("title") || searchParams.get("contextTitle");
+    const priceParam =
+      searchParams.get("price") || searchParams.get("contextPrice");
+    const imageParam =
+      searchParams.get("image") || searchParams.get("contextImage");
 
     if (!participantId || !participantName) return;
 
@@ -361,12 +417,12 @@ function MessagesWorkspace() {
     const initiateContextualChat = async () => {
       try {
         setIsLoadingThread(true);
-        const res = await fetch("/api/messages/conversations", {
+        const res = await fetchWithAuth("/api/messages/conversations", {
           method: "POST",
-          headers: getAuthHeaders({
+          headers: {
             "Content-Type": "application/json",
             "x-campus-user-id": currentUser.id,
-          }),
+          },
           body: JSON.stringify({
             participantId,
             participantName,
@@ -384,12 +440,11 @@ function MessagesWorkspace() {
                   contextId:
                     searchParams.get("contextId") || `ctx-${Date.now()}`,
                   title,
-                  priceFormatted:
-                    searchParams.get("price") || "Contact for price",
+                  priceFormatted: priceParam || "Contact for price",
                   numericPrice: searchParams.get("numericPrice")
                     ? Number(searchParams.get("numericPrice"))
                     : undefined,
-                  image: searchParams.get("image") || undefined,
+                  image: imageParam || undefined,
                   status: searchParams.get("status") || "Available",
                   href: searchParams.get("href") || "/explore",
                 }
@@ -425,7 +480,7 @@ function MessagesWorkspace() {
     fetchConversations,
     fetchConversationDetails,
     showToast,
-    getAuthHeaders,
+    fetchWithAuth,
   ]);
 
   useEffect(() => {
@@ -629,16 +684,16 @@ function MessagesWorkspace() {
     attachment?: PendingOutgoingMessage["attachment"];
   }) => {
     try {
-      const res = await fetch(
+      const res = await fetchWithAuth(
         `/api/messages/conversations/${encodeURIComponent(
           payload.conversationId
         )}/messages`,
         {
           method: "POST",
-          headers: getAuthHeaders({
+          headers: {
             "Content-Type": "application/json",
             "x-campus-user-id": effectiveActorId,
-          }),
+          },
           body: JSON.stringify({
             text: payload.text,
             clientMessageId: payload.tempId,
@@ -1150,7 +1205,13 @@ function MessagesWorkspace() {
               ) : (
                 conversations.map((conv) => {
                   const isSelected = conv.id === selectedConvId;
-                  const other = conv.otherParticipant;
+                  const other = conv.otherParticipant || {
+                    id: "",
+                    name: "Campus Member",
+                    subtitle: "Campus",
+                    isVerified: false,
+                    accountType: "student" as const,
+                  };
                   const hasUnread = conv.unreadCount > 0;
 
                   return (

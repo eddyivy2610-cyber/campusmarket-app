@@ -120,7 +120,7 @@ function RadarContent() {
             isVerified: Boolean(store.isVerified),
             accountType: store.storeType === "student_store" ? "student" : "store",
             similarProducts: store.categoryTags?.slice(0, 3).join(", ") || store.description?.slice(0, 50) || "Campus seller",
-            location: store.operatingLocation || store.campus || "Samaru Campus",
+            location: store.operatingLocation || store.campus || "Main Campus",
             profileHref: `/stores/${store.slug || store._id}`,
             chatParams: {
               contextType: "store",

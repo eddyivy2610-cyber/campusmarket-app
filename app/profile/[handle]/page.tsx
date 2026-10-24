@@ -746,7 +746,7 @@ export default function ProfilePage() {
       (isOwnProfile &&
         (user?.role === "seller" ||
           user?.sellerStatus === "approved" ||
-          user?.sellerStatus === "verified")) ||
+          String(user?.sellerStatus) === "verified")) ||
       PUBLIC_PROFILE_DATA[rawHandle]
   );
 
@@ -1438,7 +1438,7 @@ export default function ProfilePage() {
                             Campus verified
                           </p>
                           <p className="text-[11.5px] text-[#7A818C] truncate">
-                            Verified student seller at ABU Zaria
+                            Verified student seller on campus
                           </p>
                         </div>
                       </div>

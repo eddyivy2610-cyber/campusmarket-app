@@ -46,6 +46,7 @@ const CATEGORIES = [
 ];
 
 const CAMPUSES = [
+  "Main University Campus",
   "Ahmadu Bello University (ABU)",
   "University of Lagos (UNILAG)",
   "University of Ibadan (UI)",
@@ -162,6 +163,9 @@ export default function SellerOnboardingPage() {
     }
     if (user?.isStudent === false) {
       setSellerType("non_student");
+    }
+    if (user?.campus) {
+      setCampus(user.campus);
     }
   }, [user, fullName, avatarPreview]);
 
@@ -909,7 +913,7 @@ export default function SellerOnboardingPage() {
                         required
                         value={operatingLocation}
                         onChange={(e) => setOperatingLocation(e.target.value)}
-                        placeholder="e.g. Shop 14, Samaru Main Street, Opposite Main Gate"
+                        placeholder="e.g. Shop 14, University Road, Opposite Main Gate"
                         className="radius-native w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors"
                       />
                     </div>

@@ -105,8 +105,8 @@ function StoresContent() {
               primaryCategory: (item.category || "General") as StoreCategory,
               tagline: item.description?.slice(0, 100) || "Campus seller storefront.",
               description: item.description || "",
-              campusName: item.campus || "ABU Samaru Main Campus",
-              landmark: item.operatingLocation || item.campus || "Samaru Campus",
+              campusName: item.campus || "Main Campus",
+              landmark: item.operatingLocation || item.campus || "Main Campus",
               openingHours: "Mon – Sat: 9:00 AM – 7:00 PM",
               responseTime: "Replies in ~15 mins",
               ratingScore: item.metrics?.rating ?? 4.8,
@@ -172,7 +172,7 @@ function StoresContent() {
   const [regBusinessType, setRegBusinessType] = useState<StoreBusinessType>("student_owned");
   const [regCategory, setRegCategory] = useState<StoreCategory>("Fashion");
   const [regTagline, setRegTagline] = useState("");
-  const [regLandmark, setRegLandmark] = useState("ABU Samaru Main Campus");
+  const [regLandmark, setRegLandmark] = useState("Main Campus");
 
   const showToast = (msg: string) => {
     setFeedbackToast(msg);
@@ -449,8 +449,9 @@ function StoresContent() {
                     className="radius-native px-3 py-1.5 text-[12px] rounded-xl bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 focus:outline-none focus:border-[#FFC928] cursor-pointer"
                   >
                     <option value="all">All Campuses</option>
-                    <option value="Samaru">Samaru Main Campus</option>
-                    <option value="Kongo">Kongo Campus</option>
+                    <option value="Main Campus">Main Campus</option>
+                    <option value="Student Hostels">Student Hostels</option>
+                    <option value="Off-Campus">Off-Campus</option>
                   </select>
                 </div>
               </div>
@@ -613,7 +614,7 @@ function StoresContent() {
                     required
                     value={regStoreName}
                     onChange={(e) => setRegStoreName(e.target.value)}
-                    placeholder="e.g. Campus Closet or Zaria Tech"
+                    placeholder="e.g. Campus Closet or Tech Hub"
                     className="radius-native w-full bg-[#F7F8FA] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[#171717] dark:text-white focus:outline-none focus:border-[#FFE182]"
                   />
                 </div>

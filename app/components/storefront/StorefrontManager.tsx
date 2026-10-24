@@ -71,7 +71,7 @@ export function StorefrontManager({
   const [storeName, setStoreName] = useState(initialStore?.name || "");
   const [tagline, setTagline] = useState(initialStore?.description || "");
   const [category, setCategory] = useState(initialStore?.category || "Laptops & Computers");
-  const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Samaru Main Campus");
+  const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Main Campus");
   const [contactChannel, setContactChannel] = useState("in_app");
 
   // Sync when parent passes updated initialHasStore / initialStore
@@ -82,7 +82,7 @@ export function StorefrontManager({
       setStoreName(initialStore.name || "My Campus Store");
       setTagline(initialStore.description || "Student campus storefront");
       setCategory(initialStore.category || "Laptops & Computers");
-      setLandmark(initialStore.operatingLocation || "Samaru Main Campus");
+      setLandmark(initialStore.operatingLocation || "Main Campus");
     } else if (initialHasStore !== undefined) {
       setHasStore(initialHasStore);
     }
@@ -108,7 +108,7 @@ export function StorefrontManager({
               setStoreName(st.name || "My Campus Store");
               setTagline(st.description || "Student campus storefront");
               setCategory(st.category || "Laptops & Computers");
-              setLandmark(st.operatingLocation || "Samaru Main Campus");
+              setLandmark(st.operatingLocation || "Main Campus");
             }
           } else {
             setHasStore(false);
@@ -316,7 +316,7 @@ export function StorefrontManager({
                   <span>{landmark}</span>
                 </span>
                 <span>·</span>
-                <span>{storeData?.campus || "Samaru Main Campus"}</span>
+                <span>{storeData?.campus || "Main Campus"}</span>
               </div>
             </div>
           </div>
@@ -518,7 +518,7 @@ export function StorefrontManager({
                   </span>
                 </div>
                 <p className="text-[12px] text-[#7A4F01] dark:text-amber-300 leading-relaxed">
-                  Boost your store to the top of Explore and category carousels across ABU Zaria.
+                  Boost your store to the top of Explore and category carousels across your campus.
                 </p>
                 <button
                   type="button"
@@ -535,7 +535,7 @@ export function StorefrontManager({
                   Seller Protection
                 </div>
                 <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-relaxed">
-                  Always verify payment before releasing devices or products. Hand off items at public landmarks like Kashim Ibrahim Library or faculty foyers.
+                  Always verify payment before releasing devices or products. Hand off items at public campus landmarks like the University Library or faculty foyers.
                 </p>
                 <Link
                   href="/safety-guidelines"
@@ -657,11 +657,12 @@ export function StorefrontManager({
                   onChange={(e) => setLandmark(e.target.value)}
                   className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] cursor-pointer"
                 >
-                  <option value="Kashim Ibrahim Library (KIL)">Kashim Ibrahim Library (KIL)</option>
+                  <option value="Main Campus">Main Campus</option>
+                  <option value="University Main Library">University Main Library</option>
                   <option value="Faculty of Science Complex">Faculty of Science Complex</option>
                   <option value="Senate Building Foyer">Senate Building Foyer</option>
-                  <option value="Sub Hall / Food Court Area">Sub Hall / Food Court Area</option>
-                  <option value="Kongo Campus Main Gate">Kongo Campus Main Gate</option>
+                  <option value="Student Union (SUB) / Food Court">Student Union (SUB) / Food Court</option>
+                  <option value="Campus Main Gate">Campus Main Gate</option>
                 </select>
               </div>
             </div>
@@ -749,7 +750,7 @@ export function StorefrontManager({
                 Campus Sponsored Ads & Promotions
               </h3>
               <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                Drive instant visibility to your store and listings across ABU Zaria.
+                Drive instant visibility to your store and listings across your campus.
               </p>
             </div>
 

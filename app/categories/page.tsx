@@ -48,7 +48,7 @@ function CategoriesPageInner() {
                         category: (item.category || "Electronics") as any,
                         recommendedCount: 5,
                         notRecommendedCount: 0,
-                        location: item.location || item.campus || "ABU Samaru",
+                        location: item.location || item.campus || "Main Campus",
                         condition: item.condition || "Used - Good",
                         tags: [item.title, item.category].filter(Boolean),
                         description: item.description || "",

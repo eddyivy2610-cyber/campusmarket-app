@@ -97,7 +97,7 @@ const EMPTY_PROFILE_DATA: ProfileIdentityData = {
   major: "",
   year: "",
   avatar: "",
-  location: "Suleiman Hostel · Samaru Campus",
+  location: "Main Campus",
 };
 
 export function RebrandSettingsShell({
@@ -424,7 +424,7 @@ export function RebrandSettingsShell({
                           school: e.target.value,
                         })
                       }
-                      placeholder="e.g. Ahmadu Bello University"
+                      placeholder="e.g. Your University Name"
                       className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
                     />
                   </div>

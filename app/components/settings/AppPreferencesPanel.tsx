@@ -605,7 +605,7 @@ export function AppPreferencesPanel() {
                     preferredCampus: e.target.value,
                   }))
                 }
-                placeholder="e.g. Ahmadu Bello University, Samaru"
+                placeholder="e.g. Main University Campus"
                 className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928]"
               />
             </div>

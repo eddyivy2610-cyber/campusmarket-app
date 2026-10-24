@@ -60,7 +60,7 @@ function mapApiListingToExploreItem(item: any): ExploreListingItem {
     itemType: isService ? "service" : "product",
     condition,
     conditionTone,
-    landmark: item.location || item.campus || "ABU Samaru Main Campus",
+    landmark: item.location || item.campus || "Main Campus",
     sellerName,
     sellerHandle,
     sellerType,

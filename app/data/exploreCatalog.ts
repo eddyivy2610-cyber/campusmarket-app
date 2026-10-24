@@ -26,13 +26,13 @@ export const EXPLORE_CATEGORIES: ExploreCategory[] = [
 export const CAMPUS_LANDMARKS = [
   "All Landmarks",
   "Main Gate",
-  "Kashim Ibrahim Library (KIL)",
+  "University Main Library",
   "Faculty of Engineering",
   "Student Centre",
   "Hostel Area",
   "Faculty of Science",
   "Phase II Lecture Theatre",
-  "Kongo Campus",
+  "Annex Campus",
 ] as const;
 
 export type ExploreItemType = "product" | "service";

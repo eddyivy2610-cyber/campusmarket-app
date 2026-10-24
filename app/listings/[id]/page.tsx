@@ -303,7 +303,7 @@ export default function ListingDetailPage() {
             specRows.push(
               { label: "Category", value: item.category },
               { label: "Condition", value: item.condition || "Used - Good" },
-              { label: "Campus Landmark", value: item.location || item.campus || "Samaru Campus" }
+              { label: "Campus Landmark", value: item.location || item.campus || "Main Campus" }
             );
           }
 
@@ -346,12 +346,12 @@ export default function ListingDetailPage() {
             subCategory: item.subcategory || item.category,
             conditionLabel: item.condition || (isService ? "Service" : "Used - Good"),
             conditionNote: `${item.condition || "Standard"} condition`,
-            location: item.location || item.campus || "Samaru Campus, ABU Zaria",
+            location: item.location || item.campus || "Main Campus",
             postedAgo: "Recently",
             shortSummary: item.description,
             aboutDescription: item.description,
             whySelling: isService ? "Professional student campus service." : "Verified campus marketplace listing.",
-            pickupDetails: `Meetup at ${item.location || item.campus || "Samaru Campus"}`,
+            pickupDetails: `Meetup at ${item.location || item.campus || "Main Campus"}`,
             includedItems: [item.title, isService ? "Service delivery" : "Inspection before payment"],
             images: Array.isArray(item.images) && item.images.length > 0
               ? item.images
@@ -362,7 +362,7 @@ export default function ListingDetailPage() {
               name: storeData ? storeData.name : "Campus Seller",
               handle: storeData ? storeData.slug : "seller",
               avatar: storeData?.logo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
-              department: storeData ? `${storeData.operatingLocation || storeData.campus}` : `${item.location || "Samaru"} · ABU Zaria`,
+              department: storeData ? `${storeData.operatingLocation || storeData.campus}` : `${item.location || item.campus || "Main Campus"}`,
               badgeLabel: storeData?.storeType === "student_store" || storeData?.storeType === "student_owned" ? "Student seller" : "Approved business",
               isVerified: Boolean(storeData?.isVerified ?? true),
               bio: storeData?.description || "Active seller on Campus Hive.",
@@ -408,7 +408,7 @@ export default function ListingDetailPage() {
               specRows.push(
                 { label: "Category", value: foundCreated.category },
                 { label: "Condition", value: foundCreated.condition },
-                { label: "Campus Landmark", value: foundCreated.landmark || "ABU Zaria" },
+                { label: "Campus Landmark", value: foundCreated.landmark || "Main Campus" },
                 { label: "Inspection Policy", value: "Test & inspect at public meetup" }
               );
             }
@@ -422,12 +422,12 @@ export default function ListingDetailPage() {
               subCategory: foundCreated.category,
               conditionLabel: foundCreated.condition,
               conditionNote: `${foundCreated.condition} condition`,
-              location: foundCreated.location || `${foundCreated.landmark || "Samaru"}, ABU Zaria`,
+              location: foundCreated.location || `${foundCreated.landmark || "Main Campus"}`,
               postedAgo: "Just now",
               shortSummary: foundCreated.description,
               aboutDescription: foundCreated.description,
               whySelling: "Student seller offering items on Campus Hive.",
-              pickupDetails: `Meetup at ${foundCreated.landmark || "Kashim Ibrahim Library"}`,
+              pickupDetails: `Meetup at ${foundCreated.landmark || "University Main Library"}`,
               includedItems: [foundCreated.title, "Original accessories", "Testing before payment"],
               images: Array.isArray(foundCreated.images) && foundCreated.images.length > 0
                 ? foundCreated.images
@@ -442,7 +442,7 @@ export default function ListingDetailPage() {
                 name: foundCreated.sellerName || "Tunde Bello",
                 handle: foundCreated.sellerHandle || "me",
                 avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
-                department: `${foundCreated.landmark || "Samaru"} · ABU Zaria`,
+                department: `${foundCreated.landmark || "Main Campus"}`,
                 badgeLabel: "Student seller",
                 isVerified: true,
                 bio: "Active student seller on Campus Hive.",
@@ -589,7 +589,7 @@ export default function ListingDetailPage() {
                 priceFormatted: `₦${Number(item.price || 0).toLocaleString()}`,
                 category: item.category || "General",
                 itemType: isService ? "service" : "product",
-                landmark: item.location || item.campus || "Samaru",
+                landmark: item.location || item.campus || "Main Campus",
                 condition: item.condition || "Used",
                 conditionTone: item.condition === "New" ? "green" : "neutral",
                 imageUrl: item.images?.[0] || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
