@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
+  ChevronLeft,
   ArrowRight,
   Tag,
   Store,
@@ -12,8 +14,28 @@ import {
   Clock,
   Sparkles,
   Check,
+  Radio,
+  ShoppingBag,
 } from "lucide-react";
 import type { PublicBannerDTO } from "@/lib/bannerService";
+
+export interface HeroSlide {
+  id: string;
+  badge?: string;
+  badgeIcon?: React.ComponentType<{ className?: string }>;
+  headline: string;
+  description?: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaUrl?: string;
+  imageUrl?: string;
+  mobileImageUrl?: string;
+  imageAlt?: string;
+  illustration?: string;
+  theme?: "gold" | "white";
+  isFullGraphic?: boolean;
+}
 
 const HERO_CATEGORIES = [
   { label: "Electronics", href: "/explore?category=Electronics" },
@@ -51,36 +73,196 @@ const FEATURE_ITEMS = [
   },
 ];
 
-export function RebrandHero() {
-  const [activeBanner, setActiveBanner] = useState<PublicBannerDTO | null>(null);
-  const [imageFailed, setImageFailed] = useState(false);
+const DEFAULT_HERO_SLIDES: HeroSlide[] = [
+  {
+    id: "hero-campus-hive-banner",
+    badge: "Welcome",
+    headline: "Welcome to the Campus Hive",
+    description:
+      "The verified campus marketplace to discover student deals, buy & sell gear, and connect safely across campus.",
+    ctaLabel: "Explore Marketplace",
+    ctaUrl: "/explore",
+    secondaryCtaLabel: "Post a Listing",
+    secondaryCtaUrl: "/listings/create",
+    imageUrl: "/hero-banner-campus-hive.svg",
+    isFullGraphic: true,
+    theme: "white",
+  },
+  {
+    id: "default-welcome",
+    badge: "Campus Marketplace",
+    badgeIcon: Sparkles,
+    headline: "Welcome to the Hive community",
+    description:
+      "Your student marketplace to discover deals, buy & sell gear, and connect safely across campus.",
+    ctaLabel: "Explore Marketplace",
+    ctaUrl: "/explore",
+    secondaryCtaLabel: "Post a Listing",
+    secondaryCtaUrl: "/listings/create",
+    illustration: "/Welcome-cuate.svg",
+    theme: "white",
+  },
+  {
+    id: "default-stores",
+    badge: "Student Stores",
+    badgeIcon: Store,
+    headline: "Launch your campus storefront",
+    description:
+      "Set up your student-owned business, showcase catalog items, and reach thousands of verified peers.",
+    ctaLabel: "Browse Storefronts",
+    ctaUrl: "/stores",
+    secondaryCtaLabel: "Open Store",
+    secondaryCtaUrl: "/stores?view=storefront",
+    theme: "gold",
+  },
+  {
+    id: "default-radar",
+    badge: "Buyer Radar",
+    badgeIcon: Radio,
+    headline: "Can't find what you need?",
+    description:
+      "Broadcast a wanted request for textbooks, gadgets, or room appliances and get instant student offers.",
+    ctaLabel: "View Wanted Radar",
+    ctaUrl: "/wanted",
+    secondaryCtaLabel: "Post Request",
+    secondaryCtaUrl: "/wanted",
+    theme: "white",
+  },
+];
 
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? "-100%" : "100%",
+    opacity: 0,
+  }),
+};
+
+export function RebrandHero() {
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isPaused, setIsPaused] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const touchStartXRef = useRef<number | null>(null);
+
+  // Fetch active promotional banners from the server queue
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchHeroBanner() {
+    async function fetchHeroBanners() {
       try {
-        const res = await fetch("/api/banners/active?placement=homepage_hero", {
-          // Allow HTTP caching via Next.js
+        const res = await fetch("/api/banners/active?placement=homepage_hero&multiple=true", {
           next: { revalidate: 60 },
         });
+
         if (res.ok) {
           const json = await res.json();
-          if (isMounted && json.success && json.data) {
-            setActiveBanner(json.data);
-            setImageFailed(false);
+          if (isMounted && json.success) {
+            let activeItems: PublicBannerDTO[] = [];
+
+            if (Array.isArray(json.data)) {
+              activeItems = json.data;
+            } else if (Array.isArray(json.items)) {
+              activeItems = json.items;
+            } else if (json.data && typeof json.data === "object") {
+              activeItems = [json.data];
+            }
+
+            if (activeItems.length > 0) {
+              const apiSlides: HeroSlide[] = activeItems.map((b) => ({
+                id: b.id,
+                badge: b.targetCategory ? `${b.targetCategory} Promotion` : "Featured Spotlight",
+                badgeIcon: Sparkles,
+                headline: b.headline,
+                description: b.description,
+                ctaLabel: b.ctaLabel || "Explore now",
+                ctaUrl: b.ctaUrl || "/explore",
+                imageUrl: b.imageUrl,
+                mobileImageUrl: b.mobileImageUrl,
+                imageAlt: b.imageAlt || b.headline,
+                theme: "gold",
+              }));
+
+              // Prepend active promotional campaigns to the queue with default slides
+              setSlides([...apiSlides, ...DEFAULT_HERO_SLIDES]);
+            }
           }
         }
       } catch {
-        // Fallback to default hero silently on network error
+        // Silently retain default slides on network failure
       }
     }
 
-    fetchHeroBanner();
+    fetchHeroBanners();
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const slideCount = slides.length;
+
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % slideCount);
+  }, [slideCount]);
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + slideCount) % slideCount);
+  }, [slideCount]);
+
+  const handleDotClick = useCallback(
+    (index: number) => {
+      if (index === currentIndex) return;
+      setDirection(index > currentIndex ? 1 : -1);
+      setCurrentIndex(index);
+    },
+    [currentIndex]
+  );
+
+  // Auto-scroll timer: rotates every 5.5s unless paused by user interaction
+  useEffect(() => {
+    if (isPaused || slideCount <= 1) return;
+
+    const interval = setInterval(() => {
+      handleNext();
+    }, 5500);
+
+    return () => clearInterval(interval);
+  }, [isPaused, slideCount, handleNext, currentIndex]);
+
+  // Touch Swipe Handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false);
+    if (touchStartXRef.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchStartXRef.current - touchEndX;
+
+    if (deltaX > 45) {
+      handleNext();
+    } else if (deltaX < -45) {
+      handlePrev();
+    }
+    touchStartXRef.current = null;
+  };
+
+  const currentSlide = slides[currentIndex] || slides[0];
+  const BadgeIcon = currentSlide.badgeIcon || Sparkles;
+  const isImageBroken = currentSlide.imageUrl ? imageErrors[currentSlide.id] : false;
 
   return (
     <section
@@ -89,7 +271,7 @@ export function RebrandHero() {
     >
       <div className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 pt-4 sm:pt-6 pb-3 sm:pb-5">
         <div className="flex flex-col lg:flex-row items-stretch gap-5 lg:gap-6">
-          {/* Left Column: Categories Navigation (Desktop only; packed into hamburger on mobile) */}
+          {/* Left Column: Categories Navigation */}
           <aside
             aria-label="Product categories"
             className="hidden lg:flex w-full lg:w-[195px] xl:w-[210px] shrink-0 flex-col justify-between py-0.5"
@@ -118,112 +300,214 @@ export function RebrandHero() {
             </div>
           </aside>
 
-          {/* Center Column: Main Promotional Hero Banner */}
-          {activeBanner ? (
-            <div className="radius-native relative overflow-hidden flex-1 rounded-2xl bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717] min-h-[180px] sm:min-h-[255px] p-5 sm:p-8 flex flex-col justify-center">
-              {/* Optional Responsive Background / Accompanying Image */}
-              {activeBanner.imageUrl && !imageFailed && (
-                <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                  <picture>
-                    {activeBanner.mobileImageUrl && (
-                      <source
-                        media="(max-width: 640px)"
-                        srcSet={activeBanner.mobileImageUrl}
+          {/* Center Column: Animated Hero Banner Carousel with Navigation Dots */}
+          <div
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            className="radius-native relative overflow-hidden flex-1 rounded-2xl min-h-[220px] sm:min-h-[265px] lg:min-h-[285px] flex items-stretch select-none"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Campus Marketplace Highlights"
+          >
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={currentSlide.id}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: "spring", stiffness: 320, damping: 32 },
+                  opacity: { duration: 0.22 },
+                }}
+                className={`absolute inset-0 w-full h-full p-5 sm:p-7 lg:p-8 flex flex-col justify-center overflow-hidden transition-colors ${
+                  currentSlide.theme === "gold"
+                    ? "bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717]"
+                    : "bg-white/80 dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_4px_24px_rgba(15,23,42,0.035)] backdrop-blur-md text-[#171717] dark:text-white"
+                }`}
+              >
+                {/* Ambient Radial Highlight */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -left-12 -top-12 w-48 h-48 rounded-full bg-[#FFC928]/20 dark:bg-[#FFC928]/10 blur-2xl pointer-events-none"
+                />
+
+                {/* Background Image Layer (When custom banner is active) */}
+                {currentSlide.imageUrl && !isImageBroken && (
+                  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+                    <picture>
+                      {currentSlide.mobileImageUrl && (
+                        <source
+                          media="(max-width: 640px)"
+                          srcSet={currentSlide.mobileImageUrl}
+                        />
+                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={currentSlide.imageUrl}
+                        alt={currentSlide.imageAlt || currentSlide.headline}
+                        onError={() =>
+                          setImageErrors((prev) => ({ ...prev, [currentSlide.id]: true }))
+                        }
+                        className="w-full h-full object-cover object-right opacity-30 sm:opacity-40 mix-blend-multiply transition-opacity duration-300"
                       />
-                    )}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={activeBanner.imageUrl}
-                      alt={activeBanner.imageAlt || activeBanner.headline}
-                      onError={() => setImageFailed(true)}
-                      className="w-full h-full object-cover object-right opacity-30 sm:opacity-40 mix-blend-multiply transition-opacity duration-300"
-                    />
-                  </picture>
-                  {/* Gradient mask to preserve high contrast for text on the left */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#FFE182] via-[#FFE182]/80 to-transparent dark:from-[#F5C84C] dark:via-[#F5C84C]/85" />
-                </div>
-              )}
-
-              {/* Text & Action Content (Fully accessible and separate from image) */}
-              <div className="relative z-10 max-w-[480px]">
-                <h1 className="text-[21px] sm:text-[27px] lg:text-[29px] font-bold tracking-[-0.025em] text-[#171717] leading-[1.15]">
-                  {activeBanner.headline}
-                </h1>
-
-                {activeBanner.description && (
-                  <p className="mt-1.5 sm:mt-2 text-[13px] sm:text-[14px] font-normal text-[#262626] leading-[1.5]">
-                    {activeBanner.description}
-                  </p>
+                    </picture>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#FFE182] via-[#FFE182]/85 to-transparent dark:from-[#F5C84C] dark:via-[#F5C84C]/90" />
+                  </div>
                 )}
 
-                <div className="mt-3.5 sm:mt-5">
-                  <Link
-                    href={activeBanner.ctaUrl}
-                    className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#1A1A1A] hover:bg-[#2B2B2B] text-white px-4 py-2 text-[12px] sm:text-[12.5px] font-semibold transition-colors shadow-xs"
-                  >
-                    <span>{activeBanner.ctaLabel}</span>
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Welcome to the Hive Community Hero Banner */
-            <div className="radius-native relative overflow-hidden flex-1 rounded-2xl bg-white/70 dark:bg-white/[0.04] border border-[#ECEEF2] dark:border-white/10 shadow-[0_4px_24px_rgba(15,23,42,0.035)] backdrop-blur-md p-5 sm:p-6 lg:p-7 flex flex-col sm:flex-row items-center gap-5 sm:gap-7 transition-colors min-h-[180px] sm:min-h-[255px]">
-              {/* Soft Ambient Background Glow */}
+                {/* Full Graphic Vector Banner Mode */}
+                {currentSlide.isFullGraphic && currentSlide.imageUrl ? (
+                  <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={currentSlide.imageUrl}
+                      alt={currentSlide.imageAlt || currentSlide.headline}
+                      className="w-full h-full object-cover object-center select-none"
+                    />
+                    <Link
+                      href={currentSlide.ctaUrl}
+                      className="absolute inset-0 z-10"
+                      aria-label={currentSlide.headline}
+                    />
+                  </div>
+                ) : (
+                  /* Standard Banner Content Layout */
+                  <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 lg:gap-8 h-full">
+                    {/* Optional SVG Illustration */}
+                    {currentSlide.illustration && (
+                      <div className="relative shrink-0 w-[110px] sm:w-[145px] md:w-[165px] lg:w-[190px] flex items-center justify-center">
+                        <Image
+                          src={currentSlide.illustration}
+                          alt={currentSlide.headline}
+                          width={190}
+                          height={190}
+                          priority
+                          className="w-full h-auto object-contain drop-shadow-xs select-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Text Details & Interactive Buttons */}
+                    <div className="flex-1 text-center sm:text-left space-y-2 sm:space-y-2.5 max-w-xl">
+                      {/* Badge */}
+                      {currentSlide.badge && (
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase ${
+                            currentSlide.theme === "gold"
+                              ? "bg-black/10 dark:bg-black/20 text-[#171717] border border-black/10"
+                              : "bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/30 text-[#A06E00] dark:text-[#FFC928]"
+                          }`}
+                        >
+                          <BadgeIcon className="w-3 h-3" />
+                          <span>{currentSlide.badge}</span>
+                        </div>
+                      )}
+
+                      {/* Headline */}
+                      <h1 className="text-[20px] sm:text-[24px] lg:text-[27px] font-extrabold tracking-[-0.025em] leading-[1.18] text-[#171717] dark:text-white">
+                        {currentSlide.headline}
+                      </h1>
+
+                      {/* Description */}
+                      {currentSlide.description && (
+                        <p
+                          className={`text-[12.5px] sm:text-[13px] leading-relaxed font-normal max-w-lg ${
+                            currentSlide.theme === "gold"
+                              ? "text-[#262626]"
+                              : "text-[#5B636E] dark:text-neutral-300"
+                          }`}
+                        >
+                          {currentSlide.description}
+                        </p>
+                      )}
+
+                      {/* CTA Actions */}
+                      <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                        <Link
+                          href={currentSlide.ctaUrl}
+                          className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] px-4 py-2 text-[12px] sm:text-[12.5px] font-bold shadow-xs transition-colors cursor-pointer"
+                        >
+                          <span>{currentSlide.ctaLabel}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        {currentSlide.secondaryCtaLabel && currentSlide.secondaryCtaUrl && (
+                          <Link
+                            href={currentSlide.secondaryCtaUrl}
+                            className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-[#171717] dark:text-white px-3.5 py-2 text-[12px] sm:text-[12.5px] font-bold transition-colors cursor-pointer"
+                          >
+                            <span>{currentSlide.secondaryCtaLabel}</span>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Interactive Carousel Controls: Previous / Next & Dots Navigation */}
+            {slideCount > 1 && (
               <div
-                aria-hidden="true"
-                className="absolute -left-10 -top-10 w-44 h-44 rounded-full bg-[#FFC928]/15 dark:bg-[#FFC928]/5 blur-2xl pointer-events-none"
-              />
+                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-6 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/25 dark:bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 shadow-xs"
+                role="tablist"
+                aria-label="Hero banner carousel controls"
+              >
+                {/* Previous Button */}
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  aria-label="Previous banner"
+                  className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer active:scale-90"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
 
-              {/* Left: Illustration */}
-              <div className="relative shrink-0 w-[130px] sm:w-[155px] md:w-[180px] lg:w-[205px] flex items-center justify-center">
-                <Image
-                  src="/Welcome-cuate.svg"
-                  alt="Welcome to the hive community"
-                  width={210}
-                  height={210}
-                  priority
-                  className="w-full h-auto object-contain drop-shadow-xs select-none"
-                />
-              </div>
-
-              {/* Right: Text and Actions */}
-              <div className="relative z-10 flex-1 text-center sm:text-left space-y-2 sm:space-y-2.5 min-w-0">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/30 text-[#A06E00] dark:text-[#FFC928] text-[10.5px] font-bold tracking-wide uppercase">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Campus Community</span>
+                {/* Dots Indicators with Expandable Active Pill */}
+                <div className="flex items-center gap-1 px-1">
+                  {slides.map((slide, index) => {
+                    const isActive = index === currentIndex;
+                    return (
+                      <button
+                        key={slide.id}
+                        type="button"
+                        onClick={() => handleDotClick(index)}
+                        role="tab"
+                        aria-selected={isActive}
+                        aria-label={`Go to banner slide ${index + 1}: ${slide.headline}`}
+                        className={`radius-native h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                          isActive
+                            ? "w-6 bg-white shadow-xs"
+                            : "w-2 bg-white/45 hover:bg-white/80"
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
 
-                <h1 className="text-[20px] sm:text-[23px] lg:text-[26px] font-extrabold text-[#171717] dark:text-white tracking-[-0.025em] leading-[1.2]">
-                  Welcome to the Hive community
-                </h1>
+                {/* Next Button */}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  aria-label="Next banner"
+                  className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer active:scale-90"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
 
-                <p className="text-[12.5px] sm:text-[13px] text-[#5B636E] dark:text-neutral-300 leading-relaxed font-normal">
-                  Your student marketplace to discover deals, buy &amp; sell gear, and connect safely across campus.
-                </p>
-
-                <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                  <Link
-                    href="/explore"
-                    className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] px-4 py-2 text-[12px] sm:text-[12.5px] font-bold shadow-xs transition-colors"
-                  >
-                    <span>Explore Marketplace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-
-                  <Link
-                    href="/listings/create"
-                    className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white/80 dark:bg-white/5 hover:border-[#171717] dark:hover:border-white/30 text-[#171717] dark:text-white px-3.5 py-2 text-[12px] sm:text-[12.5px] font-bold transition-colors"
-                  >
-                    <span>Post a Listing</span>
-                  </Link>
-                </div>
+                {/* Slide Counter */}
+                <span className="text-[10px] font-bold text-white/75 pl-0.5 pr-1 tabular-nums border-l border-white/20 ml-0.5">
+                  {currentIndex + 1}/{slideCount}
+                </span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Right Column: Compact "Features" Card with Ready Ticks & Pending Indicators */}
+          {/* Right Column: Features Card */}
           <div className="hidden lg:flex radius-native w-full lg:w-[260px] xl:w-[275px] shrink-0 rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_6px_24px_rgba(15,23,42,0.035)] p-4 sm:p-5 flex-col justify-between">
             {/* Card Header */}
             <div className="flex items-center justify-between pb-2">
@@ -259,7 +543,6 @@ export function RebrandHero() {
                       </div>
                     </div>
 
-                    {/* Indicator: Green Check for Ready, Amber Clock for Coming Soon */}
                     {item.isReady ? (
                       <span
                         title="Feature ready to use"

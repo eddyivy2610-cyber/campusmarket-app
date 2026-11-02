@@ -21,12 +21,11 @@ import {
   Shield,
   BadgeCheck,
   ChevronRight,
-  Sparkles,
   Megaphone,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Logo } from "../ui/Logo";
-import { getAdminSession, clearAdminSession, signInAdmin } from "@/lib/adminAuth";
+import { getAdminSession, clearAdminSession } from "@/lib/adminAuth";
 
 export interface AdminNavItem {
   name: string;
@@ -144,15 +143,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.replace("/admin/auth/sign-in");
   };
 
-  const handleDemoSignIn = async () => {
-    setIsCheckingAuth(true);
-    const res = await signInAdmin("admin@campushive.edu.ng", "admin");
-    if (res.ok && res.session) {
-      setSession(res.session);
-    }
-    setIsCheckingAuth(false);
-  };
-
   const toggleTheme = () => {
     setTheme(currentTheme === "dark" ? "light" : "dark");
   };
@@ -162,7 +152,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-9 h-9 rounded-full border-3 border-[#FFC928] border-t-transparent animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-[#171717] dark:border-[#FFC928] border-t-transparent animate-spin" />
           <p className="text-[13px] font-semibold text-[#5B636E] dark:text-neutral-400">
             Verifying admin access...
           </p>
@@ -175,48 +165,70 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!session) {
     return (
       <div
-        style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
-        className="min-h-screen flex items-center justify-center bg-[#F7F8FA] dark:bg-[#0E1015] px-4 py-12 text-[#171717] dark:text-white"
+        style={{
+          fontFamily:
+            "var(--font-plus-jakarta), var(--font-poppins), system-ui, -apple-system, sans-serif",
+        }}
+        className="min-h-screen relative flex flex-col justify-center items-center bg-[#F7F8FA] dark:bg-[#0E1015] px-4 py-8 sm:py-12 overflow-hidden antialiased text-[#171717] dark:text-white"
       >
-        <div className="radius-native w-full max-w-md rounded-3xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 shadow-xl p-7 text-center space-y-5">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FFC928]/20 border border-[#FFC928]/40 flex items-center justify-center text-[#171717] dark:text-[#FFC928]">
-            <Shield className="w-8 h-8 stroke-[2.2]" />
+        {/* Subtle Yellow Brand Glow in background */}
+        <div
+          className="pointer-events-none absolute -left-16 sm:left-4 top-1/2 -translate-y-1/2 w-48 sm:w-64 h-72 sm:h-96 rounded-r-full bg-[#FFE182]/25 dark:bg-[#FFC928]/5 blur-2xl"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -right-16 top-12 w-64 h-64 rounded-full bg-[#FFE182]/20 dark:bg-[#FFC928]/5 blur-3xl"
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 w-full max-w-[440px]">
+          {/* Brand Header Logo */}
+          <div className="text-center mb-6">
+            <Link
+              href="/home"
+              className="inline-flex items-center group transition-transform active:scale-95"
+            >
+              <Logo
+                href={null}
+                height={42}
+                width={132}
+                imageClassName="transition-opacity group-hover:opacity-90"
+              />
+            </Link>
           </div>
 
-          <div className="space-y-1.5">
-            <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em]">
-              Administrator Access Required
-            </h1>
-            <p className="text-[13px] text-[#68707A] dark:text-neutral-400 leading-relaxed">
-              You must be signed in with administrative credentials to access the Campus Hive 2.0 Admin Suite.
-            </p>
-          </div>
+          {/* Card Box */}
+          <div className="radius-native bg-white dark:bg-[#14161D] rounded-3xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.03)] p-6 sm:p-8 text-center space-y-5">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/35 flex items-center justify-center text-[#B27D00] dark:text-[#FFC928]">
+              <Shield className="w-8 h-8 stroke-[2.2]" />
+            </div>
 
-          <div className="space-y-2.5 pt-2">
-            <Link
-              href={`/admin/auth/sign-in?next=${encodeURIComponent(pathname || "/admin")}`}
-              className="radius-native w-full py-2.5 px-4 rounded-xl bg-[#171717] dark:bg-white hover:opacity-90 text-white dark:text-[#171717] text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-opacity"
-            >
-              <span>Sign in as Administrator</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            <div className="space-y-1.5">
+              <h1 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+                Administrator Access Required
+              </h1>
+              <p className="text-[13px] text-[#68707A] dark:text-neutral-400 leading-relaxed font-normal">
+                You must be signed in with administrative credentials to access the Campus Hive Admin Suite.
+              </p>
+            </div>
 
-            <button
-              type="button"
-              onClick={handleDemoSignIn}
-              className="radius-native w-full py-2.5 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[13px] font-extrabold inline-flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Instant Dev / Demo Admin Sign-In</span>
-            </button>
+            <div className="space-y-2.5 pt-2">
+              <Link
+                href={`/admin/auth/sign-in?next=${encodeURIComponent(pathname || "/admin")}`}
+                className="radius-native w-full py-2.5 px-4 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors"
+              >
+                <span>Sign in as Administrator</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
 
-            <Link
-              href="/stores"
-              className="radius-native w-full py-2 px-4 rounded-xl border border-[#E8E8E8] dark:border-white/10 hover:border-[#171717] dark:hover:border-white text-[12.5px] font-semibold text-[#5B636E] dark:text-neutral-300 inline-flex items-center justify-center gap-2 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Return to Campus Marketplace</span>
-            </Link>
+              <Link
+                href="/home"
+                className="radius-native w-full py-2 px-4 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-[12.5px] font-semibold text-[#5B636E] dark:text-neutral-300 inline-flex items-center justify-center gap-2 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to Campus Hive</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -226,7 +238,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // 3. Authorized Admin Workspace
   return (
     <div
-      style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+      style={{
+        fontFamily:
+          "var(--font-plus-jakarta), var(--font-poppins), system-ui, -apple-system, sans-serif",
+      }}
       className="min-h-screen bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white flex flex-col antialiased"
     >
       {/* =============================================================== */}
@@ -245,7 +260,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#ECEEF2] dark:border-white/10">
               <div className="flex items-center gap-2">
-                <span className="text-[19px] font-extrabold tracking-tight">Campus Hive</span>
+                <Logo height={26} width={65} href="/admin" />
                 <span className="radius-native px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFC928] text-[#171717]">
                   ADMIN
                 </span>
@@ -378,12 +393,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
 
               <Link
-                href="/stores"
-                className="radius-native flex items-center justify-between px-3.5 py-2 rounded-xl text-[12.5px] font-semibold text-[#5B636E] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5 hover:text-[#171717] transition-all"
+                href="/home"
+                className="radius-native flex items-center justify-between px-3.5 py-2 rounded-xl text-[12.5px] font-semibold text-[#5B636E] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5 hover:text-[#171717] dark:hover:text-white transition-all"
               >
                 <div className="flex items-center gap-2.5">
                   <ArrowLeft className="w-3.5 h-3.5 text-[#8C929C]" />
-                  <span>Campus Stores</span>
+                  <span>Campus Hive Marketplace</span>
                 </div>
                 <ExternalLink className="w-3.5 h-3.5 text-[#8C929C]" />
               </Link>
@@ -471,10 +486,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               {/* Front-Facing Stores Shortcut */}
               <Link
-                href="/stores"
+                href="/home"
                 className="radius-native hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 text-[12px] font-bold text-[#171717] dark:text-white transition-colors"
               >
-                <span>Marketplace</span>
+                <span>Live Marketplace</span>
                 <ExternalLink className="w-3 h-3" />
               </Link>
             </div>

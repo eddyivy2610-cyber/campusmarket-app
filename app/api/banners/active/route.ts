@@ -105,9 +105,15 @@ export async function GET(req: NextRequest) {
       60
     );
 
+    const returnMultiple =
+      searchParams.get("multiple") === "true" ||
+      searchParams.get("all") === "true";
+
     const payload =
       placement === "homepage_hero"
-        ? eligibleBanners[0]
+        ? returnMultiple
+          ? eligibleBanners.map(serializePublicBanner)
+          : eligibleBanners[0]
           ? serializePublicBanner(eligibleBanners[0])
           : null
         : eligibleBanners.map(serializePublicBanner);
@@ -115,6 +121,7 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.json({
       success: true,
       data: payload,
+      items: eligibleBanners.map(serializePublicBanner),
     });
 
     const isPublic = isRequestSafeForPublicCache(req, { isPublicQuery: true });

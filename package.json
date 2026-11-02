@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -32,8 +32,8 @@
     "test:load": "npx tsx scripts/benchmark-load-concurrency.ts",
     "test:load:staging": "node scripts/run-k6-staging-connection-gate.mjs",
     "drift:repair": "npx tsx scripts/repair-review-drift.ts",
-    "backend:install": "cd campus-market-backend && pnpm install",
-    "backend:dev": "cd campus-market-backend && pnpm dev",
+    "backend:install": "cd campus-hive-backend && npm install",
+    "backend:dev": "cd campus-hive-backend && npm run dev",
     "dev:all": "concurrently -n web,api -c cyan,green \"npm run dev\" \"npm run backend:dev\""
   },
   "dependencies": {

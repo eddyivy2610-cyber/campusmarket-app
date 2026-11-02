@@ -1,7 +1,7 @@
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { ListingModel } from "../app/models/Listing";
-import { encodeListingCursor, decodeListingCursor } from "../app/api/listings/route";
+import { encodeListingCursor, decodeListingCursor } from "../app/lib/listingCursor";
 import { PRODUCT_CONDITIONS } from "../app/constants/enums";
 
 let passed = 0;
