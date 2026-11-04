@@ -6,7 +6,7 @@ import {
 } from "@/lib/rateLimit";
 import { validateSameOrigin } from "@/lib/csrf";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Extract or generate a unique request ID
   const incomingRequestId = request.headers.get("x-request-id");
   const requestId =
@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const method = request.method;
 
-  // 1. Rate Limiting Enforcement in Middleware for APIs
+  // 1. Rate Limiting Enforcement in Proxy for APIs
   if (pathname.startsWith("/api/")) {
     const csrfResponse = validateSameOrigin(request);
     if (csrfResponse) {
@@ -88,6 +88,9 @@ export async function middleware(request: NextRequest) {
 
   return response;
 }
+
+export { proxy as middleware };
+export default proxy;
 
 export const config = {
   matcher: [

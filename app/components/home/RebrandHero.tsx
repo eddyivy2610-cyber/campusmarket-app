@@ -6,8 +6,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
-  ChevronLeft,
   ArrowRight,
+  ArrowLeft,
   Tag,
   Store,
   Megaphone,
@@ -84,7 +84,7 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     ctaUrl: "/explore",
     secondaryCtaLabel: "Post a Listing",
     secondaryCtaUrl: "/listings/create",
-    imageUrl: "/hero-banner-campus-hive.svg",
+    imageUrl: "/welcome-banner-desktop.webp",
     isFullGraphic: true,
     theme: "white",
   },
@@ -99,21 +99,9 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     ctaUrl: "/explore",
     secondaryCtaLabel: "Post a Listing",
     secondaryCtaUrl: "/listings/create",
-    illustration: "/Welcome-cuate.svg",
+    imageUrl: "/get-started-banner-desktop.webp",
+    isFullGraphic: true,
     theme: "white",
-  },
-  {
-    id: "default-stores",
-    badge: "Student Stores",
-    badgeIcon: Store,
-    headline: "Launch your campus storefront",
-    description:
-      "Set up your student-owned business, showcase catalog items, and reach thousands of verified peers.",
-    ctaLabel: "Browse Storefronts",
-    ctaUrl: "/stores",
-    secondaryCtaLabel: "Open Store",
-    secondaryCtaUrl: "/stores?view=storefront",
-    theme: "gold",
   },
   {
     id: "default-radar",
@@ -126,6 +114,8 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     ctaUrl: "/wanted",
     secondaryCtaLabel: "Post Request",
     secondaryCtaUrl: "/wanted",
+    imageUrl: "/radar-banner-desktop.webp",
+    isFullGraphic: true,
     theme: "white",
   },
 ];
@@ -133,15 +123,12 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
 const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
-    opacity: 0,
   }),
   center: {
-    x: 0,
-    opacity: 1,
+    x: "0%",
   },
   exit: (direction: number) => ({
     x: direction > 0 ? "-100%" : "100%",
-    opacity: 0,
   }),
 };
 
@@ -150,6 +137,7 @@ export function RebrandHero() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const touchStartXRef = useRef<number | null>(null);
@@ -189,11 +177,12 @@ export function RebrandHero() {
                 imageUrl: b.imageUrl,
                 mobileImageUrl: b.mobileImageUrl,
                 imageAlt: b.imageAlt || b.headline,
+                isFullGraphic: Boolean(b.imageUrl && (!b.description || b.description.trim() === "")),
                 theme: "gold",
               }));
 
-              // Prepend active promotional campaigns to the queue with default slides
-              setSlides([...apiSlides, ...DEFAULT_HERO_SLIDES]);
+              // Exclusively display active database banners without hardcoded banners
+              setSlides(apiSlides);
             }
           }
         }
@@ -229,16 +218,31 @@ export function RebrandHero() {
     [currentIndex]
   );
 
-  // Auto-scroll timer: rotates every 5.5s unless paused by user interaction
+  // Reset progress bar on slide change
+  useEffect(() => {
+    setProgress(0);
+  }, [currentIndex]);
+
+  // Auto-scroll progress timer: rotates every 5s unless paused by user interaction
   useEffect(() => {
     if (isPaused || slideCount <= 1) return;
 
+    const stepMs = 50;
+    const durationMs = 5000;
+    const increment = (stepMs / durationMs) * 100;
+
     const interval = setInterval(() => {
-      handleNext();
-    }, 5500);
+      setProgress((prev) => {
+        if (prev + increment >= 100) {
+          handleNext();
+          return 0;
+        }
+        return prev + increment;
+      });
+    }, stepMs);
 
     return () => clearInterval(interval);
-  }, [isPaused, slideCount, handleNext, currentIndex]);
+  }, [isPaused, slideCount, handleNext]);
 
   // Touch Swipe Handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -311,23 +315,21 @@ export function RebrandHero() {
             aria-roledescription="carousel"
             aria-label="Campus Marketplace Highlights"
           >
-            <AnimatePresence initial={false} custom={direction} mode="wait">
+            <AnimatePresence initial={false} custom={direction}>
               <motion.div
-                key={currentSlide.id}
+                key={`${currentSlide.id}-${currentIndex}`}
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
                 transition={{
-                  x: { type: "spring", stiffness: 320, damping: 32 },
-                  opacity: { duration: 0.22 },
+                  x: { type: "tween", ease: [0.25, 1, 0.5, 1], duration: 0.65 },
                 }}
-                className={`absolute inset-0 w-full h-full p-5 sm:p-7 lg:p-8 flex flex-col justify-center overflow-hidden transition-colors ${
-                  currentSlide.theme === "gold"
-                    ? "bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717]"
-                    : "bg-white/80 dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_4px_24px_rgba(15,23,42,0.035)] backdrop-blur-md text-[#171717] dark:text-white"
-                }`}
+                className={`absolute inset-0 w-full h-full p-5 sm:p-7 lg:p-8 flex flex-col justify-center overflow-hidden transition-colors ${currentSlide.theme === "gold"
+                  ? "bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717]"
+                  : "bg-white/80 dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_4px_24px_rgba(15,23,42,0.035)] backdrop-blur-md text-[#171717] dark:text-white"
+                  }`}
               >
                 {/* Ambient Radial Highlight */}
                 <div
@@ -366,7 +368,7 @@ export function RebrandHero() {
                     <img
                       src={currentSlide.imageUrl}
                       alt={currentSlide.imageAlt || currentSlide.headline}
-                      className="w-full h-full object-cover object-center select-none"
+                      className="w-full h-full object-cover object-left select-none"
                     />
                     <Link
                       href={currentSlide.ctaUrl}
@@ -396,11 +398,10 @@ export function RebrandHero() {
                       {/* Badge */}
                       {currentSlide.badge && (
                         <div
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase ${
-                            currentSlide.theme === "gold"
-                              ? "bg-black/10 dark:bg-black/20 text-[#171717] border border-black/10"
-                              : "bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/30 text-[#A06E00] dark:text-[#FFC928]"
-                          }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase ${currentSlide.theme === "gold"
+                            ? "bg-black/10 dark:bg-black/20 text-[#171717] border border-black/10"
+                            : "bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/30 text-[#A06E00] dark:text-[#FFC928]"
+                            }`}
                         >
                           <BadgeIcon className="w-3 h-3" />
                           <span>{currentSlide.badge}</span>
@@ -415,11 +416,10 @@ export function RebrandHero() {
                       {/* Description */}
                       {currentSlide.description && (
                         <p
-                          className={`text-[12.5px] sm:text-[13px] leading-relaxed font-normal max-w-lg ${
-                            currentSlide.theme === "gold"
-                              ? "text-[#262626]"
-                              : "text-[#5B636E] dark:text-neutral-300"
-                          }`}
+                          className={`text-[12.5px] sm:text-[13px] leading-relaxed font-normal max-w-lg ${currentSlide.theme === "gold"
+                            ? "text-[#262626]"
+                            : "text-[#5B636E] dark:text-neutral-300"
+                            }`}
                         >
                           {currentSlide.description}
                         </p>
@@ -450,59 +450,72 @@ export function RebrandHero() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Interactive Carousel Controls: Previous / Next & Dots Navigation */}
+            {/* Carousel Controls: Left / Right Arrows & Animated Progress Countdown Counter */}
             {slideCount > 1 && (
               <div
-                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-6 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/25 dark:bg-black/50 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 shadow-xs"
-                role="tablist"
-                aria-label="Hero banner carousel controls"
+                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-6 z-20 flex items-center gap-2"
+                role="region"
+                aria-label="Carousel navigation"
               >
-                {/* Previous Button */}
+                {/* Button 1: Left Arrow ( ← ) */}
                 <button
                   type="button"
                   onClick={handlePrev}
                   aria-label="Previous banner"
-                  className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer active:scale-90"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer backdrop-blur-sm border border-white/10"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" strokeWidth={2.2} />
                 </button>
 
-                {/* Dots Indicators with Expandable Active Pill */}
-                <div className="flex items-center gap-1 px-1">
-                  {slides.map((slide, index) => {
-                    const isActive = index === currentIndex;
-                    return (
-                      <button
-                        key={slide.id}
-                        type="button"
-                        onClick={() => handleDotClick(index)}
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-label={`Go to banner slide ${index + 1}: ${slide.headline}`}
-                        className={`radius-native h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                          isActive
-                            ? "w-6 bg-white shadow-xs"
-                            : "w-2 bg-white/45 hover:bg-white/80"
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
-
-                {/* Next Button */}
+                {/* Button 2: Right Arrow ( → ) */}
                 <button
                   type="button"
                   onClick={handleNext}
                   aria-label="Next banner"
-                  className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer active:scale-90"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer backdrop-blur-sm border border-white/10"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" strokeWidth={2.2} />
                 </button>
 
-                {/* Slide Counter */}
-                <span className="text-[10px] font-bold text-white/75 pl-0.5 pr-1 tabular-nums border-l border-white/20 ml-0.5">
-                  {currentIndex + 1}/{slideCount}
-                </span>
+                {/* Button 3: Progress Ring with Two-Digit Counter ( 00 ) */}
+                <button
+                  type="button"
+                  onClick={() => setIsPaused((prev) => !prev)}
+                  title={isPaused ? "Resume autoplay" : "Pause autoplay"}
+                  aria-label={`Slide ${currentIndex + 1} of ${slideCount}. Click to ${isPaused ? "play" : "pause"}`}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] flex items-center justify-center relative cursor-pointer shadow-md active:scale-95 transition-all backdrop-blur-sm border border-white/10"
+                >
+                  <svg
+                    className="w-full h-full -rotate-90 absolute inset-0 pointer-events-none p-[2px]"
+                    viewBox="0 0 36 36"
+                  >
+                    {/* Background Track Circle */}
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.15)"
+                      strokeWidth="2"
+                    />
+                    {/* Animated Sky Blue Progress Ring */}
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15"
+                      fill="none"
+                      stroke="#38BDF8"
+                      strokeWidth="2"
+                      strokeDasharray="94.25"
+                      strokeDashoffset={94.25 - (94.25 * Math.min(progress, 100)) / 100}
+                      strokeLinecap="round"
+                      className="transition-[stroke-dashoffset] duration-75 ease-linear"
+                    />
+                  </svg>
+                  <span className="text-[11px] sm:text-[12px] font-mono font-bold text-white relative z-10 tabular-nums select-none tracking-tight">
+                    {String(currentIndex).padStart(2, "0")}
+                  </span>
+                </button>
               </div>
             )}
           </div>
