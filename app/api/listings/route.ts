@@ -145,6 +145,66 @@ export async function GET(req: NextRequest) {
     }
 
     const listings = await queryBuilder.limit(limit).lean();
+
+    // Enrich listings with Storefront display name & details so sellers appear as their storefront
+    const storeIds = Array.from(
+      new Set(
+        listings
+          .map((l: any) => l.storeId)
+          .filter((id: any) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id))
+      )
+    );
+    const sellerIds = Array.from(
+      new Set(
+        listings
+          .map((l: any) => l.sellerId)
+          .filter((id: any) => typeof id === "string" && id.length > 0)
+      )
+    );
+
+    const stores =
+      storeIds.length > 0 || sellerIds.length > 0
+        ? await StoreModel.find({
+            $or: [
+              ...(storeIds.length > 0 ? [{ _id: { $in: storeIds } }] : []),
+              ...(sellerIds.length > 0 ? [{ ownerId: { $in: sellerIds } }] : []),
+            ],
+          })
+            .select("name slug logo category campus operatingLocation storeType isVerified metrics ownerId")
+            .lean()
+        : [];
+
+    const storeById = new Map<string, any>();
+    const storeByOwnerId = new Map<string, any>();
+    for (const s of stores as any[]) {
+      storeById.set(String(s._id), s);
+      if (s.ownerId) {
+        storeByOwnerId.set(String(s.ownerId), s);
+      }
+    }
+
+    const enrichedListings = listings.map((l: any) => {
+      const store =
+        (l.storeId && storeById.get(String(l.storeId))) ||
+        (l.sellerId && storeByOwnerId.get(String(l.sellerId))) ||
+        null;
+      if (!store) return l;
+      return {
+        ...l,
+        storeId: l.storeId || String(store._id),
+        storeName: store.name,
+        storeSlug: store.slug,
+        storeLogo: store.logo,
+        storeCategory: store.category,
+        storeCampus: store.campus,
+        storeOperatingLocation: store.operatingLocation,
+        storeType: store.storeType,
+        storeVerified: Boolean(store.isVerified),
+        storeRating: store.metrics?.rating ?? 5.0,
+        storeReviewsCount: store.metrics?.reviewsCount ?? 0,
+      };
+    });
+
     const nextCursor =
       listings.length === limit && !query
         ? encodeListingCursor(
@@ -155,7 +215,7 @@ export async function GET(req: NextRequest) {
 
     const res = NextResponse.json({
       success: true,
-      data: listings,
+      data: enrichedListings,
       pagination: {
         page,
         limit,
@@ -271,7 +331,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. If storeId provided, verify store ownership & active status
+    // 3. If storeId provided, verify store ownership & active status; otherwise auto-link user's storefront
     let linkedStore: any = null;
     if (body.storeId) {
       const storeCheck = await assertUserOwnsStore(user.id, body.storeId, {
@@ -284,16 +344,27 @@ export async function POST(req: NextRequest) {
         );
       }
       linkedStore = storeCheck.store;
+    } else {
+      const userStore = await StoreModel.findOne({
+        ownerId: user.id,
+        status: { $ne: "suspended" },
+      });
+      if (userStore) {
+        linkedStore = userStore;
+      }
     }
 
     // 3. Sanitize inputs
-    const sanitized = sanitizeListingInput(body);
+    const sanitized = sanitizeListingInput({
+      ...body,
+      categoryFields: body.categoryFields || body.specs || {},
+    });
 
     // 4. Create listing with strictly server-enforced values
     const newListing = new ListingModel({
       ...sanitized,
       sellerId: user.id, // Strictly server-enforced sellerId
-      storeId: body.storeId || undefined,
+      storeId: linkedStore ? linkedStore._id.toString() : body.storeId || undefined,
       price: numericPrice,
       priceFormatted: `₦${Math.round(numericPrice).toLocaleString("en-NG")}`,
       views: 0,

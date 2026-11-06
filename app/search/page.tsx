@@ -47,12 +47,18 @@ function mapApiListingToExploreItem(item: any): ExploreListingItem {
   const numPrice = typeof item.price === "number" ? item.price : 0;
   const sellerObj = typeof item.sellerId === "object" ? item.sellerId : null;
   const sellerName =
-    sellerObj?.name || sellerObj?.profile?.displayName || "Campus Student";
+    item.storeName || sellerObj?.name || sellerObj?.profile?.displayName || "Campus Store";
   const sellerHandle =
+    item.storeSlug ||
     sellerObj?.handle ||
     sellerObj?.profile?.handle ||
     (item.sellerId ? String(item.sellerId).slice(-6) : "campus-seller");
-  const sellerType = item.storeId ? "student_store" : "verified_student";
+  const sellerType =
+    item.storeType === "local_business"
+      ? "approved_business"
+      : item.storeId
+      ? "student_store"
+      : "verified_student";
 
   const condition = item.condition || (isService ? undefined : "Used");
   const conditionTone: "neutral" | "green" =

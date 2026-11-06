@@ -275,9 +275,9 @@ export default function ListingDetailPage() {
           const item = json.data;
           const isService = item.listingType === "service";
 
-          // If item belongs to a store, load store info
-          let storeData: any = null;
-          if (item.storeId) {
+          // If item belongs to a store, use embedded store info or load store info
+          let storeData: any = item.store || null;
+          if (!storeData && item.storeId) {
             try {
               const storeRes = await fetch(`/api/stores/${encodeURIComponent(item.storeId)}`);
               const storeJson = await storeRes.json();
@@ -439,18 +439,27 @@ export default function ListingDetailPage() {
               ],
               specifications: specRows,
               seller: {
-                name: foundCreated.sellerName || "Tunde Bello",
+                name: foundCreated.sellerName || "Campus Storefront",
                 handle: foundCreated.sellerHandle || "me",
-                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
-                department: `${foundCreated.landmark || "Main Campus"}`,
-                badgeLabel: "Student seller",
-                isVerified: true,
-                bio: "Active student seller on Campus Hive.",
-                listingsCount: 1,
-                rating: "4.8",
-                reviewsCount: 18,
-                memberSince: "Oct 2026",
-                storeHref: `/profile/${foundCreated.sellerHandle || "me"}`,
+                avatar:
+                  foundCreated.sellerAvatar ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
+                department:
+                  foundCreated.sellerSubtitle ||
+                  `${foundCreated.landmark || "Main Campus"}`,
+                badgeLabel:
+                  foundCreated.sellerType === "approved_business"
+                    ? "Approved business"
+                    : "Student seller",
+                isVerified: Boolean(foundCreated.isVerified ?? false),
+                bio: foundCreated.sellerBio || "Active storefront on Campus Hive.",
+                listingsCount: foundCreated.sellerListingsCount || 1,
+                rating: String(foundCreated.sellerRating || "5.0"),
+                reviewsCount: foundCreated.sellerReviewsCount ?? 0,
+                memberSince: "2026",
+                storeHref:
+                  foundCreated.storeHref ||
+                  `/stores/${foundCreated.sellerHandle || "me"}`,
               },
               reviews: [],
             };
@@ -593,9 +602,14 @@ export default function ListingDetailPage() {
                 condition: item.condition || "Used",
                 conditionTone: item.condition === "New" ? "green" : "neutral",
                 imageUrl: item.images?.[0] || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
-                sellerName: sellerObj?.name || "Campus Student",
-                sellerHandle: sellerObj?.handle || "campus-seller",
-                sellerType: item.storeId ? "student_store" : "verified_student",
+                sellerName: item.storeName || sellerObj?.name || "Campus Store",
+                sellerHandle: item.storeSlug || sellerObj?.handle || "campus-seller",
+                sellerType:
+                  item.storeType === "local_business"
+                    ? "approved_business"
+                    : item.storeId
+                    ? "student_store"
+                    : "verified_student",
                 isVerifiedStudent: true,
                 engagementText: "Active listing",
                 rating: "4.8",

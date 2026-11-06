@@ -26,9 +26,21 @@ export async function GET(
       );
     }
 
+    let store: any = null;
+    if (listing.storeId && mongoose.Types.ObjectId.isValid(String(listing.storeId))) {
+      store = await StoreModel.findById(listing.storeId).lean();
+    }
+    if (!store && listing.sellerId) {
+      store = await StoreModel.findOne({ ownerId: String(listing.sellerId) }).lean();
+    }
+
     return NextResponse.json({
       success: true,
-      data: listing,
+      data: {
+        ...listing,
+        storeId: listing.storeId || (store ? String(store._id) : undefined),
+        store: store || null,
+      },
     });
   } catch (error: any) {
     console.error("[GET /api/listings/[id]] Error:", error);

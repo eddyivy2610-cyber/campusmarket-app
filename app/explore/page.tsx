@@ -40,9 +40,19 @@ function mapApiListingToExploreItem(item: any): ExploreListingItem {
   const isService = item.listingType === "service";
   const numPrice = typeof item.price === "number" ? item.price : 0;
   const sellerObj = typeof item.sellerId === "object" ? item.sellerId : null;
-  const sellerName = sellerObj?.name || sellerObj?.profile?.displayName || "Campus Student";
-  const sellerHandle = sellerObj?.handle || sellerObj?.profile?.handle || (item.sellerId ? String(item.sellerId).slice(-6) : "campus-seller");
-  const sellerType = item.storeId ? "student_store" : "verified_student";
+  const sellerName =
+    item.storeName || sellerObj?.name || sellerObj?.profile?.displayName || "Campus Store";
+  const sellerHandle =
+    item.storeSlug ||
+    sellerObj?.handle ||
+    sellerObj?.profile?.handle ||
+    (item.sellerId ? String(item.sellerId).slice(-6) : "campus-seller");
+  const sellerType =
+    item.storeType === "local_business"
+      ? "approved_business"
+      : item.storeId
+      ? "student_store"
+      : "verified_student";
 
   let condition = item.condition || (isService ? undefined : "Used");
   let conditionTone: "neutral" | "green" = condition === "New" ? "green" : "neutral";

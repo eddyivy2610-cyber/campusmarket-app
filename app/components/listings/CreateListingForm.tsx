@@ -34,6 +34,7 @@ import {
   Smartphone,
   Sparkles,
   Star,
+  Store,
   Trash2,
   Upload,
   User,
@@ -43,6 +44,7 @@ import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
 import { useAuth } from "../../context/AuthContext";
 import { listingService } from "../../lib/listingService";
+import { apiGet, apiPost } from "../../lib/apiClient";
 
 export type ListingStep = 1 | 2 | 3 | 4 | 5;
 
@@ -145,13 +147,14 @@ export function CreateListingForm() {
   const [customFeatureInput, setCustomFeatureInput] = useState("");
   const [showAddCustomFeature, setShowAddCustomFeature] = useState(false);
   const [publishedListingId, setPublishedListingId] = useState<string | null>(null);
+  const [userStore, setUserStore] = useState<any | null>(null);
 
-  // Form State
+  // Form State (clean defaults — no hardcoded demo listing values)
   const [listingType, setListingType] = useState<"product" | "service">(initialType);
-  const [title, setTitle] = useState(initialType === "service" ? "Graphic Design & Brand Identity" : "HP EliteBook 840 G5");
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState(initialType === "service" ? "Services" : "Laptops & Computers");
   const [condition, setCondition] = useState("Used - Good");
-  const [price, setPrice] = useState(initialType === "service" ? "5000" : "185000");
+  const [price, setPrice] = useState("");
   const [availability, setAvailability] = useState("Available");
   const [isNegotiable, setIsNegotiable] = useState(true);
 
@@ -161,28 +164,12 @@ export function CreateListingForm() {
   const [serviceLocationType, setServiceLocationType] = useState<"on_campus" | "remote" | "client_location" | "vendor_shop">("on_campus");
 
   // Step 2 State
-  const [description, setDescription] = useState(
-    "Reliable and powerful HP EliteBook 840 G5. Perfect for school, coding, and everyday campus use. Comes with original charger and tested battery."
-  );
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([
-    "Good battery life",
-    "Includes original charger",
-    "Lightweight",
-  ]);
-  const [specs, setSpecs] = useState<Record<string, string>>({
-    brand: "HP",
-    ram: "16 GB",
-    storage: "512 GB SSD",
-    processor: "Intel Core i5 8th Gen",
-    batteryHealth: "Good (2-4 hrs)",
-  });
+  const [description, setDescription] = useState("");
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [specs, setSpecs] = useState<Record<string, string>>({});
 
   // Step 3 State: Images
-  const [images, setImages] = useState<string[]>([
-    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&auto=format&fit=crop&q=80",
-  ]);
+  const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 4 State: Location & Meetup
@@ -191,7 +178,7 @@ export function CreateListingForm() {
   const [landmark, setLandmark] = useState("University Main Library");
   const [meetupTiming, setMeetupTiming] = useState("Daylight public hours (10:00 AM – 5:00 PM)");
   const [meetupPreference, setMeetupPreference] = useState("In-person campus meetup (Recommended)");
-  const [sellerNotes, setSellerNotes] = useState("Buyer can test the device thoroughly before making payment.");
+  const [sellerNotes, setSellerNotes] = useState("");
 
   // Step 5 State: Terms
   const [confirmHonesty, setConfirmHonesty] = useState(true);
@@ -199,6 +186,29 @@ export function CreateListingForm() {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load the authenticated user's Storefront so listings always display storefront identity & details
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadStorefront() {
+      try {
+        const res = await apiGet<any>("/api/stores/me");
+        if (!isCancelled && res?.success && res?.data?.store) {
+          const store = res.data.store;
+          setUserStore(store);
+          if (store.campus) {
+            setCampus(store.campus);
+          }
+        }
+      } catch {
+        // Fallback to user profile if store fetch fails
+      }
+    }
+    loadStorefront();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   // Restore Draft on mount
   useEffect(() => {
@@ -258,21 +268,15 @@ export function CreateListingForm() {
     }
   };
 
-  // Change category: optionally populate sample images if user has none
+  // Change category: adapt category-specific specs without injecting hardcoded sample photos
   const handleCategoryChange = (newCat: string) => {
     setCategory(newCat);
-    // Reset or adapt specs
     const newSpecsConfig = CATEGORY_SPECS[newCat] || [];
     const initialSpecs: Record<string, string> = {};
     newSpecsConfig.forEach((spec) => {
       initialSpecs[spec.key] = spec.options ? spec.options[0] : "";
     });
     setSpecs(initialSpecs);
-
-    // If default demo images match previous category, swap to relevant demo images
-    if (DEFAULT_SAMPLE_IMAGES[newCat]) {
-      setImages(DEFAULT_SAMPLE_IMAGES[newCat]);
-    }
   };
 
   const [isUploadingImages, setIsUploadingImages] = useState(false);
@@ -374,6 +378,35 @@ export function CreateListingForm() {
     }
   };
 
+  // Storefront Display Identity (Seller appears as their Storefront display name and details)
+  const resolvedStoreId = storeIdParam || userStore?._id || userStore?.id || undefined;
+  const storeDisplayName =
+    userStore?.name ||
+    (user as any)?.profile?.displayName ||
+    user?.name ||
+    "Campus Storefront";
+  const storeAvatar =
+    userStore?.logo ||
+    user?.avatar ||
+    (user as any)?.profile?.avatar ||
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+  const storeCategoryLabel =
+    userStore?.category ||
+    (userStore?.storeType === "local_business" ? "Campus Business" : "Student Storefront");
+  const storeLocationLabel =
+    userStore?.operatingLocation ||
+    userStore?.campus ||
+    user?.campus ||
+    campus;
+  const storeSubtitle = `${storeCategoryLabel} · ${storeLocationLabel}`;
+  const storeRating =
+    userStore?.metrics?.rating !== undefined
+      ? Number(userStore.metrics.rating).toFixed(1)
+      : "5.0";
+  const storeReviewsCount = userStore?.metrics?.reviewsCount ?? 0;
+  const storeIsVerified = Boolean(userStore?.isVerified);
+  const storeSlugOrId = userStore?.slug || resolvedStoreId || user?.handle || "me";
+
   // Final Publish Handler
   const handlePublishListing = async () => {
     if (!confirmHonesty || !confirmSafety) {
@@ -404,7 +437,7 @@ export function CreateListingForm() {
               serviceLocationType,
             }
           : undefined,
-      storeId: storeIdParam || undefined,
+      storeId: resolvedStoreId,
       status: availability,
       description,
       images,
@@ -414,11 +447,21 @@ export function CreateListingForm() {
       location: `${landmark}, ${campusBranch}`,
       specs,
       features: selectedFeatures,
-      sellerName: user?.name || "Campus Student",
-      sellerHandle: user?.handle || "me",
-      sellerType: user?.isStudent ? "student_seller" : "approved_business",
-      isStudentSeller: true,
-      isVerified: true,
+      sellerName: storeDisplayName,
+      sellerHandle: storeSlugOrId,
+      sellerAvatar: storeAvatar,
+      sellerSubtitle: storeSubtitle,
+      sellerBio: userStore?.description || "Active storefront on Campus Hive.",
+      sellerListingsCount: (userStore?.metrics?.listingsCount || 0) + 1,
+      sellerRating: storeRating,
+      sellerReviewsCount: storeReviewsCount,
+      storeHref: resolvedStoreId ? `/stores/${storeSlugOrId}` : `/profile/${user?.handle || "me"}`,
+      sellerType:
+        userStore?.storeType === "local_business"
+          ? "approved_business"
+          : "student_seller",
+      isStudentSeller: userStore?.storeType !== "local_business",
+      isVerified: storeIsVerified,
       createdAt: new Date().toISOString(),
     };
 
@@ -432,28 +475,24 @@ export function CreateListingForm() {
       // 2. Clear draft
       localStorage.removeItem(DRAFT_STORAGE_KEY);
 
-      // 3. Post to real backend API endpoint
+      // 3. Post to real backend API endpoint using authenticated apiPost
       try {
-        const res = await fetch("/api/listings", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: newListingData.title,
-            description: newListingData.description,
-            price: newListingData.price,
-            category: newListingData.category,
-            condition: newListingData.condition,
-            listingType: newListingData.listingType,
-            serviceDetails: newListingData.serviceDetails,
-            storeId: newListingData.storeId,
-            images: newListingData.images,
-            campus: newListingData.campus,
-            location: newListingData.location,
-            specs: newListingData.specs,
-          }),
+        const result = await apiPost<any>("/api/listings", {
+          title: newListingData.title,
+          description: newListingData.description,
+          price: newListingData.price,
+          category: newListingData.category,
+          condition: newListingData.condition,
+          listingType: newListingData.listingType,
+          serviceDetails: newListingData.serviceDetails,
+          storeId: newListingData.storeId,
+          images: newListingData.images,
+          campus: newListingData.campus,
+          location: newListingData.location,
+          categoryFields: newListingData.specs,
+          specs: newListingData.specs,
         });
-        const result = await res.json();
-        if (result.success && result.data?._id) {
+        if (result?.success && result?.data?._id) {
           newListingData.id = result.data._id;
           newListingData._id = result.data._id;
         }
@@ -618,12 +657,19 @@ export function CreateListingForm() {
           </div>
         </div>
 
-        {/* 3-COLUMN WORKSPACE: Stepper | Single Step Form | Live Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_360px] xl:grid-cols-[240px_1fr_380px] gap-6 lg:gap-8 items-start">
+        {/* WORKSPACE: 2-Column on Steps 1-4 (No premature preview), 3-Column with Live Preview only at Step 5 */}
+        <div
+          className={`grid grid-cols-1 ${
+            currentStep === 5
+              ? "lg:grid-cols-[220px_1fr_360px] xl:grid-cols-[240px_1fr_380px]"
+              : "lg:grid-cols-[240px_1fr]"
+          } gap-6 lg:gap-8 items-start`}
+        >
           
           {/* =============================================================== */}
-          {/* COLUMN 1: 5-STEP VERTICAL STEPPER                                */}
+          {/* COLUMN 1: 5-STEP VERTICAL STEPPER & SAFETY TIPS                 */}
           {/* =============================================================== */}
+          <div className="space-y-4 lg:sticky lg:top-24">
           <aside className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <h2 className="text-[17px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em] mb-4">
               Create Listing
@@ -636,7 +682,7 @@ export function CreateListingForm() {
                   { step: 2, title: "Description", desc: "Details & specifications" },
                   { step: 3, title: "Photos", desc: "Add clear images" },
                   { step: 4, title: "Location & meetup", desc: "Where and how to meet" },
-                  { step: 5, title: "Review & publish", desc: "Check your listing" },
+                  { step: 5, title: "Review & publish", desc: "Preview & publish" },
                 ] as const
               ).map((item) => {
                 const isActive = currentStep === item.step;
@@ -705,6 +751,60 @@ export function CreateListingForm() {
               </div>
             </div>
           </aside>
+
+          {/* Storefront Identity Mini Card & Safety Card */}
+          <div className="radius-native p-4 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#8C929C]">
+              <Store className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FFC928]" />
+              <span>Posting as Storefront</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
+                <img
+                  src={storeAvatar}
+                  alt={storeDisplayName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-[12.5px] font-extrabold text-[#171717] dark:text-white truncate">
+                    {storeDisplayName}
+                  </span>
+                  {storeIsVerified && (
+                    <BadgeCheck className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928] shrink-0" />
+                  )}
+                </div>
+                <div className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
+                  {storeSubtitle}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="radius-native p-4 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#FFC928] shrink-0" />
+              <span className="text-[12.5px] font-extrabold text-[#171717] dark:text-white">
+                Stay safe on Campus Hive
+              </span>
+            </div>
+            <ul className="text-[11.5px] text-[#68707A] dark:text-neutral-400 space-y-1.5 list-disc list-inside leading-snug">
+              <li>Meet in a designated public place on campus.</li>
+              <li>Avoid sharing personal or financial information.</li>
+              <li>Report suspicious activity immediately.</li>
+            </ul>
+            <div className="pt-1">
+              <Link
+                href="/safety-guidelines"
+                className="text-[11.5px] font-bold text-[#171717] dark:text-white hover:underline inline-flex items-center gap-1"
+              >
+                <span>Learn more</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+          </div>
 
           {/* =============================================================== */}
           {/* COLUMN 2: ACTIVE STEP FORM (ONLY CURRENT STEP DISPLAYED)        */}
@@ -1609,130 +1709,113 @@ export function CreateListingForm() {
           </section>
 
           {/* =============================================================== */}
-          {/* COLUMN 3: STICKY LIVE PREVIEW CARD                              */}
+          {/* COLUMN 3: LISTING PREVIEW (ONLY SHOWN AT STEP 5 REVIEW & PUBLISH) */}
           {/* =============================================================== */}
-          <aside className="space-y-4 lg:sticky lg:top-24">
-            <div>
-              <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                Listing preview
-              </h3>
-              <p className="text-[11.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5">
-                This is how your listing will appear to other users.
-              </p>
-            </div>
-
-            {/* Live Product Card matching wireframe */}
-            <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-              {/* Image with status badge */}
-              <div className="relative aspect-[16/10] bg-[#ECEEF2] dark:bg-white/5 overflow-hidden">
-                {images.length > 0 ? (
-                  <img
-                    src={images[0]}
-                    alt="Listing live preview"
-                    className="w-full h-full object-cover transition-all"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-[#8C929C]">
-                    <ImageIcon className="w-8 h-8 stroke-[1.5]" />
-                    <span className="text-[11px] font-medium mt-1">Photo preview</span>
-                  </div>
-                )}
-
-                <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/20 dark:text-emerald-400 border border-[#A7F3D0]/60 shadow-xs">
-                  {availability}
-                </div>
-              </div>
-
-              {/* Card Body */}
-              <div className="p-4 sm:p-5 space-y-3">
-                {/* Title & Price */}
-                <div>
-                  <h4 className="text-[16px] font-extrabold text-[#171717] dark:text-white leading-snug line-clamp-2">
-                    {title || "Item title will appear here"}
-                  </h4>
-                  <div className="text-[18px] font-black text-[#171717] dark:text-[#FFC928] mt-1">
-                    ₦{formattedPriceNumber}
-                  </div>
-                </div>
-
-                {/* Meta details */}
-                <div className="flex items-center gap-2 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 flex-wrap">
-                  <span className="inline-flex items-center gap-1 font-semibold text-[#171717] dark:text-neutral-200">
-                    <Laptop className="w-3.5 h-3.5 text-[#8C929C]" />
-                    <span>{category}</span>
-                  </span>
-                  <span>·</span>
-                  <span>{condition}</span>
-                </div>
-
-                {/* Description snippet */}
-                <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 line-clamp-3 leading-relaxed">
-                  {description || "Add a description to tell other students what makes your item special."}
+          {currentStep === 5 && (
+            <aside className="space-y-4 lg:sticky lg:top-24 animate-in fade-in duration-200">
+              <div>
+                <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
+                  Listing preview
+                </h3>
+                <p className="text-[11.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5">
+                  This is how your finished listing and storefront identity will appear to buyers.
                 </p>
+              </div>
 
-                {/* Landmark pill */}
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[11.5px] font-bold text-[#5B636E] dark:text-neutral-300">
-                  <MapPin className="w-3 h-3 text-[#D97706]" />
-                  <span className="truncate max-w-[240px]">{landmark}</span>
-                </div>
-
-                {/* Seller Profile Pill matching wireframe */}
-                <div className="pt-3 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
+              {/* Final Product Preview Card */}
+              <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+                {/* Image with status badge */}
+                <div className="relative aspect-[16/10] bg-[#ECEEF2] dark:bg-white/5 overflow-hidden">
+                  {images.length > 0 ? (
                     <img
-                      src={
-                        user?.avatar ||
-                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                      }
-                      alt="Seller avatar"
-                      className="w-full h-full object-cover"
+                      src={images[0]}
+                      alt="Listing preview"
+                      className="w-full h-full object-cover transition-all"
                     />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[#8C929C]">
+                      <ImageIcon className="w-8 h-8 stroke-[1.5]" />
+                      <span className="text-[11px] font-medium mt-1">Photo preview</span>
+                    </div>
+                  )}
+
+                  <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/20 dark:text-emerald-400 border border-[#A7F3D0]/60 shadow-xs">
+                    {availability}
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 sm:p-5 space-y-3">
+                  {/* Title & Price */}
+                  <div>
+                    <h4 className="text-[16px] font-extrabold text-[#171717] dark:text-white leading-snug line-clamp-2">
+                      {title || "Untitled listing"}
+                    </h4>
+                    <div className="text-[18px] font-black text-[#171717] dark:text-[#FFC928] mt-1">
+                      ₦{formattedPriceNumber}
+                    </div>
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                        {user?.name || "Campus Student"}
-                      </span>
-                      <BadgeCheck className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0" />
+                  {/* Meta details */}
+                  <div className="flex items-center gap-2 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 flex-wrap">
+                    <span className="inline-flex items-center gap-1 font-semibold text-[#171717] dark:text-neutral-200">
+                      <Laptop className="w-3.5 h-3.5 text-[#8C929C]" />
+                      <span>{category}</span>
+                    </span>
+                    {listingType === "product" && (
+                      <>
+                        <span>·</span>
+                        <span>{condition}</span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Description snippet */}
+                  <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 line-clamp-3 leading-relaxed">
+                    {description}
+                  </p>
+
+                  {/* Landmark pill */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[11.5px] font-bold text-[#5B636E] dark:text-neutral-300">
+                    <MapPin className="w-3 h-3 text-[#D97706]" />
+                    <span className="truncate max-w-[240px]">{landmark}</span>
+                  </div>
+
+                  {/* Storefront Seller Identity Pill */}
+                  <div className="pt-3 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
+                      <img
+                        src={storeAvatar}
+                        alt={storeDisplayName}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <div className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
-                      Student Seller · Computer Science
-                    </div>
-                    <div className="flex items-center gap-1 text-[11px] text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                      <Star className="w-3 h-3 text-[#FFC928] fill-[#FFC928]" />
-                      <span className="font-bold text-[#171717] dark:text-white">4.8</span>
-                      <span>(18 reviews)</span>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                          {storeDisplayName}
+                        </span>
+                        {storeIsVerified && (
+                          <BadgeCheck className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0" />
+                        )}
+                      </div>
+                      <div className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
+                        {storeSubtitle}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                        <Star className="w-3 h-3 text-[#FFC928] fill-[#FFC928]" />
+                        <span className="font-bold text-[#171717] dark:text-white">
+                          {storeRating}
+                        </span>
+                        <span>({storeReviewsCount} reviews)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Safety Card matching wireframe */}
-            <div className="radius-native p-4 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#FFC928] shrink-0" />
-                <span className="text-[12.5px] font-extrabold text-[#171717] dark:text-white">
-                  Stay safe on Campus Hive
-                </span>
-              </div>
-              <ul className="text-[11.5px] text-[#68707A] dark:text-neutral-400 space-y-1.5 list-disc list-inside leading-snug">
-                <li>Meet in a designated public place on campus.</li>
-                <li>Avoid sharing personal or financial information.</li>
-                <li>Report suspicious activity immediately.</li>
-              </ul>
-              <div className="pt-1">
-                <Link
-                  href="/safety-guidelines"
-                  className="text-[11.5px] font-bold text-[#171717] dark:text-white hover:underline inline-flex items-center gap-1"
-                >
-                  <span>Learn more</span>
-                  <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-            </div>
-          </aside>
+            </aside>
+          )}
         </div>
       </main>
 
