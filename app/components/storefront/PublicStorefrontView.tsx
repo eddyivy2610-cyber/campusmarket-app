@@ -145,8 +145,7 @@ export function PublicStorefrontView({
 
   const handleFollowToggle = async () => {
     if (!user) {
-      showToast("Please sign in to follow stores.");
-      router.push("/login");
+      router.push("/register");
       return;
     }
     const storeId = store?._id || store?.id;
@@ -167,11 +166,28 @@ export function PublicStorefrontView({
       } else {
         setIsFollowing(!nextFollowing);
         setFollowersCount((prev) => (nextFollowing ? Math.max(0, prev - 1) : prev + 1));
+        if (
+          String((res as any)?.error || "")
+            .toLowerCase()
+            .includes("authentication")
+        ) {
+          router.push("/register");
+          return;
+        }
         showToast((res as any)?.error || "Failed to update follow status.");
       }
     } catch (err: any) {
       setIsFollowing(!nextFollowing);
       setFollowersCount((prev) => (nextFollowing ? Math.max(0, prev - 1) : prev + 1));
+      if (
+        err?.status === 401 ||
+        String(err?.message || "")
+          .toLowerCase()
+          .includes("authentication")
+      ) {
+        router.push("/register");
+        return;
+      }
       showToast(err.message || "Failed to update follow status.");
     } finally {
       setIsFollowPending(false);
@@ -426,9 +442,11 @@ export function PublicStorefrontView({
   const isPaused = store.status === "paused";
   const isOwner = Boolean(user?.id && store.ownerId && store.ownerId === user.id);
 
-  const messageUrl = `/messages?recipient=${encodeURIComponent(
-    store.ownerId || store._id || store.id || ""
-  )}&store=${encodeURIComponent(store._id || store.id || "")}`;
+  const messageUrl = user
+    ? `/messages?recipient=${encodeURIComponent(
+        store.ownerId || store._id || store.id || ""
+      )}&store=${encodeURIComponent(store._id || store.id || "")}`
+    : "/register";
 
   return (
     <div

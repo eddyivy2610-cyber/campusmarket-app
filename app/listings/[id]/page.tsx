@@ -539,6 +539,10 @@ export default function ListingDetailPage() {
   };
 
   const handleOpenChatWithContext = () => {
+    if (!user) {
+      router.push("/register");
+      return;
+    }
     const isService = listing.category === "Services" || listing.conditionLabel === "Service";
     const storeParam = listing.seller.storeHref.startsWith("/stores/")
       ? listing.seller.storeHref.replace("/stores/", "")

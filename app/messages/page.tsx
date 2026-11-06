@@ -9,7 +9,7 @@ import React, {
   useMemo,
 } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Send,
@@ -149,6 +149,7 @@ const REVIEW_TAG_OPTIONS = [
 
 function MessagesWorkspace() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Current user identity & optional role switcher for testing both sides of check-ins
   const [currentUser, setCurrentUser] = useState<ChatParticipantProfile>({
@@ -309,6 +310,7 @@ function MessagesWorkspace() {
       );
       if (res.status === 401) {
         setConversations([]);
+        router.replace("/register");
         return;
       }
       if (!res.ok) throw new Error("Failed to load conversations");

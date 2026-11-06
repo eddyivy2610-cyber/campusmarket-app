@@ -77,7 +77,7 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
 
     const handleFollowToggle = async () => {
         if (!user) {
-            toast.error("Please login to follow users");
+            window.location.href = "/register";
             return;
         }
         if (isFollowingLoading) return;

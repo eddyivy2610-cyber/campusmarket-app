@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   BadgeCheck,
   MessageSquare,
@@ -508,6 +508,7 @@ type ProfileTab = "overview" | "listings" | "reviews" | "about";
 
 export default function ProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const rawHandle = ((params?.handle as string) || "me")
     .replace(/^@/, "")
     .toLowerCase();
@@ -1043,6 +1044,10 @@ export default function ProfilePage() {
                             <button
                               type="button"
                               onClick={async () => {
+                                if (!user) {
+                                  router.push("/register");
+                                  return;
+                                }
                                 try {
                                   const res = await followService.toggleFollow(profile.id);
                                   if (res?.success) {
@@ -1057,6 +1062,15 @@ export default function ProfilePage() {
                                     );
                                   }
                                 } catch (err: any) {
+                                  if (
+                                    err?.status === 401 ||
+                                    String(err?.message || "")
+                                      .toLowerCase()
+                                      .includes("authentication")
+                                  ) {
+                                    router.push("/register");
+                                    return;
+                                  }
                                   showToast(err.message || "Failed to update follow status");
                                 }
                               }}
@@ -1081,9 +1095,13 @@ export default function ProfilePage() {
                           )}
 
                           <Link
-                            href={`/messages?user=${encodeURIComponent(
-                              profile.id
-                            )}&name=${encodeURIComponent(profile.name)}`}
+                            href={
+                              user
+                                ? `/messages?user=${encodeURIComponent(
+                                    profile.id
+                                  )}&name=${encodeURIComponent(profile.name)}`
+                                : "/register"
+                            }
                             className="radius-native flex-1 h-9 px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
                           >
                             <MessageSquare className="w-3.5 h-3.5 stroke-[2.2]" />
