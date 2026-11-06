@@ -20,9 +20,13 @@ export function getServerAuthUser(req: NextRequest): ServerAuthUser | null {
 
   if (authHeader?.startsWith("Bearer ") || authHeader?.startsWith("bearer ")) {
     const headerToken = authHeader.substring(7).trim();
-    if (!headerToken) return null;
-    // Cryptographically verifies HMAC signature, claims (iss, aud, exp), and tokenType !== "refresh"
-    return verifyAuthToken(headerToken);
+    if (headerToken) {
+      // Cryptographically verifies HMAC signature, claims (iss, aud, exp), and tokenType !== "refresh"
+      const verifiedHeader = verifyAuthToken(headerToken);
+      if (verifiedHeader) {
+        return verifiedHeader;
+      }
+    }
   }
 
   // Check short-lived access token cookie first

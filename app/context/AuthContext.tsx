@@ -151,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     localStorage.removeItem("campus_user");
                     localStorage.removeItem("campus_email_verified");
+                    localStorage.removeItem("campus_access_token");
                 } catch {}
             } else {
                 // Transient network or server error: preserve existing cached session
@@ -268,6 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
                 localStorage.removeItem("campus_user");
                 localStorage.removeItem("campus_email_verified");
+                localStorage.removeItem("campus_access_token");
                 localStorage.removeItem("ch_profile_identity_v1");
             } catch {}
             if (typeof window !== "undefined") {

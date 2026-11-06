@@ -85,6 +85,7 @@ export function createAuthToken(
     studentVerified: Boolean(user.studentVerified),
     emailVerified: user.emailVerified !== false,
     campus: user.campus || undefined,
+    tokenVersion: typeof user.tokenVersion === "number" ? user.tokenVersion : 0,
     tokenType: "access",
     iat: now,
     exp: now + expiresInSeconds,

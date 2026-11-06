@@ -18,6 +18,14 @@ export async function uploadFileClient(
   purpose: UploadPurpose = "listing_image"
 ): Promise<ClientUploadResult> {
   const authHeaders: Record<string, string> = {};
+  if (typeof window !== "undefined") {
+    try {
+      const token = localStorage.getItem("campus_access_token");
+      if (token) {
+        authHeaders.Authorization = `Bearer ${token}`;
+      }
+    } catch {}
+  }
 
   // Extract file extension
   const fileName = file.name || "file.jpg";
@@ -27,6 +35,7 @@ export async function uploadFileClient(
   try {
     const signRes = await fetch("/api/upload/sign", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...authHeaders,
@@ -89,6 +98,7 @@ export async function uploadFileClient(
 
     const fallbackRes = await fetch("/api/upload", {
       method: "POST",
+      credentials: "include",
       headers: {
         ...authHeaders,
       },

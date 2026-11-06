@@ -23,6 +23,7 @@ import { RebrandHeader } from "@/components/header/RebrandHeader";
 import { RebrandFooter } from "@/components/sections/RebrandFooter";
 import { useAuth } from "@/context/AuthContext";
 import { uploadFileClient } from "@/lib/clientUpload";
+import { apiGet, apiPost } from "@/lib/apiClient";
 
 const CATEGORIES = [
   "Electronics & Tech",
@@ -167,15 +168,16 @@ export default function SellerOnboardingPage() {
 
     async function checkExistingStore() {
       try {
-        const storeRes = await fetch("/api/stores/me", { credentials: "include" });
-        if (storeRes.ok) {
-          const storeJson = await storeRes.json();
-          if (storeJson.success && storeJson.data) {
-            router.push("/stores?view=storefront");
-            return;
-          }
+        const storeJson = await apiGet<any>("/api/stores/me");
+        if (storeJson?.success && storeJson?.data) {
+          router.push("/stores?view=storefront");
+          return;
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.status === 401) {
+          router.push("/login?redirect=/onboarding/seller");
+          return;
+        }
         console.error("Failed to check existing seller status:", err);
       } finally {
         setCheckingExisting(false);
@@ -277,38 +279,32 @@ export default function SellerOnboardingPage() {
         );
       }
 
-      // 3. Submit to POST /api/stores
-      const res = await fetch("/api/stores", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          fullName: fullName.trim(),
-          logo: finalLogoUrl,
-          name: storeName.trim(),
-          category,
-          campus,
-          description: about.trim(),
-          contact: {
-            phone: contact.trim(),
-            whatsapp: contact.trim(),
-            email: user?.email || "",
-          },
-          sellerType,
-          // Student verification image sent to admin for manual preview & approval
-          studentIdImage: uploadedStudentIdUrl || studentIdPreview,
-          // Non-student location verification fields
-          operatingLocation:
-            sellerType === "non_student"
-              ? operatingLocation.trim()
-              : `${campus} (Student Store)`,
-          locationProofDocument: uploadedLocationProofUrl,
-        }),
+      // 3. Submit to POST /api/stores via apiPost (includes automatic silent token refresh & Bearer header)
+      const data = await apiPost<any>("/api/stores", {
+        fullName: fullName.trim(),
+        logo: finalLogoUrl,
+        name: storeName.trim(),
+        category,
+        campus,
+        description: about.trim(),
+        contact: {
+          phone: contact.trim(),
+          whatsapp: contact.trim(),
+          email: user?.email || "",
+        },
+        sellerType,
+        // Student verification image sent to admin for manual preview & approval
+        studentIdImage: uploadedStudentIdUrl || studentIdPreview,
+        // Non-student location verification fields
+        operatingLocation:
+          sellerType === "non_student"
+            ? operatingLocation.trim()
+            : `${campus} (Student Store)`,
+        locationProofDocument: uploadedLocationProofUrl,
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setError(data.error || "Could not submit verification request. Please check your details and try again.");
+      if (!data?.success) {
+        setError(data?.error || "Could not submit verification request. Please check your details and try again.");
         setSubmitting(false);
         return;
       }
@@ -330,6 +326,14 @@ export default function SellerOnboardingPage() {
 
       router.push("/stores?view=storefront&verification=pending");
     } catch (err: any) {
+      if (err?.status === 401) {
+        setError("Your session has expired. Redirecting you to sign in again...");
+        setSubmitting(false);
+        setTimeout(() => {
+          router.push("/login?redirect=/onboarding/seller");
+        }, 1200);
+        return;
+      }
       setError(err?.message || "Network error occurred while opening your store.");
       setSubmitting(false);
     }

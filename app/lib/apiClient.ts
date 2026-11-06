@@ -31,6 +31,26 @@ const normalizeUrl = (path: string) => {
 
 let refreshPromise: Promise<boolean> | null = null;
 
+function getStoredAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem("campus_access_token");
+  } catch {
+    return null;
+  }
+}
+
+function setStoredAccessToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      localStorage.setItem("campus_access_token", token);
+    } else {
+      localStorage.removeItem("campus_access_token");
+    }
+  } catch {}
+}
+
 async function performSilentRefresh(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
@@ -43,6 +63,7 @@ async function performSilentRefresh(): Promise<boolean> {
       if (refreshRes.ok) {
         const refreshData = await refreshRes.json();
         if (refreshData?.token) {
+          setStoredAccessToken(refreshData.token);
           if (typeof window !== "undefined" && refreshData.user) {
             window.dispatchEvent(
               new CustomEvent("campus_auth_refreshed", { detail: refreshData.user })
@@ -50,6 +71,8 @@ async function performSilentRefresh(): Promise<boolean> {
           }
           return true;
         }
+      } else if (refreshRes.status === 401 || refreshRes.status === 403) {
+        setStoredAccessToken(null);
       }
       return false;
     } catch {
@@ -74,11 +97,13 @@ const apiRequest = async <T>(
     console.log(`[apiClient] ${options.method || 'GET'} ${url}`);
   }
 
+  const storedToken = getStoredAccessToken();
   const response = await fetch(url, {
     credentials: "include",
     ...options,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
       ...(options.headers ?? {}),
     },
   });
@@ -99,7 +124,7 @@ const apiRequest = async <T>(
   ) {
     const refreshed = await performSilentRefresh();
     if (refreshed) {
-      // The refreshed access token is delivered in an httpOnly cookie.
+      // The refreshed access token is delivered in an httpOnly cookie and stored locally.
       return apiRequest<T>(path, options, true);
     }
   }
@@ -114,6 +139,15 @@ const apiRequest = async <T>(
     }
   } else if (expectsJson && !rawBody) {
     payload = null;
+  }
+
+  if (
+    response.ok &&
+    payload &&
+    typeof payload === "object" &&
+    typeof (payload as { token?: unknown }).token === "string"
+  ) {
+    setStoredAccessToken((payload as { token: string }).token);
   }
 
   if (!response.ok) {
