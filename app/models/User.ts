@@ -9,6 +9,7 @@ export { DEFAULT_USER_PREFERENCES };
 export interface IUserProfile {
   displayName?: string;
   handle?: string;
+  handleUpdatedAt?: string;
   avatar?: string;
   coverImage?: string;
   bio?: string;
@@ -71,6 +72,7 @@ const UserSchema = new Schema<IUserDocument>(
     profile: {
       displayName: { type: String },
       handle: { type: String, lowercase: true, trim: true },
+      handleUpdatedAt: { type: String },
       avatar: { type: String },
       coverImage: { type: String },
       bio: { type: String },

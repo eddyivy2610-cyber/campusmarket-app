@@ -205,6 +205,7 @@ export async function PATCH(
             $set: {
               role: "seller",
               sellerStatus: "approved",
+              ...(storeToLink?.slug ? { "profile.handle": storeToLink.slug } : {}),
               ...(isStudentApp ? { isStudent: true, studentVerified: true } : {}),
             },
           },

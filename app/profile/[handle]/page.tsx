@@ -783,7 +783,9 @@ export default function ProfilePage() {
   }, []);
 
   const isSellerAccount = Boolean(
-    liveUserProfile?.role === "seller" ||
+    liveUserProfile?.store ||
+      liveUserProfile?.storeId ||
+      liveUserProfile?.role === "seller" ||
       liveUserProfile?.sellerStatus === "approved" ||
       liveUserProfile?.sellerStatus === "verified" ||
       (isOwnProfile &&
@@ -945,9 +947,11 @@ export default function ProfilePage() {
                           )}
                         </div>
 
-                        <span className="text-[13.5px] font-medium text-[#7A818C] dark:text-neutral-400">
-                          {profile.username}
-                        </span>
+                        {isSellerAccount && (
+                          <span className="text-[13.5px] font-medium text-[#7A818C] dark:text-neutral-400">
+                            {profile.username}
+                          </span>
+                        )}
                       </div>
 
                       {/* Row 2: Bio (Only for seller accounts) */}

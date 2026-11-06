@@ -30,6 +30,7 @@ export interface IStore {
   ownerFullName?: string;
   name: string;
   slug: string;
+  slugUpdatedAt?: string;
   description: string;
   storeType: StoreType;
   category: string;
@@ -84,6 +85,10 @@ const StoreSchema = new Schema<IStoreDocument>(
       lowercase: true,
       trim: true,
       index: true,
+    },
+    slugUpdatedAt: {
+      type: String,
+      required: false,
     },
     description: {
       type: String,

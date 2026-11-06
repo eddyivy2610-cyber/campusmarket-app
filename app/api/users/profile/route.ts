@@ -25,13 +25,18 @@ export async function GET(req: NextRequest) {
       );
 
       const matchedUsers = await UserModel.find({
-        accountStatus: "active",
-        $or: [
-          { name: regex },
-          { "profile.displayName": regex },
-          { "profile.handle": regex },
-          { "profile.bio": regex },
-          { campus: regex },
+        accountStatus: { $ne: "suspended" },
+        $and: [
+          { $or: [{ role: "seller" }, { sellerStatus: "approved" }] },
+          {
+            $or: [
+              { name: regex },
+              { "profile.displayName": regex },
+              { "profile.handle": regex },
+              { "profile.bio": regex },
+              { campus: regex },
+            ],
+          },
         ],
       })
         .select(
@@ -140,13 +145,20 @@ export async function GET(req: NextRequest) {
           .lean();
       }
 
+      const isStoreOrApprovedSeller = Boolean(
+        storeDoc ||
+          publicUser?.role === "seller" ||
+          publicUser?.sellerStatus === "approved"
+      );
+
       if (
         (!publicUser && !storeDoc) ||
+        !isStoreOrApprovedSeller ||
         publicUser?.accountStatus === "suspended" ||
         storeDoc?.status === "suspended"
       ) {
         return NextResponse.json(
-          { success: false, error: "User record not found." },
+          { success: false, error: "Profile not found." },
           { status: 404 }
         );
       }
@@ -316,6 +328,107 @@ export async function PATCH(req: NextRequest) {
       updateFields["campus"] = body.campus.trim();
     }
 
+    // 4. Storefront Username / Handle update (public only for stores, editable once every 3 months)
+    const rawRequestedUsername =
+      body.username ?? body.handle ?? body.profile?.handle;
+    if (typeof rawRequestedUsername === "string" && rawRequestedUsername.trim()) {
+      const nextHandle = rawRequestedUsername
+        .replace(/^@/, "")
+        .trim()
+        .toLowerCase();
+
+      const currentUser: any = await UserModel.findById(user.id).lean();
+      const ownStore: any = await StoreModel.findOne({ ownerId: String(user.id) });
+
+      const isSellerOrStore = Boolean(
+        ownStore ||
+          currentUser?.role === "seller" ||
+          currentUser?.sellerStatus === "approved"
+      );
+
+      const currentHandle = (
+        ownStore?.slug ||
+        currentUser?.profile?.handle ||
+        ""
+      ).toLowerCase();
+
+      if (isSellerOrStore && nextHandle !== currentHandle) {
+        if (!/^[a-z0-9][a-z0-9-_]{2,29}$/.test(nextHandle)) {
+          return NextResponse.json(
+            {
+              success: false,
+              error:
+                "Username must be 3–30 characters using lowercase letters, numbers, hyphens, or underscores.",
+            },
+            { status: 400 }
+          );
+        }
+
+        const lastChangedStr =
+          currentUser?.profile?.handleUpdatedAt || ownStore?.slugUpdatedAt;
+        const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+        if (lastChangedStr) {
+          const lastChangedTime = new Date(lastChangedStr).getTime();
+          if (
+            !Number.isNaN(lastChangedTime) &&
+            Date.now() - lastChangedTime < THREE_MONTHS_MS
+          ) {
+            const nextDate = new Date(
+              lastChangedTime + THREE_MONTHS_MS
+            ).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
+            return NextResponse.json(
+              {
+                success: false,
+                error: `Store usernames can only be changed once every 3 months. You can update your username again on ${nextDate}.`,
+              },
+              { status: 400 }
+            );
+          }
+        }
+
+        // Uniqueness check across both Users and Stores
+        const [takenUser, takenStore] = await Promise.all([
+          UserModel.findOne({
+            "profile.handle": nextHandle,
+            _id: { $ne: user.id },
+          })
+            .select("_id")
+            .lean(),
+          StoreModel.findOne({
+            slug: nextHandle,
+            ...(ownStore ? { _id: { $ne: ownStore._id } } : {}),
+          })
+            .select("_id")
+            .lean(),
+        ]);
+
+        if (takenUser || takenStore) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `The username @${nextHandle} is already taken.`,
+            },
+            { status: 409 }
+          );
+        }
+
+        const nowIso = new Date().toISOString();
+        updateFields["profile.handle"] = nextHandle;
+        updateFields["profile.handleUpdatedAt"] = nowIso;
+
+        if (ownStore) {
+          ownStore.slug = nextHandle;
+          ownStore.slugUpdatedAt = nowIso;
+          ownStore.updatedAt = nowIso;
+          await ownStore.save();
+        }
+      }
+    }
+
     updateFields["onboardingStep"] = "profile_completed";
 
     // Atomic update
@@ -323,7 +436,9 @@ export async function PATCH(req: NextRequest) {
       user.id,
       { $set: updateFields },
       { returnDocument: "after" }
-    ).select("-password");
+    )
+      .select("-password")
+      .lean();
 
     if (!updatedUser) {
       return NextResponse.json(
@@ -332,10 +447,21 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    const updatedStore = await StoreModel.findOne({ ownerId: String(user.id) })
+      .select("-businessApplicationId")
+      .lean();
+
+    const responsePayload = {
+      ...updatedUser,
+      id: String(updatedUser._id),
+      storeId: updatedStore ? String(updatedStore._id) : undefined,
+      store: updatedStore || undefined,
+    };
+
     return NextResponse.json({
       success: true,
-      data: updatedUser,
-      user: updatedUser,
+      data: responsePayload,
+      user: responsePayload,
       message: "Profile updated successfully.",
     });
   } catch (error: any) {

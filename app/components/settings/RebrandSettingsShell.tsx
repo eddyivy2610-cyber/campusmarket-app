@@ -132,7 +132,10 @@ export function RebrandSettingsShell({
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasStorefront, setHasStorefront] = useState(false);
+  const [handleUpdatedAt, setHandleUpdatedAt] = useState<string | null>(null);
 
   // Contact & Privacy state
   const [messagingPreference, setMessagingPreference] = useState("everyone");
@@ -176,29 +179,45 @@ export function RebrandSettingsShell({
       .then((response) => {
         const data = response?.data || response?.user;
         if (!data) return;
+        const storeObj = data.store;
+        const isSellerOrStore = Boolean(
+          storeObj ||
+            data.storeId ||
+            data.role === "seller" ||
+            data.sellerStatus === "approved" ||
+            user.role === "seller" ||
+            user.sellerStatus === "approved"
+        );
+        setHasStorefront(isSellerOrStore);
+        setHandleUpdatedAt(
+          data.profile?.handleUpdatedAt || storeObj?.slugUpdatedAt || null
+        );
         const liveData: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
           name:
+            storeObj?.name ||
             data.name ||
             data.profile?.displayName ||
             user.name ||
             "Campus Student",
-          username: String(data.profile?.handle || user.handle || user.id)
+          username: String(
+            storeObj?.slug || data.profile?.handle || user.handle || ""
+          )
             .replace(/^@/, "")
             .toLowerCase(),
-          bio: data.profile?.bio || "",
-          school: data.campus || "",
+          bio: storeObj?.description || data.profile?.bio || "",
+          school: data.campus || storeObj?.campus || "",
           major: data.profile?.department || "",
           year: data.profile?.level || "",
-          avatar: data.profile?.avatar || user.avatar || "",
-          location: data.campus || "",
+          avatar: storeObj?.logo || data.profile?.avatar || user.avatar || "",
+          location: data.campus || storeObj?.operatingLocation || "",
         };
         setProfileData(liveData);
         setInitialData(liveData);
         setEmail(data.email || user.email || "");
       })
       .catch(() => {});
-  }, [user?.id]);
+  }, [user?.id, user?.role, user?.sellerStatus]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -212,10 +231,31 @@ export function RebrandSettingsShell({
     reader.readAsDataURL(file);
   };
 
+  const isStoreOwner = Boolean(
+    hasStorefront ||
+      user?.role === "seller" ||
+      user?.sellerStatus === "approved"
+  );
+
+  const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+  const nextUsernameChangeDate = (() => {
+    if (!handleUpdatedAt) return null;
+    const lastTime = new Date(handleUpdatedAt).getTime();
+    if (Number.isNaN(lastTime)) return null;
+    if (Date.now() - lastTime >= THREE_MONTHS_MS) return null;
+    return new Date(lastTime + THREE_MONTHS_MS).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  })();
+  const isUsernameLockedByCooldown = Boolean(nextUsernameChangeDate);
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
 
     const finalData: ProfileIdentityData = {
       ...profileData,
@@ -228,26 +268,43 @@ export function RebrandSettingsShell({
         displayName: finalData.name,
         bio: finalData.bio,
         campus: finalData.location || finalData.school,
+        ...(isStoreOwner && !isUsernameLockedByCooldown
+          ? { username: finalData.username }
+          : {}),
       });
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
       setProfileData(finalData);
       setInitialData(finalData);
       setAvatarPreview(null);
       const saved = response?.data || response?.user;
-      if (saved && user) {
-        login({
-          ...user,
-          name: saved.name || finalData.name,
-          handle: saved.profile?.handle || finalData.username,
-          avatar: saved.profile?.avatar || finalData.avatar,
-          image: saved.profile?.avatar || finalData.avatar,
-        });
+      if (saved) {
+        if (saved.profile?.handleUpdatedAt || saved.store?.slugUpdatedAt) {
+          setHandleUpdatedAt(
+            saved.profile?.handleUpdatedAt || saved.store?.slugUpdatedAt
+          );
+        }
+        if (user) {
+          login({
+            ...user,
+            name: saved.name || finalData.name,
+            handle:
+              saved.store?.slug ||
+              saved.profile?.handle ||
+              finalData.username ||
+              user.handle,
+            avatar: saved.profile?.avatar || finalData.avatar,
+            image: saved.profile?.avatar || finalData.avatar,
+          });
+        }
       }
       setIsSaving(false);
       setSaveSuccessMsg("Profile & Identity updated successfully.");
       setTimeout(() => setSaveSuccessMsg(null), 3000);
-    } catch {
+    } catch (err: any) {
       setIsSaving(false);
+      setSaveErrorMsg(
+        err?.message || "Could not update profile. Please try again."
+      );
     }
   };
 
@@ -255,11 +312,13 @@ export function RebrandSettingsShell({
     setProfileData(initialData);
     setAvatarPreview(null);
     setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
   };
 
   const effectiveAvatar = avatarPreview || profileData.avatar;
-  const backProfileHandle =
-    profileData.username || user?.handle || user?.id || "me";
+  const backProfileHandle = isStoreOwner
+    ? profileData.username || user?.handle || "me"
+    : "me";
 
   const renderCategoryContent = (tabId: SettingsTabId, isMobileAccordion = false) => {
     switch (tabId) {
@@ -272,7 +331,7 @@ export function RebrandSettingsShell({
                   Profile & Identity
                 </h2>
                 <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                  Manage your public campus presence, display information, and academic department.
+                  Manage your campus identity, display information, and academic department.
                 </p>
                 <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
               </div>
@@ -282,6 +341,12 @@ export function RebrandSettingsShell({
               <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{saveSuccessMsg}</span>
+              </div>
+            )}
+
+            {saveErrorMsg && (
+              <div className="radius-native p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
+                <span>{saveErrorMsg}</span>
               </div>
             )}
 
@@ -341,35 +406,45 @@ export function RebrandSettingsShell({
                 />
               </div>
 
-              {/* Username Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
-                <label
-                  htmlFor="usernameInput"
-                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
-                >
-                  Username
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
-                    @
-                  </span>
-                  <input
-                    id="usernameInput"
-                    type="text"
-                    value={profileData.username}
-                    onChange={(e) =>
-                      setProfileData({
-                        ...profileData,
-                        username: e.target.value
-                          .replace(/^@/, "")
-                          .toLowerCase(),
-                      })
-                    }
-                    placeholder="username"
-                    className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                  />
+              {/* Username Row (Public & Editable Only for Storefront Accounts, Once Every 3 Months) */}
+              {isStoreOwner && (
+                <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
+                  <label
+                    htmlFor="usernameInput"
+                    className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
+                  >
+                    Store Username
+                  </label>
+                  <div>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
+                        @
+                      </span>
+                      <input
+                        id="usernameInput"
+                        type="text"
+                        disabled={isUsernameLockedByCooldown}
+                        value={profileData.username}
+                        onChange={(e) =>
+                          setProfileData({
+                            ...profileData,
+                            username: e.target.value
+                              .replace(/^@/, "")
+                              .toLowerCase(),
+                          })
+                        }
+                        placeholder="store-username"
+                        className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] disabled:opacity-60 disabled:cursor-not-allowed pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#8C929C] mt-1 font-medium">
+                      {isUsernameLockedByCooldown
+                        ? `Your public store username was recently updated. You can edit it again on ${nextUsernameChangeDate} (once every 3 months).`
+                        : "Publicly visible on your storefront and shareable profile link · Editable once every 3 months."}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Bio Row */}
               <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
