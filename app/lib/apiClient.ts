@@ -31,9 +31,13 @@ const normalizeUrl = (path: string) => {
 
 let refreshPromise: Promise<boolean> | null = null;
 
-function getStoredAccessToken(): string | null {
+function getStoredAccessToken(isAdminUrl = false): string | null {
   if (typeof window === "undefined") return null;
   try {
+    if (isAdminUrl) {
+      const adminToken = localStorage.getItem("hive_admin_token");
+      if (adminToken) return adminToken;
+    }
     return localStorage.getItem("campus_access_token");
   } catch {
     return null;
@@ -97,7 +101,8 @@ const apiRequest = async <T>(
     console.log(`[apiClient] ${options.method || 'GET'} ${url}`);
   }
 
-  const storedToken = getStoredAccessToken();
+  const isAdminUrl = url.includes("/admin/");
+  const storedToken = getStoredAccessToken(isAdminUrl);
   const response = await fetch(url, {
     credentials: "include",
     ...options,

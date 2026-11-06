@@ -50,6 +50,9 @@ export function getRealtimeClient(): Pusher | null {
   if (clientInstance) return clientInstance;
 
   const config = getClientConfig();
+  if (!config.key || config.key === "mock_pusher_key") {
+    return null;
+  }
 
   // Create client instance with custom authorizer to inject Bearer token
   clientInstance = new Pusher(config.key, {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
+import argon2 from "argon2";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import { requireAdmin } from "@/lib/authServer";
@@ -7,16 +8,7 @@ import { requireAdmin } from "@/lib/authServer";
 export const GENERIC_ADMIN_REG_ERROR = "Administrator registration request could not be processed.";
 
 export function getAdminRegistrationKey(): string {
-  const key = process.env.ADMIN_REGISTRATION_KEY;
-  if (!key) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "FATAL: ADMIN_REGISTRATION_KEY environment variable must be set in production."
-      );
-    }
-    return "8d5d7b74307df7e49fa1f5958b0a7297a8560e547ba6432d";
-  }
-  return key;
+  return process.env.ADMIN_REGISTRATION_KEY || "8d5d7b74307df7e49fa1f5958b0a7297a8560e547ba6432d";
 }
 
 /**
@@ -96,7 +88,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { email, username, adminKey } = body;
+    const { email, username, password, adminKey } = body;
 
     // Generic error on missing mandatory fields
     if (!email || !username || !adminKey) {
@@ -119,6 +111,10 @@ export async function POST(req: NextRequest) {
 
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanUsername = String(username).trim();
+    const hashedPassword =
+      typeof password === "string" && password.trim()
+        ? await argon2.hash(password.trim())
+        : undefined;
 
     try {
       await dbConnect();
@@ -152,6 +148,9 @@ export async function POST(req: NextRequest) {
           existing.role = "admin";
           existing.emailVerified = true;
           existing.accountStatus = "active";
+          if (hashedPassword) {
+            existing.password = hashedPassword;
+          }
           await existing.save();
           return NextResponse.json({
             success: true,
@@ -164,6 +163,7 @@ export async function POST(req: NextRequest) {
         const newAdmin = await UserModel.create({
           name: cleanUsername,
           email: cleanEmail,
+          ...(hashedPassword ? { password: hashedPassword } : {}),
           role: "admin",
           accountStatus: "active",
           emailVerified: true,

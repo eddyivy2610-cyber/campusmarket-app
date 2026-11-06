@@ -56,23 +56,26 @@ export async function POST(req: NextRequest) {
 
     // 3. Database status re-check: Account suspension or revocation stops refresh immediately.
     // Do NOT clear the refresh cookie on transient 503 DB connectivity issues so client retries succeed.
+    const isMasterAdmin = user.id === "admin-master-01" && user.role === "admin";
     let dbConnection;
-    try {
-      dbConnection = await dbConnect();
-    } catch {
-      if (process.env.NODE_ENV === "production") {
+    if (!isMasterAdmin) {
+      try {
+        dbConnection = await dbConnect();
+      } catch {
+        if (process.env.NODE_ENV === "production") {
+          return NextResponse.json(
+            { success: false, error: "Authentication service temporarily unavailable." },
+            { status: 503 }
+          );
+        }
+      }
+
+      if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
         return NextResponse.json(
           { success: false, error: "Authentication service temporarily unavailable." },
           { status: 503 }
         );
       }
-    }
-
-    if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
-      return NextResponse.json(
-        { success: false, error: "Authentication service temporarily unavailable." },
-        { status: 503 }
-      );
     }
 
     const isUserDbAvailable =

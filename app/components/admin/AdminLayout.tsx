@@ -103,9 +103,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     // Verify token validity with server admin endpoint
-    fetch("/api/admin/auth/me", { credentials: "include" })
+    const storedToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("hive_admin_token") || localStorage.getItem("campus_access_token")
+        : null;
+    fetch("/api/admin/auth/me", {
+      credentials: "include",
+      headers: storedToken ? { Authorization: `Bearer ${storedToken}` } : {},
+    })
       .then((res) => {
-        if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
           clearAdminSession();
           setSession(null);
         } else {

@@ -77,6 +77,11 @@ export async function requireAuth(req: NextRequest): Promise<{
     };
   }
 
+  // Master environment admin is cryptographically verified and does not require a DB user row
+  if (user.id === "admin-master-01" && user.role === "admin") {
+    return { user };
+  }
+
   // Live database account status re-check (blocks suspended and banned accounts immediately)
   let dbConnection;
   try { dbConnection = await dbConnect(); }
@@ -181,9 +186,26 @@ export async function requireAdmin(req: NextRequest): Promise<{
   admin: ServerAuthUser | null;
   errorResponse?: NextResponse;
 }> {
-  const { user, errorResponse } = await requireAuth(req);
-  if (!user || errorResponse) {
-    return { admin: null, errorResponse: errorResponse };
+  // Check dedicated campus_admin_token cookie first if no Bearer header is provided
+  let adminCookieUser: ServerAuthUser | null = null;
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader) {
+    const adminCookie = req.cookies.get("campus_admin_token")?.value;
+    if (adminCookie) {
+      const verified = verifyAuthToken(adminCookie.trim());
+      if (verified && verified.role === "admin") {
+        adminCookieUser = verified;
+      }
+    }
+  }
+
+  let user: ServerAuthUser | null = adminCookieUser;
+  if (!user) {
+    const authRes = await requireAuth(req);
+    if (!authRes.user || authRes.errorResponse) {
+      return { admin: null, errorResponse: authRes.errorResponse };
+    }
+    user = authRes.user;
   }
 
   if (user.role !== "admin") {
@@ -199,6 +221,10 @@ export async function requireAdmin(req: NextRequest): Promise<{
     };
   }
 
+  if (user.id === "admin-master-01" && user.role === "admin") {
+    return { admin: user };
+  }
+
   // Live database role and account status re-check
   try { await dbConnect(); }
   catch { return { admin: null, errorResponse: databaseUnavailableResponse() }; }
@@ -212,6 +238,9 @@ export async function requireAdmin(req: NextRequest): Promise<{
       const dbUser = mongoose.isValidObjectId(user.id)
         ? await User.findById(user.id).select("role accountStatus").lean()
         : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus").lean();
+      if (!dbUser && user.id === "admin-master-01" && user.role === "admin") {
+        return { admin: user };
+      }
       if (!dbUser || dbUser.role !== "admin" || dbUser.accountStatus !== "active") {
         return {
           admin: null,

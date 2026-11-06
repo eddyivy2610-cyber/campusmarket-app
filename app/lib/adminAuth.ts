@@ -27,6 +27,7 @@ export function getAdminSession(): AdminSession | null {
 export function clearAdminSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ADMIN_SESSION_KEY);
+  localStorage.removeItem("hive_admin_token");
 }
 
 export async function signInAdmin(
@@ -49,8 +50,10 @@ export async function signInAdmin(
         lastActive: Date.now(),
       };
 
-      // Store admin-specific session for UI rendering
+      // Store admin-specific session for UI rendering and Bearer token for API calls
       localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+      localStorage.setItem("hive_admin_token", response.token);
+      localStorage.setItem("campus_access_token", response.token);
 
       return { ok: true, error: "", session };
     }

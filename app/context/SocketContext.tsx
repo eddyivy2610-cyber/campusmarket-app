@@ -62,9 +62,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             });
         }
 
-        // 2. Keep legacy Express Socket.IO operational in parallel during migration
+        // 2. Keep legacy Express Socket.IO operational only when explicitly enabled
         let socketInstance: Socket | null = null;
-        const expressUrl = process.env.NEXT_PUBLIC_API_URL;
+        const expressUrl =
+            process.env.NEXT_PUBLIC_ENABLE_LEGACY_SOCKET === "true"
+                ? process.env.NEXT_PUBLIC_API_URL
+                : undefined;
         if (expressUrl && expressUrl.startsWith("http")) {
             try {
                 socketInstance = io(expressUrl, {
