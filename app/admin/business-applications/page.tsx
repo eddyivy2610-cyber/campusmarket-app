@@ -199,11 +199,11 @@ function BusinessApplicationsPage() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FFC928]" />
             <h1 className="text-2xl font-black text-[#171717] dark:text-white tracking-tight">
-              Business Applications
+              Seller & Business Verifications
             </h1>
           </div>
           <p className="text-sm text-muted-foreground dark:text-neutral-400 mt-1">
-            Review registration submissions from off-campus vendors and local campus businesses.
+            Preview uploaded Student ID cards and business verification documents to approve or decline seller requests.
           </p>
         </div>
       </div>
@@ -295,10 +295,10 @@ function BusinessApplicationsPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-border/40 dark:border-white/10 bg-[#FAFBFD] dark:bg-white/[0.02] text-muted-foreground dark:text-neutral-400 uppercase tracking-wider font-black text-[10px]">
-                  <th className="py-3.5 px-5">Business</th>
+                  <th className="py-3.5 px-5">Store / Seller</th>
                   <th className="py-3.5 px-4">Campus & Location</th>
                   <th className="py-3.5 px-4">Category</th>
-                  <th className="py-3.5 px-4">CAC / Documents</th>
+                  <th className="py-3.5 px-4">Verification Type</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4">Submitted</th>
                   <th className="py-3.5 px-5 text-right">Action</th>
@@ -453,18 +453,18 @@ function BusinessApplicationsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-[#F7F8FA] dark:bg-white/[0.04] border border-border/40 dark:border-white/10 space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground dark:text-neutral-400">
-                    Registration Information
+                    Applicant & Verification Info
                   </p>
                   <div>
-                    <span className="text-muted-foreground dark:text-neutral-400">CAC Reg Number: </span>
+                    <span className="text-muted-foreground dark:text-neutral-400">Verification Type: </span>
                     <span className="font-mono font-bold text-foreground dark:text-white">
-                      {selectedApp.cacNumber || "None Provided"}
+                      {selectedApp.cacNumber || "Business Verification"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground dark:text-neutral-400">Official Registered Name: </span>
+                    <span className="text-muted-foreground dark:text-neutral-400">Applicant Fullname / Registered Name: </span>
                     <span className="font-bold text-foreground dark:text-white">
-                      {selectedApp.registeredBusinessName || "Same as trade name"}
+                      {selectedApp.registeredBusinessName || "Same as store name"}
                     </span>
                   </div>
                   <div>
@@ -537,33 +537,52 @@ function BusinessApplicationsPage() {
                 </div>
               )}
 
-              {/* Supporting Documents Section */}
+              {/* Supporting Documents / Student ID Card Preview Section */}
               <div className="p-4 rounded-2xl bg-[#F7F8FA] dark:bg-white/[0.04] border border-border/40 dark:border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground dark:text-neutral-400 mb-2 flex items-center gap-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground dark:text-neutral-400 mb-3 flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-[#FFC928]" />
-                  Uploaded Verification Documents ({selectedApp.supportingDocuments?.length || 0})
+                  {selectedApp.cacNumber === "Student ID Card"
+                    ? "Student ID Card Preview"
+                    : `Uploaded Verification Documents (${selectedApp.supportingDocuments?.length || 0})`}
                 </p>
 
                 {(!selectedApp.supportingDocuments || selectedApp.supportingDocuments.length === 0) ? (
                   <p className="text-muted-foreground dark:text-neutral-400 italic">No document attachments were uploaded with this application.</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                  <div className="grid grid-cols-1 gap-4 mt-2">
                     {selectedApp.supportingDocuments.map((docUrl, idx) => (
-                      <a
+                      <div
                         key={idx}
-                        href={docUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#14161D] border border-border/60 dark:border-white/10 hover:border-[#FFC928] dark:hover:border-[#FFC928] text-foreground dark:text-white transition-all group"
+                        className="rounded-2xl bg-white dark:bg-[#14161D] border border-border/60 dark:border-white/10 overflow-hidden shadow-sm"
                       >
-                        <div className="flex items-center gap-2 truncate">
-                          <FileText className="w-4 h-4 text-[#FFC928] shrink-0" />
-                          <span className="font-bold truncate text-[11px]">
-                            Document #{idx + 1}
-                          </span>
+                        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/40 dark:border-white/10 bg-[#FAFBFD] dark:bg-white/[0.02]">
+                          <div className="flex items-center gap-2 truncate">
+                            <FileText className="w-4 h-4 text-[#FFC928] shrink-0" />
+                            <span className="font-bold truncate text-xs text-foreground dark:text-white">
+                              {selectedApp.cacNumber === "Student ID Card"
+                                ? `Student ID Card — ${selectedApp.registeredBusinessName || selectedApp.businessName}`
+                                : `Verification Document #${idx + 1}`}
+                            </span>
+                          </div>
+                          <a
+                            href={docUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F2F4F7] dark:bg-white/10 hover:bg-[#FFC928] hover:text-[#171717] text-[11px] font-bold text-foreground dark:text-white transition-colors shrink-0"
+                          >
+                            <span>Open Full Image</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
                         </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground dark:text-neutral-400 group-hover:text-foreground dark:group-hover:text-white shrink-0" />
-                      </a>
+                        <div className="p-4 flex items-center justify-center bg-black/5 dark:bg-black/40">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={docUrl}
+                            alt={`Verification Document ${idx + 1}`}
+                            className="max-h-80 w-auto object-contain rounded-xl border border-border/40 dark:border-white/10 shadow-sm"
+                          />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}

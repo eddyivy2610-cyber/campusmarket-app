@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import BusinessApplicationModel from "@/models/BusinessApplication";
@@ -16,7 +17,7 @@ import {
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { executeInTransaction } from "@/lib/transactionHelper";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
-import { evaluateStudentIdVerification } from "@/lib/studentIdVerification";
+import { createNotification } from "@/lib/notificationService";
 
 function generateSlug(name: string): string {
   const base = name
@@ -174,11 +175,9 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // PATH A: STUDENT SELLER ONBOARDING (Verify ID card name & validation date)
+      // PATH A: STUDENT SELLER ONBOARDING (Collect Student ID card image and send to Admin for review)
       if (body.sellerType === "student") {
         const studentIdImage = String(body.studentIdImage || "").trim();
-        const extractedIdName = String(body.extractedIdName || "").trim();
-        const cardValidationDate = String(body.cardValidationDate || "").trim();
 
         if (!studentIdImage) {
           return NextResponse.json(
@@ -187,24 +186,6 @@ export async function POST(req: NextRequest) {
               error: "Student ID card image is required for student verification.",
             },
             { status: 400 }
-          );
-        }
-
-        const evaluation = evaluateStudentIdVerification({
-          enteredFullName: fullName,
-          extractedIdName,
-          cardValidationDate,
-        });
-
-        if (evaluation.decision === "declined") {
-          return NextResponse.json(
-            {
-              success: false,
-              verificationStatus: "declined",
-              error: evaluation.summary,
-              evaluation,
-            },
-            { status: 422 }
           );
         }
 
@@ -222,6 +203,7 @@ export async function POST(req: NextRequest) {
           contact,
         });
 
+        const now = new Date().toISOString();
         const newStore = new StoreModel({
           ...sanitized,
           ownerId: user.id,
@@ -229,10 +211,9 @@ export async function POST(req: NextRequest) {
           slug: generateSlug(name),
           storeType: "student_store",
           status: "active",
-          isVerified: true,
+          isVerified: false, // Pending admin manual preview and approval
           verificationType: "student",
           studentIdImage,
-          studentIdExpiryDate: evaluation.dateCheck.parsedDate,
           metrics: {
             rating: 5.0,
             reviewsCount: 0,
@@ -240,12 +221,37 @@ export async function POST(req: NextRequest) {
             listingsCount: 0,
             followersCount: 0,
           },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: now,
+          updatedAt: now,
         });
 
         await executeInTransaction(async (session) => {
           await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+
+          const studentVerificationApp = new BusinessApplicationModel({
+            applicantId: user.id,
+            businessName: name,
+            businessCategory: category,
+            campus,
+            operatingLocation,
+            contactPhone: contact.phone,
+            contactEmail: contact.email || user.email,
+            registeredBusinessName: fullName,
+            cacNumber: "Student ID Card",
+            supportingDocuments: [studentIdImage],
+            notes: description,
+            status: "pending_review",
+            storeId: newStore._id.toString(),
+            createdAt: now,
+            updatedAt: now,
+          });
+          await (session
+            ? studentVerificationApp.save({ session })
+            : studentVerificationApp.save());
+
+          newStore.businessApplicationId = studentVerificationApp._id.toString();
+          await (session ? newStore.save({ session }) : newStore.save());
+
           await UserModel.findByIdAndUpdate(
             user.id,
             {
@@ -253,9 +259,9 @@ export async function POST(req: NextRequest) {
                 name: fullName,
                 campus,
                 isStudent: true,
-                studentVerified: true,
+                studentVerified: false,
                 role: "seller",
-                sellerStatus: "approved",
+                sellerStatus: "pending",
                 onboardingStep: "completed",
                 "profile.displayName": fullName,
                 "profile.avatar": logo,
@@ -267,18 +273,38 @@ export async function POST(req: NextRequest) {
           );
         });
 
+        // Notify user to wait a maximum of 24 hours for admin reply
+        try {
+          if (mongoose.Types.ObjectId.isValid(user.id)) {
+            await createNotification({
+              recipient: user.id,
+              type: "seller_verification_pending",
+              category: "account_security",
+              priority: "high",
+              title: "Student ID Verification Submitted",
+              message:
+                "We received your Student ID card for storefront verification. Please wait a maximum of 24 hours for an admin to review and reply.",
+              link: "/stores?view=storefront",
+              dedupeKey: `student_id_submitted:${newStore._id.toString()}`,
+            });
+          }
+        } catch (notifErr) {
+          console.error("[POST /api/stores] Notification creation error:", notifErr);
+        }
+
         return NextResponse.json(
           {
             success: true,
-            verificationStatus: "approved",
+            verificationStatus: "pending_review",
             data: newStore,
-            message: "Student ID verified and storefront opened successfully.",
+            message:
+              "Your Student ID card has been sent to our admin team for verification. Please wait a maximum of 24 hours for a reply.",
           },
           { status: 201 }
         );
       }
 
-      // PATH B: NON-STUDENT BUSINESS ONBOARDING (Collect operating location + proof document, allow posting listings)
+      // PATH B: NON-STUDENT BUSINESS ONBOARDING (Collect operating location + proof document, send to admin)
       const operatingLocation = String(body.operatingLocation || "").trim();
       const locationProofDocument = String(body.locationProofDocument || "").trim();
 
@@ -338,6 +364,7 @@ export async function POST(req: NextRequest) {
           contactPhone: contact.phone,
           contactEmail: contact.email || user.email,
           registeredBusinessName: fullName,
+          cacNumber: "Location Proof",
           supportingDocuments: [locationProofDocument],
           notes: description,
           status: "pending_review",
@@ -358,7 +385,7 @@ export async function POST(req: NextRequest) {
               campus,
               isStudent: false,
               role: "seller",
-              sellerStatus: "approved",
+              sellerStatus: "pending",
               onboardingStep: "completed",
               "profile.displayName": fullName,
               "profile.avatar": logo,
@@ -370,12 +397,31 @@ export async function POST(req: NextRequest) {
         );
       });
 
+      try {
+        if (mongoose.Types.ObjectId.isValid(user.id)) {
+          await createNotification({
+            recipient: user.id,
+            type: "seller_verification_pending",
+            category: "account_security",
+            priority: "high",
+            title: "Seller Verification Submitted",
+            message:
+              "We received your operating location document for storefront verification. Please wait a maximum of 24 hours for an admin to review and reply.",
+            link: "/stores?view=storefront",
+            dedupeKey: `biz_doc_submitted:${newStore._id.toString()}`,
+          });
+        }
+      } catch (notifErr) {
+        console.error("[POST /api/stores] Notification creation error:", notifErr);
+      }
+
       return NextResponse.json(
         {
           success: true,
+          verificationStatus: "pending_review",
           data: newStore,
           message:
-            "Storefront opened! You can now post listings while your operating location document is verified.",
+            "Storefront opened! Your verification document has been sent to admin — please wait a maximum of 24 hours for a reply.",
         },
         { status: 201 }
       );

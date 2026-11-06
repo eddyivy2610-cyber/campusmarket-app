@@ -18,6 +18,7 @@ import {
   Megaphone,
   DollarSign,
   Award,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { CatalogManager } from "./CatalogManager";
@@ -285,6 +286,28 @@ export function StorefrontManager({
         </div>
       )}
 
+      {/* 24-Hour Admin Verification Pending Notification Banner */}
+      {storeData && storeData.isVerified === false && (
+        <div className="radius-native p-4 sm:p-5 rounded-2xl bg-[#FFFBEB] dark:bg-[#FFC928]/10 border border-[#FDE68A] dark:border-[#FFC928]/25 flex items-start gap-3.5 shadow-2xs">
+          <div className="w-9 h-9 rounded-xl bg-[#FFC928]/25 text-[#B45309] dark:text-[#FFC928] flex items-center justify-center shrink-0 mt-0.5">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-[13.5px] font-extrabold text-[#92400E] dark:text-[#FFC928]">
+                Verification Request Pending Admin Review
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#FEF3C7] dark:bg-[#FFC928]/20 text-[#92400E] dark:text-[#FFC928]">
+                Max 24 hrs
+              </span>
+            </div>
+            <p className="text-[12.5px] text-[#78350F] dark:text-amber-100/80 mt-1 leading-relaxed">
+              Your Student ID card / verification document has been sent to our admin team for manual review. Please wait a maximum of 24 hours for a reply. You will receive a notification once your verification is approved.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ------------------------------------------------------------- */}
       {/* STORE HERO SUMMARY CARD (Dashboard Only)                       */}
       {/* ------------------------------------------------------------- */}
@@ -300,10 +323,17 @@ export function StorefrontManager({
                 <h2 className="text-[18px] sm:text-[20px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
                   {storeName}
                 </h2>
-                <BadgeCheck
-                  className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0"
-                  aria-label="Verified student seller"
-                />
+                {storeData?.isVerified !== false ? (
+                  <BadgeCheck
+                    className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0"
+                    aria-label="Verified campus seller"
+                  />
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FFF7DB] dark:bg-[#FFC928]/15 text-[#9A6B00] dark:text-[#FFC928] border border-[#FFE599] dark:border-[#FFC928]/25">
+                    <Clock className="w-3 h-3" />
+                    Pending Admin Verification
+                  </span>
+                )}
               </div>
 
               <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1 max-w-xl truncate">

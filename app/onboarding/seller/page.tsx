@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -8,7 +8,6 @@ import {
   GraduationCap,
   Building2,
   CheckCircle2,
-  XCircle,
   AlertCircle,
   ArrowLeft,
   Upload,
@@ -16,21 +15,14 @@ import {
   MapPin,
   Phone,
   FileText,
-  Sparkles,
   Loader2,
   ShieldCheck,
-  Calendar,
-  UserCheck,
-  ScanLine,
+  Clock,
 } from "lucide-react";
 import { RebrandHeader } from "@/components/header/RebrandHeader";
 import { RebrandFooter } from "@/components/sections/RebrandFooter";
 import { useAuth } from "@/context/AuthContext";
 import { uploadFileClient } from "@/lib/clientUpload";
-import {
-  evaluateStudentIdVerification,
-  extractIdFieldsFromOcrText,
-} from "@/lib/studentIdVerification";
 
 const CATEGORIES = [
   "Electronics & Tech",
@@ -140,10 +132,6 @@ export default function SellerOnboardingPage() {
   // Student verification states
   const [studentIdFile, setStudentIdFile] = useState<File | null>(null);
   const [studentIdPreview, setStudentIdPreview] = useState<string>("");
-  const [isScanningId, setIsScanningId] = useState(false);
-  const [extractedIdName, setExtractedIdName] = useState("");
-  const [cardValidationDate, setCardValidationDate] = useState("");
-  const [hasScannedId, setHasScannedId] = useState(false);
 
   // Non-student business location verification states
   const [operatingLocation, setOperatingLocation] = useState("");
@@ -206,8 +194,8 @@ export default function SellerOnboardingPage() {
     setAvatarPreview(objectUrl);
   };
 
-  // Handle Student ID Card upload & automatic OCR extraction
-  const handleStudentIdChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Student ID Card upload (collected and sent directly to admin for manual review)
+  const handleStudentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -215,81 +203,7 @@ export default function SellerOnboardingPage() {
     setStudentIdFile(file);
     const previewUrl = URL.createObjectURL(file);
     setStudentIdPreview(previewUrl);
-    setIsScanningId(true);
-    setHasScannedId(false);
-
-    try {
-      let ocrText = "";
-
-      // Attempt dynamic browser OCR using Tesseract.js from CDN
-      if (typeof window !== "undefined") {
-        try {
-          if (!(window as any).Tesseract) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement("script");
-              script.src =
-                "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-              script.async = true;
-              const timeout = setTimeout(() => reject(new Error("OCR load timeout")), 5000);
-              script.onload = () => {
-                clearTimeout(timeout);
-                resolve();
-              };
-              script.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error("OCR script failed"));
-              };
-              document.head.appendChild(script);
-            });
-          }
-
-          if ((window as any).Tesseract) {
-            const result = await Promise.race([
-              (window as any).Tesseract.recognize(file, "eng"),
-              new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("OCR scan timeout")), 9000)
-              ),
-            ]);
-            ocrText = (result as any)?.data?.text || "";
-          }
-        } catch {
-          // Fallback if offline or CDN unreachable
-        }
-      }
-
-      const extracted = extractIdFieldsFromOcrText(ocrText, fullName);
-
-      if (extracted.extractedName) {
-        setExtractedIdName(extracted.extractedName);
-      } else if (fullName.trim()) {
-        // Pre-fill with entered full name if OCR could not isolate text lines from stylized ID card
-        setExtractedIdName(fullName.trim());
-      }
-
-      if (extracted.extractedDate) {
-        setCardValidationDate(extracted.extractedDate);
-      } else if (!cardValidationDate) {
-        // Default to end of current academic year if not printed in standard numeric format
-        const nextYear = new Date().getFullYear() + 1;
-        setCardValidationDate(`${nextYear}-09-30`);
-      }
-    } finally {
-      setIsScanningId(false);
-      setHasScannedId(true);
-    }
   };
-
-  // Live evaluation of Student ID card (Name match against Fullname + Card Validation Date check)
-  const idVerificationResult = useMemo(() => {
-    if (!studentIdFile && !studentIdPreview) return null;
-    if (!extractedIdName.trim() && !cardValidationDate.trim()) return null;
-
-    return evaluateStudentIdVerification({
-      enteredFullName: fullName,
-      extractedIdName,
-      cardValidationDate,
-    });
-  }, [studentIdFile, studentIdPreview, fullName, extractedIdName, cardValidationDate]);
 
   // Handle Unified "Open Store" Submission
   const handleOpenStore = async (e: React.FormEvent) => {
@@ -320,14 +234,7 @@ export default function SellerOnboardingPage() {
     // Validate Student vs Non-Student specific requirements
     if (sellerType === "student") {
       if (!studentIdFile && !studentIdPreview) {
-        setError("Please upload your Student ID card image to verify your student status.");
-        return;
-      }
-      if (!idVerificationResult || idVerificationResult.decision === "declined") {
-        setError(
-          idVerificationResult?.summary ||
-            "Student ID verification declined. Please ensure the name on your ID card matches your Fullname and the card is not expired."
-        );
+        setError("Please upload your Student ID card image to submit for verification.");
         return;
       }
     } else {
@@ -388,10 +295,8 @@ export default function SellerOnboardingPage() {
             email: user?.email || "",
           },
           sellerType,
-          // Student verification fields
+          // Student verification image sent to admin for manual preview & approval
           studentIdImage: uploadedStudentIdUrl || studentIdPreview,
-          extractedIdName: extractedIdName.trim(),
-          cardValidationDate: cardValidationDate.trim(),
           // Non-student location verification fields
           operatingLocation:
             sellerType === "non_student"
@@ -403,7 +308,7 @@ export default function SellerOnboardingPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setError(data.error || "Could not open store. Please check your details and try again.");
+        setError(data.error || "Could not submit verification request. Please check your details and try again.");
         setSubmitting(false);
         return;
       }
@@ -416,15 +321,14 @@ export default function SellerOnboardingPage() {
           avatar: finalLogoUrl || user.avatar,
           image: finalLogoUrl || user.image,
           role: "seller",
-          sellerStatus: "approved",
+          sellerStatus: "pending",
           isStudent: sellerType === "student",
-          studentVerified:
-            sellerType === "student" ? true : Boolean(user.studentVerified),
+          studentVerified: false,
           onboardingStep: "completed",
         });
       }
 
-      router.push("/stores?view=storefront");
+      router.push("/stores?view=storefront&verification=pending");
     } catch (err: any) {
       setError(err?.message || "Network error occurred while opening your store.");
       setSubmitting(false);
@@ -760,7 +664,7 @@ export default function SellerOnboardingPage() {
                         Student ID Card Verification *
                       </h3>
                       <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                        Upload your Student ID card image. We extract your name against the Fullname entered and check the card validation date to approve or decline.
+                        Upload a clear image of your valid Student ID card. Our admin team will preview your ID card and approve your verification request within a maximum of 24 hours.
                       </p>
                     </div>
                   </div>
@@ -791,7 +695,7 @@ export default function SellerOnboardingPage() {
                       </div>
                     </button>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3.5">
                       {/* Image Preview + Replace Button */}
                       <div className="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10">
                         <img
@@ -803,10 +707,9 @@ export default function SellerOnboardingPage() {
                           <div className="text-[12.5px] font-bold text-[#171717] dark:text-white truncate">
                             {studentIdFile?.name || "Student ID Card"}
                           </div>
-                          <div className="text-[11px] text-[#68707A] dark:text-neutral-400">
-                            {isScanningId
-                              ? "Scanning ID card text & expiry date..."
-                              : "ID card image uploaded"}
+                          <div className="text-[11px] text-[#15803D] dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span>ID card image attached for admin review</span>
                           </div>
                         </div>
                         <button
@@ -818,73 +721,18 @@ export default function SellerOnboardingPage() {
                         </button>
                       </div>
 
-                      {isScanningId ? (
-                        <div className="flex items-center gap-2.5 p-3.5 rounded-xl bg-[#FFF7DB]/70 dark:bg-[#FFC928]/10 border border-[#FFE599] dark:border-[#FFC928]/20 text-[12.5px] font-bold text-[#9A6B00] dark:text-[#FFC928]">
-                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                          <span>Extracting student name and validation date from ID card...</span>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Extracted Fields Verification Inputs */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <label className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#5B636E] dark:text-neutral-300">
-                                <UserCheck className="w-3.5 h-3.5 text-[#8C929C]" />
-                                Extracted Name on ID Card *
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                value={extractedIdName}
-                                onChange={(e) => setExtractedIdName(e.target.value)}
-                                placeholder="Name printed on ID card"
-                                className="radius-native w-full px-3 py-2 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[12.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928]"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <label className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#5B636E] dark:text-neutral-300">
-                                <Calendar className="w-3.5 h-3.5 text-[#8C929C]" />
-                                Card Validation / Expiry Date *
-                              </label>
-                              <input
-                                type="date"
-                                required
-                                value={cardValidationDate}
-                                onChange={(e) => setCardValidationDate(e.target.value)}
-                                className="radius-native w-full px-3 py-2 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[12.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928]"
-                              />
-                            </div>
+                      {/* 24-Hour Admin Review Notification Notice */}
+                      <div className="p-3.5 rounded-xl bg-[#FFF7DB]/80 dark:bg-[#FFC928]/10 border border-[#FFE599] dark:border-[#FFC928]/25 flex items-start gap-3 text-[12.5px] text-[#9A6B00] dark:text-[#FFC928]">
+                        <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="space-y-0.5">
+                          <div className="font-extrabold uppercase tracking-wider text-[11px]">
+                            Admin Review Queue (Max 24 Hours)
                           </div>
-
-                          {/* Approve / Decline Verification Status Banner */}
-                          {idVerificationResult && (
-                            <div
-                              className={`p-3.5 rounded-xl border flex items-start gap-3 text-[12.5px] ${
-                                idVerificationResult.decision === "approved"
-                                  ? "bg-[#E8F8EE] dark:bg-emerald-500/10 border-[#A7F3D0] dark:border-emerald-500/25 text-[#15803D] dark:text-emerald-300"
-                                  : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-300"
-                              }`}
-                            >
-                              {idVerificationResult.decision === "approved" ? (
-                                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-[#15803D] dark:text-emerald-400" />
-                              ) : (
-                                <XCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-                              )}
-                              <div className="space-y-0.5">
-                                <div className="font-extrabold uppercase tracking-wider text-[11px]">
-                                  {idVerificationResult.decision === "approved"
-                                    ? "Verification Approved"
-                                    : "Verification Declined"}
-                                </div>
-                                <div className="font-medium leading-relaxed">
-                                  {idVerificationResult.summary}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
+                          <div className="font-medium leading-relaxed text-[#5B4100] dark:text-amber-100/90">
+                            Your Student ID card will be sent directly to an administrator for preview and approval. Please wait a maximum of 24 hours for a reply.
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -897,7 +745,7 @@ export default function SellerOnboardingPage() {
                       Business Operating Location & Proof *
                     </h3>
                     <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                      You can open your store and post listings immediately. Provide your primary operating location and a proof document of that location for business verification.
+                      Provide your primary operating location and a proof document of that location. An administrator will review and verify your submission within 24 hours.
                     </p>
                   </div>
 
@@ -968,24 +816,18 @@ export default function SellerOnboardingPage() {
               {/* SUBMIT BUTTON: "Open Store" */}
               <button
                 type="submit"
-                disabled={
-                  submitting ||
-                  isScanningId ||
-                  (sellerType === "student" &&
-                    hasScannedId &&
-                    idVerificationResult?.decision === "declined")
-                }
+                disabled={submitting}
                 className="radius-native w-full py-3.5 px-6 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] font-extrabold text-[14px] shadow-sm transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Opening Store...</span>
+                    <span>Submitting for Admin Review...</span>
                   </>
                 ) : (
                   <>
                     <Store className="w-4 h-4" />
-                    <span>Open Store</span>
+                    <span>Submit & Open Store</span>
                   </>
                 )}
               </button>

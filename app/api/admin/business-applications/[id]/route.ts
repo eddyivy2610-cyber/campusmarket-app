@@ -7,6 +7,7 @@ import UserModel from "@/models/User";
 import { requireAdmin } from "@/lib/authServer";
 import { logAdminAudit } from "@/lib/adminAudit";
 import { getRequestId } from "@/lib/apiResponse";
+import { createNotification } from "@/lib/notificationService";
 
 function generateSlug(name: string): string {
   const base = name
@@ -174,10 +175,14 @@ export async function PATCH(
           );
           storeToLink = newStore;
         } else {
-          // Upgrade existing store to approved business
-          existingStore.storeType = "local_business";
+          // Upgrade existing store to verified status (preserving student_store vs local_business)
+          const isStudentVerification =
+            existingStore.verificationType === "student" ||
+            existingStore.storeType === "student_store" ||
+            updatedApp.cacNumber === "Student ID Card";
+          existingStore.storeType = isStudentVerification ? "student_store" : "local_business";
           existingStore.isVerified = true;
-          existingStore.verificationType = "business";
+          existingStore.verificationType = isStudentVerification ? "student" : "business";
           existingStore.status = "active";
           existingStore.businessApplicationId = updatedApp._id.toString();
           existingStore.updatedAt = now;
@@ -189,9 +194,20 @@ export async function PATCH(
         updatedApp.storeId = storeToLink._id.toString();
         await (session ? updatedApp.save({ session }) : updatedApp.save());
 
+        const isStudentApp =
+          storeToLink?.verificationType === "student" ||
+          storeToLink?.storeType === "student_store" ||
+          updatedApp.cacNumber === "Student ID Card";
+
         await UserModel.findByIdAndUpdate(
           updatedApp.applicantId,
-          { $set: { role: "seller", sellerStatus: "approved" } },
+          {
+            $set: {
+              role: "seller",
+              sellerStatus: "approved",
+              ...(isStudentApp ? { isStudent: true, studentVerified: true } : {}),
+            },
+          },
           session ? { session } : undefined
         );
 
@@ -275,6 +291,21 @@ export async function PATCH(
         console.log(
           `[Email] Business application approval confirmation sent to ${approvedApplication?.contactEmail}`
         );
+        if (
+          approvedApplication?.applicantId &&
+          mongoose.Types.ObjectId.isValid(approvedApplication.applicantId)
+        ) {
+          await createNotification({
+            recipient: approvedApplication.applicantId,
+            type: "seller_verification_approved",
+            category: "account_security",
+            priority: "high",
+            title: "Seller Verification Approved",
+            message: `Your verification request for "${approvedApplication.businessName}" has been approved by an admin! Your verified seller badge is now active.`,
+            link: "/stores?view=storefront",
+            dedupeKey: `seller_verify_approved:${id}`,
+          });
+        }
       } catch (postCommitErr) {
         console.error("[Post-commit notification error]:", postCommitErr);
       }
@@ -334,6 +365,23 @@ export async function PATCH(
 
       await application.save();
 
+      try {
+        if (application.applicantId && mongoose.Types.ObjectId.isValid(application.applicantId)) {
+          await createNotification({
+            recipient: application.applicantId,
+            type: "seller_verification_rejected",
+            category: "account_security",
+            priority: "high",
+            title: "Seller Verification Update",
+            message: `Your verification request for "${application.businessName}" was not approved: ${String(reason).trim()}`,
+            link: "/stores?view=storefront",
+            dedupeKey: `seller_verify_rejected:${id}:${application.updatedAt}`,
+          });
+        }
+      } catch (notifErr) {
+        console.error("[Reject notification error]:", notifErr);
+      }
+
       // Record audit log
       await logAdminAudit({
         actorId: admin.id,
@@ -372,6 +420,23 @@ export async function PATCH(
       application.updatedAt = new Date().toISOString();
 
       await application.save();
+
+      try {
+        if (application.applicantId && mongoose.Types.ObjectId.isValid(application.applicantId)) {
+          await createNotification({
+            recipient: application.applicantId,
+            type: "seller_verification_changes_requested",
+            category: "account_security",
+            priority: "high",
+            title: "Additional Verification Details Requested",
+            message: `An administrator requested additional information for "${application.businessName}": ${reason || "Please review your verification submission."}`,
+            link: "/stores?view=storefront",
+            dedupeKey: `seller_verify_changes:${id}:${application.updatedAt}`,
+          });
+        }
+      } catch (notifErr) {
+        console.error("[Changes requested notification error]:", notifErr);
+      }
 
       // Record audit log
       await logAdminAudit({
