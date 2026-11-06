@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BadgeCheck,
   Bookmark,
   Check,
@@ -37,6 +38,7 @@ import {
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { RebrandFooter } from "../../components/sections/RebrandFooter";
 import { PageSkeleton } from "../../components/common/LoadingSystem";
+import { ListingShareModal } from "../../components/listings/ListingShareModal";
 import { useAuth } from "../../context/AuthContext";
 import type { ExploreListingItem } from "../../data/exploreCatalog";
 
@@ -512,9 +514,10 @@ export default function ListingDetailPage() {
   );
   const [isMarkedSold, setIsMarkedSold] = useState(false);
 
-  // Modals: Contextual Chat & Report Listing
+  // Modals: Contextual Chat, Report Listing & Share
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [sentMessages, setSentMessages] = useState<
     { id: string; sender: "you" | "seller"; text: string; time: string }[]
@@ -539,10 +542,7 @@ export default function ListingDetailPage() {
   };
 
   const handleShare = () => {
-    if (typeof window !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href).catch(() => {});
-    }
-    showToast("Listing link copied to clipboard!");
+    setIsShareModalOpen(true);
   };
 
   const handleOpenChatWithContext = () => {
@@ -1153,83 +1153,83 @@ export default function ListingDetailPage() {
           {/* RIGHT SIDEBAR: SELLER CREDIBILITY + SAFETY TIPS (4 Cols)  */}
           {/* ========================================================= */}
           <aside className="lg:col-span-4 space-y-4">
-            {/* Seller Credibility Card (Matches Reference Image) */}
-            <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-5 shadow-[0_2px_16px_rgba(15,23,42,0.02)] space-y-4">
-              <div className="flex items-start gap-3.5">
-                <Link href={listing.seller.storeHref} className="shrink-0">
-                  <img
-                    src={listing.seller.avatar}
-                    alt={listing.seller.name}
-                    className="w-12 h-12 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
-                  />
-                </Link>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <Link
-                      href={listing.seller.storeHref}
-                      className="text-[15px] font-bold text-[#14171A] dark:text-white hover:underline truncate"
-                    >
-                      {listing.seller.name}
-                    </Link>
-                    {listing.seller.isVerified && (
-                      <BadgeCheck
-                        className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                        aria-label="Verified student seller"
-                      />
-                    )}
-                  </div>
+            {/* Seller Credibility Card (Minimal: Rating, Joined & Visit Icon) */}
+            <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-5 shadow-[0_2px_16px_rgba(15,23,42,0.02)] space-y-3.5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Link href={listing.seller.storeHref} className="shrink-0">
+                    <img
+                      src={listing.seller.avatar}
+                      alt={listing.seller.name}
+                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
+                    />
+                  </Link>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        href={listing.seller.storeHref}
+                        className="text-[14px] font-bold text-[#14171A] dark:text-white hover:underline truncate"
+                      >
+                        {listing.seller.name}
+                      </Link>
+                      {listing.seller.isVerified && (
+                        <BadgeCheck
+                          className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
+                          aria-label="Verified student seller"
+                        />
+                      )}
+                    </div>
 
-                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                    {listing.seller.department}
-                  </p>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 mt-0.5 truncate">
+                      {listing.seller.department}
+                    </p>
+                  </div>
                 </div>
+
+                <Link
+                  href={listing.seller.storeHref}
+                  title="Visit storefront"
+                  aria-label="Visit storefront"
+                  className="w-8 h-8 rounded-full bg-[#F4F6F8] dark:bg-white/5 hover:bg-[#FFC928] dark:hover:bg-[#FFC928] hover:text-[#171717] text-[#5B636E] dark:text-neutral-300 flex items-center justify-center transition-colors shrink-0"
+                >
+                  <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
+                </Link>
               </div>
 
-              <p className="text-[12.5px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
-                {listing.seller.bio}
-              </p>
-
-              {/* 3-Column Seller Metrics */}
-              <div className="grid grid-cols-3 divide-x divide-[#ECEEF2] dark:divide-white/10 pt-2 pb-1">
+              {/* Minimal 3-Item Metrics: Rating, Joined, and Visit Icon (Only the three) */}
+              <div className="grid grid-cols-3 divide-x divide-[#ECEEF2] dark:divide-white/10 pt-3 border-t border-[#ECEEF2] dark:border-white/10 text-center">
                 <div className="pr-2">
-                  <span className="block text-[14px] font-extrabold text-[#14171A] dark:text-white">
-                    {listing.seller.reviewsCount}
-                  </span>
-                  <span className="text-[11px] text-[#68707A] dark:text-neutral-400">
-                    Sales
-                  </span>
-                </div>
-
-                <div className="px-3">
-                  <span className="block text-[14px] font-extrabold text-[#14171A] dark:text-white">
-                    {listing.seller.rating}
-                  </span>
-                  <span className="text-[11px] text-[#68707A] dark:text-neutral-400">
+                  <div className="inline-flex items-center justify-center gap-1 text-[14px] font-extrabold text-[#14171A] dark:text-white">
+                    <span>{listing.seller.reviewsCount > 0 ? listing.seller.rating : "—"}</span>
+                    <Star className="w-3.5 h-3.5 fill-[#FFC928] text-[#FFC928] -translate-y-0.5" />
+                  </div>
+                  <span className="block text-[11px] text-[#68707A] dark:text-neutral-400 mt-0.5">
                     Rating
                   </span>
                 </div>
 
-                <div className="pl-3">
-                  <span className="block text-[13px] font-extrabold text-[#14171A] dark:text-white">
+                <div className="px-2">
+                  <span className="block text-[13.5px] font-extrabold text-[#14171A] dark:text-white truncate">
                     {listing.seller.memberSince}
                   </span>
-                  <span className="text-[11px] text-[#68707A] dark:text-neutral-400">
+                  <span className="block text-[11px] text-[#68707A] dark:text-neutral-400 mt-0.5">
                     Joined
                   </span>
                 </div>
-              </div>
 
-              <Link
-                href={listing.seller.storeHref}
-                className="radius-native w-full py-2.5 px-4 rounded-xl border border-[#E4E7EC] dark:border-white/15 hover:border-[#171717] dark:hover:border-white text-[12.5px] font-bold text-[#171717] dark:text-white flex items-center justify-between transition-colors"
-              >
-                <span>
-                  {listing.seller.storeHref.startsWith("/stores")
-                    ? "Visit storefront"
-                    : "View seller profile"}
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#68707A]" />
-              </Link>
+                <div className="pl-2 flex flex-col items-center justify-center">
+                  <Link
+                    href={listing.seller.storeHref}
+                    className="inline-flex items-center justify-center gap-1 text-[13px] font-extrabold text-[#171717] dark:text-white hover:text-[#FFC928] transition-colors"
+                  >
+                    <span>Visit</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 text-[#68707A]" />
+                  </Link>
+                  <span className="block text-[11px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                    Store
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Safety Tips Card (Matches Reference Image) */}
@@ -1659,6 +1659,17 @@ export default function ListingDetailPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* LISTING SHARE MODAL (PNG CARD & SOCIAL LINK ARRAY)        */}
+      {/* ========================================================= */}
+      {listing && (
+        <ListingShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          listing={listing}
+        />
       )}
 
       <RebrandFooter />
