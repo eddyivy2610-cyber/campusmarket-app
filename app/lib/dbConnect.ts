@@ -32,6 +32,12 @@ export async function dbConnect(): Promise<typeof mongoose> {
   const uri = configuredUri || (allowLocalFallback ? "mongodb://127.0.0.1:27017/campushive" : "");
   if (!uri) throw new DatabaseUnavailableError("Database configuration is missing.");
 
+  // Clear stale cached promise if connection is disconnected or closing in serverless container
+  if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
+    cache.promise = null;
+    cache.conn = null;
+  }
+
   cache.promise ??= mongoose
     .connect(uri, getMongooseConnectionOptions())
     .then((connection) => { cache.conn = connection; return connection; })

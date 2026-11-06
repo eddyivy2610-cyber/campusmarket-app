@@ -510,7 +510,7 @@ export default function ListingDetailPage() {
     (user?.handle && (
       (listing?.seller?.handle && (listing.seller.handle === user.handle || listing.seller.storeHref?.includes(user.handle)))
     )) ||
-    (localCreatedListing && (!localCreatedListing.sellerId || (user?.id && String(localCreatedListing.sellerId) === String(user.id))))
+    (localCreatedListing && Boolean(localCreatedListing.sellerId) && user?.id && String(localCreatedListing.sellerId) === String(user.id))
   );
   const [isMarkedSold, setIsMarkedSold] = useState(false);
 
@@ -626,8 +626,11 @@ export default function ListingDetailPage() {
             .map((item: any) => {
               const isService = item.listingType === "service";
               const sellerObj = typeof item.sellerId === "object" ? item.sellerId : null;
+              const rawItemId = item._id || item.id;
+              const itemId = String(rawItemId);
               return {
-                id: item._id || item.id,
+                id: rawItemId,
+                href: `/listings/${itemId}`,
                 title: item.title,
                 price: typeof item.price === "number" ? item.price : 0,
                 priceFormatted: `₦${Number(item.price || 0).toLocaleString()}`,
@@ -649,6 +652,7 @@ export default function ListingDetailPage() {
                 engagementText: "Active listing",
                 rating: "4.8",
                 keywords: [item.title, item.category].filter(Boolean),
+                createdAtTimestamp: Date.now(),
               };
             });
           setRelatedListings(mapped);
@@ -1157,7 +1161,7 @@ export default function ListingDetailPage() {
             <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-5 shadow-[0_2px_16px_rgba(15,23,42,0.02)] space-y-3.5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <Link href={listing.seller.storeHref} className="shrink-0">
+                  <Link href={listing.seller.storeHref || "/explore"} className="shrink-0">
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
@@ -1167,7 +1171,7 @@ export default function ListingDetailPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <Link
-                        href={listing.seller.storeHref}
+                        href={listing.seller.storeHref || "/explore"}
                         className="text-[14px] font-bold text-[#14171A] dark:text-white hover:underline truncate"
                       >
                         {listing.seller.name}
@@ -1187,7 +1191,7 @@ export default function ListingDetailPage() {
                 </div>
 
                 <Link
-                  href={listing.seller.storeHref}
+                  href={listing.seller.storeHref || "/explore"}
                   title="Visit storefront"
                   aria-label="Visit storefront"
                   className="w-8 h-8 rounded-full bg-[#F4F6F8] dark:bg-white/5 hover:bg-[#FFC928] dark:hover:bg-[#FFC928] hover:text-[#171717] text-[#5B636E] dark:text-neutral-300 flex items-center justify-center transition-colors shrink-0"
@@ -1219,7 +1223,7 @@ export default function ListingDetailPage() {
 
                 <div className="pl-2 flex flex-col items-center justify-center">
                   <Link
-                    href={listing.seller.storeHref}
+                    href={listing.seller.storeHref || "/explore"}
                     className="inline-flex items-center justify-center gap-1 text-[13px] font-extrabold text-[#171717] dark:text-white hover:text-[#FFC928] transition-colors"
                   >
                     <span>Visit</span>
@@ -1302,7 +1306,7 @@ export default function ListingDetailPage() {
                   <div>
                     <div className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center">
                       <Link
-                        href={item.href}
+                        href={item.href || `/listings/${item.id}` || "#"}
                         className="w-full h-full flex items-center justify-center focus:outline-none"
                       >
                         <img
@@ -1339,7 +1343,7 @@ export default function ListingDetailPage() {
                     </div>
 
                     <div className="mt-3 px-0.5">
-                      <Link href={item.href} className="block focus:outline-none">
+                      <Link href={item.href || `/listings/${item.id}` || "#"} className="block focus:outline-none">
                         <h3 className="text-[14px] font-bold text-[#14171A] dark:text-white leading-snug truncate group-hover:underline">
                           {item.title}
                         </h3>
@@ -1366,7 +1370,7 @@ export default function ListingDetailPage() {
                     </div>
 
                     <Link
-                      href={item.href}
+                      href={item.href || `/listings/${item.id}` || "#"}
                       className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
                     >
                       <span>View</span>
