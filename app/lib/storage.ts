@@ -1,5 +1,9 @@
 import crypto from "node:crypto";
-import type { UploadPurpose } from "./uploadPolicy";
+import {
+  UPLOAD_POLICIES,
+  resolveCloudinaryCredentials,
+  type UploadPurpose,
+} from "./uploadPolicy";
 
 export interface SecureUploadOptions {
   buffer: Buffer;
@@ -106,9 +110,7 @@ export function generateSignedUploadParams(options: {
   purpose?: string;
   folder?: string;
 } = {}): SignedUploadParams {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const { cloudName, apiKey, apiSecret } = resolveCloudinaryCredentials();
 
   const isPrivate = options.isPrivate || options.purpose === "business_document";
   const folder = options.folder || (isPrivate ? "campushive/private_docs" : "campushive/uploads");
@@ -162,11 +164,12 @@ export function generateSignedUploadParams(options: {
 async function uploadToCloudinary(
   buffer: Buffer,
   extension: string,
-  isPrivate: boolean
+  isPrivate: boolean,
+  userId?: string,
+  purpose?: UploadPurpose,
+  fileKey?: string
 ): Promise<{ url: string; type: "upload" | "authenticated" } | null> {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const { cloudName, apiKey, apiSecret } = resolveCloudinaryCredentials();
 
   if (!cloudName || !apiKey || !apiSecret) {
     if (process.env.NODE_ENV === "production") {
@@ -177,15 +180,39 @@ async function uploadToCloudinary(
 
   try {
     const timestamp = Math.round(Date.now() / 1000);
-    const folder = isPrivate ? "campushive/private_docs" : "campushive/uploads";
+    const resolvedPurpose: UploadPurpose =
+      purpose && UPLOAD_POLICIES[purpose]
+        ? purpose
+        : isPrivate
+        ? "business_document"
+        : "listing_image";
+    const policy = UPLOAD_POLICIES[resolvedPurpose];
+    const folder = userId
+      ? `${policy.folderPrefix}/${userId}`
+      : isPrivate
+      ? "campushive/private_docs"
+      : "campushive/uploads";
+    const publicId = fileKey ? `${resolvedPurpose}_${fileKey}` : undefined;
     const resourceType = extension === ".pdf" ? "raw" : "image";
     const type: "upload" | "authenticated" = isPrivate ? "authenticated" : "upload";
 
     // Alphabetical sort for signature
+    const sigParams: Record<string, string> = {
+      folder,
+      timestamp: String(timestamp),
+    };
+    if (publicId) {
+      sigParams.public_id = publicId;
+    }
+    if (type === "authenticated") {
+      sigParams.type = "authenticated";
+    }
+
     const signaturePayload =
-      type === "authenticated"
-        ? `folder=${folder}&timestamp=${timestamp}&type=authenticated${apiSecret}`
-        : `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+      Object.keys(sigParams)
+        .sort()
+        .map((k) => `${k}=${sigParams[k]}`)
+        .join("&") + apiSecret;
 
     const signature = crypto
       .createHash("sha1")
@@ -194,12 +221,21 @@ async function uploadToCloudinary(
 
     const formData = new FormData();
     const base64Data = buffer.toString("base64");
-    const mimePrefix = extension === ".pdf" ? "application/pdf" : `image/${extension.replace(".", "")}`;
+    const cleanExt = extension.replace(".", "").toLowerCase();
+    const mimePrefix =
+      extension === ".pdf"
+        ? "application/pdf"
+        : cleanExt === "jpg"
+        ? "image/jpeg"
+        : `image/${cleanExt}`;
     formData.append("file", `data:${mimePrefix};base64,${base64Data}`);
     formData.append("api_key", apiKey);
     formData.append("timestamp", String(timestamp));
     formData.append("signature", signature);
     formData.append("folder", folder);
+    if (publicId) {
+      formData.append("public_id", publicId);
+    }
     if (type === "authenticated") {
       formData.append("type", "authenticated");
     }
@@ -236,7 +272,7 @@ async function uploadToCloudinary(
 export async function uploadFileSecurely(
   opts: SecureUploadOptions
 ): Promise<SecureUploadResult> {
-  const { buffer, isPrivate = false } = opts;
+  const { buffer, isPrivate = false, userId, purpose } = opts;
 
   // 1. Validate file content signature
   const signature = verifyFileSignature(buffer);
@@ -252,7 +288,10 @@ export async function uploadFileSecurely(
   const cloudResult = await uploadToCloudinary(
     buffer,
     signature.extension,
-    isPrivate
+    isPrivate,
+    userId,
+    purpose,
+    fileKey
   );
 
   if (cloudResult) {

@@ -1,6 +1,41 @@
 import crypto from "node:crypto";
 import { ServerAuthUser } from "./authTokens";
 
+/**
+ * Resolves Cloudinary credentials from standard env vars, NEXT_PUBLIC_ variants,
+ * or a combined CLOUDINARY_URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME).
+ */
+export function resolveCloudinaryCredentials(): {
+  cloudName?: string;
+  apiKey?: string;
+  apiSecret?: string;
+} {
+  const clean = (v?: string) =>
+    v ? v.trim().replace(/^["']|["']$/g, "").trim() : undefined;
+
+  let cloudName = clean(
+    process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+  );
+  let apiKey = clean(
+    process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY
+  );
+  let apiSecret = clean(
+    process.env.CLOUDINARY_API_SECRET || process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET
+  );
+
+  const cloudinaryUrl = clean(process.env.CLOUDINARY_URL);
+  if (cloudinaryUrl && cloudinaryUrl.startsWith("cloudinary://")) {
+    try {
+      const parsed = new URL(cloudinaryUrl);
+      if (!cloudName && parsed.hostname) cloudName = decodeURIComponent(parsed.hostname);
+      if (!apiKey && parsed.username) apiKey = decodeURIComponent(parsed.username);
+      if (!apiSecret && parsed.password) apiSecret = decodeURIComponent(parsed.password);
+    } catch {}
+  }
+
+  return { cloudName, apiKey, apiSecret };
+}
+
 export type UploadPurpose =
   | "avatar"
   | "cover_image"
@@ -276,7 +311,7 @@ export function parseAndValidateCloudinaryUrl(
   const [cloudName, resourceType, deliveryType, ...rest] = segments;
 
   // 5. Cloudinary account tenant verification
-  const expectedCloud = process.env.CLOUDINARY_CLOUD_NAME;
+  const expectedCloud = resolveCloudinaryCredentials().cloudName;
   if (expectedCloud && cloudName !== expectedCloud && !isDevMock) {
     return {
       valid: false,
@@ -500,6 +535,14 @@ export function generatePrivateDocumentSignedDeliveryUrl(
     return { success: false, error: "Missing asset URL", statusCode: 400 };
   }
 
+  // Allow inline data URLs directly for admin/owner document preview
+  if (assetUrl.startsWith("data:image/") || assetUrl.startsWith("data:application/pdf")) {
+    return {
+      success: true,
+      signedUrl: assetUrl,
+    };
+  }
+
   let targetUserId = requester.id;
   if (requester.role === "admin") {
     try {
@@ -524,8 +567,9 @@ export function generatePrivateDocumentSignedDeliveryUrl(
   }
 
   const asset = parsed.asset;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "campushive-dev";
+  const creds = resolveCloudinaryCredentials();
+  const apiSecret = creds.apiSecret;
+  const cloudName = creds.cloudName || "campushive-dev";
 
   if (!apiSecret) {
     return {
@@ -564,11 +608,12 @@ export function authorizeDirectUpload(
   }
 
   const policy = validation.policy;
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "campushive-dev";
-  const apiKey = process.env.CLOUDINARY_API_KEY || "dev_key";
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const creds = resolveCloudinaryCredentials();
+  const cloudName = creds.cloudName || "campushive-dev";
+  const apiKey = creds.apiKey || "dev_key";
+  const apiSecret = creds.apiSecret;
 
-  if (process.env.NODE_ENV === "production" && (!process.env.CLOUDINARY_CLOUD_NAME || !apiSecret)) {
+  if (process.env.NODE_ENV === "production" && (!creds.cloudName || !apiSecret)) {
     throw new Error("Cloud storage is unconfigured in production environment.");
   }
 
