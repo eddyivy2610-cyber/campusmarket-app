@@ -159,7 +159,7 @@ export function RebrandHeader() {
             </button>
 
             {/* Campus Hive Logo */}
-            <Logo height={28} width={70} href="/home" />
+            <Logo height={40} width={70} href="/home" />
 
             {/* Desktop Navigation Links */}
             <nav
@@ -176,11 +176,10 @@ export function RebrandHeader() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className={`relative py-2 text-[13.5px] transition-colors ${
-                      isActive
-                        ? "font-semibold text-[#171717] dark:text-white"
-                        : "font-medium text-[#636871] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                    }`}
+                    className={`relative py-2 text-[13.5px] transition-colors ${isActive
+                      ? "font-semibold text-[#171717] dark:text-white"
+                      : "font-medium text-[#636871] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
+                      }`}
                   >
                     {link.label}
                     {isActive && (
@@ -210,11 +209,10 @@ export function RebrandHeader() {
               href="/notifications"
               aria-label="Notifications"
               title="Notifications"
-              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                pathname?.startsWith("/notifications")
-                  ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
-                  : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
-              }`}
+              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${pathname?.startsWith("/notifications")
+                ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
+                : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
+                }`}
             >
               <Bell className="w-[19px] h-[19px]" strokeWidth={1.8} />
               {notificationCount > 0 && (
@@ -231,11 +229,10 @@ export function RebrandHeader() {
               href="/messages"
               aria-label="Messages"
               title="Messages"
-              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
-                pathname?.startsWith("/messages")
-                  ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
-                  : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
-              }`}
+              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors ${pathname?.startsWith("/messages")
+                ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
+                : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
+                }`}
             >
               <MessageCircleMore className="w-[19px] h-[19px]" strokeWidth={1.8} />
               {unreadMessagesCount > 0 && (
@@ -318,19 +315,17 @@ export function RebrandHeader() {
                       key={link.label}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-4 py-2.5 text-[13.5px] transition-colors ${
-                        isActive
-                          ? "font-bold text-[#171717] dark:text-white bg-[#FFF8E1] dark:bg-[#FFC928]/10"
-                          : "font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
-                      }`}
+                      className={`flex items-center justify-between px-4 py-2.5 text-[13.5px] transition-colors ${isActive
+                        ? "font-bold text-[#171717] dark:text-white bg-[#FFF8E1] dark:bg-[#FFC928]/10"
+                        : "font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon
-                          className={`w-[18px] h-[18px] ${
-                            isActive
-                              ? "text-[#171717] dark:text-[#FFC928]"
-                              : "text-[#5B636E] dark:text-neutral-400"
-                          }`}
+                          className={`w-[18px] h-[18px] ${isActive
+                            ? "text-[#171717] dark:text-[#FFC928]"
+                            : "text-[#5B636E] dark:text-neutral-400"
+                            }`}
                           strokeWidth={1.8}
                         />
                         <span>{link.label}</span>
@@ -344,19 +339,17 @@ export function RebrandHeader() {
                 <Link
                   href="/notifications"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-2.5 text-[13.5px] transition-colors ${
-                    pathname?.startsWith("/notifications")
-                      ? "font-bold text-[#171717] dark:text-white bg-[#FFF8E1] dark:bg-[#FFC928]/10"
-                      : "font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
-                  }`}
+                  className={`flex items-center justify-between px-4 py-2.5 text-[13.5px] transition-colors ${pathname?.startsWith("/notifications")
+                    ? "font-bold text-[#171717] dark:text-white bg-[#FFF8E1] dark:bg-[#FFC928]/10"
+                    : "font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Bell
-                      className={`w-[18px] h-[18px] ${
-                        pathname?.startsWith("/notifications")
-                          ? "text-[#171717] dark:text-[#FFC928]"
-                          : "text-[#5B636E] dark:text-neutral-400"
-                      }`}
+                      className={`w-[18px] h-[18px] ${pathname?.startsWith("/notifications")
+                        ? "text-[#171717] dark:text-[#FFC928]"
+                        : "text-[#5B636E] dark:text-neutral-400"
+                        }`}
                       strokeWidth={1.8}
                     />
                     <span>Notifications</span>
