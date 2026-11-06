@@ -81,7 +81,7 @@ function BusinessApplicationsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
-  const fetchApplications = async () => {
+  const fetchApplications = async (skipAutoOpen = false) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -97,13 +97,13 @@ function BusinessApplicationsPage() {
         url += `?${params.toString()}`;
       }
 
-      const res: any = await apiGet(url);
+      const res: any = await apiGet(url, { cache: "no-store" });
       if (res?.success && Array.isArray(res?.data)) {
         setApplications(res.data);
 
         // Auto open if id in query
         const idParam = searchParams.get("id");
-        if (idParam) {
+        if (idParam && !skipAutoOpen) {
           const match = res.data.find((a: BusinessApp) => a._id === idParam);
           if (match) setSelectedApp(match);
         }
@@ -155,24 +155,37 @@ function BusinessApplicationsPage() {
       );
 
       if (res?.success) {
+        const updatedApplication = res.data?.application;
         setActionSuccessMsg(
           actionType === "approve"
-            ? "Application approved! The business storefront is now live."
+            ? "Application approved! Refreshing verification queue..."
             : actionType === "reject"
-            ? "Application rejected. Reason recorded."
-            : "Changes requested from applicant."
+            ? "Application rejected. Refreshing verification queue..."
+            : "Changes requested from applicant. Refreshing queue..."
         );
 
-        // Update list locally
-        setApplications((prev) =>
-          prev.map((a) => (a._id === selectedApp._id ? res.data.application : a))
-        );
-        setSelectedApp(res.data.application);
+        // Close modal and immediately remove from pending queue
+        const processedId = selectedApp._id;
+        setSelectedApp(null);
         setActionType(null);
         setActionReason("");
         setActionNotes("");
 
-        setTimeout(() => setActionSuccessMsg(null), 4000);
+        setApplications((prev) =>
+          selectedStatus !== "all" &&
+          updatedApplication?.status &&
+          updatedApplication.status !== selectedStatus
+            ? prev.filter((a) => a._id !== processedId)
+            : prev.map((a) => (a._id === processedId ? updatedApplication || a : a))
+        );
+
+        await fetchApplications(true);
+
+        setTimeout(() => {
+          if (typeof window !== "undefined") {
+            window.location.href = "/admin/business-applications";
+          }
+        }, 700);
       } else {
         alert(res?.error || "Failed to submit decision.");
       }
@@ -218,7 +231,7 @@ function BusinessApplicationsPage() {
       {error && (
         <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium flex items-center justify-between">
           <span>{error}</span>
-          <button onClick={fetchApplications} className="underline font-bold text-xs">
+          <button onClick={() => fetchApplications()} className="underline font-bold text-xs">
             Retry
           </button>
         </div>
