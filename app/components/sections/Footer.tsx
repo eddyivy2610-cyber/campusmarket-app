@@ -19,7 +19,7 @@ export function Footer() {
             <div className="w-full max-w-[1780px] mx-auto px-4 md:px-12 space-y-10">
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-10 pb-10 border-b border-white/10">
                     <div className="space-y-4">
-                        <Logo height={32} width={80} href="/home" />
+                        <Logo height={38} width={88} href="/home" />
                         <p className="text-white/70 text-sm leading-relaxed">
                             The premier marketplace and community hub for university students.
                         </p>

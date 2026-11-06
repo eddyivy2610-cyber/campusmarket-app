@@ -15,31 +15,35 @@ export interface LogoProps {
 export function Logo({
   className = "",
   imageClassName = "",
-  height = 36,
-  width = 90,
+  height = 38,
+  width = 96,
   href = "/home",
   priority = true,
   onClick,
 }: LogoProps) {
+  const computedWidth = Math.max(width, Math.round(height * (1132 / 585)));
+
   const content = (
     <span className={`inline-flex items-center shrink-0 ${className}`}>
       {/* Light Theme Logo */}
       <Image
-        src="/logo-light.png"
+        src="/logo-light.png?v=3"
         alt="Campus Hive"
-        width={width}
+        width={computedWidth}
         height={height}
         priority={priority}
+        unoptimized
         className={`dark:hidden block h-auto max-h-full w-auto object-contain ${imageClassName}`}
         style={{ height: `${height}px`, width: "auto" }}
       />
       {/* Dark Theme Logo */}
       <Image
-        src="/logo-dark.png"
+        src="/logo-dark.png?v=3"
         alt="Campus Hive"
-        width={width}
+        width={computedWidth}
         height={height}
         priority={priority}
+        unoptimized
         className={`hidden dark:block h-auto max-h-full w-auto object-contain ${imageClassName}`}
         style={{ height: `${height}px`, width: "auto" }}
       />

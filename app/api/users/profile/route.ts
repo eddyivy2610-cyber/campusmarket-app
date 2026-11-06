@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { requireAuth } from "@/lib/authServer";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
+import StoreModel from "@/models/Store";
 import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 
 export const dynamic = "force-dynamic";
@@ -70,39 +71,116 @@ export async function GET(req: NextRequest) {
 
     if (requestedHandle && requestedHandle !== "me") {
       await dbConnect();
-      const query = mongoose.isValidObjectId(requestedHandle)
-        ? { $or: [{ _id: new mongoose.Types.ObjectId(requestedHandle) }, { "profile.handle": requestedHandle }] }
-        : { "profile.handle": requestedHandle };
+      const escapedHandle = requestedHandle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-      const publicUser = await UserModel.findOne(query)
-        .select("name role sellerStatus campus isStudent studentVerified profile rating createdAt accountStatus")
+      // 1. Check if requestedHandle matches a Storefront by _id, ownerId, or slug
+      let storeDoc: any = null;
+      if (mongoose.isValidObjectId(requestedHandle)) {
+        storeDoc = await StoreModel.findOne({
+          $or: [{ _id: new mongoose.Types.ObjectId(requestedHandle) }, { ownerId: requestedHandle }],
+        })
+          .select("-businessApplicationId")
+          .lean();
+      }
+      if (!storeDoc) {
+        storeDoc = await StoreModel.findOne({
+          slug: { $regex: new RegExp(`^${escapedHandle}$`, "i") },
+        })
+          .select("-businessApplicationId")
+          .lean();
+      }
+
+      // 2. Look up the user by _id, store ownerId, or profile.handle
+      const userOrConditions: any[] = [{ "profile.handle": requestedHandle }];
+      if (mongoose.isValidObjectId(requestedHandle)) {
+        userOrConditions.unshift({ _id: new mongoose.Types.ObjectId(requestedHandle) });
+      }
+      if (storeDoc?.ownerId && mongoose.isValidObjectId(String(storeDoc.ownerId))) {
+        userOrConditions.unshift({ _id: new mongoose.Types.ObjectId(String(storeDoc.ownerId)) });
+      }
+
+      let publicUser: any = await UserModel.findOne({ $or: userOrConditions })
+        .select("name email role sellerStatus campus isStudent studentVerified profile rating createdAt accountStatus")
         .lean();
 
-      if (!publicUser || (publicUser.accountStatus && publicUser.accountStatus !== "active")) {
+      // 3. Fallback: match against derived handle (e.g. "luckyjohn" derived from name "Lucky John" or email prefix)
+      if (!publicUser) {
+        const candidates = await UserModel.find({
+          accountStatus: { $ne: "suspended" },
+        })
+          .select("name email role sellerStatus campus isStudent studentVerified profile rating createdAt accountStatus")
+          .limit(200)
+          .lean();
+
+        publicUser =
+          candidates.find((u: any) => {
+            const derivedFromName = String(u.profile?.displayName || u.name || "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
+            const derivedFromSlug = String(u.profile?.displayName || u.name || "")
+              .toLowerCase()
+              .trim()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "");
+            const derivedFromEmail = String(u.email?.split("@")[0] || "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
+            return (
+              derivedFromName === requestedHandle ||
+              derivedFromSlug === requestedHandle ||
+              derivedFromEmail === requestedHandle
+            );
+          }) || null;
+      }
+
+      // 4. If user was found first without storeDoc, check if user owns a store
+      if (publicUser && !storeDoc) {
+        storeDoc = await StoreModel.findOne({ ownerId: String(publicUser._id) })
+          .select("-businessApplicationId")
+          .lean();
+      }
+
+      if (
+        (!publicUser && !storeDoc) ||
+        publicUser?.accountStatus === "suspended" ||
+        storeDoc?.status === "suspended"
+      ) {
         return NextResponse.json(
           { success: false, error: "User record not found." },
           { status: 404 }
         );
       }
 
+      const resolvedId = String(publicUser?._id || storeDoc?.ownerId || storeDoc?._id);
+      const resolvedHandle =
+        storeDoc?.slug ||
+        publicUser?.profile?.handle ||
+        String(publicUser?.name || requestedHandle)
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+
       const safePublic = {
-        _id: String(publicUser._id),
-        id: String(publicUser._id),
-        name: publicUser.name,
-        role: publicUser.role,
-        sellerStatus: publicUser.sellerStatus,
-        campus: publicUser.campus,
-        isStudent: publicUser.isStudent,
-        studentVerified: publicUser.studentVerified,
+        _id: resolvedId,
+        id: resolvedId,
+        storeId: storeDoc ? String(storeDoc._id) : undefined,
+        store: storeDoc || undefined,
+        name: storeDoc?.name || publicUser?.profile?.displayName || publicUser?.name || "Campus Storefront",
+        role: storeDoc ? "seller" : publicUser?.role || "buyer",
+        sellerStatus: storeDoc ? "approved" : publicUser?.sellerStatus || "none",
+        campus: storeDoc?.operatingLocation || storeDoc?.campus || publicUser?.campus || "Main Campus",
+        isStudent: publicUser?.isStudent ?? (storeDoc?.storeType !== "local_business"),
+        studentVerified: Boolean(storeDoc?.isVerified || publicUser?.studentVerified),
         profile: {
-          displayName: publicUser.profile?.displayName,
-          handle: publicUser.profile?.handle,
-          avatar: publicUser.profile?.avatar,
-          coverImage: publicUser.profile?.coverImage,
-          bio: publicUser.profile?.bio,
+          displayName: storeDoc?.name || publicUser?.profile?.displayName || publicUser?.name,
+          handle: resolvedHandle,
+          avatar: storeDoc?.logo || publicUser?.profile?.avatar || "",
+          coverImage: storeDoc?.coverImage || publicUser?.profile?.coverImage || "",
+          bio: storeDoc?.description || publicUser?.profile?.bio || "",
         },
-        rating: publicUser.rating,
-        createdAt: publicUser.createdAt,
+        rating: storeDoc?.metrics
+          ? { average: storeDoc.metrics.rating ?? 5.0, count: storeDoc.metrics.reviewsCount ?? 0 }
+          : publicUser?.rating || { average: 5.0, count: 0 },
+        createdAt: publicUser?.createdAt || storeDoc?.createdAt,
       };
 
       return NextResponse.json({
@@ -132,16 +210,21 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const ownStore = await StoreModel.findOne({ ownerId: String(dbUser._id) })
+      .select("-businessApplicationId")
+      .lean();
+
+    const payload = {
+      ...dbUser,
+      id: String(dbUser._id),
+      storeId: ownStore ? String(ownStore._id) : undefined,
+      store: ownStore || undefined,
+    };
+
     return NextResponse.json({
       success: true,
-      data: {
-        ...dbUser,
-        id: String(dbUser._id),
-      },
-      user: {
-        ...dbUser,
-        id: String(dbUser._id),
-      },
+      data: payload,
+      user: payload,
     });
   } catch (error: any) {
     console.error("[GET /api/users/profile] Error:", error);

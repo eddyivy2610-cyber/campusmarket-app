@@ -17,13 +17,34 @@ export async function GET(
     const { id } = await context.params;
     await dbConnect();
 
-    // Query by MongoDB ObjectId or Slug
+    // Query by MongoDB ObjectId, OwnerId, Slug, or Owner Handle
     let store = null;
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
       store = await StoreModel.findById(id).select("-businessApplicationId").lean();
+      if (!store) {
+        store = await StoreModel.findOne({ ownerId: id }).select("-businessApplicationId").lean();
+      }
     }
     if (!store) {
-      store = await StoreModel.findOne({ slug: id }).select("-businessApplicationId").lean();
+      const escapedSlug = id.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      store = await StoreModel.findOne({
+        slug: { $regex: new RegExp(`^${escapedSlug}$`, "i") },
+      })
+        .select("-businessApplicationId")
+        .lean();
+    }
+    if (!store) {
+      const normalizedHandle = id.replace(/^@/, "").trim().toLowerCase();
+      const matchedUser = await UserModel.findOne({
+        "profile.handle": normalizedHandle,
+      })
+        .select("_id")
+        .lean();
+      if (matchedUser) {
+        store = await StoreModel.findOne({ ownerId: String(matchedUser._id) })
+          .select("-businessApplicationId")
+          .lean();
+      }
     }
 
     if (!store) {

@@ -267,7 +267,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#ECEEF2] dark:border-white/10">
               <div className="flex items-center gap-2">
-                <Logo height={26} width={65} href="/admin" />
+                <Logo height={34} width={76} href="/admin" />
                 <span className="radius-native px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFC928] text-[#171717]">
                   ADMIN
                 </span>
@@ -340,7 +340,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Logo Brand Header */}
           <div className="h-16 px-6 flex items-center justify-between border-b border-[#ECEEF2] dark:border-white/10">
             <div className="flex items-center gap-2">
-              <Logo height={26} width={65} href="/admin" />
+              <Logo height={34} width={76} href="/admin" />
               <span className="radius-native px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFC928] text-[#171717]">
                 ADMIN
               </span>

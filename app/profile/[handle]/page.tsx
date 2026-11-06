@@ -559,6 +559,7 @@ export default function ProfilePage() {
     (user?.handle && rawHandle === user.handle.replace(/^@/, "").toLowerCase()) ||
     (user?.id && rawHandle === user.id.toLowerCase()) ||
     (user?.id && liveUserProfile && String(liveUserProfile._id || liveUserProfile.id).toLowerCase() === user.id.toLowerCase()) ||
+    (user?.id && liveUserProfile?.store?.ownerId && String(liveUserProfile.store.ownerId).toLowerCase() === user.id.toLowerCase()) ||
     (customSavedHandle && rawHandle === customSavedHandle)
   );
 
@@ -616,8 +617,15 @@ export default function ProfilePage() {
       liveUserProfile?._id ||
       liveUserProfile?.id ||
       (isOwnProfile ? user?.id : null);
-    if (sellerId) {
-      fetch(`/api/listings?sellerId=${encodeURIComponent(sellerId)}&limit=50`, {
+    const storeId = liveUserProfile?.storeId || liveUserProfile?.store?._id;
+    const queryParam = sellerId
+      ? `sellerId=${encodeURIComponent(sellerId)}`
+      : storeId
+      ? `storeId=${encodeURIComponent(storeId)}`
+      : null;
+
+    if (queryParam) {
+      fetch(`/api/listings?${queryParam}&limit=50`, {
         credentials: "include",
       })
         .then((res) => res.json())
@@ -641,29 +649,64 @@ export default function ProfilePage() {
     return () => {
       isCancelled = true;
     };
-  }, [isOwnProfile, liveUserProfile?._id, liveUserProfile?.id, user?.id]);
+  }, [isOwnProfile, liveUserProfile?._id, liveUserProfile?.id, liveUserProfile?.storeId, liveUserProfile?.store?._id, user?.id]);
+
+  const resolvedHandleValue =
+    liveUserProfile?.store?.slug ||
+    liveUserProfile?.profile?.handle ||
+    (isOwnProfile ? user?.handle || customSavedHandle : rawHandle) ||
+    "me";
 
   const ownBaseProfile: ProfilePreviewData = {
-    id: liveUserProfile?._id || liveUserProfile?.id || user?.id || "my-profile",
-    handle: liveUserProfile?.profile?.handle || user?.handle || customSavedHandle || "me",
-    name: liveUserProfile?.name || liveUserProfile?.profile?.displayName || user?.name || savedOwnProfile?.name || "Campus Student",
-    username: `@${(liveUserProfile?.profile?.handle || user?.handle || customSavedHandle || "student").replace(/^@/, "")}`,
-    isStudentSeller: Boolean(liveUserProfile?.isStudent ?? user?.isStudent),
-    isVerified: Boolean(liveUserProfile?.studentVerified ?? user?.studentVerified),
-    location: liveUserProfile?.campus || (!user ? savedOwnProfile?.location : "") || "Campus",
-    bio: liveUserProfile?.profile?.bio || (!user ? savedOwnProfile?.bio : "") || "Campus student on Campus Hive.",
-    avatar: liveUserProfile?.profile?.avatar || (!user ? savedOwnProfile?.avatar : "") || user?.avatar || user?.image || "",
-    coverImage: liveUserProfile?.profile?.coverImage || (!user ? savedOwnProfile?.coverImage : "") || "",
-    sales: 0,
-    rating: 5.0,
-    reviewsCount: 0,
+    id: liveUserProfile?._id || liveUserProfile?.id || (isOwnProfile ? user?.id : "") || "my-profile",
+    handle: resolvedHandleValue,
+    name:
+      liveUserProfile?.store?.name ||
+      liveUserProfile?.profile?.displayName ||
+      liveUserProfile?.name ||
+      (isOwnProfile ? user?.name || savedOwnProfile?.name : "") ||
+      "Campus Student",
+    username: `@${resolvedHandleValue.replace(/^@/, "")}`,
+    isStudentSeller: Boolean(
+      liveUserProfile?.isStudent ?? (isOwnProfile ? user?.isStudent : true)
+    ),
+    isVerified: Boolean(
+      liveUserProfile?.store?.isVerified ??
+        liveUserProfile?.studentVerified ??
+        (isOwnProfile ? user?.studentVerified : false)
+    ),
+    location:
+      liveUserProfile?.store?.operatingLocation ||
+      liveUserProfile?.store?.campus ||
+      liveUserProfile?.campus ||
+      (!user ? savedOwnProfile?.location : "") ||
+      "Campus",
+    bio:
+      liveUserProfile?.store?.description ||
+      liveUserProfile?.profile?.bio ||
+      (!user ? savedOwnProfile?.bio : "") ||
+      "Campus student on Campus Hive.",
+    avatar:
+      liveUserProfile?.store?.logo ||
+      liveUserProfile?.profile?.avatar ||
+      (!user ? savedOwnProfile?.avatar : "") ||
+      (isOwnProfile ? user?.avatar || user?.image : "") ||
+      "",
+    coverImage:
+      liveUserProfile?.store?.coverImage ||
+      liveUserProfile?.profile?.coverImage ||
+      (!user ? savedOwnProfile?.coverImage : "") ||
+      "",
+    sales: liveUserProfile?.store?.metrics?.completedDeals ?? 0,
+    rating: liveUserProfile?.store?.metrics?.rating ?? liveUserProfile?.rating?.average ?? 5.0,
+    reviewsCount: liveUserProfile?.store?.metrics?.reviewsCount ?? liveUserProfile?.rating?.count ?? 0,
     joined: liveUserProfile?.createdAt
       ? new Date(liveUserProfile.createdAt).toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
         })
       : "Recent",
-    followersCount: 0,
+    followersCount: liveUserProfile?.store?.metrics?.followersCount ?? 0,
     listingsCount: liveUserListings.length,
     listings: liveUserListings,
     reviews: [],

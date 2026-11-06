@@ -287,8 +287,8 @@ export function RebrandHeader() {
               </button>
 
               <Logo
-                height={28}
-                width={70}
+                height={34}
+                width={76}
                 href="/home"
                 onClick={() => setMobileMenuOpen(false)}
               />

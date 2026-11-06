@@ -23,7 +23,7 @@ export function RebrandFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10 pb-8 border-b border-[#ECEEF2] dark:border-white/10">
           {/* Brand Info (2 columns on large screens) */}
           <div className="lg:col-span-2 space-y-3.5">
-            <Logo height={34} width={85} href="/home" />
+            <Logo height={38} width={88} href="/home" />
 
             <p className="text-[#5B636E] dark:text-neutral-400 text-[13px] leading-relaxed max-w-[340px]">
               The trusted student marketplace for your university campus. Buy, sell, and connect safely across campus.

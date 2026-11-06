@@ -275,7 +275,7 @@ export async function sendOtpVerificationEmail(
   ).replace(/\/$/, "");
 
   const logoMarkup = appBaseUrl
-    ? `<img src="${appBaseUrl}/logo-light.png" width="140" alt="CampusHive" style="display:block;width:140px;height:auto;margin:0 auto;border:0;" />`
+    ? `<img src="${appBaseUrl}/logo-light.png?v=3" width="140" alt="CampusHive" style="display:block;width:140px;height:auto;margin:0 auto;border:0;" />`
     : `<span style="font-size:24px;font-weight:800;color:#171717;">Campus<span style="color:#ffc928;">Hive</span></span>`;
 
   const html = `
