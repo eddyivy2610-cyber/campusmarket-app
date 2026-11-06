@@ -14,6 +14,7 @@ import {
   BadgeCheck,
   SlidersHorizontal,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -106,7 +107,7 @@ export function RebrandSettingsShell({
   initialDestination?: SettingsTabId;
 }) {
   const searchParams = useSearchParams();
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const querySection = searchParams.get("section") as SettingsTabId | null;
 
   const validQuerySection =
@@ -678,6 +679,28 @@ export function RebrandSettingsShell({
                 Cancel
               </button>
             </div>
+
+            {/* Session & Sign Out */}
+            <div className="pt-6 border-t border-[#ECEEF2] dark:border-white/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20">
+                <div>
+                  <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                    Sign out of CampusHive
+                  </h3>
+                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                    End your current session on this browser and return to the home screen.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="radius-native inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            </div>
           </div>
         );
 
@@ -874,6 +897,29 @@ export function RebrandSettingsShell({
                   </div>
                 );
               })}
+
+              {/* Mobile Log Out Button */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="radius-native w-full flex items-center justify-between gap-3 p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-rose-500/15 text-rose-600 dark:text-rose-400">
+                      <LogOut className="w-4 h-4" strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[14px] font-extrabold truncate">
+                        Log Out
+                      </div>
+                      <div className="text-[11.5px] text-rose-600/80 dark:text-rose-400/80 truncate">
+                        Sign out of your CampusHive account
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -921,10 +967,19 @@ export function RebrandSettingsShell({
                 </nav>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-4 space-y-2 border-t border-[#ECEEF2] dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="radius-native w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" strokeWidth={2.2} />
+                  <span>Log Out</span>
+                </button>
+
                 <Link
                   href={`/profile/${backProfileHandle}`}
-                  className="radius-native inline-flex items-center gap-2 px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-[#F2F4F8] dark:hover:bg-white/5 transition-colors"
+                  className="radius-native w-full inline-flex items-center gap-3 px-3.5 py-2 rounded-xl text-[12.5px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-[#F2F4F8] dark:hover:bg-white/5 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 stroke-[2.2]" />
                   <span>Back to Profile</span>
