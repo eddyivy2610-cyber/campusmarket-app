@@ -519,6 +519,7 @@ export default function ProfilePage() {
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [liveUserListings, setLiveUserListings] = useState<ProfileListingItem[]>([]);
+  const [liveReviews, setLiveReviews] = useState<ProfileReviewItem[]>([]);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState(
@@ -652,11 +653,89 @@ export default function ProfilePage() {
     };
   }, [isOwnProfile, liveUserProfile?._id, liveUserProfile?.id, liveUserProfile?.storeId, liveUserProfile?.store?._id, user?.id]);
 
+  // Fetch live reviews for the resolved profile
+  useEffect(() => {
+    let isCancelled = false;
+    const sellerId =
+      liveUserProfile?._id ||
+      liveUserProfile?.id ||
+      (isOwnProfile ? user?.id : null);
+    const storeId = liveUserProfile?.storeId || liveUserProfile?.store?._id;
+    const queryParam = sellerId
+      ? `sellerId=${encodeURIComponent(sellerId)}`
+      : storeId
+      ? `storeId=${encodeURIComponent(storeId)}`
+      : null;
+
+    if (queryParam) {
+      fetch(`/api/reviews?${queryParam}&limit=50`, {
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          if (!isCancelled && json.success && Array.isArray(json.data)) {
+            const mapped: ProfileReviewItem[] = json.data.map((r: any) => ({
+              id: r.id || r._id,
+              authorName: r.reviewer?.name || "Campus Buyer",
+              authorHandle: "buyer",
+              authorAvatar:
+                r.reviewer?.avatar ||
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+              dateLabel: r.createdAt
+                ? new Date(r.createdAt).toLocaleDateString()
+                : "Recently",
+              rating: Number(r.rating || 5),
+              comment: r.comment || "Great transaction on campus.",
+              contextBadge: "Verified Transaction",
+            }));
+            setLiveReviews(mapped);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    isOwnProfile,
+    liveUserProfile?._id,
+    liveUserProfile?.id,
+    liveUserProfile?.storeId,
+    liveUserProfile?.store?._id,
+    user?.id,
+  ]);
+
   const resolvedHandleValue =
     liveUserProfile?.store?.slug ||
     liveUserProfile?.profile?.handle ||
     (isOwnProfile ? user?.handle || customSavedHandle : rawHandle) ||
     "me";
+
+  const dynamicRatingBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
+    stars,
+    count: liveReviews.filter((r) => Math.round(r.rating) === stars).length,
+  }));
+
+  const dynamicReviewsCount =
+    liveReviews.length > 0
+      ? liveReviews.length
+      : (liveUserProfile?.store?.metrics?.reviewsCount ??
+         liveUserProfile?.rating?.count ??
+         0);
+
+  const dynamicRatingAvg =
+    liveReviews.length > 0
+      ? Number(
+          (
+            liveReviews.reduce((sum, r) => sum + r.rating, 0) /
+            liveReviews.length
+          ).toFixed(1)
+        )
+      : Number(
+          liveUserProfile?.store?.metrics?.rating ??
+          liveUserProfile?.rating?.average ??
+          5.0
+        );
 
   const ownBaseProfile: ProfilePreviewData = {
     id: liveUserProfile?._id || liveUserProfile?.id || (isOwnProfile ? user?.id : "") || "my-profile",
@@ -699,8 +778,8 @@ export default function ProfilePage() {
       (!user ? savedOwnProfile?.coverImage : "") ||
       "",
     sales: liveUserProfile?.store?.metrics?.completedDeals ?? 0,
-    rating: liveUserProfile?.store?.metrics?.rating ?? liveUserProfile?.rating?.average ?? 5.0,
-    reviewsCount: liveUserProfile?.store?.metrics?.reviewsCount ?? liveUserProfile?.rating?.count ?? 0,
+    rating: dynamicRatingAvg,
+    reviewsCount: dynamicReviewsCount,
     joined: liveUserProfile?.createdAt
       ? new Date(liveUserProfile.createdAt).toLocaleDateString("en-US", {
           month: "short",
@@ -710,14 +789,8 @@ export default function ProfilePage() {
     followersCount: liveUserProfile?.store?.metrics?.followersCount ?? 0,
     listingsCount: liveUserListings.length,
     listings: liveUserListings,
-    reviews: [],
-    ratingBreakdown: [
-      { stars: 5, count: 0 },
-      { stars: 4, count: 0 },
-      { stars: 3, count: 0 },
-      { stars: 2, count: 0 },
-      { stars: 1, count: 0 },
-    ],
+    reviews: liveReviews,
+    ratingBreakdown: dynamicRatingBreakdown,
   };
 
   const baseProfile: ProfilePreviewData = isOwnProfile
@@ -797,6 +870,24 @@ export default function ProfilePage() {
   );
 
   const isFollowableSeller = isSellerAccount;
+
+  const isSellerApproved = Boolean(
+    profile.isVerified ||
+      liveUserProfile?.store?.isVerified ||
+      liveUserProfile?.sellerStatus === "approved" ||
+      liveUserProfile?.sellerStatus === "verified" ||
+      (isOwnProfile &&
+        (user?.sellerStatus === "approved" ||
+          String(user?.sellerStatus) === "verified"))
+  );
+
+  const fourStarReviewsCount = (profile.reviews || liveReviews).filter(
+    (r) => Number(r.rating) >= 4
+  ).length;
+
+  const isHighlyReliable =
+    fourStarReviewsCount >= 15 ||
+    (profile.reviewsCount >= 15 && Number(profile.rating) >= 4.0);
 
   useEffect(() => {
     if (!isOwnProfile && isFollowableSeller && profile?.id) {
@@ -1005,7 +1096,7 @@ export default function ProfilePage() {
                           {/* 3. Rating */}
                           <div className="px-1 sm:px-2">
                             <div className="inline-flex items-center justify-center gap-1 text-[15px] sm:text-[16.5px] font-extrabold text-[#171717] dark:text-white leading-tight">
-                              <span>{profile.rating}</span>
+                              <span>{profile.reviewsCount > 0 ? profile.rating : "—"}</span>
                               <Star className="w-3.5 h-3.5 fill-[#FFC928] text-[#FFC928] shrink-0 -translate-y-0.5" />
                             </div>
                             <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
@@ -1492,7 +1583,7 @@ export default function ProfilePage() {
                 </h2>
 
                 <div className="divide-y divide-[#F1F3F6] dark:divide-white/10">
-                  {profile.isStudentSeller && profile.isVerified ? (
+                  {isSellerApproved ? (
                     <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
@@ -1503,7 +1594,7 @@ export default function ProfilePage() {
                             Campus verified
                           </p>
                           <p className="text-[11.5px] text-[#7A818C] truncate">
-                            Verified student seller on campus
+                            Verified seller on campus
                           </p>
                         </div>
                       </div>
@@ -1517,10 +1608,10 @@ export default function ProfilePage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                            Non-student seller
+                            Pending verification
                           </p>
                           <p className="text-[11.5px] text-[#7A818C] truncate">
-                            Unverified · Active campus vendor
+                            Active campus vendor · Approval pending
                           </p>
                         </div>
                       </div>
@@ -1535,7 +1626,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                          Reliable seller
+                          {isHighlyReliable ? "Highly Reliable" : "Reliable seller"}
                         </p>
                         <p className="text-[11.5px] text-[#7A818C] truncate">
                           Consistently positive feedback
@@ -1545,67 +1636,24 @@ export default function ProfilePage() {
                     <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
                   </div>
 
-                  <div className="py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
-                        {showSalesMilestone ? (
-                          <RefreshCw className="w-4 h-4 text-[#171717] dark:text-white" />
-                        ) : (
-                          <Lock className="w-4 h-4 text-[#8C929C]" />
-                        )}
+                  {profile.reviewsCount > 0 && (
+                    <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
+                          <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                            {profile.rating} · {profile.reviewsCount} reviews
+                          </p>
+                          <p className="text-[11.5px] text-[#7A818C] truncate">
+                            From eligible transactions
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        {showSalesMilestone ? (
-                          <>
-                            <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                              {formatSalesMilestone(profile.sales)} confirmed exchanges
-                            </p>
-                            <p className="text-[11.5px] text-[#7A818C] truncate">
-                              Campus verified exchange milestone
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-[13px] font-bold text-[#7A818C] dark:text-neutral-400 truncate">
-                              Exchange milestone private
-                            </p>
-                            <p className="text-[11.5px] text-[#9AA1AC] truncate">
-                              Seller chose to keep milestone private
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {isOwnProfile ? (
-                      <Link
-                        href="/dashboard/settings"
-                        title="Manage milestone privacy in Dashboard"
-                        className="text-[11.5px] font-semibold text-[#8C929C] hover:text-[#171717] dark:hover:text-white flex items-center gap-1 shrink-0"
-                      >
-                        <span className="hidden sm:inline">Privacy</span>
-                        <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                      </Link>
-                    ) : (
                       <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                    )}
-                  </div>
-
-                  <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
-                        <Star className="w-4 h-4 fill-[#F5B800] text-[#F5B800]" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                          {profile.rating} · {profile.reviewsCount} reviews
-                        </p>
-                        <p className="text-[11.5px] text-[#7A818C] truncate">
-                          From eligible transactions
-                        </p>
-                      </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                  </div>
+                  )}
                 </div>
               </div>
             )}

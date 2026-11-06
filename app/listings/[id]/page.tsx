@@ -256,8 +256,8 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
   },
 };
 
-function buildFallbackListing(id: string): DetailedListingData {
-  return DETAILED_CATALOG[id] || DETAILED_CATALOG["101"];
+function buildFallbackListing(id: string): DetailedListingData | null {
+  return DETAILED_CATALOG[id] || null;
 }
 
 export default function ListingDetailPage() {
@@ -500,8 +500,15 @@ export default function ListingDetailPage() {
 
   // Determine whether the currently authenticated user is the owner of this listing
   const isOwner = Boolean(
-    (user?.id && listing.sellerId && String(listing.sellerId) === String(user.id)) ||
-      (localCreatedListing && (!localCreatedListing.sellerId || (user?.id && String(localCreatedListing.sellerId) === String(user.id))))
+    (user?.id && (
+      (listing?.sellerId && String(listing.sellerId) === String(user.id)) ||
+      (liveListing?.sellerId && String(liveListing.sellerId) === String(user.id)) ||
+      (localCreatedListing?.sellerId && String(localCreatedListing.sellerId) === String(user.id))
+    )) ||
+    (user?.handle && (
+      (listing?.seller?.handle && (listing.seller.handle === user.handle || listing.seller.storeHref?.includes(user.handle)))
+    )) ||
+    (localCreatedListing && (!localCreatedListing.sellerId || (user?.id && String(localCreatedListing.sellerId) === String(user.id))))
   );
   const [isMarkedSold, setIsMarkedSold] = useState(false);
 
@@ -539,10 +546,12 @@ export default function ListingDetailPage() {
   };
 
   const handleOpenChatWithContext = () => {
+    if (isOwner) return;
     if (!user) {
       router.push("/register");
       return;
     }
+    if (!listing) return;
     const isService = listing.category === "Services" || listing.conditionLabel === "Service";
     const storeParam = listing.seller.storeHref.startsWith("/stores/")
       ? listing.seller.storeHref.replace("/stores/", "")
@@ -570,7 +579,8 @@ export default function ListingDetailPage() {
 
   const handleSendContextualMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatMessage.trim()) return;
+    if (!chatMessage.trim() || !listing) return;
+    const currentListing = listing;
     const userMsg = {
       id: `msg-${Date.now()}`,
       sender: "you" as const,
@@ -586,7 +596,7 @@ export default function ListingDetailPage() {
         {
           id: `msg-reply-${Date.now()}`,
           sender: "seller",
-          text: `Hi! Yes, "${listing.title}" (${listing.priceFormatted}) is still available. We can meet at ${listing.location.split(",")[0]} whenever you're free.`,
+          text: `Hi! Yes, "${currentListing.title}" (${currentListing.priceFormatted}) is still available. We can meet at ${currentListing.location.split(",")[0]} whenever you're free.`,
           time: "Just now",
         },
       ]);
@@ -675,7 +685,29 @@ export default function ListingDetailPage() {
     }
   };
 
-  if (isLoadingListing && !liveListing && !localCreatedListing) {
+  if (isLoadingListing || !listing) {
+    if (!isLoadingListing && !listing) {
+      return (
+        <div
+          style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+          className="min-h-screen flex flex-col bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased"
+        >
+          <RebrandHeader />
+          <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+            <h1 className="text-2xl font-bold mb-2">Listing not found</h1>
+            <p className="text-neutral-500 mb-6">This listing may have expired or been removed.</p>
+            <Link
+              href="/explore"
+              className="radius-native inline-flex items-center px-5 py-2.5 rounded-full bg-[#FFC928] text-black font-bold text-sm"
+            >
+              Browse Marketplace
+            </Link>
+          </main>
+          <RebrandFooter />
+        </div>
+      );
+    }
+
     return (
       <div
         style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
