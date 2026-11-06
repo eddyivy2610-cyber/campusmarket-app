@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   BellOff,
   ExternalLink,
+  RotateCw,
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
@@ -40,6 +41,7 @@ type FilterId = "all" | "unread";
 
 interface NotificationItem {
   _id: string;
+  type?: string;
   title: string;
   message: string;
   category: string;
@@ -161,6 +163,7 @@ export default function NotificationsPage() {
       const rawList = response.data || [];
       const normalized: NotificationItem[] = rawList.map((item: any) => ({
         _id: String(item._id || item.id),
+        type: item.type || "system",
         title: item.title || "Notification",
         message: item.message || "",
         category: item.category || "activity",
@@ -428,7 +431,7 @@ export default function NotificationsPage() {
                             {meta.label}
                           </span>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             {!item.read && (
                               <button
                                 type="button"
@@ -440,15 +443,55 @@ export default function NotificationsPage() {
                               </button>
                             )}
 
-                            {item.link && (
-                              <Link
-                                href={item.link}
-                                onClick={() => void markSingleRead(item._id)}
-                                className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11.5px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
-                              >
-                                <span>View details</span>
-                                <ArrowRight className="w-3 h-3" />
-                              </Link>
+                            {item.type === "seller_verification_approved" ? (
+                              <>
+                                <Link
+                                  href={`/profile/${user?.handle || user?.id || "me"}`}
+                                  onClick={() => void markSingleRead(item._id)}
+                                  className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[11.5px] font-extrabold transition-colors cursor-pointer shadow-2xs"
+                                >
+                                  <span>Check Out New Profile</span>
+                                  <ArrowRight className="w-3 h-3" />
+                                </Link>
+                                <Link
+                                  href={item.link || "/stores?view=storefront"}
+                                  onClick={() => void markSingleRead(item._id)}
+                                  className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11.5px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                                >
+                                  <span>Open Storefront</span>
+                                  <ArrowRight className="w-3 h-3" />
+                                </Link>
+                              </>
+                            ) : item.type === "seller_verification_rejected" ||
+                              item.type === "seller_verification_changes_requested" ? (
+                              <>
+                                <Link
+                                  href="/onboarding/seller?retry=true"
+                                  onClick={() => void markSingleRead(item._id)}
+                                  className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[11.5px] font-extrabold transition-colors cursor-pointer shadow-2xs"
+                                >
+                                  <RotateCw className="w-3 h-3" />
+                                  <span>Retry Application</span>
+                                </Link>
+                                <Link
+                                  href="/help-support"
+                                  onClick={() => void markSingleRead(item._id)}
+                                  className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F4F5F7] dark:hover:bg-white/10 text-[#171717] dark:text-white text-[11.5px] font-bold transition-colors cursor-pointer"
+                                >
+                                  <span>Contact Help</span>
+                                </Link>
+                              </>
+                            ) : (
+                              item.link && (
+                                <Link
+                                  href={item.link}
+                                  onClick={() => void markSingleRead(item._id)}
+                                  className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[11.5px] font-bold hover:opacity-90 transition-opacity cursor-pointer"
+                                >
+                                  <span>View details</span>
+                                  <ArrowRight className="w-3 h-3" />
+                                </Link>
+                              )
                             )}
                           </div>
                         </div>

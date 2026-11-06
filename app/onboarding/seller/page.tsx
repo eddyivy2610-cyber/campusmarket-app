@@ -169,7 +169,34 @@ export default function SellerOnboardingPage() {
     async function checkExistingStore() {
       try {
         const storeJson = await apiGet<any>("/api/stores/me");
-        if (storeJson?.success && storeJson?.data) {
+        if (storeJson?.success && storeJson?.data?.hasStore && storeJson?.data?.store) {
+          const isRetryParam =
+            typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).get("retry") === "true";
+          const appStatus = storeJson?.data?.businessApplication?.status;
+          const isRetryStatus =
+            appStatus === "rejected" || appStatus === "changes_requested";
+
+          if (isRetryParam || isRetryStatus) {
+            const existing = storeJson.data.store;
+            if (existing.ownerFullName) setFullName(existing.ownerFullName);
+            if (existing.name) setStoreName(existing.name);
+            if (existing.category) setCategory(existing.category);
+            if (existing.campus) setCampus(existing.campus);
+            if (existing.description) setAbout(existing.description);
+            if (existing.contact?.phone || existing.contact?.whatsapp) {
+              setContact(existing.contact.phone || existing.contact.whatsapp || "");
+            }
+            if (existing.logo) setAvatarPreview(existing.logo);
+            if (existing.verificationType === "business" || existing.storeType === "local_business") {
+              setSellerType("non_student");
+              if (existing.operatingLocation) setOperatingLocation(existing.operatingLocation);
+            } else {
+              setSellerType("student");
+            }
+            return;
+          }
+
           router.push("/stores?view=storefront");
           return;
         }

@@ -300,8 +300,8 @@ export async function PATCH(
             type: "seller_verification_approved",
             category: "account_security",
             priority: "high",
-            title: "Seller Verification Approved",
-            message: `Your verification request for "${approvedApplication.businessName}" has been approved by an admin! Your verified seller badge is now active.`,
+            title: "Congrats! Your storefront application has been accepted",
+            message: `Congrats! Your storefront application for "${approvedApplication.businessName}" has been accepted. Your verified badge is now live—check out your new profile and storefront!`,
             link: "/stores?view=storefront",
             dedupeKey: `seller_verify_approved:${id}`,
           });
@@ -367,14 +367,18 @@ export async function PATCH(
 
       try {
         if (application.applicantId && mongoose.Types.ObjectId.isValid(application.applicantId)) {
+          await UserModel.findByIdAndUpdate(application.applicantId, {
+            $set: { sellerStatus: "rejected" },
+          });
+
           await createNotification({
             recipient: application.applicantId,
             type: "seller_verification_rejected",
             category: "account_security",
             priority: "high",
-            title: "Seller Verification Update",
-            message: `Your verification request for "${application.businessName}" was not approved: ${String(reason).trim()}`,
-            link: "/stores?view=storefront",
+            title: "Storefront Application Not Approved",
+            message: `Your storefront application for "${application.businessName}" was declined: ${String(reason).trim()}. You can retry your verification or contact Help & Support.`,
+            link: "/onboarding/seller?retry=true",
             dedupeKey: `seller_verify_rejected:${id}:${application.updatedAt}`,
           });
         }
@@ -430,7 +434,7 @@ export async function PATCH(
             priority: "high",
             title: "Additional Verification Details Requested",
             message: `An administrator requested additional information for "${application.businessName}": ${reason || "Please review your verification submission."}`,
-            link: "/stores?view=storefront",
+            link: "/onboarding/seller?retry=true",
             dedupeKey: `seller_verify_changes:${id}:${application.updatedAt}`,
           });
         }

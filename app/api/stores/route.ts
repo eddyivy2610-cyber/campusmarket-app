@@ -131,14 +131,14 @@ export async function POST(req: NextRequest) {
     // UNIFIED SELLER ONBOARDING FLOW (Student / Non-Student Radio)
     // ------------------------------------------------------------------------
     if (isUnifiedOnboarding) {
-      // 1. Ensure user does not already own a storefront
+      // 1. Ensure user does not already own a verified storefront (allow retry if unverified/rejected)
       const existingStore = await StoreModel.findOne({ ownerId: user.id });
-      if (existingStore) {
+      if (existingStore && existingStore.isVerified) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "An active storefront is already registered to this account. Each account can only manage one storefront.",
+              "An active verified storefront is already registered to this account. Each account can only manage one storefront.",
           },
           { status: 409 }
         );
@@ -204,29 +204,44 @@ export async function POST(req: NextRequest) {
         });
 
         const now = new Date().toISOString();
-        const newStore = new StoreModel({
-          ...sanitized,
-          ownerId: user.id,
-          ownerFullName: fullName,
-          slug: generateSlug(name),
-          storeType: "student_store",
-          status: "active",
-          isVerified: false, // Pending admin manual preview and approval
-          verificationType: "student",
-          studentIdImage,
-          metrics: {
-            rating: 5.0,
-            reviewsCount: 0,
-            completedDeals: 0,
-            listingsCount: 0,
-            followersCount: 0,
-          },
-          createdAt: now,
-          updatedAt: now,
-        });
+        const newStore = existingStore
+          ? Object.assign(existingStore, {
+              ...sanitized,
+              ownerFullName: fullName,
+              storeType: "student_store",
+              status: "active",
+              isVerified: false,
+              verificationType: "student",
+              studentIdImage,
+              updatedAt: now,
+            })
+          : new StoreModel({
+              ...sanitized,
+              ownerId: user.id,
+              ownerFullName: fullName,
+              slug: generateSlug(name),
+              storeType: "student_store",
+              status: "active",
+              isVerified: false, // Pending admin manual preview and approval
+              verificationType: "student",
+              studentIdImage,
+              metrics: {
+                rating: 5.0,
+                reviewsCount: 0,
+                completedDeals: 0,
+                listingsCount: 0,
+                followersCount: 0,
+              },
+              createdAt: now,
+              updatedAt: now,
+            });
 
         await executeInTransaction(async (session) => {
-          await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+          if (existingStore) {
+            await (session ? newStore.save({ session }) : newStore.save());
+          } else {
+            await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+          }
 
           const studentVerificationApp = new BusinessApplicationModel({
             applicantId: user.id,
@@ -331,29 +346,44 @@ export async function POST(req: NextRequest) {
       });
 
       const now = new Date().toISOString();
-      const newStore = new StoreModel({
-        ...sanitized,
-        ownerId: user.id,
-        ownerFullName: fullName,
-        slug: generateSlug(name),
-        storeType: "local_business",
-        status: "active", // Allow posting listings immediately while location document is recorded
-        isVerified: false,
-        verificationType: "business",
-        locationProofDocument,
-        metrics: {
-          rating: 5.0,
-          reviewsCount: 0,
-          completedDeals: 0,
-          listingsCount: 0,
-          followersCount: 0,
-        },
-        createdAt: now,
-        updatedAt: now,
-      });
+      const newStore = existingStore
+        ? Object.assign(existingStore, {
+            ...sanitized,
+            ownerFullName: fullName,
+            storeType: "local_business",
+            status: "active",
+            isVerified: false,
+            verificationType: "business",
+            locationProofDocument,
+            updatedAt: now,
+          })
+        : new StoreModel({
+            ...sanitized,
+            ownerId: user.id,
+            ownerFullName: fullName,
+            slug: generateSlug(name),
+            storeType: "local_business",
+            status: "active", // Allow posting listings immediately while location document is recorded
+            isVerified: false,
+            verificationType: "business",
+            locationProofDocument,
+            metrics: {
+              rating: 5.0,
+              reviewsCount: 0,
+              completedDeals: 0,
+              listingsCount: 0,
+              followersCount: 0,
+            },
+            createdAt: now,
+            updatedAt: now,
+          });
 
       await executeInTransaction(async (session) => {
-        await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+        if (existingStore) {
+          await (session ? newStore.save({ session }) : newStore.save());
+        } else {
+          await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+        }
 
         const businessApp = new BusinessApplicationModel({
           applicantId: user.id,
