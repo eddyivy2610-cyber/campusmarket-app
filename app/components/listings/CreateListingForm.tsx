@@ -461,6 +461,7 @@ export function CreateListingForm() {
       location: `${landmark}, ${campusBranch}`,
       specs,
       features: selectedFeatures,
+      sellerId: user?.id || "",
       sellerName: storeDisplayName,
       sellerHandle: storeSlugOrId,
       sellerAvatar: storeAvatar,
@@ -480,16 +481,7 @@ export function CreateListingForm() {
     };
 
     try {
-      // 1. Save locally for instantaneous offline resolution in the app
-      const existingStored = localStorage.getItem("ch_user_created_listings");
-      const listArray = existingStored ? JSON.parse(existingStored) : [];
-      listArray.unshift(newListingData);
-      localStorage.setItem("ch_user_created_listings", JSON.stringify(listArray));
-
-      // 2. Clear draft
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-
-      // 3. Post to real backend API endpoint using authenticated apiPost
+      // 1. Post to real backend API endpoint using authenticated apiPost
       try {
         const result = await apiPost<any>("/api/listings", {
           title: newListingData.title,
@@ -507,12 +499,21 @@ export function CreateListingForm() {
           specs: newListingData.specs,
         });
         if (result?.success && result?.data?._id) {
-          newListingData.id = result.data._id;
-          newListingData._id = result.data._id;
+          newListingData.id = String(result.data._id);
+          newListingData._id = String(result.data._id);
         }
       } catch {
-        // Backend offline, local cache is already set
+        // Backend offline, fallback to local ID
       }
+
+      // 2. Save locally with the canonical ID so viewing the listing resolves immediately without flashing mock data
+      const existingStored = localStorage.getItem("ch_user_created_listings");
+      const listArray = existingStored ? JSON.parse(existingStored) : [];
+      listArray.unshift(newListingData);
+      localStorage.setItem("ch_user_created_listings", JSON.stringify(listArray));
+
+      // 3. Clear draft
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
 
       setPublishedListingId(newListingData.id);
     } catch {

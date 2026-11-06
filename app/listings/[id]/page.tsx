@@ -36,6 +36,8 @@ import {
 
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { RebrandFooter } from "../../components/sections/RebrandFooter";
+import { PageSkeleton } from "../../components/common/LoadingSystem";
+import { useAuth } from "../../context/AuthContext";
 import type { ExploreListingItem } from "../../data/exploreCatalog";
 
 interface QuickHighlight {
@@ -60,6 +62,7 @@ interface ReviewItem {
 
 interface DetailedListingData {
   id: string;
+  sellerId?: string;
   title: string;
   price: number;
   priceFormatted: string;
@@ -260,14 +263,21 @@ function buildFallbackListing(id: string): DetailedListingData {
 export default function ListingDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id || "101";
 
   const [liveListing, setLiveListing] = useState<DetailedListingData | null>(null);
+  const [isLoadingListing, setIsLoadingListing] = useState<boolean>(
+    !Boolean(DETAILED_CATALOG[rawId])
+  );
 
   useEffect(() => {
     let isCancelled = false;
     async function fetchLiveListing() {
       if (!rawId) return;
+      if (!DETAILED_CATALOG[rawId]) {
+        setIsLoadingListing(true);
+      }
       try {
         const res = await fetch(`/api/listings/${encodeURIComponent(rawId)}`);
         const json = await res.json();
@@ -339,6 +349,7 @@ export default function ListingDetailPage() {
 
           const mapped: DetailedListingData = {
             id: String(item._id || item.id),
+            sellerId: String(item.sellerId || storeData?.ownerId || ""),
             title: item.title,
             price: Number(item.price),
             priceFormatted: item.priceFormatted || `₦${Number(item.price).toLocaleString()}`,
@@ -364,11 +375,11 @@ export default function ListingDetailPage() {
               avatar: storeData?.logo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
               department: storeData ? `${storeData.operatingLocation || storeData.campus}` : `${item.location || item.campus || "Main Campus"}`,
               badgeLabel: storeData?.storeType === "student_store" || storeData?.storeType === "student_owned" ? "Student seller" : "Approved business",
-              isVerified: Boolean(storeData?.isVerified ?? true),
+              isVerified: Boolean(storeData?.isVerified ?? false),
               bio: storeData?.description || "Active seller on Campus Hive.",
               listingsCount: storeData?.metrics?.listingsCount || 1,
-              rating: String(storeData?.metrics?.rating ?? "4.8"),
-              reviewsCount: storeData?.metrics?.reviewsCount ?? 12,
+              rating: String(storeData?.metrics?.rating ?? "5.0"),
+              reviewsCount: storeData?.metrics?.reviewsCount ?? 0,
               memberSince: "2026",
               storeHref: storeData ? `/stores/${storeData.slug || storeData._id}` : `/profile/legacy-seller`,
             },
@@ -379,6 +390,10 @@ export default function ListingDetailPage() {
         }
       } catch (e) {
         console.warn("Could not fetch live listing from API:", e);
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingListing(false);
+        }
       }
     }
     fetchLiveListing();
@@ -387,7 +402,7 @@ export default function ListingDetailPage() {
     };
   }, [rawId]);
 
-  const fallbackListing = useMemo<DetailedListingData>(() => {
+  const localCreatedListing = useMemo<DetailedListingData | null>(() => {
     if (DETAILED_CATALOG[rawId]) return DETAILED_CATALOG[rawId];
 
     // Check user created listings from local storage
@@ -396,7 +411,9 @@ export default function ListingDetailPage() {
         const stored = localStorage.getItem("ch_user_created_listings");
         if (stored) {
           const list: any[] = JSON.parse(stored);
-          const foundCreated = list.find((item) => String(item.id) === String(rawId));
+          const foundCreated = list.find(
+            (item) => String(item.id) === String(rawId) || String(item._id) === String(rawId)
+          );
           if (foundCreated) {
             const specRows: SpecRow[] = [];
             if (foundCreated.specs && typeof foundCreated.specs === "object") {
@@ -415,6 +432,7 @@ export default function ListingDetailPage() {
 
             return {
               id: String(foundCreated.id),
+              sellerId: String(foundCreated.sellerId || ""),
               title: foundCreated.title,
               price: Number(foundCreated.price),
               priceFormatted: foundCreated.priceFormatted || `₦${Number(foundCreated.price).toLocaleString()}`,
@@ -470,18 +488,21 @@ export default function ListingDetailPage() {
       }
     }
 
-    return buildFallbackListing(rawId);
+    return null;
   }, [rawId]);
 
-  const listing = liveListing || fallbackListing;
+  const listing = liveListing || localCreatedListing || buildFallbackListing(rawId);
 
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [activeTab, setActiveTab] = useState<"details" | "specs" | "reviews">("details");
   const [isSaved, setIsSaved] = useState(false);
   const [relatedSaved, setRelatedSaved] = useState<Record<string | number, boolean>>({});
 
-  // Listing Management (Owner Preview Mode vs Buyer Mode)
-  const [isOwnerView, setIsOwnerView] = useState(false);
+  // Determine whether the currently authenticated user is the owner of this listing
+  const isOwner = Boolean(
+    (user?.id && listing.sellerId && String(listing.sellerId) === String(user.id)) ||
+      (localCreatedListing && (!localCreatedListing.sellerId || (user?.id && String(localCreatedListing.sellerId) === String(user.id))))
+  );
   const [isMarkedSold, setIsMarkedSold] = useState(false);
 
   // Modals: Contextual Chat & Report Listing
@@ -650,6 +671,21 @@ export default function ListingDetailPage() {
     }
   };
 
+  if (isLoadingListing && !liveListing && !localCreatedListing) {
+    return (
+      <div
+        style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
+        className="min-h-screen flex flex-col bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased"
+      >
+        <RebrandHeader />
+        <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
+          <PageSkeleton />
+        </main>
+        <RebrandFooter />
+      </div>
+    );
+  }
+
   return (
     <div
       style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
@@ -666,7 +702,7 @@ export default function ListingDetailPage() {
       )}
 
       <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
-        {/* Top Minimal Navigation & Owner Toggle Bar */}
+        {/* Top Minimal Navigation Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <button
             type="button"
@@ -687,28 +723,16 @@ export default function ListingDetailPage() {
               <span>Share</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setIsReportModalOpen(true)}
-              className="radius-native inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-medium text-[#5B636E] dark:text-neutral-400 hover:text-rose-600 transition-colors cursor-pointer"
-            >
-              <Flag className="w-3.5 h-3.5" />
-              <span>Report</span>
-            </button>
-
-            <span className="h-3.5 w-[1px] bg-[#E2E6EC] dark:bg-white/10 mx-0.5" />
-
-            <button
-              type="button"
-              onClick={() => setIsOwnerView((prev) => !prev)}
-              className={`radius-native px-2.5 py-1 rounded-lg text-[11.5px] font-semibold border transition-colors cursor-pointer ${
-                isOwnerView
-                  ? "bg-[#171717] text-white border-[#171717] dark:bg-white dark:text-[#171717]"
-                  : "bg-white dark:bg-[#14161D] border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:border-[#171717]"
-              }`}
-            >
-              {isOwnerView ? "Viewing as Owner" : "Preview Owner View"}
-            </button>
+            {!isOwner && (
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                className="radius-native inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-medium text-[#5B636E] dark:text-neutral-400 hover:text-rose-600 transition-colors cursor-pointer"
+              >
+                <Flag className="w-3.5 h-3.5" />
+                <span>Report</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -847,7 +871,7 @@ export default function ListingDetailPage() {
                 </div>
 
                 {/* Primary Actions: Buyer vs Listing Owner */}
-                {!isOwnerView ? (
+                {!isOwner ? (
                   <div className="mt-5 flex items-center gap-3">
                     <button
                       type="button"
@@ -883,49 +907,23 @@ export default function ListingDetailPage() {
                     </button>
                   </div>
                 ) : (
-                  /* Owner Management Controls */
-                  <div className="mt-5 p-3 rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C929C]">
-                      Listing Owner Controls
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => showToast("Opening listing editor...")}
-                        className="radius-native px-3 py-1.5 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[12px] font-semibold flex items-center gap-1.5 hover:border-[#171717] cursor-pointer"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Edit</span>
-                      </button>
+                  <div className="mt-5 flex items-center gap-3">
+                    <Link
+                      href="/stores?view=storefront&tab=catalog"
+                      className="radius-native flex-1 py-2.5 px-5 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] shadow-xs flex items-center justify-center gap-2 transition-transform active:scale-98 cursor-pointer"
+                    >
+                      <Edit3 className="w-4 h-4 stroke-[2.2]" />
+                      <span>Manage</span>
+                    </Link>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMarkedSold((prev) => !prev);
-                          showToast(
-                            !isMarkedSold
-                              ? "Listing marked as Sold!"
-                              : "Listing reactivated as Available!"
-                          );
-                        }}
-                        className="radius-native px-3 py-1.5 rounded-lg bg-[#FFC928] text-[#171717] text-[12px] font-bold flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>{isMarkedSold ? "Mark Available" : "Mark as Sold"}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          showToast("Listing deleted.");
-                          setTimeout(() => router.push("/explore"), 900);
-                        }}
-                        className="radius-native px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[12px] font-semibold flex items-center gap-1.5 hover:bg-rose-100 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="radius-native py-2.5 px-5 rounded-full border bg-white dark:bg-[#14161D] border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white hover:border-[#171717] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>Share</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1360,26 +1358,49 @@ export default function ListingDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleToggleSave}
-            className="radius-native p-2.5 rounded-full border border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white"
-            aria-label="Save listing"
-          >
-            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
-          </button>
+          {!isOwner ? (
+            <>
+              <button
+                type="button"
+                onClick={handleToggleSave}
+                className="radius-native p-2.5 rounded-full border border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white"
+                aria-label="Save listing"
+              >
+                <Bookmark className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+              </button>
 
-          <button
-            type="button"
-            disabled={isMarkedSold}
-            onClick={handleOpenChatWithContext}
-            className="radius-native py-2.5 px-5 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] flex items-center gap-1.5 shadow-xs"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>
-              {listing.category === "Services" ? "Contact provider" : "Message seller"}
-            </span>
-          </button>
+              <button
+                type="button"
+                disabled={isMarkedSold}
+                onClick={handleOpenChatWithContext}
+                className="radius-native py-2.5 px-5 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] flex items-center gap-1.5 shadow-xs"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>
+                  {listing.category === "Services" ? "Contact provider" : "Message seller"}
+                </span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="radius-native py-2.5 px-4 rounded-full border border-[#DCE0E6] dark:border-white/15 text-[#171717] dark:text-white text-[13px] font-semibold flex items-center gap-1.5"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share</span>
+              </button>
+
+              <Link
+                href="/stores?view=storefront&tab=catalog"
+                className="radius-native py-2.5 px-5 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] flex items-center gap-1.5 shadow-xs"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Manage</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
