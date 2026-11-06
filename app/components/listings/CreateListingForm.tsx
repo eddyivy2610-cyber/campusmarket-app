@@ -193,11 +193,25 @@ export function CreateListingForm() {
     async function loadStorefront() {
       try {
         const res = await apiGet<any>("/api/stores/me");
-        if (!isCancelled && res?.success && res?.data?.store) {
+        if (!isCancelled && res?.success && res?.data) {
           const store = res.data.store;
-          setUserStore(store);
-          if (store.campus) {
-            setCampus(store.campus);
+          const app = res.data.businessApplication;
+          if (store) {
+            setUserStore(store);
+            if (store.campus) {
+              setCampus(store.campus);
+            }
+          } else if (app) {
+            setUserStore({
+              name: app.businessName,
+              category: app.businessCategory,
+              campus: app.campus,
+              operatingLocation: app.operatingLocation,
+              isVerified: app.status === "approved",
+            });
+            if (app.campus) {
+              setCampus(app.campus);
+            }
           }
         }
       } catch {
@@ -208,7 +222,7 @@ export function CreateListingForm() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [user?.id]);
 
   // Restore Draft on mount
   useEffect(() => {
@@ -752,36 +766,7 @@ export function CreateListingForm() {
             </div>
           </aside>
 
-          {/* Storefront Identity Mini Card & Safety Card */}
-          <div className="radius-native p-4 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2.5">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#8C929C]">
-              <Store className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FFC928]" />
-              <span>Posting as Storefront</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
-                <img
-                  src={storeAvatar}
-                  alt={storeDisplayName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-[12.5px] font-extrabold text-[#171717] dark:text-white truncate">
-                    {storeDisplayName}
-                  </span>
-                  {storeIsVerified && (
-                    <BadgeCheck className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928] shrink-0" />
-                  )}
-                </div>
-                <div className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
-                  {storeSubtitle}
-                </div>
-              </div>
-            </div>
-          </div>
-
+          {/* Safety Card */}
           <div className="radius-native p-4 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-2">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#FFC928] shrink-0" />
