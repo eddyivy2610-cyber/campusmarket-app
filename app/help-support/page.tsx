@@ -171,9 +171,9 @@ export default function HelpSupportPage() {
                 </div>
               </div>
 
-              {/* Direct Link to Chat Room */}
+              {/* Direct Link to Chat Room (Coming Soon) */}
               <Link
-                href="/help-center/chat-room"
+                href="/coming-soon?feature=live-support"
                 className="radius-native rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] p-4.5 shadow-xs flex items-center justify-between gap-3 group hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -181,9 +181,14 @@ export default function HelpSupportPage() {
                     <MessageSquare className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h3 className="text-[13px] font-bold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
-                      Live Support Chat Room
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[13px] font-bold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
+                        Live Support Chat Room
+                      </h3>
+                      <span className="radius-native px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFC928]/20 text-[#B45309] dark:text-[#FFC928]">
+                        Coming Soon
+                      </span>
+                    </div>
                     <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400">
                       Message a student moderator in real-time
                     </p>

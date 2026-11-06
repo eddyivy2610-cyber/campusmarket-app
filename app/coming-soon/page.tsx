@@ -27,6 +27,10 @@ function ComingSoonContent() {
     featureTitle = "Campus Promotions & Ads";
     featureDescription =
       "Campus billboard and banner placements for student businesses and campus events are currently in testing and will open soon.";
+  } else if (featureParam === "live-support") {
+    featureTitle = "Live Support Chat Room";
+    featureDescription =
+      "Real-time live support chat rooms with Campus Hive student moderators are currently in development. Please use the Support Request form on Help & Support in the meantime.";
   }
 
   return (
