@@ -401,6 +401,7 @@ function MessagesWorkspace() {
   // Handle Entry Points (Product, Service, Wanted/Radar, Store, Profile)
   useEffect(() => {
     const contextType = searchParams.get("contextType");
+    const fromParam = searchParams.get("from");
     const participantId =
       searchParams.get("participantId") ||
       searchParams.get("user") ||
@@ -415,15 +416,29 @@ function MessagesWorkspace() {
       searchParams.get("price") || searchParams.get("contextPrice");
     const imageParam =
       searchParams.get("image") || searchParams.get("contextImage");
-    const fromListing =
-      searchParams.get("from") === "listing" ||
-      contextType === "product" ||
-      contextType === "service" ||
-      contextType === "wanted" ||
-      Boolean(title) ||
-      searchParams.has("contextId");
 
     if (!participantId) return;
+
+    // Distinct context categorization:
+    // 1. Radar context
+    const isRadar = fromParam === "radar" || contextType === "wanted";
+
+    // 2. Direct store context (messaging store directly without a product/listing or radar request)
+    const isStoreOnly =
+      (fromParam === "store" || contextType === "store" || (searchParams.has("store") && !searchParams.get("service") && !searchParams.get("listing"))) &&
+      fromParam !== "listing" &&
+      fromParam !== "store_listing";
+
+    // 3. Listing context (product or service from marketplace or via store)
+    const isListing =
+      !isStoreOnly &&
+      !isRadar &&
+      (fromParam === "listing" ||
+        fromParam === "store_listing" ||
+        contextType === "product" ||
+        contextType === "service" ||
+        Boolean(searchParams.get("listing") || searchParams.get("service")) ||
+        (Boolean(title) && searchParams.has("contextId")));
 
     const signature = `${participantId}:${contextType || ""}:${
       searchParams.get("contextId") || ""
@@ -432,9 +447,9 @@ function MessagesWorkspace() {
     entryContextProcessedRef.current = signature;
 
     const defaultMsg =
-      contextType === "wanted"
+      isRadar || isStoreOnly
         ? ""
-        : fromListing
+        : isListing
         ? searchParams.get("defaultMessage") || "ill love to know more about this product"
         : "";
 
@@ -448,35 +463,46 @@ function MessagesWorkspace() {
     if (existing) {
       setSelectedConvId(existing.id);
       setMobileShowThread(true);
-      if (fromListing) {
+      if (isListing) {
         setComposerText(defaultMsg);
       }
     } else {
       // Do not add to conversation list yet! Open an in-memory draft chat thread state
       const draftId = `draft-${participantId}`;
-      const newContextRef: ConversationContextRef | null =
-        fromListing && title
-          ? {
-              contextType: (contextType as any) || "product",
-              contextId:
-                searchParams.get("contextId") || `ctx-${Date.now()}`,
-              label:
-                contextType === "service"
-                  ? "SERVICE LISTING"
-                  : contextType === "wanted"
-                  ? "RADAR REQUEST"
-                  : "PRODUCT LISTING",
-              title,
-              priceFormatted: priceParam || "Contact for price",
-              numericPrice: searchParams.get("numericPrice")
-                ? Number(searchParams.get("numericPrice"))
-                : undefined,
-              image: imageParam || undefined,
-              status: (searchParams.get("status") as any) || "Available",
-              href: searchParams.get("href") || "/explore",
-              attachedAt: new Date().toISOString(),
-            }
-          : null;
+      let newContextRef: ConversationContextRef | null = null;
+
+      if (isRadar && title) {
+        newContextRef = {
+          contextType: "wanted",
+          contextId: searchParams.get("contextId") || `radar-${Date.now()}`,
+          label: "RADAR REQUEST",
+          title,
+          priceFormatted: priceParam || "Radar request",
+          status: "Available",
+          href: searchParams.get("href") || "/wanted",
+          attachedAt: new Date().toISOString(),
+        };
+      } else if (isListing && title) {
+        newContextRef = {
+          contextType: (contextType as any) || "product",
+          contextId: searchParams.get("contextId") || `ctx-${Date.now()}`,
+          label:
+            contextType === "service"
+              ? "SERVICE LISTING"
+              : "PRODUCT LISTING",
+          title,
+          priceFormatted: priceParam || "Contact for price",
+          numericPrice: searchParams.get("numericPrice")
+            ? Number(searchParams.get("numericPrice"))
+            : undefined,
+          image: imageParam || undefined,
+          status: (searchParams.get("status") as any) || "Available",
+          href: searchParams.get("href") || "/explore",
+          attachedAt: new Date().toISOString(),
+        };
+      }
+
+      const isStoreParticipant = isStoreOnly || contextType === "store" || fromParam === "store" || fromParam === "store_listing";
 
       const draftConv: ConversationDTO = {
         id: draftId,
@@ -486,22 +512,22 @@ function MessagesWorkspace() {
             id: participantId,
             name: participantName,
             subtitle:
-              searchParams.get("participantSubtitle") || "Student · Campus",
+              searchParams.get("participantSubtitle") || (isStoreParticipant ? "Student Store · Campus" : "Student · Campus"),
             avatar: searchParams.get("participantAvatar") || undefined,
             isVerified: searchParams.get("participantVerified") !== "false",
             accountType:
-              contextType === "store" ? "student_store" : "student",
+              isStoreParticipant ? "student_store" : "student",
           },
         ],
         otherParticipant: {
           id: participantId,
           name: participantName,
           subtitle:
-            searchParams.get("participantSubtitle") || "Student · Campus",
+            searchParams.get("participantSubtitle") || (isStoreParticipant ? "Student Store · Campus" : "Student · Campus"),
           avatar: searchParams.get("participantAvatar") || undefined,
           isVerified: searchParams.get("participantVerified") !== "false",
           accountType:
-            contextType === "store" ? "student_store" : "student",
+            isStoreParticipant ? "student_store" : "student",
         },
         context: newContextRef,
         additionalContexts: [],

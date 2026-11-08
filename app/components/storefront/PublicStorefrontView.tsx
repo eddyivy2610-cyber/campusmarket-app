@@ -443,9 +443,15 @@ export function PublicStorefrontView({
   const isOwner = Boolean(user?.id && store.ownerId && store.ownerId === user.id);
 
   const messageUrl = user
-    ? `/messages?recipient=${encodeURIComponent(
-        store.ownerId || store._id || store.id || ""
-      )}&store=${encodeURIComponent(store._id || store.id || "")}`
+    ? `/messages?${new URLSearchParams({
+        from: "store",
+        contextType: "store",
+        participantId: store.ownerId || store._id || store.id || "",
+        participantName: store.name || "Store",
+        participantAvatar: store.logo || "",
+        participantSubtitle: store.storeType === "student_store" ? "Student Store" : "Approved Business",
+        participantVerified: store.isVerified ? "true" : "false",
+      }).toString()}`
     : "/register";
 
   return (
@@ -857,12 +863,26 @@ export function PublicStorefrontView({
                   if (pricingModel === "hourly") priceSuffix = "/hr";
                   if (pricingModel === "negotiable") pricePrefix = "Approx. ";
 
+                  const itemPriceFormatted = `${pricePrefix}${item.priceFormatted || `₦${Number(item.price || 0).toLocaleString()}`}${priceSuffix}`;
+
                   const detailHref = `/listings/${itemId}`;
-                  const enquireHref = `/messages?recipient=${encodeURIComponent(
-                    store.ownerId || store._id || ""
-                  )}&store=${encodeURIComponent(store._id || store.id || "")}&service=${encodeURIComponent(
-                    itemId
-                  )}&title=${encodeURIComponent(item.title)}`;
+                  const enquireHref = `/messages?${new URLSearchParams({
+                    from: "store_listing",
+                    contextType: "service",
+                    contextId: itemId,
+                    title: item.title,
+                    price: itemPriceFormatted,
+                    numericPrice: item.price ? String(item.price) : "",
+                    image: imageUrl || "",
+                    status: "Available",
+                    href: detailHref,
+                    participantId: store.ownerId || store._id || store.id || "",
+                    participantName: store.name || "Store",
+                    participantSubtitle: store.storeType === "student_store" ? "Student Store" : "Approved Business",
+                    participantAvatar: store.logo || "",
+                    participantVerified: store.isVerified ? "true" : "false",
+                    defaultMessage: "ill love to know more about this product",
+                  }).toString()}`;
 
                   return (
                     <div
