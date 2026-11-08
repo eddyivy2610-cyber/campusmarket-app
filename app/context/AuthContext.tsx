@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from "react";
 import { apiPost } from "@/lib/apiClient";
+import { generateDefaultUsername } from "@/lib/usernameUtils";
 
 interface User {
     id: string;
@@ -32,8 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function deriveHandle(name?: string, email?: string, id?: string): string {
-    const raw = (name || email?.split("@")[0] || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    return raw || id || "";
+    return generateDefaultUsername(name, email);
 }
 
 function cacheableProfile(userData: User) {

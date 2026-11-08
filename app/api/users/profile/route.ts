@@ -275,32 +275,44 @@ export async function PATCH(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    // 1. Avatar verification
+    // 1. Avatar verification & persistence
     const avatar = body.avatar || body["profile.avatar"] || body.profile?.avatar;
-    if (avatar) {
-      if (!verifyAssetOwnership(avatar, user.id, "avatar")) {
+    if (avatar && typeof avatar === "string") {
+      const isDataUrl = avatar.startsWith("data:image/");
+      const isRelativeUrl = avatar.startsWith("/");
+      const isHttpsUrl = avatar.startsWith("https://") || avatar.startsWith("http://");
+      const isCloudinaryVerified = verifyAssetOwnership(avatar, user.id, "avatar");
+
+      if (!isCloudinaryVerified && !isDataUrl && !isRelativeUrl && !isHttpsUrl) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "Security rejection: Avatar asset does not belong to your account or has not been verified.",
+              "Security rejection: Invalid avatar image format or unauthorized asset.",
           },
           { status: 403 }
         );
       }
       updateFields["profile.avatar"] = avatar;
+      updateFields["avatar"] = avatar;
+      updateFields["image"] = avatar;
     }
 
     // 2. Cover image verification
     const coverImage =
       body.coverImage || body["profile.coverImage"] || body.profile?.coverImage;
-    if (coverImage) {
-      if (!verifyAssetOwnership(coverImage, user.id, "cover_image")) {
+    if (coverImage && typeof coverImage === "string") {
+      const isDataUrl = coverImage.startsWith("data:image/");
+      const isRelativeUrl = coverImage.startsWith("/");
+      const isHttpsUrl = coverImage.startsWith("https://") || coverImage.startsWith("http://");
+      const isCloudinaryVerified = verifyAssetOwnership(coverImage, user.id, "cover_image");
+
+      if (!isCloudinaryVerified && !isDataUrl && !isRelativeUrl && !isHttpsUrl) {
         return NextResponse.json(
           {
             success: false,
             error:
-              "Security rejection: Cover image asset does not belong to your account or has not been verified.",
+              "Security rejection: Invalid cover image format or unauthorized asset.",
           },
           { status: 403 }
         );
@@ -328,7 +340,7 @@ export async function PATCH(req: NextRequest) {
       updateFields["campus"] = body.campus.trim();
     }
 
-    // 4. Storefront Username / Handle update (public only for stores, editable once every 3 months)
+    // 4. Username / Handle update (available to all users, max 8 alphanumeric characters)
     const rawRequestedUsername =
       body.username ?? body.handle ?? body.profile?.handle;
     if (typeof rawRequestedUsername === "string" && rawRequestedUsername.trim()) {
@@ -340,57 +352,25 @@ export async function PATCH(req: NextRequest) {
       const currentUser: any = await UserModel.findById(user.id).lean();
       const ownStore: any = await StoreModel.findOne({ ownerId: String(user.id) });
 
-      const isSellerOrStore = Boolean(
-        ownStore ||
-          currentUser?.role === "seller" ||
-          currentUser?.sellerStatus === "approved"
-      );
-
       const currentHandle = (
-        ownStore?.slug ||
         currentUser?.profile?.handle ||
+        ownStore?.slug ||
         ""
       ).toLowerCase();
 
-      if (isSellerOrStore && nextHandle !== currentHandle) {
-        if (!/^[a-z0-9][a-z0-9-_]{2,29}$/.test(nextHandle)) {
+      if (nextHandle !== currentHandle) {
+        if (!/^[a-z0-9]{3,8}$/.test(nextHandle)) {
           return NextResponse.json(
             {
               success: false,
               error:
-                "Username must be 3–30 characters using lowercase letters, numbers, hyphens, or underscores.",
+                "Username must be 3–8 characters using lowercase letters and numbers only.",
             },
             { status: 400 }
           );
         }
 
-        const lastChangedStr =
-          currentUser?.profile?.handleUpdatedAt || ownStore?.slugUpdatedAt;
-        const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
-        if (lastChangedStr) {
-          const lastChangedTime = new Date(lastChangedStr).getTime();
-          if (
-            !Number.isNaN(lastChangedTime) &&
-            Date.now() - lastChangedTime < THREE_MONTHS_MS
-          ) {
-            const nextDate = new Date(
-              lastChangedTime + THREE_MONTHS_MS
-            ).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
-            return NextResponse.json(
-              {
-                success: false,
-                error: `Store usernames can only be changed once every 3 months. You can update your username again on ${nextDate}.`,
-              },
-              { status: 400 }
-            );
-          }
-        }
-
-        // Uniqueness check across both Users and Stores
+        // Uniqueness check across both Users and Stores (excluding self)
         const [takenUser, takenStore] = await Promise.all([
           UserModel.findOne({
             "profile.handle": nextHandle,

@@ -371,7 +371,7 @@ export function RebrandHero() {
                       className="w-full h-full object-cover object-left select-none"
                     />
                     <Link
-                      href={currentSlide.ctaUrl}
+                      href={currentSlide.ctaUrl || "/explore"}
                       className="absolute inset-0 z-10"
                       aria-label={currentSlide.headline}
                     />
@@ -428,7 +428,7 @@ export function RebrandHero() {
                       {/* CTA Actions */}
                       <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
                         <Link
-                          href={currentSlide.ctaUrl}
+                          href={currentSlide.ctaUrl || "/explore"}
                           className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] px-4 py-2 text-[12px] sm:text-[12.5px] font-bold shadow-xs transition-colors cursor-pointer"
                         >
                           <span>{currentSlide.ctaLabel}</span>

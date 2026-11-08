@@ -5,6 +5,7 @@ import UserModel, { saveUserWithHandleRetry } from "@/models/User";
 import { requestOtpCode } from "@/lib/otpService";
 import { sendExistingAccountNotice } from "@/lib/email";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
+import { generateDefaultUsername } from "@/lib/usernameUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -106,13 +107,7 @@ export async function POST(req: NextRequest) {
     } else {
       // 3. Create fresh user
       const hashedPassword = await argon2.hash(password);
-      const rawHandle = fullName
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-      const handle = rawHandle
-        ? `${rawHandle}${Math.floor(100 + Math.random() * 900)}`
-        : `user${Math.floor(1000 + Math.random() * 9000)}`;
+      const handle = generateDefaultUsername(fullName.trim(), cleanEmail);
 
       const newUser = new UserModel({
         name: fullName.trim(),

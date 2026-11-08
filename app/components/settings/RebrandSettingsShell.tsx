@@ -15,6 +15,8 @@ import {
   SlidersHorizontal,
   ChevronDown,
   LogOut,
+  Check,
+  X,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -137,6 +139,12 @@ export function RebrandSettingsShell({
   const [hasStorefront, setHasStorefront] = useState(false);
   const [handleUpdatedAt, setHandleUpdatedAt] = useState<string | null>(null);
 
+  // Real-time username availability check state
+  const [usernameCheck, setUsernameCheck] = useState<{
+    status: "idle" | "checking" | "available" | "taken" | "invalid";
+    message: string;
+  }>({ status: "idle", message: "" });
+
   // Contact & Privacy state
   const [messagingPreference, setMessagingPreference] = useState("everyone");
   const [contactChannel, setContactChannel] = useState("in_app");
@@ -219,6 +227,86 @@ export function RebrandSettingsShell({
       .catch(() => {});
   }, [user?.id, user?.role, user?.sellerStatus]);
 
+  // Real-time username verification against MongoDB (debounced 300ms)
+  useEffect(() => {
+    const raw = (profileData.username || "").replace(/^@/, "").trim().toLowerCase();
+    const initialRaw = (initialData.username || "").replace(/^@/, "").trim().toLowerCase();
+
+    if (!raw) {
+      setUsernameCheck({
+        status: "invalid",
+        message: "Username is required (3–8 characters)",
+      });
+      return;
+    }
+
+    if (raw.length < 3) {
+      setUsernameCheck({
+        status: "invalid",
+        message: "Username must be at least 3 characters",
+      });
+      return;
+    }
+
+    if (raw.length > 8) {
+      setUsernameCheck({
+        status: "invalid",
+        message: "Username must be at most 8 characters",
+      });
+      return;
+    }
+
+    if (!/^[a-z0-9]+$/.test(raw)) {
+      setUsernameCheck({
+        status: "invalid",
+        message: "Only lowercase letters and numbers allowed",
+      });
+      return;
+    }
+
+    if (raw === initialRaw) {
+      setUsernameCheck({ status: "idle", message: "" });
+      return;
+    }
+
+    let isCancelled = false;
+    setUsernameCheck({ status: "checking", message: "Checking availability..." });
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/users/check-username?username=${encodeURIComponent(raw)}`
+        );
+        const json = await res.json();
+        if (isCancelled) return;
+
+        if (json.available) {
+          setUsernameCheck({
+            status: "available",
+            message: `✓ @${raw} is available`,
+          });
+        } else {
+          setUsernameCheck({
+            status: "taken",
+            message: json.message || `✗ @${raw} is already taken`,
+          });
+        }
+      } catch {
+        if (!isCancelled) {
+          setUsernameCheck({
+            status: "idle",
+            message: "Could not verify username right now.",
+          });
+        }
+      }
+    }, 300);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [profileData.username, initialData.username]);
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -237,22 +325,16 @@ export function RebrandSettingsShell({
       user?.sellerStatus === "approved"
   );
 
-  const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
-  const nextUsernameChangeDate = (() => {
-    if (!handleUpdatedAt) return null;
-    const lastTime = new Date(handleUpdatedAt).getTime();
-    if (Number.isNaN(lastTime)) return null;
-    if (Date.now() - lastTime >= THREE_MONTHS_MS) return null;
-    return new Date(lastTime + THREE_MONTHS_MS).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  })();
-  const isUsernameLockedByCooldown = Boolean(nextUsernameChangeDate);
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (
+      usernameCheck.status === "taken" ||
+      usernameCheck.status === "invalid" ||
+      usernameCheck.status === "checking"
+    ) {
+      return;
+    }
+
     setIsSaving(true);
     setSaveSuccessMsg(null);
     setSaveErrorMsg(null);
@@ -268,9 +350,8 @@ export function RebrandSettingsShell({
         displayName: finalData.name,
         bio: finalData.bio,
         campus: finalData.location || finalData.school,
-        ...(isStoreOwner && !isUsernameLockedByCooldown
-          ? { username: finalData.username }
-          : {}),
+        avatar: finalData.avatar,
+        username: finalData.username,
       });
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
       setProfileData(finalData);
@@ -406,45 +487,72 @@ export function RebrandSettingsShell({
                 />
               </div>
 
-              {/* Username Row (Public & Editable Only for Storefront Accounts, Once Every 3 Months) */}
-              {isStoreOwner && (
-                <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
-                  <label
-                    htmlFor="usernameInput"
-                    className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
-                  >
-                    Store Username
-                  </label>
-                  <div>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
-                        @
-                      </span>
-                      <input
-                        id="usernameInput"
-                        type="text"
-                        disabled={isUsernameLockedByCooldown}
-                        value={profileData.username}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            username: e.target.value
-                              .replace(/^@/, "")
-                              .toLowerCase(),
-                          })
-                        }
-                        placeholder="store-username"
-                        className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] disabled:opacity-60 disabled:cursor-not-allowed pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                      />
-                    </div>
-                    <p className="text-[11px] text-[#8C929C] mt-1 font-medium">
-                      {isUsernameLockedByCooldown
-                        ? `Your public store username was recently updated. You can edit it again on ${nextUsernameChangeDate} (once every 3 months).`
-                        : "Publicly visible on your storefront and shareable profile link · Editable once every 3 months."}
-                    </p>
+              {/* Username Row with Real-Time Database Availability Prompt (Max 8 Alphanumeric Chars) */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
+                <label
+                  htmlFor="usernameInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
+                >
+                  Username
+                </label>
+                <div>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
+                      @
+                    </span>
+                    <input
+                      id="usernameInput"
+                      type="text"
+                      maxLength={8}
+                      value={profileData.username}
+                      onChange={(e) => {
+                        const val = e.target.value
+                          .replace(/^@/, "")
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]/g, "")
+                          .slice(0, 8);
+                        setProfileData({
+                          ...profileData,
+                          username: val,
+                        });
+                      }}
+                      placeholder="username"
+                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                    />
+                  </div>
+                  {/* Real-time username prompt */}
+                  <div className="mt-1 min-h-[18px]">
+                    {usernameCheck.status === "checking" && (
+                      <p className="text-[11px] text-[#8C929C] flex items-center gap-1 font-medium">
+                        <span className="w-2.5 h-2.5 border-2 border-[#8C929C] border-t-transparent rounded-full animate-spin" />
+                        <span>Checking availability...</span>
+                      </p>
+                    )}
+                    {usernameCheck.status === "available" && (
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>{usernameCheck.message}</span>
+                      </p>
+                    )}
+                    {usernameCheck.status === "taken" && (
+                      <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
+                        <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>{usernameCheck.message}</span>
+                      </p>
+                    )}
+                    {usernameCheck.status === "invalid" && (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                        {usernameCheck.message}
+                      </p>
+                    )}
+                    {usernameCheck.status === "idle" && (
+                      <p className="text-[11px] text-[#8C929C] font-medium">
+                        Max 8 characters (lowercase letters &amp; numbers only).
+                      </p>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Bio Row */}
               <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
@@ -558,8 +666,15 @@ export function RebrandSettingsShell({
             <div className="flex items-center gap-3 pt-3">
               <button
                 type="submit"
-                disabled={isSaving}
-                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                disabled={
+                  isSaving ||
+                  usernameCheck.status === "taken" ||
+                  usernameCheck.status === "invalid" ||
+                  usernameCheck.status === "checking" ||
+                  !profileData.username ||
+                  profileData.username.length < 3
+                }
+                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>

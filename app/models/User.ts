@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 import { USER_ROLES, USER_ACCOUNT_STATUSES, UserRole, UserAccountStatus } from "@/constants/enums";
 import { IUserPreferences, DEFAULT_USER_PREFERENCES } from "@/constants/preferences";
+import { generateDefaultUsername } from "@/lib/usernameUtils";
 
 export type { UserRole, UserAccountStatus };
 export type { IUserPreferences };
@@ -182,11 +183,10 @@ UserSchema.pre("save", function () {
     this.profile = {};
   }
   if (!this.profile.handle) {
-    const rawHandle = this.profile.displayName || this.name || this.email.split("@")[0] || "user";
-    this.profile.handle = rawHandle.toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (!this.profile.handle) {
-      this.profile.handle = `user${Math.floor(1000 + Math.random() * 9000)}`;
-    }
+    this.profile.handle = generateDefaultUsername(
+      this.profile?.displayName || this.name,
+      this.email
+    );
   }
 });
 
@@ -199,7 +199,6 @@ export async function saveUserWithHandleRetry<T extends Document>(
 ): Promise<T> {
   let attempt = 0;
   const userObj = userDoc as any;
-  const baseHandle = userObj.profile?.handle || "user";
 
   while (attempt <= maxRetries) {
     try {
@@ -213,7 +212,10 @@ export async function saveUserWithHandleRetry<T extends Document>(
       if (isHandleConflict && attempt < maxRetries) {
         attempt += 1;
         if (!userObj.profile) userObj.profile = {};
-        userObj.profile.handle = `${baseHandle}${Math.floor(100 + Math.random() * 900)}`;
+        userObj.profile.handle = generateDefaultUsername(
+          userObj.name || userObj.profile?.displayName,
+          userObj.email
+        );
       } else {
         throw err;
       }
