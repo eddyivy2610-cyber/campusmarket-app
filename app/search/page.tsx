@@ -20,6 +20,7 @@ import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { PageSkeleton } from "../components/common/LoadingSystem";
 import { ExploreListingItem } from "../data/exploreCatalog";
 import type { StorefrontItem, WantedRequestItem } from "../data/mvpMockData";
+import { useAuth } from "@/context/AuthContext";
 
 type SearchFeatureTab =
   | "all"
@@ -134,6 +135,7 @@ export default function SearchPage() {
 
 function SearchContent() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const initialQuery = searchParams.get("q") || "";
 
   const [query, setQuery] = useState(initialQuery);
@@ -251,20 +253,30 @@ function SearchContent() {
     }
     const q = query.toLowerCase().trim();
 
-    return dbStores.filter((store) => {
+    return dbStores.filter((store: any) => {
+      // Exclude current user's own store
+      if (user) {
+        const uid = String(user.id || (user as any)._id || "");
+        const uhandle = String(user.handle || "").toLowerCase();
+        const ownerId = String(store.ownerId || store.userId || "");
+        const storeSlug = String(store.slug || "").toLowerCase();
+        if (uid && (ownerId === uid || String(store.id || store._id) === uid)) return false;
+        if (uhandle && storeSlug === uhandle) return false;
+      }
+
       if (q) {
         const matchesName = store.name.toLowerCase().includes(q);
-        const matchesTagline = store.tagline.toLowerCase().includes(q);
-        const matchesCat = store.category.toLowerCase().includes(q);
-        const matchesProd = store.featuredProducts.some((p) =>
-          p.toLowerCase().includes(q)
-        );
+        const matchesTagline = store.tagline?.toLowerCase?.()?.includes(q);
+        const matchesCat = store.category?.toLowerCase?.()?.includes(q);
+        const matchesProd = Array.isArray(store.featuredProducts)
+          ? store.featuredProducts.some((p: string) => p.toLowerCase().includes(q))
+          : false;
         if (!matchesName && !matchesTagline && !matchesCat && !matchesProd)
           return false;
       }
       return true;
     });
-  }, [dbStores, query, activeTab]);
+  }, [dbStores, query, activeTab, user]);
 
   // Filtered Profiles
   const matchingProfiles = useMemo(() => {
@@ -276,8 +288,21 @@ function SearchContent() {
     ) {
       return [];
     }
-    return dbProfiles;
-  }, [dbProfiles, activeTab]);
+    // Exclude current user's own profile
+    return dbProfiles.filter((p) => {
+      if (!user) return true;
+      const uid = String(user.id || (user as any)._id || "");
+      const pid = String(p.id || (p as any)._id || "");
+      const phandle = String(p.handle || "").toLowerCase();
+      const uhandle = String(user.handle || "").toLowerCase();
+      const uname = String(user.name || "").toLowerCase();
+      const pname = String(p.name || "").toLowerCase();
+      if (uid && pid === uid) return false;
+      if (uhandle && phandle === uhandle) return false;
+      if (uname && pname === uname) return false;
+      return true;
+    });
+  }, [dbProfiles, activeTab, user]);
 
   // Filtered Wanted Requests from local radar requests
   const matchingWanted = useMemo(() => {

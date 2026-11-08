@@ -18,6 +18,7 @@ interface User {
     avatar?: string;
     image?: string;
     campus?: string;
+    preferences?: any;
 }
 
 interface AuthContextType {
@@ -50,6 +51,7 @@ function cacheableProfile(userData: User) {
         avatar: userData.avatar,
         image: userData.image,
         campus: userData.campus,
+        preferences: userData.preferences,
     };
 }
 
@@ -95,6 +97,7 @@ function normalizeUserPayload(userData: any, fallback?: Partial<User> | null): U
             userData?.profile?.campus ||
             userData?.studentStatus?.universityName ||
             fallback?.campus,
+        preferences: userData?.preferences || fallback?.preferences,
     };
 }
 

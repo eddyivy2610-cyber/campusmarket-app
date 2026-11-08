@@ -139,45 +139,171 @@ function RadarContent() {
 
   const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
 
-  // Fetch live active stores/profiles for suggested campus contacts
+  // Fetch and rank suggested campus contacts based on user profile, location (first), and preferred categories (second)
+  // Strictly excludes the logged-in user's own profile and store.
   React.useEffect(() => {
     let isCancelled = false;
+
     async function loadLiveSuggestions() {
       try {
-        const res = await fetch("/api/stores?status=active&limit=6");
+        const res = await fetch("/api/stores?status=active&limit=30");
         const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0 && !isCancelled) {
-          const mapped: SuggestedProfile[] = json.data.map((store: any) => ({
-            id: `sug-${store._id || store.id}`,
-            name: store.name,
-            handle: `@${store.slug || store._id}`,
-            avatar: store.logo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-            isVerified: Boolean(store.isVerified),
-            accountType: store.storeType === "student_store" ? "student" : "store",
-            similarProducts: store.categoryTags?.slice(0, 3).join(", ") || store.description?.slice(0, 50) || "Campus seller",
-            location: store.operatingLocation || store.campus || "Main Campus",
-            profileHref: `/stores/${store.slug || store._id}`,
-            chatParams: {
-              from: "store",
-              contextType: "store",
-              participantId: store.ownerId || `store-${store._id || store.id}`,
-              participantName: store.name,
-              participantAvatar: store.logo || "",
-              participantSubtitle: `${store.storeType === "student_store" ? "Student Store" : "Approved Business"} · ${store.operatingLocation || store.campus || "Main Campus"}`,
-              participantVerified: store.isVerified ? "true" : "false",
-            },
-          }));
+        if (!json.success || !Array.isArray(json.data) || isCancelled) return;
+
+        // 1. Resolve User's Location (Location comes FIRST)
+        const userCampus = (
+          user?.campus ||
+          user?.preferences?.discovery?.preferredCampus ||
+          (user as any)?.profile?.campus ||
+          (typeof window !== "undefined"
+            ? localStorage.getItem("preferred_campus") || localStorage.getItem("campus_name") || ""
+            : "")
+        ).trim().toLowerCase();
+
+        // 2. Resolve User's Preferred Categories (from sign up, preferences, or local storage)
+        const userPreferredCategories: string[] = [
+          ...(user?.preferences?.discovery?.preferredCategories || []),
+          ...(user?.preferences?.preferredCategories || []),
+          ...((user as any)?.category ? [(user as any).category] : []),
+        ];
+
+        if (typeof window !== "undefined") {
+          try {
+            const rawStoredCats =
+              localStorage.getItem("preferred_categories") ||
+              localStorage.getItem("campus_preferred_categories");
+            if (rawStoredCats) {
+              const parsed = JSON.parse(rawStoredCats);
+              if (Array.isArray(parsed)) userPreferredCategories.push(...parsed);
+            }
+          } catch {}
+        }
+
+        const targetCategories = Array.from(
+          new Set(userPreferredCategories.map((c) => String(c).trim().toLowerCase()).filter(Boolean))
+        );
+
+        // 3. Filter Out Own Store / Profile (Self-exclusion)
+        const otherStores = json.data.filter((store: any) => {
+          if (!user) return true;
+          const currentUserId = String(user.id || (user as any)._id || "");
+          const currentHandle = String(user.handle || "").toLowerCase();
+          const currentName = String(user.name || "").toLowerCase();
+          const currentEmailPrefix = String(user.email || "").split("@")[0].toLowerCase();
+
+          const ownerId = String(store.ownerId || store.userId || "");
+          const storeId = String(store._id || store.id || "");
+          const storeSlug = String(store.slug || "").toLowerCase();
+          const storeName = String(store.name || "").toLowerCase();
+
+          // Exclude if user is owner of this store
+          if (currentUserId && (ownerId === currentUserId || storeId === currentUserId)) {
+            return false;
+          }
+          // Exclude if store slug matches user's handle or email prefix
+          if (currentHandle && (storeSlug === currentHandle || storeSlug.startsWith(`${currentHandle}-`))) {
+            return false;
+          }
+          if (currentEmailPrefix && (storeSlug === currentEmailPrefix || storeSlug.startsWith(`${currentEmailPrefix}-`))) {
+            return false;
+          }
+          // Exclude if store name matches user's name exactly
+          if (currentName && storeName === currentName) {
+            return false;
+          }
+          return true;
+        });
+
+        // 4. Rank Candidates: Location Score FIRST, Category Score SECOND
+        const scoredCandidates = otherStores.map((store: any) => {
+          let score = 0;
+          const storeCampus = String(store.campus || "").trim().toLowerCase();
+          const storeOperatingLoc = String(store.operatingLocation || store.campusCity || "").trim().toLowerCase();
+          const storeCombinedLoc = `${storeCampus} ${storeOperatingLoc}`;
+
+          // PRIORITY 1: LOCATION (Weight 1000 - 2000 points)
+          if (userCampus) {
+            if (storeCampus && (storeCampus === userCampus || storeOperatingLoc === userCampus)) {
+              score += 2000;
+            } else if (storeCombinedLoc.includes(userCampus) || userCampus.includes(storeCampus)) {
+              score += 1500;
+            } else {
+              // Word/token match (e.g. "ABU", "Zaria", "Samaru", "Unilag")
+              const tokens = userCampus.split(/[\s,()\-]+/).filter((t: string) => t.length > 2);
+              const matchedTokens = tokens.filter((t: string) => storeCombinedLoc.includes(t));
+              if (matchedTokens.length > 0) {
+                score += 1000 + matchedTokens.length * 100;
+              }
+            }
+          }
+
+          // PRIORITY 2: PREFERRED CATEGORIES (Weight 60 - 300 points)
+          const storeCategory = String(store.category || "").trim().toLowerCase();
+          const storeTags = Array.isArray(store.categoryTags)
+            ? store.categoryTags.map((t: string) => String(t).trim().toLowerCase())
+            : [];
+          const storeDescription = String(store.description || "").trim().toLowerCase();
+
+          if (targetCategories.length > 0) {
+            for (const cat of targetCategories) {
+              if (storeCategory === cat) {
+                score += 300;
+              } else if (storeCategory.includes(cat) || cat.includes(storeCategory)) {
+                score += 200;
+              }
+              if (storeTags.some((t: string) => t === cat || t.includes(cat) || cat.includes(t))) {
+                score += 150;
+              }
+              if (storeDescription.includes(cat)) {
+                score += 60;
+              }
+            }
+          }
+
+          // Quality / Verification tie-breakers (up to 50 points)
+          if (store.isVerified) score += 30;
+          score += Math.min(20, Number(store.metrics?.rating || 4.5) * 4);
+
+          return { store, score };
+        });
+
+        scoredCandidates.sort((a: { score: number }, b: { score: number }) => b.score - a.score);
+        const topStores = scoredCandidates.slice(0, 5).map((item: { store: any }) => item.store);
+
+        const mapped: SuggestedProfile[] = topStores.map((store: any) => ({
+          id: `sug-${store._id || store.id}`,
+          name: store.name,
+          handle: `@${store.slug || store._id}`,
+          avatar: store.logo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+          isVerified: Boolean(store.isVerified),
+          accountType: store.storeType === "student_store" ? "student" : "store",
+          similarProducts: store.categoryTags?.slice(0, 3).join(", ") || store.description?.slice(0, 50) || "Campus seller",
+          location: store.operatingLocation || store.campus || "Main Campus",
+          profileHref: `/stores/${store.slug || store._id}`,
+          chatParams: {
+            from: "store",
+            contextType: "store",
+            participantId: store.ownerId || `store-${store._id || store.id}`,
+            participantName: store.name,
+            participantAvatar: store.logo || "",
+            participantSubtitle: `${store.storeType === "student_store" ? "Student Store" : "Approved Business"} · ${store.operatingLocation || store.campus || "Main Campus"}`,
+            participantVerified: store.isVerified ? "true" : "false",
+          },
+        }));
+
+        if (!isCancelled) {
           setSuggestedProfiles(mapped);
         }
       } catch {
         // Retain fallback profiles
       }
     }
+
     loadLiveSuggestions();
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [user?.id, user?.campus, JSON.stringify(user?.preferences?.discovery)]);
   const [expandedPostIds, setExpandedPostIds] = useState<
     Record<string, boolean>
   >(() => {
