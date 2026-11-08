@@ -1,8 +1,8 @@
 "use client";
 
-import React, { Suspense, useRef, useState } from "react";
+import React, { Suspense, useRef, useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowRight,
   MessageCircle,
@@ -20,12 +20,15 @@ import {
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { RadarSkeleton } from "../components/common/LoadingSystem";
+import { useAuth } from "../context/AuthContext";
 
 interface OfferReplyItem {
   id: string;
+  userId?: string;
   authorName: string;
   authorHandle: string;
   authorDept: string;
+  authorAvatar?: string;
   authorTime: string;
   isVerified: boolean;
   message: string;
@@ -33,6 +36,7 @@ interface OfferReplyItem {
 
 interface RadarPost {
   id: string;
+  userId?: string;
   requesterName: string;
   requesterHandle: string;
   requesterLocation: string;
@@ -40,7 +44,7 @@ interface RadarPost {
   timeAgo: string;
   isVerified: boolean;
   requestText: string;
-  category: "all" | "urgent" | "course_packs" | "tech_cables";
+  category: "all" | "urgent" | "course_packs" | "tech_cables" | string;
   replies: OfferReplyItem[];
 }
 
@@ -78,6 +82,8 @@ export default function WantedPage() {
 
 function RadarContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const desktopTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [posts, setPosts] = useState<RadarPost[]>(() => {
@@ -94,6 +100,35 @@ function RadarContent() {
     }
     return INITIAL_RADAR_POSTS;
   });
+
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+
+  // Fetch live radar posts from database
+  useEffect(() => {
+    let isCancelled = false;
+    async function fetchRadarPosts() {
+      try {
+        setIsLoadingPosts(true);
+        const res = await fetch("/api/radar");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && !isCancelled) {
+          setPosts(json.data);
+          try {
+            localStorage.setItem("ch_radar_posts", JSON.stringify(json.data));
+          } catch {}
+        }
+      } catch (err) {
+        console.warn("Could not fetch live radar posts:", err);
+      } finally {
+        if (!isCancelled) setIsLoadingPosts(false);
+      }
+    }
+    fetchRadarPosts();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const savePosts = (newPosts: RadarPost[]) => {
     setPosts(newPosts);
@@ -174,53 +209,124 @@ function RadarContent() {
   };
 
   // Submit new compact Radar request
-  const handleRadarPostSubmit = (e: React.FormEvent) => {
+  const handleRadarPostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!requestInput.trim()) return;
 
-    const newPost: RadarPost = {
-      id: `post-${Date.now()}`,
-      requesterName: "Tunde Bello",
-      requesterHandle: "legacy-seller",
-      requesterLocation: "Suleiman Hall",
-      requesterAvatar:
-        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80",
-      timeAgo: "Just now",
-      isVerified: true,
-      requestText: requestInput.trim(),
-      category: "all",
-      replies: [],
-    };
+    if (!user) {
+      router.push("/register");
+      return;
+    }
 
-    savePosts([newPost, ...posts]);
-    setRequestInput("");
-    setIsPostFormOpen(false);
-    showToast("Request posted!");
+    try {
+      setIsSubmittingPost(true);
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
+          : null;
+
+      const res = await fetch("/api/radar", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          requestText: requestInput.trim(),
+          category: "all",
+          location: user.campus || "Main Campus",
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        savePosts([json.data, ...posts]);
+        setRequestInput("");
+        setIsPostFormOpen(false);
+        showToast("Request posted!");
+        return;
+      }
+      if (json.error) {
+        showToast(json.error);
+      }
+    } catch {
+      // Fallback: save locally with user's real account identity
+      const newPost: RadarPost = {
+        id: `post-${Date.now()}`,
+        userId: user.id,
+        requesterName: user.name || "Campus Student",
+        requesterHandle: user.handle || user.email?.split("@")[0] || "student",
+        requesterLocation: user.campus || "Main Campus",
+        requesterAvatar: user.avatar || user.image || "",
+        timeAgo: "Just now",
+        isVerified: Boolean(user.studentVerified),
+        requestText: requestInput.trim(),
+        category: "all",
+        replies: [],
+      };
+
+      savePosts([newPost, ...posts]);
+      setRequestInput("");
+      setIsPostFormOpen(false);
+      showToast("Request posted!");
+    } finally {
+      setIsSubmittingPost(false);
+    }
   };
 
   // Submit inline reply
-  const handleReplySubmit = (post: RadarPost, e: React.FormEvent) => {
+  const handleReplySubmit = async (post: RadarPost, e: React.FormEvent) => {
     e.preventDefault();
     const text = (replyTextByPost[post.id] || "").trim();
     if (!text) return;
 
-    const newReply: OfferReplyItem = {
-      id: `rep-${Date.now()}`,
-      authorName: "Tunde Bello",
-      authorHandle: "legacy-seller",
-      authorDept: "Suleiman Hall",
-      authorTime: "Just now",
-      isVerified: true,
-      message: text,
-    };
+    if (!user) {
+      router.push("/register");
+      return;
+    }
 
-    const updated = posts.map((p) =>
-      p.id === post.id ? { ...p, replies: [...p.replies, newReply] } : p
-    );
-    savePosts(updated);
-    setReplyTextByPost((prev) => ({ ...prev, [post.id]: "" }));
-    setExpandedPostIds((prev) => ({ ...prev, [post.id]: true }));
-    showToast("Reply posted!");
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
+          : null;
+
+      const res = await fetch(`/api/radar/${encodeURIComponent(post.id)}/replies`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const json = await res.json();
+      const newReply: OfferReplyItem =
+        json.success && json.data
+          ? json.data
+          : {
+              id: `rep-${Date.now()}`,
+              userId: user.id,
+              authorName: user.name || "Campus Member",
+              authorHandle: user.handle || user.email?.split("@")[0] || "member",
+              authorDept: user.campus || "Main Campus",
+              authorTime: "Just now",
+              isVerified: Boolean(user.studentVerified),
+              message: text,
+            };
+
+      const updated = posts.map((p) =>
+        p.id === post.id ? { ...p, replies: [...p.replies, newReply] } : p
+      );
+      savePosts(updated);
+      setReplyTextByPost((prev) => ({ ...prev, [post.id]: "" }));
+      setExpandedPostIds((prev) => ({ ...prev, [post.id]: true }));
+      showToast("Reply posted!");
+    } catch {
+      showToast("Could not post reply");
+    }
   };
 
   return (
@@ -298,9 +404,10 @@ function RadarContent() {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-1.5 rounded-xl bg-[#FFC928] text-[#171717] font-extrabold text-[12px] cursor-pointer"
+                    disabled={isSubmittingPost}
+                    className="px-4 py-1.5 rounded-xl bg-[#FFC928] text-[#171717] font-extrabold text-[12px] cursor-pointer disabled:opacity-50"
                   >
-                    Post
+                    {isSubmittingPost ? "Posting..." : "Post"}
                   </button>
                 </div>
               </form>
@@ -339,20 +446,24 @@ function RadarContent() {
               posts.map((post) => {
               const isExpanded = Boolean(expandedPostIds[post.id]);
               const isMenuOpen = openMenuPostId === post.id;
+              const isOwnPost = Boolean(user && post.userId && String(post.userId) === String(user.id));
+              const targetParticipantId = post.userId || `requester-${post.requesterName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+              const defaultRadarMsg = `Hi! I saw your Radar request for "${post.requestText.slice(0, 50)}..." - I have this available!`;
+
               const postChatHref = `/messages?${new URLSearchParams({
+                from: "radar",
                 contextType: "wanted",
                 contextId: post.id,
                 title: post.requestText.slice(0, 70),
                 price: "Radar request",
                 status: "Available",
                 href: `/wanted?id=${post.id}`,
-                participantId: `requester-${post.requesterName
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]/g, "-")}`,
+                participantId: targetParticipantId,
                 participantName: post.requesterName,
-                participantSubtitle: `${post.isVerified ? "Student" : "Campus Seller"} · ${post.requesterLocation}`,
+                participantSubtitle: `${post.isVerified ? "Student" : "Campus Member"} · ${post.requesterLocation}`,
                 participantAvatar: post.requesterAvatar,
                 participantVerified: post.isVerified ? "true" : "false",
+                defaultMessage: defaultRadarMsg,
               }).toString()}`;
 
               return (
@@ -363,11 +474,17 @@ function RadarContent() {
                   <div className="flex items-start gap-3">
                     {/* 1. Avatar */}
                     <Link href={`/profile/${post.requesterHandle}`} className="shrink-0 mt-0.5">
-                      <img
-                        src={post.requesterAvatar}
-                        alt={post.requesterName}
-                        className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
-                      />
+                      {post.requesterAvatar ? (
+                        <img
+                          src={post.requesterAvatar}
+                          alt={post.requesterName}
+                          className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13px] flex items-center justify-center border border-[#E8E8E8] dark:border-white/10">
+                          {post.requesterName ? post.requesterName.charAt(0).toUpperCase() : "U"}
+                        </div>
+                      )}
                     </Link>
 
                     {/* Main Compact Body */}
@@ -407,12 +524,14 @@ function RadarContent() {
 
                           {isMenuOpen && (
                             <div className="radius-native absolute right-0 top-7 z-20 w-44 rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg py-1 text-[12px]">
-                              <Link
-                                href={postChatHref}
-                                className="block px-3.5 py-1.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
-                              >
-                                Chat with {post.requesterName.split(" ")[0]}
-                              </Link>
+                              {!isOwnPost && (
+                                <Link
+                                  href={postChatHref}
+                                  className="block px-3.5 py-1.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
+                                >
+                                  Chat with {post.requesterName.split(" ")[0]}
+                                </Link>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -462,12 +581,18 @@ function RadarContent() {
                           )}
                         </button>
 
-                        <Link
-                          href={postChatHref}
-                          className="text-[12px] font-bold text-[#171717] dark:text-[#FFC928] hover:underline"
-                        >
-                          Chat
-                        </Link>
+                        {isOwnPost ? (
+                          <span className="text-[11.5px] font-semibold text-[#8C929C] dark:text-neutral-400">
+                            Your post
+                          </span>
+                        ) : (
+                          <Link
+                            href={postChatHref}
+                            className="text-[12px] font-bold text-[#171717] dark:text-[#FFC928] hover:underline"
+                          >
+                            Chat
+                          </Link>
+                        )}
                       </div>
 
                       {/* Expandable Inline Replies + Comment Textbox */}
@@ -497,55 +622,83 @@ function RadarContent() {
                             </button>
                           </form>
 
-                          {post.replies.map((reply) => (
-                            <div
-                              key={reply.id}
-                              className="radius-native px-3 py-2.5 rounded-lg bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/5 flex items-start justify-between gap-2.5 text-[12.5px]"
-                            >
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <Link
-                                    href={`/profile/${reply.authorHandle}`}
-                                    className="font-bold text-[#171717] dark:text-white hover:underline"
-                                  >
-                                    {reply.authorName}
-                                  </Link>
-                                  {reply.isVerified && (
-                                    <BadgeCheck
-                                      className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928] shrink-0"
-                                      aria-label="Verified student seller"
-                                    />
-                                  )}
-                                  <span className="text-[11px] text-[#8C929C]">
-                                    · {reply.authorTime}
-                                  </span>
-                                </div>
-                                <p className="mt-0.5 text-[#4A5058] dark:text-neutral-300 leading-snug">
-                                  {reply.message}
-                                </p>
-                              </div>
+                          {post.replies.map((reply) => {
+                            const isOwnReply = Boolean(user && reply.userId && String(reply.userId) === String(user.id));
+                            const replyChatHref = `/messages?${new URLSearchParams({
+                              from: "radar",
+                              contextType: "wanted",
+                              contextId: post.id,
+                              title: post.requestText.slice(0, 70),
+                              price: "Radar request",
+                              status: "Available",
+                              href: `/wanted?id=${post.id}`,
+                              participantId:
+                                reply.userId ||
+                                `wanted-reply-${reply.authorName
+                                  .toLowerCase()
+                                  .replace(/[^a-z0-9]/g, "-")}`,
+                              participantName: reply.authorName,
+                              participantSubtitle: `${reply.isVerified ? "Student" : "Campus Member"} · ${reply.authorDept}`,
+                              participantVerified: reply.isVerified ? "true" : "false",
+                              defaultMessage: `Hi ${reply.authorName}! Regarding your reply on Campus Radar: "${reply.message.slice(0, 50)}..."`,
+                            }).toString()}`;
 
-                              <Link
-                                href={`/messages?${new URLSearchParams({
-                                  contextType: "wanted",
-                                  contextId: post.id,
-                                  title: post.requestText.slice(0, 70),
-                                  price: "Radar request",
-                                  status: "Available",
-                                  href: `/wanted?id=${post.id}`,
-                                  participantId: `wanted-reply-${reply.authorName
-                                    .toLowerCase()
-                                    .replace(/[^a-z0-9]/g, "-")}`,
-                                  participantName: reply.authorName,
-                                  participantSubtitle: `${reply.isVerified ? "Student" : "Campus Seller"} · ${reply.authorDept}`,
-                                  participantVerified: reply.isVerified ? "true" : "false",
-                                }).toString()}`}
-                                className="shrink-0 text-[11.5px] font-bold text-[#B45309] dark:text-[#FFC928] hover:underline"
+                            return (
+                              <div
+                                key={reply.id}
+                                className="radius-native px-3 py-2.5 rounded-lg bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/5 flex items-start justify-between gap-2.5 text-[12.5px]"
                               >
-                                Chat →
-                              </Link>
-                            </div>
-                          ))}
+                                <div className="flex items-start gap-2.5 min-w-0">
+                                  {reply.authorAvatar ? (
+                                    <img
+                                      src={reply.authorAvatar}
+                                      alt={reply.authorName}
+                                      className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5"
+                                    />
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full bg-[#FFE182] text-[#171717] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                                      {reply.authorName ? reply.authorName.charAt(0).toUpperCase() : "U"}
+                                    </div>
+                                  )}
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <Link
+                                        href={`/profile/${reply.authorHandle}`}
+                                        className="font-bold text-[#171717] dark:text-white hover:underline"
+                                      >
+                                        {reply.authorName}
+                                      </Link>
+                                      {reply.isVerified && (
+                                        <BadgeCheck
+                                          className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928] shrink-0"
+                                          aria-label="Verified student seller"
+                                        />
+                                      )}
+                                      <span className="text-[11px] text-[#8C929C]">
+                                        · {reply.authorTime}
+                                      </span>
+                                    </div>
+                                    <p className="mt-0.5 text-[#4A5058] dark:text-neutral-300 leading-snug">
+                                      {reply.message}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {isOwnReply ? (
+                                  <span className="shrink-0 text-[11px] font-medium text-[#8C929C] dark:text-neutral-400">
+                                    Your reply
+                                  </span>
+                                ) : (
+                                  <Link
+                                    href={replyChatHref}
+                                    className="shrink-0 text-[11.5px] font-bold text-[#B45309] dark:text-[#FFC928] hover:underline"
+                                  >
+                                    Chat →
+                                  </Link>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -578,9 +731,10 @@ function RadarContent() {
 
                   <button
                     type="submit"
-                    className="radius-native w-full py-2 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-extrabold text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    disabled={isSubmittingPost}
+                    className="radius-native w-full py-2 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-extrabold text-[12.5px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <span>Post</span>
+                    <span>{isSubmittingPost ? "Posting..." : "Post"}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </form>

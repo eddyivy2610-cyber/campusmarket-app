@@ -417,6 +417,7 @@ function MessagesWorkspace() {
       searchParams.get("from") === "listing" ||
       contextType === "product" ||
       contextType === "service" ||
+      contextType === "wanted" ||
       Boolean(title) ||
       searchParams.has("contextId");
 
@@ -429,7 +430,10 @@ function MessagesWorkspace() {
     entryContextProcessedRef.current = signature;
 
     const defaultMsg = fromListing
-      ? searchParams.get("defaultMessage") || "ill love to know more about this product"
+      ? searchParams.get("defaultMessage") ||
+        (contextType === "wanted"
+          ? "Hi! I saw your Radar request and I can help with this."
+          : "ill love to know more about this product")
       : "";
 
     // Check if an existing conversation with messages already exists with this participant
@@ -457,6 +461,8 @@ function MessagesWorkspace() {
               label:
                 contextType === "service"
                   ? "SERVICE LISTING"
+                  : contextType === "wanted"
+                  ? "RADAR REQUEST"
                   : "PRODUCT LISTING",
               title,
               priceFormatted: priceParam || "Contact for price",
