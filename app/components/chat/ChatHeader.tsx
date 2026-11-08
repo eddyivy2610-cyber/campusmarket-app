@@ -31,14 +31,14 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
 
                 {/* Avatar + Info */}
                 <div className="flex items-center gap-3">
-                    <Link href={`/profile/${participant.id}`} className="w-10 h-10 rounded-full bg-secondary overflow-hidden relative shrink-0">
+                    <Link href={`/stores/${participant.id}`} className="w-10 h-10 rounded-full bg-secondary overflow-hidden relative shrink-0">
                         {participant.avatar
                             ? <OptimizedImage src={participant.avatar} alt={participant.name} fill className="object-cover" />
                             : <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">{participant.name.charAt(0)}</span>
                         }
                     </Link>
                     <div className="flex flex-col">
-                        <Link href={`/profile/${participant.id}`} className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
+                        <Link href={`/stores/${participant.id}`} className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
                             {participant.name}
                         </Link>
                         <p className="text-[12px] font-medium text-muted-foreground/80 mt-0.5">
@@ -65,7 +65,7 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
                             className="absolute right-0 top-full mt-1 bg-card border border-border/50 rounded-xl shadow-xl z-50 w-48 overflow-hidden"
                         >
                             {[
-                                { icon: <ExternalLink className="w-3.5 h-3.5" />, label: "View Profile", href: `/profile/${participant.id}` },
+                                { icon: <ExternalLink className="w-3.5 h-3.5" />, label: "View Profile", href: `/stores/${participant.id}` },
                                 { icon: <Settings className="w-3.5 h-3.5" />, label: "Settings", href: "/dashboard/settings" },
                                 { icon: <Headset className="w-3.5 h-3.5" />, label: "Help Center", href: "/help-support" },
                                 { icon: <Ban className="w-3.5 h-3.5" />, label: "Block User", danger: true },

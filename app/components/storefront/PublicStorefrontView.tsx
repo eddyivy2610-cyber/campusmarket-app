@@ -650,13 +650,22 @@ export function PublicStorefrontView({
                         )}
                       </button>
                     )}
-                    <Link
-                      href={messageUrl}
-                      className="radius-native flex-1 h-10 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      <span>Message Seller</span>
-                    </Link>
+                    {isOwner ? (
+                      <Link
+                        href="/settings"
+                        className="radius-native flex-1 h-10 px-4 rounded-xl bg-[#F4F5F7] hover:bg-[#E8EAEE] dark:bg-white/10 dark:hover:bg-white/15 text-[#171717] dark:text-white text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors"
+                      >
+                        <span>Edit Profile</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        href={messageUrl}
+                        className="radius-native flex-1 h-10 px-4 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[13px] font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Message Seller</span>
+                      </Link>
+                    )}
 
                     <button
                       type="button"

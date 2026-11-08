@@ -153,7 +153,7 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
                         </div>
                     </div>
                     <Link
-                        href={`/profile/${vendor.id}`}
+                        href={`/stores/${vendor.slug || vendor.id}`}
                         className="h-9 w-9 rounded-md border border-border/60 grid place-items-center hover:bg-secondary/50 shrink-0"
                         aria-label="Visit profile"
                     >

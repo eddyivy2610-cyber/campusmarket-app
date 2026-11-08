@@ -19,31 +19,107 @@ export async function GET(
 
     // Query by MongoDB ObjectId, OwnerId, Slug, or Owner Handle
     let store = null;
-    if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      store = await StoreModel.findById(id).select("-businessApplicationId").lean();
+    const cleanId = id.trim();
+    const isMe = cleanId.toLowerCase() === "me";
+
+    if (isMe) {
+      const { getServerAuthUser } = await import("@/lib/authServer");
+      const authUser = getServerAuthUser(req);
+      if (authUser?.id) {
+        store = await StoreModel.findOne({ ownerId: authUser.id })
+          .select("-businessApplicationId")
+          .lean();
+      }
+    } else if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+      store = await StoreModel.findById(cleanId).select("-businessApplicationId").lean();
       if (!store) {
-        store = await StoreModel.findOne({ ownerId: id }).select("-businessApplicationId").lean();
+        store = await StoreModel.findOne({ ownerId: cleanId }).select("-businessApplicationId").lean();
       }
     }
-    if (!store) {
-      const escapedSlug = id.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    if (!store && !isMe) {
+      const escapedSlug = cleanId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       store = await StoreModel.findOne({
         slug: { $regex: new RegExp(`^${escapedSlug}$`, "i") },
       })
         .select("-businessApplicationId")
         .lean();
     }
+
     if (!store) {
-      const normalizedHandle = id.replace(/^@/, "").trim().toLowerCase();
-      const matchedUser = await UserModel.findOne({
-        "profile.handle": normalizedHandle,
-      })
-        .select("_id")
-        .lean();
+      const normalizedHandle = cleanId.replace(/^@/, "").trim().toLowerCase();
+      let matchedUser: any = null;
+
+      if (isMe) {
+        const { getServerAuthUser } = await import("@/lib/authServer");
+        const authUser = getServerAuthUser(req);
+        if (authUser?.id) {
+          matchedUser = await UserModel.findById(authUser.id).select("-password").lean();
+        }
+      } else {
+        const userOrConditions: any[] = [{ "profile.handle": normalizedHandle }];
+        if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+          userOrConditions.push({ _id: cleanId });
+        }
+        matchedUser = await UserModel.findOne({ $or: userOrConditions })
+          .select("-password")
+          .lean();
+
+        if (!matchedUser) {
+          // Case-insensitive name/handle search fallback
+          matchedUser = await UserModel.findOne({
+            $or: [
+              { name: { $regex: new RegExp(`^${normalizedHandle.replace(/-/g, " ")}$`, "i") } },
+              { "profile.displayName": { $regex: new RegExp(`^${normalizedHandle.replace(/-/g, " ")}$`, "i") } },
+            ],
+          })
+            .select("-password")
+            .lean();
+        }
+      }
+
       if (matchedUser) {
         store = await StoreModel.findOne({ ownerId: String(matchedUser._id) })
           .select("-businessApplicationId")
           .lean();
+
+        // If user does not have a separate store document, synthesize a user profile storefront
+        if (!store) {
+          const userHandle =
+            matchedUser.profile?.handle ||
+            String(matchedUser.name || "user")
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "");
+
+          store = {
+            _id: String(matchedUser._id),
+            id: String(matchedUser._id),
+            ownerId: String(matchedUser._id),
+            name: matchedUser.profile?.displayName || matchedUser.name || "Campus Member",
+            slug: userHandle,
+            description: matchedUser.profile?.bio || `Campus profile for ${matchedUser.name || "Member"}.`,
+            storeType: matchedUser.isStudent ? "student_store" : "approved_business",
+            category: "Campus Member",
+            campus: matchedUser.campus || "Main Campus",
+            operatingLocation: matchedUser.campus || "Main Campus",
+            logo: matchedUser.profile?.avatar || "",
+            coverImage: matchedUser.profile?.coverImage || "",
+            status: "active",
+            isVerified: Boolean(matchedUser.studentVerified || matchedUser.isStudent),
+            verificationType: "student",
+            contact: {
+              phone: matchedUser.profile?.phone,
+              whatsapp: matchedUser.profile?.whatsapp,
+              email: matchedUser.email,
+            },
+            metrics: {
+              rating: matchedUser.rating?.average || 5.0,
+              reviewsCount: matchedUser.rating?.count || 0,
+              completedDeals: 0,
+              listingsCount: 0,
+            },
+          };
+        }
       }
     }
 

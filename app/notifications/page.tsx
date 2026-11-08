@@ -446,7 +446,7 @@ export default function NotificationsPage() {
                             {item.type === "seller_verification_approved" ? (
                               <>
                                 <Link
-                                  href={`/profile/${user?.handle || user?.id || "me"}`}
+                                  href={`/stores/${user?.handle || user?.id || "me"}`}
                                   onClick={() => void markSingleRead(item._id)}
                                   className="radius-native inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[11.5px] font-extrabold transition-colors cursor-pointer shadow-2xs"
                                 >

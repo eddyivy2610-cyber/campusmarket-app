@@ -146,15 +146,29 @@ function RadarContent() {
 
     async function loadLiveSuggestions() {
       try {
-        const res = await fetch("/api/stores?status=active&limit=30");
+        let localUser: any = null;
+        if (typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem("campus_user");
+            if (raw) localUser = JSON.parse(raw);
+          } catch {}
+        }
+        const effectiveUser = user || localUser;
+        const currentUserId = String(effectiveUser?.id || (effectiveUser as any)?._id || "");
+        const currentHandle = String(effectiveUser?.handle || "").replace(/^@/, "").toLowerCase();
+        const currentName = String(effectiveUser?.name || "").toLowerCase();
+        const currentEmailPrefix = String(effectiveUser?.email || "").split("@")[0].toLowerCase();
+
+        const excludeParam = currentUserId ? `&excludeOwner=${encodeURIComponent(currentUserId)}` : "";
+        const res = await fetch(`/api/stores?status=active&limit=30${excludeParam}`);
         const json = await res.json();
         if (!json.success || !Array.isArray(json.data) || isCancelled) return;
 
         // 1. Resolve User's Location (Location comes FIRST)
         const userCampus = (
-          user?.campus ||
-          user?.preferences?.discovery?.preferredCampus ||
-          (user as any)?.profile?.campus ||
+          effectiveUser?.campus ||
+          effectiveUser?.preferences?.discovery?.preferredCampus ||
+          (effectiveUser as any)?.profile?.campus ||
           (typeof window !== "undefined"
             ? localStorage.getItem("preferred_campus") || localStorage.getItem("campus_name") || ""
             : "")
@@ -162,9 +176,9 @@ function RadarContent() {
 
         // 2. Resolve User's Preferred Categories (from sign up, preferences, or local storage)
         const userPreferredCategories: string[] = [
-          ...(user?.preferences?.discovery?.preferredCategories || []),
-          ...(user?.preferences?.preferredCategories || []),
-          ...((user as any)?.category ? [(user as any).category] : []),
+          ...(effectiveUser?.preferences?.discovery?.preferredCategories || []),
+          ...(effectiveUser?.preferences?.preferredCategories || []),
+          ...((effectiveUser as any)?.category ? [(effectiveUser as any).category] : []),
         ];
 
         if (typeof window !== "undefined") {
@@ -185,11 +199,7 @@ function RadarContent() {
 
         // 3. Filter Out Own Store / Profile (Self-exclusion)
         const otherStores = json.data.filter((store: any) => {
-          if (!user) return true;
-          const currentUserId = String(user.id || (user as any)._id || "");
-          const currentHandle = String(user.handle || "").toLowerCase();
-          const currentName = String(user.name || "").toLowerCase();
-          const currentEmailPrefix = String(user.email || "").split("@")[0].toLowerCase();
+          if (!effectiveUser) return true;
 
           const ownerId = String(store.ownerId || store.userId || "");
           const storeId = String(store._id || store.id || "");
@@ -201,7 +211,7 @@ function RadarContent() {
             return false;
           }
           // Exclude if store slug matches user's handle or email prefix
-          if (currentHandle && (storeSlug === currentHandle || storeSlug.startsWith(`${currentHandle}-`))) {
+          if (currentHandle && (storeSlug === currentHandle || storeSlug.startsWith(`${currentHandle}-`) || currentHandle.startsWith(`${storeSlug}-`))) {
             return false;
           }
           if (currentEmailPrefix && (storeSlug === currentEmailPrefix || storeSlug.startsWith(`${currentEmailPrefix}-`))) {
@@ -594,7 +604,7 @@ function RadarContent() {
                 >
                   <div className="flex items-start gap-3">
                     {/* 1. Avatar */}
-                    <Link href={`/profile/${post.requesterHandle}`} className="shrink-0 mt-0.5">
+                    <Link href={`/stores/${post.requesterHandle}`} className="shrink-0 mt-0.5">
                       {post.requesterAvatar ? (
                         <img
                           src={post.requesterAvatar}
@@ -614,7 +624,7 @@ function RadarContent() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <Link
-                            href={`/profile/${post.requesterHandle}`}
+                            href={`/stores/${post.requesterHandle}`}
                             className="text-[13.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                           >
                             {post.requesterName}
@@ -783,7 +793,7 @@ function RadarContent() {
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
                                       <Link
-                                        href={`/profile/${reply.authorHandle}`}
+                                        href={`/stores/${reply.authorHandle}`}
                                         className="font-bold text-[#171717] dark:text-white hover:underline"
                                       >
                                         {reply.authorName}

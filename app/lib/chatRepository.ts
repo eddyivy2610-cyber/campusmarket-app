@@ -383,7 +383,7 @@ function createSeededStore(): InternalChatStore {
     image:
       "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=300&auto=format&fit=crop&q=80",
     status: "Open today",
-    href: "/profile/campus-closet",
+    href: "/stores/campus-closet",
     attachedAt: new Date(Date.now() - 1000 * 60 * 600).toISOString(),
   };
 

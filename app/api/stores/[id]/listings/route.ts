@@ -20,27 +20,59 @@ export async function GET(
     const { id } = await context.params;
     await dbConnect();
 
-    // 1. Resolve store by ObjectId or slug
+    // 1. Resolve store by ObjectId, ownerId, slug, or user handle
     let store = null;
-    if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      store = await StoreModel.findById(id).lean();
-    }
-    if (!store) {
-      store = await StoreModel.findOne({ slug: id }).lean();
+    const cleanId = id.trim();
+    const isMe = cleanId.toLowerCase() === "me";
+    const authUser = getServerAuthUser(req);
+
+    if (isMe && authUser?.id) {
+      store = await StoreModel.findOne({ ownerId: authUser.id }).lean();
+    } else if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+      store = await StoreModel.findById(cleanId).lean();
+      if (!store) {
+        store = await StoreModel.findOne({ ownerId: cleanId }).lean();
+      }
     }
 
+    if (!store && !isMe) {
+      const escapedSlug = cleanId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      store = await StoreModel.findOne({
+        slug: { $regex: new RegExp(`^${escapedSlug}$`, "i") },
+      }).lean();
+    }
+
+    let matchedUser: any = null;
     if (!store) {
+      const { default: UserModel } = await import("@/models/User");
+      const normalizedHandle = cleanId.replace(/^@/, "").trim().toLowerCase();
+      if (isMe && authUser?.id) {
+        matchedUser = await UserModel.findById(authUser.id).lean();
+      } else {
+        const userOrConditions: any[] = [{ "profile.handle": normalizedHandle }];
+        if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+          userOrConditions.push({ _id: cleanId });
+        }
+        matchedUser = await UserModel.findOne({ $or: userOrConditions }).lean();
+      }
+
+      if (matchedUser) {
+        store = await StoreModel.findOne({ ownerId: String(matchedUser._id) }).lean();
+      }
+    }
+
+    if (!store && !matchedUser) {
       return NextResponse.json(
         { success: false, error: "Storefront not found." },
         { status: 404 }
       );
     }
 
-    const authUser = getServerAuthUser(req);
-    const isOwner = authUser && authUser.id === store.ownerId;
+    const effectiveOwnerId = store ? store.ownerId : String(matchedUser._id);
+    const isOwner = Boolean(authUser && authUser.id === effectiveOwnerId);
 
     // Visibility: Suspended stores cannot be viewed publicly
-    if (store.status === "suspended" && !isOwner) {
+    if (store && store.status === "suspended" && !isOwner) {
       return NextResponse.json(
         { success: false, error: "This storefront is currently suspended." },
         { status: 403 }
@@ -53,7 +85,9 @@ export async function GET(
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "30", 10)));
 
-    const filter: Record<string, any> = { storeId: store._id.toString() };
+    const filter: Record<string, any> = store
+      ? { storeId: store._id.toString() }
+      : { sellerId: String(matchedUser._id) };
 
     // Public users strictly see active items only; owner can see requested status
     if (!isOwner) {

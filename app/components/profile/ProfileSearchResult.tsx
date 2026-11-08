@@ -7,7 +7,7 @@ import type { Profile } from "../../data/profiles";
 export function ProfileSearchResult({ profile }: { profile: Profile }) {
     return (
         <Link 
-            href={`/profile/${profile.handle}`}
+            href={`/stores/${profile.handle}`}
             className="group flex items-center gap-4 p-4 bg-card border border-border/50 rounded-2xl hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5"
         >
             <div className="relative w-16 h-16 shrink-0">

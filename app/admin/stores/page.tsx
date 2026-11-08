@@ -388,7 +388,7 @@ function StoresOversightPage() {
                     <td className="py-4 px-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
-                          href={`/profile/${store.slug}`}
+                          href={`/stores/${store.slug}`}
                           target="_blank"
                           className="p-1.5 rounded-xl bg-[#F2F4F7] dark:bg-white/10 hover:bg-[#E5E7EB] dark:hover:bg-white/15 text-foreground dark:text-white transition-all"
                           title="View Public Store"

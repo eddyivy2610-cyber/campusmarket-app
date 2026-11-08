@@ -11,11 +11,11 @@ export default function ProfileRedirect() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      router.replace("/login?next=%2Fprofile");
+      router.replace("/login?next=%2Fstores");
       return;
     }
     const targetHandle = user.handle || user.id;
-    router.replace(`/profile/${targetHandle}`);
+    router.replace(`/stores/${targetHandle}`);
   }, [isLoading, router, user]);
 
   return null;

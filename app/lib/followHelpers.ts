@@ -207,7 +207,7 @@ export async function executeFollow(
             category: "reviews",
             title: "New follower",
             message: `${followerInfo?.name || "A student"} is now following you.`,
-            link: followerInfo?.handle ? `/profile/${followerInfo.handle}` : "",
+            link: followerInfo?.handle ? `/stores/${followerInfo.handle}` : "",
             dedupeKey: `follower:${targetId}:${followerObjectId}`,
             session: session ? (session as any) : undefined,
           });
@@ -345,7 +345,7 @@ export async function executeToggle(
           category: "reviews",
           title: "New follower",
           message: `${followerInfo?.name || "A student"} is now following you.`,
-          link: followerInfo?.handle ? `/profile/${followerInfo.handle}` : "",
+          link: followerInfo?.handle ? `/stores/${followerInfo.handle}` : "",
           dedupeKey: `follower:${targetId}:${followerObjectId}`,
         });
       } catch {

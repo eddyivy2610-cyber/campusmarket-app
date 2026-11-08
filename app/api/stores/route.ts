@@ -47,6 +47,11 @@ export async function GET(req: NextRequest) {
 
     const filter: Record<string, any> = { status: "active" };
 
+    const excludeOwner = searchParams.get("excludeOwner");
+    if (excludeOwner) {
+      filter.ownerId = { $ne: excludeOwner };
+    }
+
     if (campus && campus !== "All Campuses") {
       filter.campus = campus;
     }

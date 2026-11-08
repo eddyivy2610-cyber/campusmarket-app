@@ -93,7 +93,7 @@ export function StorefrontsSection() {
               </div>
 
               <Link
-                href={`/profile/${store.handle}`}
+                href={`/stores/${(store as any).slug || store.handle || store.id}`}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-secondary hover:bg-primary hover:text-primary-foreground text-foreground text-[10px] font-bold uppercase tracking-wider transition-colors shrink-0"
               >
                 <Store className="w-3 h-3" />

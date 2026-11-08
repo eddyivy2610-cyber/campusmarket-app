@@ -470,7 +470,7 @@ export function CreateListingForm() {
       sellerListingsCount: (userStore?.metrics?.listingsCount || 0) + 1,
       sellerRating: storeRating,
       sellerReviewsCount: storeReviewsCount,
-      storeHref: resolvedStoreId ? `/stores/${storeSlugOrId}` : `/profile/${user?.handle || "me"}`,
+      storeHref: resolvedStoreId ? `/stores/${storeSlugOrId}` : `/stores/${user?.handle || "me"}`,
       sellerType:
         userStore?.storeType === "local_business"
           ? "approved_business"
