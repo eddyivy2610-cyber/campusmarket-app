@@ -28,6 +28,7 @@ import {
   Store,
   MapPin,
   Package,
+  Radio,
   SlidersHorizontal,
   PanelRightOpen,
   PanelRightClose,
@@ -56,13 +57,14 @@ import type {
   DealStatus,
 } from "../models/ChatModels";
 
-function getParticipantProfileHref(participant: ChatParticipantProfile): string {
+function getParticipantProfileHref(participant?: ChatParticipantProfile): string {
+  if (!participant || !participant.name) return "/explore";
   const n = participant.name.toLowerCase();
   if (n.includes("campus closet")) return "/profile/campus-closet";
   if (n.includes("tech corner")) return "/profile/tech-corner";
   if (n.includes("print hub")) return "/profile/the-print-hub";
   if (n.includes("kongo")) return "/profile/kongo-scholars";
-  return "/profile/me";
+  return `/profile/${participant.id || "me"}`;
 }
 
 function formatMessageTime(iso: string): string {
@@ -429,12 +431,12 @@ function MessagesWorkspace() {
     if (entryContextProcessedRef.current === signature) return;
     entryContextProcessedRef.current = signature;
 
-    const defaultMsg = fromListing
-      ? searchParams.get("defaultMessage") ||
-        (contextType === "wanted"
-          ? "Hi! I saw your Radar request and I can help with this."
-          : "ill love to know more about this product")
-      : "";
+    const defaultMsg =
+      contextType === "wanted"
+        ? ""
+        : fromListing
+        ? searchParams.get("defaultMessage") || "ill love to know more about this product"
+        : "";
 
     // Check if an existing conversation with messages already exists with this participant
     const existing = conversations.find(
@@ -723,6 +725,7 @@ function MessagesWorkspace() {
     conversationId: string;
     text: string;
     attachment?: PendingOutgoingMessage["attachment"];
+    attachedContext?: ConversationContextRef;
   }) => {
     try {
       const res = await fetchWithAuth(
@@ -739,6 +742,7 @@ function MessagesWorkspace() {
             text: payload.text,
             clientMessageId: payload.tempId,
             attachment: payload.attachment,
+            attachedContext: payload.attachedContext,
           }),
         }
       );
@@ -861,6 +865,7 @@ function MessagesWorkspace() {
       conversationId: targetConvId,
       text: trimmed,
       attachment: attachmentToSend,
+      attachedContext: activeConv.context || undefined,
     });
   };
 
@@ -1019,7 +1024,7 @@ function MessagesWorkspace() {
 
                   <div className="min-w-0">
                     <Link
-                      href={ctx.href}
+                      href={ctx.href || (ctx.contextType === "wanted" ? "/wanted" : "/explore")}
                       className="block text-[12.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                     >
                       {ctx.title}
@@ -1037,7 +1042,7 @@ function MessagesWorkspace() {
 
               {ctx && (
                 <Link
-                  href={ctx.href}
+                  href={ctx.href || (ctx.contextType === "wanted" ? "/wanted" : "/explore")}
                   title="View listing"
                   aria-label="View listing"
                   className="radius-native w-7 h-7 rounded-lg bg-white dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 hover:border-[#171717] flex items-center justify-center text-[#5B636E] hover:text-[#171717] dark:text-neutral-300 dark:hover:text-white shrink-0 transition-colors"
@@ -1447,15 +1452,15 @@ function MessagesWorkspace() {
                     href={getParticipantProfileHref(activeConv.otherParticipant)}
                     className="shrink-0"
                   >
-                    {activeConv.otherParticipant.avatar ? (
+                    {activeConv.otherParticipant?.avatar ? (
                       <img
                         src={activeConv.otherParticipant.avatar}
-                        alt={activeConv.otherParticipant.name}
+                        alt={activeConv.otherParticipant?.name || "Campus Member"}
                         className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8]"
                       />
                     ) : (
                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[14px] flex items-center justify-center">
-                        {activeConv.otherParticipant.name.charAt(0)}
+                        {(activeConv.otherParticipant?.name || "U").charAt(0)}
                       </div>
                     )}
                   </Link>
@@ -1466,9 +1471,9 @@ function MessagesWorkspace() {
                         href={getParticipantProfileHref(activeConv.otherParticipant)}
                         className="text-[14.5px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white hover:underline truncate"
                       >
-                        {activeConv.otherParticipant.name}
+                        {activeConv.otherParticipant?.name || "Campus Member"}
                       </Link>
-                      {activeConv.otherParticipant.isVerified &&
+                      {activeConv.otherParticipant?.isVerified &&
                         (activeConv.otherParticipant.accountType ===
                           "student" ||
                           activeConv.otherParticipant.accountType ===
@@ -1480,7 +1485,7 @@ function MessagesWorkspace() {
                         )}
                     </div>
                     <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 truncate">
-                      {activeConv.otherParticipant.subtitle}
+                      {activeConv.otherParticipant?.subtitle || "Campus Member"}
                     </p>
                   </div>
                 </div>
@@ -1555,8 +1560,8 @@ function MessagesWorkspace() {
                 </div>
               </div>
 
-              {/* 2. Compact Contextual Reference Banner (Always visible in thread when context exists) */}
-              {activeConv.context && (
+              {/* 2. Compact Contextual Reference Banner (Hidden for Radar/Wanted to maintain WhatsApp Status style minimal reply) */}
+              {activeConv.context && activeConv.context.contextType !== "wanted" && (
                 <div className="px-4 sm:px-5 py-2.5 border-b border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#161922] flex items-center justify-between gap-3 shrink-0">
                   <div className="flex items-center gap-3 min-w-0">
                     {activeConv.context.image ? (
@@ -1574,7 +1579,7 @@ function MessagesWorkspace() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         <Link
-                          href={activeConv.context.href}
+                          href={activeConv.context.href || "/explore"}
                           className="text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                         >
                           {activeConv.context.title}
@@ -1586,7 +1591,7 @@ function MessagesWorkspace() {
                       <div className="flex items-center gap-1.5 text-[11px] text-[#68707A] dark:text-neutral-400">
                         <span>{activeConv.context.status || "Available"}</span>
                         <span>·</span>
-                        <Link href={activeConv.context.href} className="text-[#FFC928] hover:underline font-semibold">
+                        <Link href={activeConv.context.href || "/explore"} className="text-[#FFC928] hover:underline font-semibold">
                           View listing
                         </Link>
                       </div>
@@ -1594,7 +1599,7 @@ function MessagesWorkspace() {
                   </div>
 
                   <Link
-                    href={activeConv.context.href}
+                    href={activeConv.context.href || "/explore"}
                     aria-label="View listing"
                     className="radius-native px-2.5 py-1 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 hover:border-[#171717] flex items-center gap-1 text-[11.5px] font-semibold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white shrink-0 transition-colors"
                   >
@@ -1692,23 +1697,31 @@ function MessagesWorkspace() {
                           >
                             {msg.attachedContext && (
                               <Link
-                                href={msg.attachedContext.href}
-                                className="radius-native mb-2 p-2 rounded-xl bg-white/80 dark:bg-black/20 border border-[#E8E8E8] flex items-center gap-2.5 hover:border-[#FFC928]"
+                                href={msg.attachedContext.href || (msg.attachedContext.contextType === "wanted" ? "/wanted" : "/explore")}
+                                className="radius-native mb-2 p-2 rounded-xl bg-white/80 dark:bg-black/20 border border-[#E8E8E8] dark:border-white/10 flex items-center gap-2.5 hover:border-[#FFC928] transition-colors"
                               >
-                                {msg.attachedContext.image && (
+                                {msg.attachedContext.contextType === "wanted" ? (
+                                  <div className="w-8 h-8 rounded-lg bg-[#FFC928]/20 text-[#B45309] dark:text-[#FFC928] flex items-center justify-center shrink-0">
+                                    <Radio className="w-4 h-4" />
+                                  </div>
+                                ) : msg.attachedContext.image ? (
                                   <img
                                     src={msg.attachedContext.image}
                                     alt={msg.attachedContext.title}
                                     className="w-8 h-8 rounded-lg object-cover shrink-0"
                                   />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center shrink-0">
+                                    <Package className="w-4 h-4 text-[#68707A]" />
+                                  </div>
                                 )}
                                 <div className="min-w-0">
                                   <span className="block text-[9px] font-extrabold uppercase tracking-wider text-[#8C929C]">
-                                    {msg.attachedContext.label}
+                                    {msg.attachedContext.label || (msg.attachedContext.contextType === "wanted" ? "RADAR REQUEST" : "LISTING")}
                                   </span>
                                   <span className="block text-[11.5px] font-bold truncate">
-                                    {msg.attachedContext.title} ·{" "}
-                                    {msg.attachedContext.priceFormatted}
+                                    {msg.attachedContext.title}
+                                    {msg.attachedContext.priceFormatted ? ` · ${msg.attachedContext.priceFormatted}` : ""}
                                   </span>
                                 </div>
                               </Link>
@@ -1802,6 +1815,25 @@ function MessagesWorkspace() {
 
               {/* 4. Bottom-Anchored Message Composer */}
               <div className="p-3.5 sm:px-5 sm:py-3.5 border-t border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] shrink-0">
+                {activeConv.context?.contextType === "wanted" && (
+                  <div className="mb-2.5 px-3 py-1.5 rounded-xl bg-[#F7F8FA] dark:bg-white/[0.04] border-l-[3px] border-l-[#FFC928] flex items-center justify-between gap-3 text-[12px]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-5 h-5 rounded-full bg-[#FFC928]/15 text-[#B45309] dark:text-[#FFC928] flex items-center justify-center shrink-0">
+                        <Radio className="w-3 h-3" />
+                      </div>
+                      <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 truncate font-medium">
+                        {activeConv.context.title}
+                      </p>
+                    </div>
+                    <Link
+                      href={activeConv.context.href || "/wanted"}
+                      className="text-[11px] font-semibold text-[#8C929C] hover:text-[#171717] dark:hover:text-white shrink-0"
+                    >
+                      View
+                    </Link>
+                  </div>
+                )}
+
                 {pendingAttachment && (
                   <div className="mb-2.5 p-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#E8E8E8] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">

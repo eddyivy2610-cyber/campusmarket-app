@@ -448,7 +448,6 @@ function RadarContent() {
               const isMenuOpen = openMenuPostId === post.id;
               const isOwnPost = Boolean(user && post.userId && String(post.userId) === String(user.id));
               const targetParticipantId = post.userId || `requester-${post.requesterName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
-              const defaultRadarMsg = `Hi! I saw your Radar request for "${post.requestText.slice(0, 50)}..." - I have this available!`;
 
               const postChatHref = `/messages?${new URLSearchParams({
                 from: "radar",
@@ -463,7 +462,6 @@ function RadarContent() {
                 participantSubtitle: `${post.isVerified ? "Student" : "Campus Member"} · ${post.requesterLocation}`,
                 participantAvatar: post.requesterAvatar,
                 participantVerified: post.isVerified ? "true" : "false",
-                defaultMessage: defaultRadarMsg,
               }).toString()}`;
 
               return (
@@ -640,7 +638,6 @@ function RadarContent() {
                               participantName: reply.authorName,
                               participantSubtitle: `${reply.isVerified ? "Student" : "Campus Member"} · ${reply.authorDept}`,
                               participantVerified: reply.isVerified ? "true" : "false",
-                              defaultMessage: `Hi ${reply.authorName}! Regarding your reply on Campus Radar: "${reply.message.slice(0, 50)}..."`,
                             }).toString()}`;
 
                             return (
@@ -767,7 +764,7 @@ function RadarContent() {
                       className="py-3 flex items-center justify-between gap-2.5"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <Link href={person.profileHref} className="shrink-0">
+                        <Link href={person.profileHref || "/explore"} className="shrink-0">
                           <img
                             src={person.avatar}
                             alt={person.name}
@@ -778,7 +775,7 @@ function RadarContent() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1 min-w-0">
                             <Link
-                              href={person.profileHref}
+                              href={person.profileHref || "/explore"}
                               className="text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                             >
                               {person.name}
