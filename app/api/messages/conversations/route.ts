@@ -67,6 +67,8 @@ export async function GET(req: NextRequest) {
             { participantIds: currentUser.id },
             ...(mongoose.isValidObjectId(currentUser.id) ? [{ participants: new mongoose.Types.ObjectId(currentUser.id) }] : []),
           ],
+          lastMessage: { $ne: null },
+          "lastMessage.text": { $exists: true, $ne: "" },
         };
 
         if (pivotConv) {

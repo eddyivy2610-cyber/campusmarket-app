@@ -539,6 +539,7 @@ export function listConversationsForUser(params: {
 
   store.conversations.forEach((doc) => {
     if (!ensureParticipant(doc, userId)) return;
+    if (!doc.lastMessage || !doc.lastMessage.text) return;
     const dto = toConversationDTO(store, doc, userId);
 
     if (filter === "unread" && dto.unreadCount === 0) return;

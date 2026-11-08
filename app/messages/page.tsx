@@ -51,6 +51,7 @@ import type {
   ChatParticipantProfile,
   CheckInResponseChoice,
   ContextWorkflowStatus,
+  ConversationContextRef,
   ConversationDTO,
   DealStatus,
 } from "../models/ChatModels";
@@ -332,6 +333,7 @@ function MessagesWorkspace() {
         setConversations(rawList);
       }
       setSelectedConvId((prev) => {
+        if (prev && prev.startsWith("draft-")) return prev;
         if (prev && rawList.some((c) => c.id === prev)) return prev;
         return rawList.length > 0 ? rawList[0].id : null;
       });
@@ -398,17 +400,27 @@ function MessagesWorkspace() {
   useEffect(() => {
     const contextType = searchParams.get("contextType");
     const participantId =
-      searchParams.get("participantId") || searchParams.get("user");
+      searchParams.get("participantId") ||
+      searchParams.get("user") ||
+      searchParams.get("recipient");
     const participantName =
-      searchParams.get("participantName") || searchParams.get("name");
+      searchParams.get("participantName") ||
+      searchParams.get("name") ||
+      "Campus Seller";
     const title =
       searchParams.get("title") || searchParams.get("contextTitle");
     const priceParam =
       searchParams.get("price") || searchParams.get("contextPrice");
     const imageParam =
       searchParams.get("image") || searchParams.get("contextImage");
+    const fromListing =
+      searchParams.get("from") === "listing" ||
+      contextType === "product" ||
+      contextType === "service" ||
+      Boolean(title) ||
+      searchParams.has("contextId");
 
-    if (!participantId || !participantName) return;
+    if (!participantId) return;
 
     const signature = `${participantId}:${contextType || ""}:${
       searchParams.get("contextId") || ""
@@ -416,77 +428,98 @@ function MessagesWorkspace() {
     if (entryContextProcessedRef.current === signature) return;
     entryContextProcessedRef.current = signature;
 
-    const initiateContextualChat = async () => {
-      try {
-        setIsLoadingThread(true);
-        const res = await fetchWithAuth("/api/messages/conversations", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-campus-user-id": currentUser.id,
-          },
-          body: JSON.stringify({
-            participantId,
-            participantName,
-            participantSubtitle:
+    const defaultMsg = fromListing
+      ? searchParams.get("defaultMessage") || "ill love to know more about this product"
+      : "";
+
+    // Check if an existing conversation with messages already exists with this participant
+    const existing = conversations.find(
+      (c) =>
+        c.otherParticipant?.id === participantId ||
+        c.participants?.some((p) => p.id === participantId)
+    );
+
+    if (existing) {
+      setSelectedConvId(existing.id);
+      setMobileShowThread(true);
+      if (fromListing) {
+        setComposerText(defaultMsg);
+      }
+    } else {
+      // Do not add to conversation list yet! Open an in-memory draft chat thread state
+      const draftId = `draft-${participantId}`;
+      const newContextRef: ConversationContextRef | null =
+        fromListing && title
+          ? {
+              contextType: (contextType as any) || "product",
+              contextId:
+                searchParams.get("contextId") || `ctx-${Date.now()}`,
+              label:
+                contextType === "service"
+                  ? "SERVICE LISTING"
+                  : "PRODUCT LISTING",
+              title,
+              priceFormatted: priceParam || "Contact for price",
+              numericPrice: searchParams.get("numericPrice")
+                ? Number(searchParams.get("numericPrice"))
+                : undefined,
+              image: imageParam || undefined,
+              status: (searchParams.get("status") as any) || "Available",
+              href: searchParams.get("href") || "/explore",
+              attachedAt: new Date().toISOString(),
+            }
+          : null;
+
+      const draftConv: ConversationDTO = {
+        id: draftId,
+        participants: [
+          currentUser,
+          {
+            id: participantId,
+            name: participantName,
+            subtitle:
               searchParams.get("participantSubtitle") || "Student · Campus",
-            participantAvatar:
-              searchParams.get("participantAvatar") || undefined,
-            participantVerified:
-              searchParams.get("participantVerified") !== "false",
+            avatar: searchParams.get("participantAvatar") || undefined,
+            isVerified: searchParams.get("participantVerified") !== "false",
             accountType:
               contextType === "store" ? "student_store" : "student",
-            context: title
-              ? {
-                  contextType: contextType || "product",
-                  contextId:
-                    searchParams.get("contextId") || `ctx-${Date.now()}`,
-                  title,
-                  priceFormatted: priceParam || "Contact for price",
-                  numericPrice: searchParams.get("numericPrice")
-                    ? Number(searchParams.get("numericPrice"))
-                    : undefined,
-                  image: imageParam || undefined,
-                  status: searchParams.get("status") || "Available",
-                  href: searchParams.get("href") || "/explore",
-                }
-              : undefined,
-          }),
-        });
+          },
+        ],
+        otherParticipant: {
+          id: participantId,
+          name: participantName,
+          subtitle:
+            searchParams.get("participantSubtitle") || "Student · Campus",
+          avatar: searchParams.get("participantAvatar") || undefined,
+          isVerified: searchParams.get("participantVerified") !== "false",
+          accountType:
+            contextType === "store" ? "student_store" : "student",
+        },
+        context: newContextRef,
+        additionalContexts: [],
+        isBannerCollapsed: false,
+        lastMessage: null,
+        unreadCount: 0,
+        activeOffer: null,
+        trackedDeal: null,
+        reviews: [],
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
 
-        if (res.ok) {
-          const data = await res.json();
-          const conv: ConversationDTO = data.conversation;
-          setSelectedConvId(conv.id);
-          setMobileShowThread(true);
-          await fetchConversations();
-          await fetchConversationDetails(conv.id, 1, false);
-
-          if (data.secondaryContextAttached) {
-            showToast(
-              `Attached "${title}" to your conversation with ${participantName} without replacing original context.`
-            );
-          }
-        }
-      } catch {
-        showToast("Could not open contextual conversation.");
-      } finally {
-        setIsLoadingThread(false);
-      }
-    };
-
-    initiateContextualChat();
-  }, [
-    searchParams,
-    currentUser.id,
-    fetchConversations,
-    fetchConversationDetails,
-    showToast,
-    fetchWithAuth,
-  ]);
+      setActiveConv(draftConv);
+      setSelectedConvId(draftId);
+      setMessages([]);
+      setComposerText(defaultMsg);
+      setMobileShowThread(true);
+    }
+  }, [searchParams, currentUser, conversations]);
 
   useEffect(() => {
     if (selectedConvId) {
+      if (selectedConvId.startsWith("draft-")) {
+        return;
+      }
       fetchConversationDetails(selectedConvId, 1, false);
       setActAsOtherParticipant(false);
       setShowTrackDealForm(false);
@@ -498,7 +531,7 @@ function MessagesWorkspace() {
 
   // Realtime subscription for incoming messages, typing events, and deal updates
   useEffect(() => {
-    if (!activeConv?.id) return;
+    if (!activeConv?.id || activeConv.id.startsWith("draft-")) return;
 
     const unsubscribe = subscribeToConversation(activeConv.id, {
       onMessage: ({ message, conversation }) => {
@@ -751,9 +784,64 @@ function MessagesWorkspace() {
     setComposerText("");
     setPendingAttachment(null);
 
+    let targetConvId = activeConv.id;
+
+    // If active conversation is a draft, persist the conversation first
+    if (
+      activeConv.id.startsWith("draft-") ||
+      !conversations.some((c) => c.id === activeConv.id)
+    ) {
+      try {
+        const createRes = await fetchWithAuth("/api/messages/conversations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-campus-user-id": currentUser.id,
+          },
+          body: JSON.stringify({
+            participantId: activeConv.otherParticipant.id,
+            participantName: activeConv.otherParticipant.name,
+            participantSubtitle: activeConv.otherParticipant.subtitle,
+            participantAvatar: activeConv.otherParticipant.avatar,
+            participantVerified: activeConv.otherParticipant.isVerified,
+            accountType: activeConv.otherParticipant.accountType,
+            context: activeConv.context
+              ? {
+                  contextType: activeConv.context.contextType,
+                  contextId: activeConv.context.contextId,
+                  title: activeConv.context.title,
+                  priceFormatted: activeConv.context.priceFormatted,
+                  numericPrice: activeConv.context.numericPrice,
+                  image: activeConv.context.image,
+                  status: activeConv.context.status,
+                  href: activeConv.context.href,
+                }
+              : undefined,
+          }),
+        });
+
+        if (createRes.ok) {
+          const createData = await createRes.json();
+          const persistedConv: ConversationDTO = createData.conversation;
+          targetConvId = persistedConv.id;
+          setActiveConv(persistedConv);
+          setSelectedConvId(persistedConv.id);
+        } else {
+          showToast("Failed to initiate chat. Please try again.");
+          setComposerText(trimmed);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to persist conversation:", err);
+        showToast("Network error initiating chat.");
+        setComposerText(trimmed);
+        return;
+      }
+    }
+
     const pendingItem: PendingOutgoingMessage = {
       tempId,
-      conversationId: activeConv.id,
+      conversationId: targetConvId,
       text: trimmed,
       attachment: attachmentToSend,
       createdAt: new Date().toISOString(),
@@ -764,7 +852,7 @@ function MessagesWorkspace() {
 
     await sendMessagePayload({
       tempId,
-      conversationId: activeConv.id,
+      conversationId: targetConvId,
       text: trimmed,
       attachment: attachmentToSend,
     });
@@ -1461,18 +1549,18 @@ function MessagesWorkspace() {
                 </div>
               </div>
 
-              {/* 2. Mobile-Only Compact Contextual Reference Banner */}
+              {/* 2. Compact Contextual Reference Banner (Always visible in thread when context exists) */}
               {activeConv.context && (
-                <div className="lg:hidden px-4 sm:px-5 py-2.5 border-b border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#161922] flex items-center justify-between gap-3 shrink-0">
+                <div className="px-4 sm:px-5 py-2.5 border-b border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#161922] flex items-center justify-between gap-3 shrink-0">
                   <div className="flex items-center gap-3 min-w-0">
                     {activeConv.context.image ? (
                       <img
                         src={activeConv.context.image}
                         alt={activeConv.context.title}
-                        className="w-9 h-9 rounded-lg object-cover border border-[#E8E8E8] shrink-0"
+                        className="w-10 h-10 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
                       />
                     ) : (
-                      <div className="w-9 h-9 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E8E8E8] flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E8E8E8] dark:border-white/10 flex items-center justify-center shrink-0">
                         <Package className="w-4 h-4 text-[#68707A]" />
                       </div>
                     )}
@@ -1481,13 +1569,20 @@ function MessagesWorkspace() {
                       <div className="flex items-center gap-2 min-w-0">
                         <Link
                           href={activeConv.context.href}
-                          className="text-[12.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
+                          className="text-[13px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                         >
                           {activeConv.context.title}
                         </Link>
-                        <span className="text-[12px] font-extrabold text-[#68707A] dark:text-neutral-300 shrink-0">
+                        <span className="text-[12px] font-extrabold text-[#171717] dark:text-[#FFC928] shrink-0">
                           · {activeConv.context.priceFormatted}
                         </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#68707A] dark:text-neutral-400">
+                        <span>{activeConv.context.status || "Available"}</span>
+                        <span>·</span>
+                        <Link href={activeConv.context.href} className="text-[#FFC928] hover:underline font-semibold">
+                          View listing
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -1495,8 +1590,9 @@ function MessagesWorkspace() {
                   <Link
                     href={activeConv.context.href}
                     aria-label="View listing"
-                    className="radius-native w-7 h-7 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] flex items-center justify-center text-[#5B636E] shrink-0"
+                    className="radius-native px-2.5 py-1 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 hover:border-[#171717] flex items-center gap-1 text-[11.5px] font-semibold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white shrink-0 transition-colors"
                   >
+                    <span>View</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -1540,6 +1636,24 @@ function MessagesWorkspace() {
                     >
                       Retry
                     </button>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-[#FFF8E6] dark:bg-white/5 flex items-center justify-center text-[#FFC928]">
+                      <MessageSquare className="w-6 h-6 stroke-[1.8]" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[14px] font-bold text-[#171717] dark:text-white">
+                        {activeConv.context
+                          ? `Inquire about "${activeConv.context.title}"`
+                          : `Start a conversation with ${activeConv.otherParticipant.name}`}
+                      </p>
+                      <p className="text-[12px] text-[#68707A] dark:text-neutral-400 max-w-sm mx-auto">
+                        {activeConv.context
+                          ? "Send your message below to ask questions, negotiate terms, or arrange meetup inspection."
+                          : "Type your message below and hit send to start chatting."}
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <>

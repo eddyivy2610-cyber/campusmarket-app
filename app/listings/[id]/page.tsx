@@ -557,7 +557,15 @@ export default function ListingDetailPage() {
       ? listing.seller.storeHref.replace("/stores/", "")
       : "";
 
+    const sellerParticipantId =
+      listing.sellerId ||
+      storeParam ||
+      `seller-${listing.seller.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+
+    const defaultMsg = "ill love to know more about this product";
+
     const params = new URLSearchParams({
+      from: "listing",
       contextType: isService ? "service" : "product",
       contextId: String(listing.id),
       title: listing.title,
@@ -566,13 +574,14 @@ export default function ListingDetailPage() {
       image: listing.images[0] || "",
       status: isMarkedSold ? "Sold" : "Available",
       href: `/listings/${listing.id}`,
-      participantId: `seller-${listing.seller.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+      participantId: sellerParticipantId,
       participantName: listing.seller.name,
       participantSubtitle: listing.seller.department,
       participantAvatar: listing.seller.avatar,
       participantVerified: listing.seller.isVerified ? "true" : "false",
       service: isService ? String(listing.id) : "",
       store: storeParam,
+      defaultMessage: defaultMsg,
     });
     router.push(`/messages?${params.toString()}`);
   };
