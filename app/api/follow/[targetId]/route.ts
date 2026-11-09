@@ -60,7 +60,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: "You cannot follow your own store." }, { status: 400 });
     }
 
-    const { isFollowing, newlyFollowed } = await executeFollow(
+    const { isFollowing, newlyFollowed, followersCount } = await executeFollow(
       user.id,
       target.targetId,
       target.targetType,
@@ -72,6 +72,7 @@ export async function POST(
       message: newlyFollowed ? "Successfully followed." : "Already following.",
       isFollowing,
       newlyFollowed,
+      followersCount,
       targetId: target.targetId.toString(),
       targetType: target.targetType,
     });
@@ -125,7 +126,7 @@ export async function DELETE(
       );
     }
 
-    const { isFollowing, newlyUnfollowed } = await executeUnfollow(
+    const { isFollowing, newlyUnfollowed, followersCount } = await executeUnfollow(
       user.id,
       target.targetId,
       target.targetType
@@ -136,6 +137,7 @@ export async function DELETE(
       message: newlyUnfollowed ? "Successfully unfollowed." : "Not currently following.",
       isFollowing,
       newlyUnfollowed,
+      followersCount,
       targetId: target.targetId.toString(),
       targetType: target.targetType,
     });

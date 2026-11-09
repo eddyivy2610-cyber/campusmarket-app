@@ -58,7 +58,9 @@ export interface IListing {
   views: number;
   likes: number;
   isPromoted?: boolean;
-  slug?: string;
+  publicId?: string; // RFC 9562 UUIDv7
+  slug?: string; // Canonical human-readable slug with stable suffix
+  slugSuffix?: string; // Stable 8-char entropy suffix (never changes on title edits)
   listingCode?: string;
   pausedBy?: ListingPausedBy;
   removedBy?: ListingRemovedBy;
@@ -203,6 +205,14 @@ const ListingSchema = new Schema<IListingDocument>(
       type: Boolean,
       default: false,
     },
+    publicId: {
+      type: String,
+      required: false,
+    },
+    slugSuffix: {
+      type: String,
+      required: false,
+    },
     schemaVersion: {
       type: Number,
       default: 1,
@@ -250,6 +260,14 @@ ListingSchema.index({ sellerId: 1, storeId: 1, status: 1 });                    
 ListingSchema.index({ status: 1, title: "text", description: "text" });
 
 // Collision-safe unique indexes with partialFilterExpression (ignores missing and null values)
+ListingSchema.index(
+  { publicId: 1 },
+  { unique: true, partialFilterExpression: { publicId: { $type: "string" } } }
+);
+ListingSchema.index(
+  { slugSuffix: 1 },
+  { partialFilterExpression: { slugSuffix: { $type: "string" } } }
+);
 ListingSchema.index(
   { slug: 1 },
   { unique: true, partialFilterExpression: { slug: { $type: "string" } } }

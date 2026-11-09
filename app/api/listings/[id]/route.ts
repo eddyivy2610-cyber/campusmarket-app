@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import ListingModel, { sanitizeListingInput } from "@/models/Listing";
 import StoreModel from "@/models/Store";
+import SlugRedirectModel from "@/models/SlugRedirect";
+import { isValidUUIDv7, deriveSlugSuffix, generateUUIDv7 } from "@/lib/uuidv7";
+import { updateSlugPreservingSuffix } from "@/lib/slugUtils";
 import { requireAuth } from "@/lib/authServer";
 import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 
@@ -18,7 +21,29 @@ export async function GET(
     const { id } = await context.params;
     await dbConnect();
 
-    const listing = await ListingModel.findById(id).lean();
+    const cleanId = (id || "").trim();
+    let listing: any = null;
+
+    if (isValidUUIDv7(cleanId)) {
+      listing = await ListingModel.findOne({ publicId: cleanId }).lean();
+    }
+    if (!listing && cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+      listing = await ListingModel.findById(cleanId).lean();
+    }
+    if (!listing) {
+      listing = await ListingModel.findOne({ slug: cleanId.toLowerCase() }).lean();
+    }
+    if (!listing) {
+      // Historical slug redirect lookup
+      const redirectDoc = await SlugRedirectModel.findOne({
+        entityType: { $in: ["listing", "service"] },
+        oldSlug: cleanId.toLowerCase(),
+      }).lean();
+      if (redirectDoc) {
+        listing = await ListingModel.findOne({ publicId: redirectDoc.targetPublicId }).lean();
+      }
+    }
+
     if (!listing) {
       return NextResponse.json(
         { success: false, error: "Listing not found." },
@@ -103,7 +128,33 @@ export async function PATCH(
     const sanitized = sanitizeListingInput(body);
 
     // Apply allowed updates
-    if (sanitized.title !== undefined) listing.title = sanitized.title;
+    if (sanitized.title !== undefined) {
+      if (sanitized.title !== listing.title) {
+        const oldSlug = listing.slug;
+        const suffix = listing.slugSuffix || deriveSlugSuffix(listing.publicId || generateUUIDv7(), 8);
+        listing.title = sanitized.title;
+        listing.slugSuffix = suffix;
+        const newSlug = updateSlugPreservingSuffix(sanitized.title, suffix);
+        listing.slug = newSlug;
+
+        if (oldSlug && oldSlug !== newSlug && listing.publicId) {
+          try {
+            await (SlugRedirectModel as any).findOneAndUpdate(
+              { entityType: listing.listingType || "listing", oldSlug },
+              {
+                $set: {
+                  targetPublicId: listing.publicId,
+                  canonicalSlug: newSlug,
+                },
+              },
+              { upsert: true }
+            );
+          } catch (redErr) {
+            console.warn("Could not record slug redirect:", redErr);
+          }
+        }
+      }
+    }
     if (sanitized.description !== undefined) listing.description = sanitized.description;
     if (sanitized.category !== undefined) listing.category = sanitized.category;
     if (sanitized.subcategory !== undefined) listing.subcategory = sanitized.subcategory;

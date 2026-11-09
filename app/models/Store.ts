@@ -26,6 +26,7 @@ export interface IStoreMetrics {
 
 export interface IStore {
   id: string;
+  publicId?: string; // RFC 9562 UUIDv7
   ownerId: string; // Crucial: One user account can only own one storefront!
   ownerFullName?: string;
   name: string;
@@ -61,6 +62,10 @@ export interface IStoreDocument extends Omit<IStore, "id">, Document {}
 
 const StoreSchema = new Schema<IStoreDocument>(
   {
+    publicId: {
+      type: String,
+      required: false,
+    },
     ownerId: {
       type: String,
       required: true,
@@ -219,6 +224,10 @@ const StoreSchema = new Schema<IStoreDocument>(
 });
 
 // Compound ESR indexes for store directory queries sorted by rating and recency
+StoreSchema.index(
+  { publicId: 1 },
+  { unique: true, partialFilterExpression: { publicId: { $type: "string" } } }
+);
 StoreSchema.index({ status: 1, campus: 1, "metrics.rating": -1, createdAt: -1 });
 StoreSchema.index({ status: 1, "metrics.rating": -1, createdAt: -1 });
 StoreSchema.index({ storeType: 1, status: 1 });

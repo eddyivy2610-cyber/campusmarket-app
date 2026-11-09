@@ -18,6 +18,7 @@ import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeade
 import { executeInTransaction } from "@/lib/transactionHelper";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 import { createNotification } from "@/lib/notificationService";
+import { generateUUIDv7 } from "@/lib/uuidv7";
 
 function generateSlug(name: string): string {
   const base = name
@@ -222,6 +223,7 @@ export async function POST(req: NextRequest) {
             })
           : new StoreModel({
               ...sanitized,
+              publicId: generateUUIDv7(),
               ownerId: user.id,
               ownerFullName: fullName,
               slug: generateSlug(name),
@@ -364,6 +366,7 @@ export async function POST(req: NextRequest) {
           })
         : new StoreModel({
             ...sanitized,
+            publicId: generateUUIDv7(),
             ownerId: user.id,
             ownerFullName: fullName,
             slug: generateSlug(name),
@@ -507,6 +510,7 @@ export async function POST(req: NextRequest) {
     // 4. Build store document with strict server-enforced values
     const newStore = new StoreModel({
       ...sanitized,
+      publicId: generateUUIDv7(),
       ownerId: user.id, // Strictly server-enforced ownerId
       slug: generateSlug(name),
       storeType: "student_store",

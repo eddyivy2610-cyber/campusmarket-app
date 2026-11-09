@@ -35,6 +35,7 @@ export interface IOrderStatusHistory {
 
 export interface IOrder {
   id: string;
+  publicId?: string; // RFC 9562 UUIDv7
   orderId: string; // e.g. "ORD-123456-CH"
   buyerId: Types.ObjectId | string;
   sellerId: Types.ObjectId | string;
@@ -95,6 +96,10 @@ const OrderStatusHistorySchema = new Schema<IOrderStatusHistory>(
 
 const OrderSchema = new Schema<IOrderDocument>(
   {
+    publicId: {
+      type: String,
+      required: false,
+    },
     orderId: {
       type: String,
       required: true,
@@ -206,6 +211,10 @@ const OrderSchema = new Schema<IOrderDocument>(
 
 // Database-enforced unique index for human-readable order references
 OrderSchema.index({ orderId: 1 }, { unique: true });
+OrderSchema.index(
+  { publicId: 1 },
+  { unique: true, partialFilterExpression: { publicId: { $type: "string" } } }
+);
 
 // Scoped idempotency index to prevent duplicate order placements on client retries.
 // Uses partialFilterExpression to ignore documents without an idempotencyKey.

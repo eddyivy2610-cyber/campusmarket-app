@@ -42,6 +42,7 @@ export const followService = {
       success: boolean;
       message: string;
       isFollowing: boolean;
+      followersCount?: number;
       targetId: string;
       targetType: FollowTargetType;
     }>(`/follow/toggle/${targetId}?targetType=${targetType}`, { targetType });
@@ -147,6 +148,7 @@ export const followService = {
       message: string;
       isFollowing: boolean;
       newlyFollowed: boolean;
+      followersCount?: number;
       storeId: string;
     }>(`/stores/${storeId}/follow`);
   },
@@ -160,6 +162,7 @@ export const followService = {
       message: string;
       isFollowing: boolean;
       newlyUnfollowed: boolean;
+      followersCount?: number;
       storeId: string;
     }>(`/stores/${storeId}/follow`);
   },
@@ -171,6 +174,7 @@ export const followService = {
     return apiGet<{
       success: boolean;
       isFollowing: boolean;
+      followersCount?: number;
       storeId: string;
     }>(`/stores/${storeId}/follow`);
   },

@@ -4,7 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import FollowerModel from "@/models/Follower";
 import { StoreModel } from "@/models/Store";
 import { requireAuth } from "@/lib/authServer";
-import { executeFollow, executeUnfollow } from "@/lib/followHelpers";
+import { executeFollow, executeUnfollow, resolveAndValidateTarget } from "@/lib/followHelpers";
 import { applyRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
@@ -20,30 +20,29 @@ function withPrivateCache(res: NextResponse): NextResponse {
 
 /**
  * Common store validation for follow actions.
+ * - Supports Store ObjectId, Store slug, and User handle fallback.
  * - Non-existent, suspended, banned or removed stores return 404.
  * - Store owner cannot follow their own store (returns 400).
  */
 async function validateStoreForFollow(storeId: string, currentUserId: string) {
-  if (!storeId || !Types.ObjectId.isValid(storeId)) {
-    return { errorResponse: NextResponse.json({ success: false, error: "Store not found." }, { status: 404, headers: PRIVATE_CACHE_HEADERS }) };
+  // First attempt resolving as a store
+  let resolved = await resolveAndValidateTarget(storeId, "store", currentUserId);
+
+  // If not resolved as a store, attempt resolving as a user profile
+  if (!resolved.valid || !resolved.targetId) {
+    resolved = await resolveAndValidateTarget(storeId, "user", currentUserId);
   }
 
-  const store = await StoreModel.findById(storeId).lean();
-  if (!store) {
-    return { errorResponse: NextResponse.json({ success: false, error: "Store not found." }, { status: 404, headers: PRIVATE_CACHE_HEADERS }) };
+  if (!resolved.valid || !resolved.targetId) {
+    return {
+      errorResponse: NextResponse.json(
+        { success: false, error: resolved.error || "Store not found." },
+        { status: resolved.statusCode || 404, headers: PRIVATE_CACHE_HEADERS }
+      ),
+    };
   }
 
-  // Suspended, rejected, or non-active stores return 404
-  if (store.status !== "active") {
-    return { errorResponse: NextResponse.json({ success: false, error: "Store not found." }, { status: 404, headers: PRIVATE_CACHE_HEADERS }) };
-  }
-
-  // Owner self-follow restriction
-  if (store.ownerId && store.ownerId.toString() === currentUserId) {
-    return { errorResponse: NextResponse.json({ success: false, error: "You cannot follow your own store." }, { status: 400, headers: PRIVATE_CACHE_HEADERS }) };
-  }
-
-  return { store };
+  return { target: resolved };
 }
 
 /**
@@ -65,13 +64,13 @@ export async function PUT(
     const { id: storeId } = await context.params;
     await dbConnect();
 
-    const { store, errorResponse: valError } = await validateStoreForFollow(storeId, user.id);
-    if (valError || !store) return valError;
+    const { target, errorResponse: valError } = await validateStoreForFollow(storeId, user.id);
+    if (valError || !target || !target.targetId) return valError;
 
-    const { isFollowing, newlyFollowed } = await executeFollow(
+    const { isFollowing, newlyFollowed, followersCount } = await executeFollow(
       user.id,
-      store._id as Types.ObjectId,
-      "store",
+      target.targetId,
+      target.targetType,
       { name: user.name, handle: user.email?.split("@")[0] }
     );
 
@@ -81,7 +80,8 @@ export async function PUT(
         message: newlyFollowed ? "Successfully followed store." : "Already following store.",
         isFollowing,
         newlyFollowed,
-        storeId: store._id.toString(),
+        followersCount,
+        storeId: target.targetId.toString(),
       },
       { headers: PRIVATE_CACHE_HEADERS }
     );
@@ -129,17 +129,13 @@ export async function DELETE(
     const { id: storeId } = await context.params;
     await dbConnect();
 
-    if (!storeId || !Types.ObjectId.isValid(storeId)) {
-      return NextResponse.json(
-        { success: false, error: "Store not found." },
-        { status: 404, headers: PRIVATE_CACHE_HEADERS }
-      );
-    }
+    const { target, errorResponse: valError } = await validateStoreForFollow(storeId, user.id);
+    if (valError || !target || !target.targetId) return valError;
 
-    const { isFollowing, newlyUnfollowed } = await executeUnfollow(
+    const { isFollowing, newlyUnfollowed, followersCount } = await executeUnfollow(
       user.id,
-      new Types.ObjectId(storeId),
-      "store"
+      target.targetId,
+      target.targetType
     );
 
     return NextResponse.json(
@@ -148,7 +144,8 @@ export async function DELETE(
         message: newlyUnfollowed ? "Successfully unfollowed store." : "Not currently following store.",
         isFollowing,
         newlyUnfollowed,
-        storeId,
+        followersCount,
+        storeId: target.targetId.toString(),
       },
       { headers: PRIVATE_CACHE_HEADERS }
     );
@@ -163,7 +160,7 @@ export async function DELETE(
 
 /**
  * GET /api/stores/[id]/follow
- * Check if authenticated user follows this store.
+ * Check if authenticated user follows this store, and return live followersCount.
  * Returns private, viewer-specific isFollowing state.
  */
 export async function GET(
@@ -177,24 +174,26 @@ export async function GET(
     const { id: storeId } = await context.params;
     await dbConnect();
 
-    if (!storeId || !Types.ObjectId.isValid(storeId)) {
-      return NextResponse.json(
-        { success: false, error: "Store not found." },
-        { status: 404, headers: PRIVATE_CACHE_HEADERS }
-      );
-    }
+    const { target, errorResponse: valError } = await validateStoreForFollow(storeId, user.id);
+    if (valError || !target || !target.targetId) return valError;
 
     const follow = await FollowerModel.findOne({
       followerId: new Types.ObjectId(user.id),
-      followingId: new Types.ObjectId(storeId),
-      targetType: "store",
+      followingId: target.targetId,
+      targetType: target.targetType,
     }).lean();
+
+    const followersCount = await FollowerModel.countDocuments({
+      followingId: target.targetId,
+      targetType: target.targetType,
+    });
 
     return NextResponse.json(
       {
         success: true,
         isFollowing: Boolean(follow),
-        storeId,
+        followersCount,
+        storeId: target.targetId.toString(),
       },
       { headers: PRIVATE_CACHE_HEADERS }
     );

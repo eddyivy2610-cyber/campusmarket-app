@@ -136,8 +136,14 @@ export async function executeFollow(
   targetId: Types.ObjectId,
   targetType: FollowTargetType,
   followerInfo?: { name?: string; handle?: string }
-): Promise<{ isFollowing: boolean; newlyFollowed: boolean }> {
+): Promise<{ isFollowing: boolean; newlyFollowed: boolean; followersCount: number }> {
   const followerObjectId = new Types.ObjectId(followerUserId);
+
+  if (followerObjectId.equals(targetId)) {
+    const error: any = new Error("You cannot follow your own account.");
+    error.statusCode = 400;
+    throw error;
+  }
 
   // Check if relationship already exists (fast-path idempotent return)
   const existing = await FollowerModel.findOne({
@@ -147,7 +153,11 @@ export async function executeFollow(
   }).lean();
 
   if (existing) {
-    return { isFollowing: true, newlyFollowed: false };
+    const followersCount = await FollowerModel.countDocuments({
+      followingId: targetId,
+      targetType,
+    });
+    return { isFollowing: true, newlyFollowed: false, followersCount };
   }
 
   // Enforce that only stores and seller accounts / service providers can be followed
@@ -166,7 +176,7 @@ export async function executeFollow(
   }
 
   try {
-    return await executeInTransaction(async (session) => {
+    const result = await executeInTransaction(async (session) => {
       // Verify inside transaction that it doesn't already exist
       const checkInside = await FollowerModel.findOne({
         followerId: followerObjectId,
@@ -224,10 +234,21 @@ export async function executeFollow(
 
       return { isFollowing: true, newlyFollowed: true };
     });
+
+    const followersCount = await FollowerModel.countDocuments({
+      followingId: targetId,
+      targetType,
+    });
+
+    return { ...result, followersCount };
   } catch (err: any) {
     if (err.code === 11000) {
       // Caught outside transaction: race condition resolved by unique compound index.
-      return { isFollowing: true, newlyFollowed: false };
+      const followersCount = await FollowerModel.countDocuments({
+        followingId: targetId,
+        targetType,
+      });
+      return { isFollowing: true, newlyFollowed: false, followersCount };
     }
     throw err;
   }
@@ -241,10 +262,10 @@ export async function executeUnfollow(
   followerUserId: string,
   targetId: Types.ObjectId,
   targetType: FollowTargetType
-): Promise<{ isFollowing: boolean; newlyUnfollowed: boolean }> {
+): Promise<{ isFollowing: boolean; newlyUnfollowed: boolean; followersCount: number }> {
   const followerObjectId = new Types.ObjectId(followerUserId);
 
-  return await executeInTransaction(async (session) => {
+  const result = await executeInTransaction(async (session) => {
     const deletedDoc = await FollowerModel.findOneAndDelete(
       {
         followerId: followerObjectId,
@@ -274,6 +295,13 @@ export async function executeUnfollow(
 
     return { isFollowing: false, newlyUnfollowed: false };
   });
+
+  const followersCount = await FollowerModel.countDocuments({
+    followingId: targetId,
+    targetType,
+  });
+
+  return { ...result, followersCount };
 }
 
 /**
@@ -285,7 +313,7 @@ export async function executeToggle(
   targetId: Types.ObjectId,
   targetType: FollowTargetType,
   followerInfo?: { name?: string; handle?: string }
-): Promise<{ isFollowing: boolean }> {
+): Promise<{ isFollowing: boolean; followersCount: number }> {
   const followerObjectId = new Types.ObjectId(followerUserId);
 
   // Attempt atomic deletion first
@@ -308,7 +336,11 @@ export async function executeToggle(
         { $inc: { "metrics.followersCount": -1 } }
       );
     }
-    return { isFollowing: false };
+    const followersCount = await FollowerModel.countDocuments({
+      followingId: targetId,
+      targetType,
+    });
+    return { isFollowing: false, followersCount };
   }
 
   // Relationship did not exist at the time of deletion: strictly enforce seller-only follow rule
@@ -357,7 +389,11 @@ export async function executeToggle(
       });
     }
 
-    return { isFollowing: true };
+    const followersCount = await FollowerModel.countDocuments({
+      followingId: targetId,
+      targetType,
+    });
+    return { isFollowing: true, followersCount };
   } catch (err: any) {
     if (err.code === 11000) {
       const cancelledDoc = await FollowerModel.findOneAndDelete({
@@ -379,7 +415,11 @@ export async function executeToggle(
           );
         }
       }
-      return { isFollowing: false };
+      const followersCount = await FollowerModel.countDocuments({
+        followingId: targetId,
+        targetType,
+      });
+      return { isFollowing: false, followersCount };
     }
     throw err;
   }

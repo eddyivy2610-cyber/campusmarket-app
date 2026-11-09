@@ -14,6 +14,9 @@ export interface IRadarReply {
 
 export interface IRadarPost {
   id: string;
+  publicId?: string; // RFC 9562 UUIDv7
+  slug?: string; // Canonical slug with suffix
+  slugSuffix?: string; // Stable entropy suffix
   userId: string;
   requesterName: string;
   requesterHandle: string;
@@ -49,6 +52,9 @@ const RadarReplySchema = new Schema<IRadarReply>(
 
 const RadarPostSchema = new Schema<IRadarPostDocument>(
   {
+    publicId: { type: String, required: false },
+    slug: { type: String, required: false },
+    slugSuffix: { type: String, required: false },
     userId: { type: String, required: true, index: true },
     requesterName: { type: String, required: true },
     requesterHandle: { type: String, default: "student" },
@@ -74,6 +80,18 @@ const RadarPostSchema = new Schema<IRadarPostDocument>(
 );
 
 RadarPostSchema.index({ createdAt: -1, status: 1 });
+RadarPostSchema.index(
+  { publicId: 1 },
+  { unique: true, partialFilterExpression: { publicId: { $type: "string" } } }
+);
+RadarPostSchema.index(
+  { slug: 1 },
+  { unique: true, partialFilterExpression: { slug: { $type: "string" } } }
+);
+RadarPostSchema.index(
+  { slugSuffix: 1 },
+  { partialFilterExpression: { slugSuffix: { $type: "string" } } }
+);
 
 const RadarPostModel: Model<IRadarPostDocument> =
   mongoose.models.RadarPost || mongoose.model<IRadarPostDocument>("RadarPost", RadarPostSchema);

@@ -13,6 +13,7 @@ import {
   decodeListingCursor,
   type DecodedListingCursor,
 } from "@/lib/listingCursor";
+import { createEntityIdentity } from "@/lib/slugUtils";
 
 /**
  * GET /api/listings
@@ -360,9 +361,13 @@ export async function POST(req: NextRequest) {
       categoryFields: body.categoryFields || body.specs || {},
     });
 
-    // 4. Create listing with strictly server-enforced values
+    // 4. Create listing with strictly server-enforced values and unique identity
+    const identity = createEntityIdentity(title);
     const newListing = new ListingModel({
       ...sanitized,
+      publicId: identity.publicId,
+      slugSuffix: identity.slugSuffix,
+      slug: identity.slug,
       sellerId: user.id, // Strictly server-enforced sellerId
       storeId: linkedStore ? linkedStore._id.toString() : body.storeId || undefined,
       price: numericPrice,
@@ -375,7 +380,23 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    await newListing.save();
+    let saveAttempt = 0;
+    while (saveAttempt < 3) {
+      try {
+        await newListing.save();
+        break;
+      } catch (err: any) {
+        if (err?.code === 11000 && saveAttempt < 2) {
+          saveAttempt++;
+          const retryIdentity = createEntityIdentity(title);
+          newListing.publicId = retryIdentity.publicId;
+          newListing.slugSuffix = retryIdentity.slugSuffix;
+          newListing.slug = retryIdentity.slug;
+        } else {
+          throw err;
+        }
+      }
+    }
 
     // 5. Update store catalog metrics if associated with a store
     if (linkedStore) {

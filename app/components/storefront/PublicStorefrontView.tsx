@@ -122,11 +122,14 @@ export function PublicStorefrontView({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Check saved state from localStorage
+  // Check saved state from localStorage and live follow status & count
   useEffect(() => {
     if (store?._id || store?.id) {
       const storeId = (store._id || store.id)!;
       setFollowersCount(store.metrics?.followersCount ?? 0);
+      if ((store as any).isFollowing !== undefined) {
+        setIsFollowing(Boolean((store as any).isFollowing));
+      }
       try {
         const key = `ch_saved_store_${storeId}`;
         setIsSaved(localStorage.getItem(key) === "true");
@@ -135,13 +138,18 @@ export function PublicStorefrontView({
       if (user?.id) {
         followService
           .getStoreFollowStatus(storeId)
-          .then((res) => {
-            if (res?.success) setIsFollowing(Boolean(res.isFollowing));
+          .then((res: any) => {
+            if (res?.success) {
+              setIsFollowing(Boolean(res.isFollowing));
+              if (typeof res.followersCount === "number") {
+                setFollowersCount(res.followersCount);
+              }
+            }
           })
           .catch(() => {});
       }
     }
-  }, [store, user?.id]);
+  }, [store?._id, store?.id, user?.id]);
 
   const handleFollowToggle = async () => {
     if (!user) {
@@ -157,11 +165,33 @@ export function PublicStorefrontView({
     setFollowersCount((prev) => (nextFollowing ? prev + 1 : Math.max(0, prev - 1)));
 
     try {
-      const res = nextFollowing
+      const res: any = nextFollowing
         ? await followService.followStore(storeId)
         : await followService.unfollowStore(storeId);
       if (res?.success) {
         setIsFollowing(res.isFollowing);
+        const updatedCount =
+          typeof res.followersCount === "number"
+            ? res.followersCount
+            : nextFollowing
+            ? followersCount + 1
+            : Math.max(0, followersCount - 1);
+        setFollowersCount(updatedCount);
+        setStore((prev) =>
+          prev
+            ? {
+                ...prev,
+                isFollowing: res.isFollowing,
+                metrics: {
+                  rating: prev.metrics?.rating ?? 5.0,
+                  reviewsCount: prev.metrics?.reviewsCount ?? 0,
+                  completedDeals: prev.metrics?.completedDeals ?? 0,
+                  listingsCount: prev.metrics?.listingsCount ?? 0,
+                  followersCount: updatedCount,
+                },
+              }
+            : prev
+        );
         showToast(res.isFollowing ? `Following ${store?.name}` : `Unfollowed ${store?.name}`);
       } else {
         setIsFollowing(!nextFollowing);

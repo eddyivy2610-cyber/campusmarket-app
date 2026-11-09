@@ -7,6 +7,7 @@ import { requireAuth } from "@/lib/authServer";
 import { normalizeOrderStatus } from "@/lib/orderPolicy";
 import { ORDER_FULFILLMENT_METHODS, ORDER_PAYMENT_METHODS } from "@/constants/enums";
 import { applyRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rateLimit";
+import { generateUUIDv7 } from "@/lib/uuidv7";
 
 export const dynamic = "force-dynamic";
 
@@ -236,6 +237,7 @@ export async function POST(req: NextRequest) {
 
     const orderId = generateOrderId();
     const newOrder = new OrderModel({
+      publicId: generateUUIDv7(),
       orderId,
       buyerId: user.id,
       sellerId: detectedSellerId,

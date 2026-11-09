@@ -2,6 +2,7 @@ import mongoose, { Schema, Model, Document } from "mongoose";
 import { USER_ROLES, USER_ACCOUNT_STATUSES, UserRole, UserAccountStatus } from "@/constants/enums";
 import { IUserPreferences, DEFAULT_USER_PREFERENCES } from "@/constants/preferences";
 import { generateDefaultUsername } from "@/lib/usernameUtils";
+import { generateUUIDv7 } from "@/lib/uuidv7";
 
 export type { UserRole, UserAccountStatus };
 export type { IUserPreferences };
@@ -20,6 +21,7 @@ export interface IUserProfile {
 
 export interface IUser {
   id: string;
+  publicId?: string; // RFC 9562 UUIDv7
   name: string;
   email: string;
   password?: string;
@@ -49,6 +51,10 @@ export interface IUserDocument extends Omit<IUser, "id">, Document {}
 
 const UserSchema = new Schema<IUserDocument>(
   {
+    publicId: {
+      type: String,
+      required: false,
+    },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     password: { type: String, select: false },
@@ -166,6 +172,10 @@ const UserSchema = new Schema<IUserDocument>(
 
 // Enforce partial unique index on profile.handle (ignores missing and null values)
 UserSchema.index(
+  { publicId: 1 },
+  { unique: true, partialFilterExpression: { publicId: { $type: "string" } } }
+);
+UserSchema.index(
   { "profile.handle": 1 },
   { unique: true, partialFilterExpression: { "profile.handle": { $type: "string" } } }
 );
@@ -176,6 +186,9 @@ UserSchema.index(
 });
 
 UserSchema.pre("save", function () {
+  if (!this.publicId) {
+    this.publicId = generateUUIDv7();
+  }
   if (!this.name && (this.profile?.displayName || this.email)) {
     this.name = this.profile?.displayName || this.email.split("@")[0] || "User";
   }

@@ -86,6 +86,34 @@ function RadarContent() {
   const { user } = useAuth();
   const desktopTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // Fallback to cached user in localStorage if AuthContext is still loading
+  const effectiveUser = user || (() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("campus_user");
+        if (raw) return JSON.parse(raw);
+      } catch {}
+    }
+    return null;
+  })();
+
+  const currentUserId = String(effectiveUser?.id || (effectiveUser as any)?._id || "");
+  const currentHandle = String(effectiveUser?.handle || "").replace(/^@/, "").toLowerCase();
+  const currentName = String(effectiveUser?.name || "").trim().toLowerCase();
+  const currentEmail = String(effectiveUser?.email || "").trim().toLowerCase();
+  const currentEmailPrefix = currentEmail.split("@")[0];
+
+  // Track locally created/owned radar post IDs to guarantee 100% reliable ownership detection
+  const [myPostIds, setMyPostIds] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("ch_my_radar_ids");
+        if (raw) return JSON.parse(raw);
+      } catch {}
+    }
+    return [];
+  });
+
   const [posts, setPosts] = useState<RadarPost[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -103,6 +131,33 @@ function RadarContent() {
 
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
+  const [userStoreInfo, setUserStoreInfo] = useState<{ id?: string; slug?: string; name?: string } | null>(null);
+
+  // Check user's own store to guarantee self-exclusion from "Suggested for you"
+  useEffect(() => {
+    let isCancelled = false;
+    async function checkMyStore() {
+      try {
+        const res = await fetch("/api/stores/me", { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.store && !isCancelled) {
+            setUserStoreInfo({
+              id: String(data.store._id || data.store.id || ""),
+              slug: String(data.store.slug || "").toLowerCase(),
+              name: String(data.store.name || "").toLowerCase(),
+            });
+          }
+        }
+      } catch {}
+    }
+    if (effectiveUser) {
+      checkMyStore();
+    }
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUserId]);
 
   // Fetch live radar posts from database
   useEffect(() => {
@@ -206,6 +261,17 @@ function RadarContent() {
           const storeSlug = String(store.slug || "").toLowerCase();
           const storeName = String(store.name || "").toLowerCase();
 
+          // Exclude if user has a confirmed store matching this ID, slug or name
+          if (userStoreInfo?.id && (storeId === userStoreInfo.id || ownerId === userStoreInfo.id)) {
+            return false;
+          }
+          if (userStoreInfo?.slug && storeSlug === userStoreInfo.slug) {
+            return false;
+          }
+          if (userStoreInfo?.name && storeName === userStoreInfo.name) {
+            return false;
+          }
+
           // Exclude if user is owner of this store
           if (currentUserId && (ownerId === currentUserId || storeId === currentUserId)) {
             return false;
@@ -289,7 +355,7 @@ function RadarContent() {
           accountType: store.storeType === "student_store" ? "student" : "store",
           similarProducts: store.categoryTags?.slice(0, 3).join(", ") || store.description?.slice(0, 50) || "Campus seller",
           location: store.operatingLocation || store.campus || "Main Campus",
-          profileHref: `/stores/${store.slug || store._id}`,
+          profileHref: `/store/${store.slug || store.publicId || store._id}`,
           chatParams: {
             from: "store",
             contextType: "store",
@@ -313,7 +379,7 @@ function RadarContent() {
     return () => {
       isCancelled = true;
     };
-  }, [user?.id, user?.campus, JSON.stringify(user?.preferences?.discovery)]);
+  }, [user?.id, user?.campus, userStoreInfo, JSON.stringify(user?.preferences?.discovery)]);
   const [expandedPostIds, setExpandedPostIds] = useState<
     Record<string, boolean>
   >(() => {
@@ -375,6 +441,11 @@ function RadarContent() {
       const json = await res.json();
       if (json.success && json.data) {
         savePosts([json.data, ...posts]);
+        const newIds = [json.data.id, ...myPostIds];
+        setMyPostIds(newIds);
+        try {
+          localStorage.setItem("ch_my_radar_ids", JSON.stringify(newIds));
+        } catch {}
         setRequestInput("");
         setIsPostFormOpen(false);
         showToast("Request posted!");
@@ -400,11 +471,53 @@ function RadarContent() {
       };
 
       savePosts([newPost, ...posts]);
+      const newIds = [newPost.id, ...myPostIds];
+      setMyPostIds(newIds);
+      try {
+        localStorage.setItem("ch_my_radar_ids", JSON.stringify(newIds));
+      } catch {}
       setRequestInput("");
       setIsPostFormOpen(false);
       showToast("Request posted!");
     } finally {
       setIsSubmittingPost(false);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    setOpenMenuPostId(null);
+    const confirmed = window.confirm("Are you sure you want to delete this Radar request?");
+    if (!confirmed) return;
+
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
+          : null;
+
+      const res = await fetch(`/api/radar/${encodeURIComponent(postId)}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        const next = posts.filter((p) => p.id !== postId);
+        savePosts(next);
+        const nextIds = myPostIds.filter((id) => id !== postId);
+        setMyPostIds(nextIds);
+        try {
+          localStorage.setItem("ch_my_radar_ids", JSON.stringify(nextIds));
+        } catch {}
+        showToast("Radar request deleted");
+      } else {
+        showToast(json.error || "Failed to delete post");
+      }
+    } catch {
+      showToast("Error deleting post");
     }
   };
 
@@ -579,7 +692,19 @@ function RadarContent() {
               posts.map((post) => {
               const isExpanded = Boolean(expandedPostIds[post.id]);
               const isMenuOpen = openMenuPostId === post.id;
-              const isOwnPost = Boolean(user && post.userId && String(post.userId) === String(user.id));
+              const postUserId = String(post.userId || "");
+              const postHandle = String(post.requesterHandle || "").replace(/^@/, "").toLowerCase();
+              const postName = String(post.requesterName || "").trim().toLowerCase();
+
+              const isOwnPost = Boolean(
+                (post.id && myPostIds.includes(post.id)) ||
+                (effectiveUser && (
+                  (currentUserId && postUserId && currentUserId === postUserId) ||
+                  (currentHandle && postHandle && currentHandle === postHandle) ||
+                  (currentName && postName && currentName === postName) ||
+                  (currentEmailPrefix && postHandle && currentEmailPrefix === postHandle)
+                ))
+              );
               const targetParticipantId = post.userId || `requester-${post.requesterName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
 
               const postChatHref = `/messages?${new URLSearchParams({
@@ -597,6 +722,8 @@ function RadarContent() {
                 participantVerified: post.isVerified ? "true" : "false",
               }).toString()}`;
 
+              const userProfileHref = `/@${post.requesterHandle.replace(/^@/, "")}`;
+
               return (
                 <article
                   key={post.id}
@@ -604,7 +731,7 @@ function RadarContent() {
                 >
                   <div className="flex items-start gap-3">
                     {/* 1. Avatar */}
-                    <Link href={`/stores/${post.requesterHandle}`} className="shrink-0 mt-0.5">
+                    <Link href={userProfileHref} className="shrink-0 mt-0.5">
                       {post.requesterAvatar ? (
                         <img
                           src={post.requesterAvatar}
@@ -624,7 +751,7 @@ function RadarContent() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <Link
-                            href={`/stores/${post.requesterHandle}`}
+                            href={userProfileHref}
                             className="text-[13.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
                           >
                             {post.requesterName}
@@ -654,11 +781,11 @@ function RadarContent() {
                           </button>
 
                           {isMenuOpen && (
-                            <div className="radius-native absolute right-0 top-7 z-20 w-44 rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg py-1 text-[12px]">
+                            <div className="radius-native absolute right-0 top-7 z-20 w-fit min-w-[110px] rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg p-1 text-[12px] whitespace-nowrap">
                               {!isOwnPost && (
                                 <Link
                                   href={postChatHref}
-                                  className="block px-3.5 py-1.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
+                                  className="block px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
                                 >
                                   Chat with {post.requesterName.split(" ")[0]}
                                 </Link>
@@ -667,22 +794,35 @@ function RadarContent() {
                                 type="button"
                                 onClick={() => {
                                   setOpenMenuPostId(null);
+                                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                    navigator.clipboard.writeText(`${window.location.origin}/wanted?id=${post.id}`);
+                                  }
                                   showToast("Link copied to clipboard");
                                 }}
-                                className="w-full text-left px-3.5 py-1.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#5B636E] dark:text-neutral-300"
+                                className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#5B636E] dark:text-neutral-300 font-medium cursor-pointer"
                               >
                                 Copy link
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setOpenMenuPostId(null);
-                                  showToast("Reported to Campus Hive team");
-                                }}
-                                className="w-full text-left px-3.5 py-1.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-rose-600"
-                              >
-                                Report post
-                              </button>
+                              {isOwnPost ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePost(post.id)}
+                                  className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 font-semibold cursor-pointer"
+                                >
+                                  Delete
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuPostId(null);
+                                    showToast("Reported to Campus Hive team");
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-rose-600 font-medium cursor-pointer"
+                                >
+                                  Report post
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

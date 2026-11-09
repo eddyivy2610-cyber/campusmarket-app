@@ -148,9 +148,39 @@ export async function GET(
       }
     }
 
+    // Query authoritative follower count from FollowerModel
+    const { default: FollowerModel } = await import("@/models/Follower");
+    const targetObjectId = store._id;
+    const actualFollowersCount = await FollowerModel.countDocuments({
+      followingId: targetObjectId,
+    });
+
+    // Check if current viewing user follows this store
+    let isViewerFollowing = false;
+    try {
+      const { getServerAuthUser } = await import("@/lib/authServer");
+      const viewer = getServerAuthUser(req);
+      if (viewer?.id) {
+        const followDoc = await FollowerModel.exists({
+          followerId: viewer.id,
+          followingId: targetObjectId,
+        });
+        isViewerFollowing = Boolean(followDoc);
+      }
+    } catch {}
+
+    const payload = {
+      ...store,
+      isFollowing: isViewerFollowing,
+      metrics: {
+        ...(store.metrics || {}),
+        followersCount: actualFollowersCount,
+      },
+    };
+
     return NextResponse.json({
       success: true,
-      data: store,
+      data: payload,
     });
   } catch (error: any) {
     console.error("[GET /api/stores/[id]] Error:", error);

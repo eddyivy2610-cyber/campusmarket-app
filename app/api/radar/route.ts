@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import RadarPostModel from "@/models/RadarPost";
 import UserModel from "@/models/User";
 import { requireAuth } from "@/lib/authServer";
+import { createEntityIdentity } from "@/lib/slugUtils";
 
 export async function GET(req: NextRequest) {
   try {
@@ -101,7 +102,12 @@ export async function POST(req: NextRequest) {
       "Main Campus";
     const isVerified = Boolean(dbUser?.studentVerified ?? user.studentVerified);
 
+    const identity = createEntityIdentity(requestText.slice(0, 50));
+
     const postDoc = await RadarPostModel.create({
+      publicId: identity.publicId,
+      slugSuffix: identity.slugSuffix,
+      slug: identity.slug,
       userId: user.id,
       requesterName: displayName,
       requesterHandle: handle,
@@ -118,6 +124,8 @@ export async function POST(req: NextRequest) {
 
     const created = {
       id: String(postDoc._id),
+      publicId: postDoc.publicId,
+      slug: postDoc.slug,
       userId: user.id,
       requesterName: displayName,
       requesterHandle: handle,

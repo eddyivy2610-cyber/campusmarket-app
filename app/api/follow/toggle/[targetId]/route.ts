@@ -86,6 +86,7 @@ export async function POST(
         ? `Successfully followed ${target.targetType}.`
         : `Successfully unfollowed ${target.targetType}.`,
       isFollowing: toggleResult.isFollowing,
+      followersCount: toggleResult.followersCount,
       targetId: target.targetId.toString(),
       targetType: target.targetType,
     });
