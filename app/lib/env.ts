@@ -94,7 +94,12 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
     );
   }
 
-  if (result.data.NODE_ENV === "production") {
+  const isBuilding =
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.npm_lifecycle_event === "build" ||
+    process.argv.some((arg) => typeof arg === "string" && arg.includes("build"));
+
+  if (result.data.NODE_ENV === "production" && !isBuilding) {
     const missing: string[] = [];
     if (!result.data.OTP_PEPPER) missing.push("OTP_PEPPER");
     if (!result.data.ADMIN_REGISTRATION_KEY) missing.push("ADMIN_REGISTRATION_KEY");
