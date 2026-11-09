@@ -57,11 +57,22 @@ export async function PATCH(
     const { action, reason } = body;
     const effectiveReason = String(reason || body.suspensionReason || "").trim();
 
-    if (!["suspend", "restore", "pause", "approve"].includes(action)) {
+    if (
+      ![
+        "suspend",
+        "restore",
+        "pause",
+        "approve",
+        "ban",
+        "toggle_verify",
+        "reset_slug_cooldown",
+      ].includes(action)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid action. Supported actions are 'suspend', 'restore', 'pause', or 'approve'.",
+          error:
+            "Invalid action. Supported actions are 'suspend', 'restore', 'pause', 'approve', 'ban', 'toggle_verify', or 'reset_slug_cooldown'.",
         },
         { status: 400 }
       );
@@ -102,6 +113,12 @@ export async function PATCH(
               updatedAt: now,
             },
           },
+          sessionOpts
+        );
+
+        await StoreModel.findByIdAndUpdate(
+          id,
+          { $set: { "metrics.listingsCount": 0 } },
           sessionOpts
         );
 
@@ -160,6 +177,16 @@ export async function PATCH(
               pausedBy: "",
             },
           },
+          sessionOpts
+        );
+
+        const activeListingsCount = await ListingModel.countDocuments(
+          { storeId: id, status: "active" },
+          sessionOpts
+        );
+        await StoreModel.findByIdAndUpdate(
+          id,
+          { $set: { "metrics.listingsCount": activeListingsCount } },
           sessionOpts
         );
 
@@ -252,6 +279,129 @@ export async function PATCH(
         return {
           store: updatedStore,
           message: "Store approved and activated successfully.",
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "ban") {
+        const banReason =
+          effectiveReason || "Store permanently banned by platform administrator.";
+        const updatedStore = await StoreModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              status: "banned",
+              suspendedBy: "admin",
+              suspensionReason: banReason,
+              "metrics.listingsCount": 0,
+              updatedAt: now,
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        const listingRes = await ListingModel.updateMany(
+          { storeId: id, status: { $in: ["active", "paused", "pending_review"] } },
+          {
+            $set: {
+              status: "removed",
+              removedBy: "admin",
+              updatedAt: now,
+            },
+          },
+          sessionOpts
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "store",
+          targetId: id,
+          action: "ban",
+          requestId,
+          reason: banReason,
+          before: { status: store.status, isVerified: store.isVerified },
+          after: { status: updatedStore?.status, isVerified: updatedStore?.isVerified },
+          details: { listingsRemoved: listingRes.modifiedCount },
+          session: session || undefined,
+        });
+
+        return {
+          store: updatedStore,
+          message: "Store permanently banned and listings removed.",
+          listingsAffected: listingRes.modifiedCount,
+        };
+      }
+
+      if (action === "toggle_verify") {
+        const nextVerified = !store.isVerified;
+        const updatedStore = await StoreModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              isVerified: nextVerified,
+              updatedAt: now,
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "store",
+          targetId: id,
+          action: nextVerified ? "verify_store" : "unverify_store",
+          requestId,
+          reason:
+            effectiveReason ||
+            `Store verification badge set to ${nextVerified} by administrator.`,
+          before: { isVerified: store.isVerified },
+          after: { isVerified: updatedStore?.isVerified },
+          details: {},
+          session: session || undefined,
+        });
+
+        return {
+          store: updatedStore,
+          message: nextVerified
+            ? "Store verification badge granted."
+            : "Store verification badge revoked.",
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "reset_slug_cooldown") {
+        const updatedStore = await StoreModel.findByIdAndUpdate(
+          id,
+          {
+            $unset: {
+              slugUpdatedAt: "",
+            },
+            $set: {
+              updatedAt: now,
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "store",
+          targetId: id,
+          action: "reset_slug_cooldown",
+          requestId,
+          reason: effectiveReason || "Store rename cooldown cleared by administrator.",
+          before: { slugUpdatedAt: store.slugUpdatedAt || null },
+          after: { slugUpdatedAt: null },
+          details: {},
+          session: session || undefined,
+        });
+
+        return {
+          store: updatedStore,
+          message: "Store rename cooldown cleared.",
           listingsAffected: 0,
         };
       }

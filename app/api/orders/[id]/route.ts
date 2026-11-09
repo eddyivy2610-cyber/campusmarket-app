@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import OrderModel from "@/models/Order";
-import UserModel from "@/models/User";
+import UserModel, { formatMinimalBuyerIdentity } from "@/models/User";
 import { requireAuth } from "@/lib/authServer";
 import { validateOrderTransition, normalizeOrderStatus } from "@/lib/orderPolicy";
 import { OrderStatus } from "@/constants/enums";
@@ -11,6 +11,43 @@ import { getRequestId } from "@/lib/apiResponse";
 import { createNotification } from "@/lib/notificationService";
 
 export const dynamic = "force-dynamic";
+
+function sanitizeOrderPartyIdentities(order: any) {
+  if (!order) return order;
+  const buyerMinimal = formatMinimalBuyerIdentity(order.buyerId);
+  const storeObj =
+    order.storeId && typeof order.storeId === "object" && "_id" in order.storeId
+      ? {
+          _id: String(order.storeId._id),
+          id: String(order.storeId._id),
+          name: order.storeId.name,
+          storeName: order.storeId.name,
+          slug: order.storeId.slug,
+          storeSlug: order.storeId.slug,
+          logo: order.storeId.logo || "",
+          campus: order.storeId.campus || "",
+        }
+      : null;
+
+  return {
+    ...order,
+    buyerId: {
+      _id: buyerMinimal.id,
+      id: buyerMinimal.id,
+      name: buyerMinimal.displayName,
+      displayName: buyerMinimal.displayName,
+      avatar: buyerMinimal.avatar,
+      profile: {
+        displayName: buyerMinimal.displayName,
+        avatar: buyerMinimal.avatar,
+      },
+    },
+    buyer: buyerMinimal,
+    sellerId: String(order.sellerId?._id || order.sellerId || ""),
+    storeId: storeObj ? storeObj.id : order.storeId ? String(order.storeId) : undefined,
+    store: storeObj,
+  };
+}
 
 /**
  * GET /api/orders/[id]
@@ -40,9 +77,8 @@ export async function GET(
     const filter = isObjectId ? { $or: [{ _id: id }, { orderId: id }] } : { orderId: id };
 
     const order = await OrderModel.findOne(filter)
-      .populate("buyerId", "name email profile.displayName profile.avatar")
-      .populate("sellerId", "name email profile.displayName profile.avatar")
-      .populate("storeId", "storeName storeSlug logo")
+      .populate("buyerId", "name profile.displayName profile.avatar")
+      .populate("storeId", "name slug logo campus")
       .lean();
 
     if (!order) {
@@ -67,11 +103,15 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
+    const sanitizedOrder = sanitizeOrderPartyIdentities(order);
+
+    const res = NextResponse.json({
       success: true,
-      data: order,
-      order,
+      data: sanitizedOrder,
+      order: sanitizedOrder,
     });
+    res.headers.set("Cache-Control", "private, no-store, must-revalidate");
+    return res;
   } catch (error: any) {
     console.error("[GET /api/orders/[id]] Error:", error);
     return NextResponse.json(
@@ -202,9 +242,9 @@ export async function PATCH(
       },
       { returnDocument: "after" }
     )
-      .populate("buyerId", "name email profile.displayName profile.avatar")
-      .populate("sellerId", "name email profile.displayName profile.avatar")
-      .populate("storeId", "storeName storeSlug logo");
+      .populate("buyerId", "name profile.displayName profile.avatar")
+      .populate("storeId", "name slug logo campus")
+      .lean();
 
     if (!updatedOrder) {
       // Order status was modified concurrently!
@@ -255,12 +295,16 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({
+    const sanitizedUpdated = sanitizeOrderPartyIdentities(updatedOrder);
+
+    const res = NextResponse.json({
       success: true,
       message: `Order status successfully updated to "${targetStatus}".`,
-      data: updatedOrder,
-      order: updatedOrder,
+      data: sanitizedUpdated,
+      order: sanitizedUpdated,
     });
+    res.headers.set("Cache-Control", "private, no-store, must-revalidate");
+    return res;
   } catch (error: any) {
     console.error("[PATCH /api/orders/[id]] Error:", error);
     return NextResponse.json(

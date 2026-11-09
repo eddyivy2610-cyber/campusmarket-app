@@ -498,6 +498,7 @@ function toConversationDTO(
 
   return {
     id: doc.conversationId,
+    storeId: doc.storeId || doc.context?.storeId,
     participants: doc.participants,
     otherParticipant: other,
     context: doc.context,
@@ -618,9 +619,11 @@ export function getConversationWithMessages(params: {
 export function findOrCreateConversation(params: {
   currentUser: ChatParticipantProfile;
   targetParticipant: ChatParticipantProfile;
+  storeId?: string;
   context?: {
     contextType: ContextEntityType;
     contextId: string;
+    storeId?: string;
     title: string;
     priceFormatted: string;
     numericPrice?: number;
@@ -635,6 +638,7 @@ export function findOrCreateConversation(params: {
 } {
   const store = getStore();
   const { currentUser, targetParticipant, context } = params;
+  const resolvedStoreId = params.storeId || context?.storeId;
 
   const enrichedTarget: ChatParticipantProfile = {
     campusIdentityVerified: true,
@@ -651,6 +655,7 @@ export function findOrCreateConversation(params: {
     ? {
         contextType: context.contextType,
         contextId: context.contextId,
+        storeId: resolvedStoreId,
         label: getContextBannerLabel(context.contextType),
         title: context.title,
         priceFormatted: context.priceFormatted,
@@ -670,6 +675,11 @@ export function findOrCreateConversation(params: {
       doc.participantIds.includes(enrichedTarget.id);
     if (!hasBoth) return;
 
+    const docStoreId = doc.storeId || doc.context?.storeId;
+    if (resolvedStoreId && docStoreId && docStoreId !== resolvedStoreId) {
+      return;
+    }
+
     if (
       incomingContextRef &&
       doc.context &&
@@ -684,6 +694,9 @@ export function findOrCreateConversation(params: {
 
   if (existingDoc) {
     let secondaryContextAttached = false;
+    if (resolvedStoreId && !existingDoc.storeId) {
+      existingDoc.storeId = resolvedStoreId;
+    }
     existingDoc.collapsedBy = (existingDoc.collapsedBy || []).filter(
       (id) => id !== currentUser.id
     );
@@ -755,6 +768,7 @@ export function findOrCreateConversation(params: {
 
   const newDoc: IConversationDoc = {
     conversationId: newConvId,
+    storeId: resolvedStoreId,
     participantIds: [currentUser.id, enrichedTarget.id],
     participants: [currentUser, enrichedTarget],
     context: incomingContextRef,
@@ -940,6 +954,7 @@ export function startTrackingDeal(params: {
   const deal: TrackedDealDTO = {
     id: `deal-${Date.now()}`,
     conversationId,
+    storeId: doc.storeId || doc.context?.storeId,
     contextType: doc.context?.contextType,
     contextId: doc.context?.contextId,
     resourceTitle: doc.context?.title || "Campus Exchange",
@@ -1013,6 +1028,7 @@ export function recordDealCheckInResponse(params: {
     deal = {
       id: `deal-${Date.now()}`,
       conversationId,
+      storeId: doc.storeId || doc.context?.storeId,
       contextType: doc.context?.contextType,
       contextId: doc.context?.contextId,
       resourceTitle: doc.context?.title || "Campus Exchange",
@@ -1254,6 +1270,7 @@ export function submitOptionalDealReview(params: {
     id: `rev-${Date.now()}`,
     dealId: deal.id,
     conversationId,
+    storeId: deal.storeId || doc.storeId || doc.context?.storeId,
     reviewerId,
     reviewerName: reviewer.name,
     revieweeId: reviewee.id,

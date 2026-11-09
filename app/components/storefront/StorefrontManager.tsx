@@ -55,6 +55,9 @@ export function StorefrontManager({
 }: StorefrontManagerProps) {
   const { user, isLoading: authLoading } = useAuth();
   const [currentTab, setCurrentTab] = useState<StorefrontTab>(activeTab);
+  const [storesList, setStoresList] = useState<any[]>(initialStore ? [initialStore] : []);
+  const [maxStores, setMaxStores] = useState<number>(3);
+  const [canCreateMore, setCanCreateMore] = useState<boolean>(true);
   const [storeData, setStoreData] = useState<any>(initialStore || null);
   const [hasStore, setHasStore] = useState<boolean | null>(
     initialStore ? true : initialHasStore !== undefined ? initialHasStore : null
@@ -74,25 +77,39 @@ export function StorefrontManager({
   const [category, setCategory] = useState(initialStore?.category || "Laptops & Computers");
   const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Main Campus");
   const [contactChannel, setContactChannel] = useState("in_app");
+  const [showOwnerName, setShowOwnerName] = useState<boolean>(Boolean(initialStore?.showOwnerName));
+  const [avatarError, setAvatarError] = useState(false);
+
+  // Compute effective avatar from store logo or authenticated user's profile image
+  const effectiveAvatar =
+    storeData?.logo ||
+    user?.avatar ||
+    user?.image ||
+    (user as any)?.profile?.avatar ||
+    "";
+
+  const applySelectedStore = (st: any) => {
+    setStoreData(st);
+    setStoreName(st?.name || "My Campus Store");
+    setTagline(st?.description || "Student campus storefront");
+    setCategory(st?.category || "Laptops & Computers");
+    setLandmark(st?.operatingLocation || "Main Campus");
+    setShowOwnerName(Boolean(st?.showOwnerName));
+  };
 
   // Sync when parent passes updated initialHasStore / initialStore
   useEffect(() => {
     if (initialStore) {
-      setStoreData(initialStore);
+      applySelectedStore(initialStore);
       setHasStore(true);
-      setStoreName(initialStore.name || "My Campus Store");
-      setTagline(initialStore.description || "Student campus storefront");
-      setCategory(initialStore.category || "Laptops & Computers");
-      setLandmark(initialStore.operatingLocation || "Main Campus");
     } else if (initialHasStore !== undefined) {
       setHasStore(initialHasStore);
     }
   }, [initialStore, initialHasStore]);
 
-  // Fetch real store from backend when not already resolved by parent
+  // Fetch real stores from backend
   useEffect(() => {
     if (authLoading) return;
-    if (initialStore) return;
 
     let isCancelled = false;
 
@@ -102,21 +119,25 @@ export function StorefrontManager({
         const data = await res.json();
         if (!isCancelled) {
           if (res.ok && data.success) {
-            setHasStore(Boolean(data.data.hasStore));
-            if (data.data.store) {
-              const st = data.data.store;
-              setStoreData(st);
-              setStoreName(st.name || "My Campus Store");
-              setTagline(st.description || "Student campus storefront");
-              setCategory(st.category || "Laptops & Computers");
-              setLandmark(st.operatingLocation || "Main Campus");
+            const list = Array.isArray(data.data.stores)
+              ? data.data.stores
+              : data.data.store
+              ? [data.data.store]
+              : [];
+            setStoresList(list);
+            setMaxStores(data.data.maxStores ?? 3);
+            setCanCreateMore(Boolean(data.data.canCreateMore ?? list.length < 3));
+            setHasStore(Boolean(data.data.hasStore || list.length > 0));
+            const st = data.data.store || list[0];
+            if (st) {
+              applySelectedStore(st);
             }
-          } else {
+          } else if (!initialStore) {
             setHasStore(false);
           }
         }
       } catch {
-        if (!isCancelled) {
+        if (!isCancelled && !initialStore) {
           setHasStore(false);
         }
       }
@@ -128,15 +149,16 @@ export function StorefrontManager({
     };
   }, [authLoading, user?.id, initialStore]);
 
-  // Fetch canonical seller statistics from Next.js API only when store exists
+  // Fetch canonical seller statistics from Next.js API scoped to selected store
   useEffect(() => {
     if (hasStore !== true) return;
     let isCancelled = false;
+    const targetStoreId = storeData?._id || storeData?.id;
     async function loadStats() {
       try {
         setStatsLoading(true);
         setStatsError(null);
-        const res = await dashboardService.getSellerStats();
+        const res = await dashboardService.getSellerStats(undefined, targetStoreId);
         if (res.success && res.data && !isCancelled) {
           setLiveStats(res.data);
         }
@@ -152,7 +174,7 @@ export function StorefrontManager({
     return () => {
       isCancelled = true;
     };
-  }, [hasStore, user?.id]);
+  }, [hasStore, user?.id, storeData?._id, storeData?.id]);
 
   // Privacy & Milestone toggle
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
@@ -286,6 +308,46 @@ export function StorefrontManager({
         </div>
       )}
 
+      {/* Multi-Store Switcher Bar (Max 3 Stores per Account) */}
+      {storesList.length > 0 && (
+        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-3.5 sm:px-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mr-1">
+              Store ({storesList.length}/{maxStores}):
+            </span>
+            {storesList.map((st: any) => {
+              const stId = st._id || st.id;
+              const isSelected = (storeData?._id || storeData?.id) === stId;
+              return (
+                <button
+                  key={stId}
+                  type="button"
+                  onClick={() => applySelectedStore(st)}
+                  className={`radius-native px-3 py-1.5 rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717]"
+                      : "bg-[#F7F8FA] dark:bg-white/5 text-[#5B636E] dark:text-neutral-300 hover:border-[#171717]"
+                  }`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>{st.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {canCreateMore && storesList.length < maxStores && (
+            <Link
+              href="/onboarding/seller"
+              className="radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#FFC928] text-[12px] font-bold text-[#171717] dark:text-white"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create another store</span>
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* 24-Hour Admin Verification Pending Notification Banner */}
       {storeData && storeData.isVerified === false && (
         <div className="radius-native p-4 sm:p-5 rounded-2xl bg-[#FFFBEB] dark:bg-[#FFC928]/10 border border-[#FDE68A] dark:border-[#FFC928]/25 flex items-start gap-3.5 shadow-2xs">
@@ -314,8 +376,19 @@ export function StorefrontManager({
       {currentTab === "dashboard" && (
         <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-14 h-14 rounded-2xl bg-[#FFC928]/20 border border-[#FFC928]/40 flex items-center justify-center shrink-0">
-              <Store className="w-7 h-7 text-[#D97706] dark:text-[#FFC928]" />
+            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
+              {effectiveAvatar && !avatarError ? (
+                <img
+                  src={effectiveAvatar}
+                  alt={storeName}
+                  onError={() => setAvatarError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#FFC928]/20 border border-[#FFC928]/40 flex items-center justify-center">
+                  <Store className="w-7 h-7 text-[#D97706] dark:text-[#FFC928]" />
+                </div>
+              )}
             </div>
 
             <div className="min-w-0">
@@ -618,6 +691,7 @@ export function StorefrontManager({
                       description: tagline,
                       category,
                       operatingLocation: landmark,
+                      showOwnerName,
                     }),
                   });
                   const data = await res.json();
@@ -635,6 +709,32 @@ export function StorefrontManager({
             }}
             className="space-y-4"
           >
+            {/* Storefront Avatar Identity Card */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-[#ECEEF2] dark:border-white/10">
+              <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
+                {effectiveAvatar && !avatarError ? (
+                  <img
+                    src={effectiveAvatar}
+                    alt={storeName}
+                    onError={() => setAvatarError(true)}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#FFC928]/20 flex items-center justify-center">
+                    <Store className="w-8 h-8 text-[#D97706] dark:text-[#FFC928]" />
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[13px] font-bold text-[#171717] dark:text-white block">
+                  Storefront Avatar
+                </span>
+                <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                  Your store avatar is automatically synchronized with your user profile picture.
+                </p>
+              </div>
+            </div>
+
             <div>
               <label className="block text-[13px] font-bold text-[#3F454D] dark:text-neutral-200 mb-1.5">
                 Store Name
@@ -712,7 +812,50 @@ export function StorefrontManager({
             </div>
 
             {/* Profile & Trust Privacy Toggle */}
-            <div className="pt-4 border-t border-[#ECEEF2] dark:border-white/10 space-y-3">
+            <div className="pt-4 border-t border-[#ECEEF2] dark:border-white/10 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Store className="w-4.5 h-4.5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold text-[#171717] dark:text-white">
+                        Show "Run by" Owner Name on Public Storefront
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          showOwnerName
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                        }`}
+                      >
+                        {showOwnerName ? "Opted In" : "Hidden (Default)"}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5 max-w-lg leading-relaxed">
+                      Your personal account is private by default. Enable this only if you want visitors to see "Run by [First Name + Initial]" on this store page.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOwnerName((prev) => !prev)}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    showOwnerName ? "bg-[#FFC928]" : "bg-neutral-300 dark:bg-neutral-700"
+                  }`}
+                  role="switch"
+                  aria-checked={showOwnerName}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      showOwnerName ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">

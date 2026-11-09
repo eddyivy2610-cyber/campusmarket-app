@@ -3,36 +3,88 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import BusinessApplicationModel from "@/models/BusinessApplication";
+import SlugRedirectModel from "@/models/SlugRedirect";
 import StoreModel, {
   isDuplicateOwnerError,
+  isDuplicateSlugError,
   sanitizeStoreInput,
   ensureStoreIndexes,
-  saveStoreWithSlugRetry,
+  generateSlug,
+  validateStoreSlugFormat,
+  generateSlugSuggestions,
+  toPublicStoreDTO,
 } from "@/models/Store";
+import {
+  MAX_STORES_PER_USER,
+  MAX_STUDENT_STORES_PER_USER,
+} from "@/constants/enums";
 import {
   requireAuth,
   requireCompletedOnboarding,
   checkStudentVendorEligibility,
 } from "@/lib/authServer";
+import { applyRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rateLimit";
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { executeInTransaction } from "@/lib/transactionHelper";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 import { createNotification } from "@/lib/notificationService";
 import { generateUUIDv7 } from "@/lib/uuidv7";
 
-function generateSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const randomSuffix = Math.random().toString(36).substring(2, 6);
-  return `${base || "store"}-${randomSuffix}`;
+/**
+ * Checks whether a candidate slug is currently reserved in SlugRedirectModel
+ * by a deleted or renamed store.
+ */
+async function isSlugReserved(slugLower: string, callerUserId: string): Promise<boolean> {
+  const redirect = await SlugRedirectModel.findOne({
+    entityType: "store",
+    oldSlug: slugLower,
+  }).lean();
+  if (!redirect) return false;
+  if (redirect.reservedUntil && new Date(redirect.reservedUntil) <= new Date()) {
+    return false;
+  }
+  if (redirect.reason === "deletion") {
+    return true;
+  }
+  if (redirect.previousOwnerId && String(redirect.previousOwnerId) !== String(callerUserId)) {
+    return true;
+  }
+  return true;
+}
+
+/**
+ * Atomically syncs missing storesCount/studentStoresCount fields on legacy/seeded user documents
+ * before running the atomic conditional cap increment inside the store-creation transaction.
+ */
+async function ensureUserStoreCountersInitialized(userId: string) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) return;
+  const userDoc = await UserModel.findById(userId)
+    .select("storesCount studentStoresCount")
+    .lean();
+  if (
+    userDoc &&
+    (typeof (userDoc as any).storesCount !== "number" ||
+      typeof (userDoc as any).studentStoresCount !== "number")
+  ) {
+    const [liveTotal, liveStudent] = await Promise.all([
+      StoreModel.countDocuments({ ownerId: userId, status: { $ne: "deleted" } }),
+      StoreModel.countDocuments({
+        ownerId: userId,
+        status: { $ne: "deleted" },
+        storeType: "student_store",
+      }),
+    ]);
+    await UserModel.updateOne(
+      { _id: userId, storesCount: { $exists: false } },
+      { $set: { storesCount: liveTotal, studentStoresCount: liveStudent } }
+    );
+  }
 }
 
 /**
  * GET /api/stores
  * Public discovery endpoint: list active stores with optional filters.
+ * Uses explicit public allowlist (toPublicStoreDTO) and never leaks owner private fields.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -62,18 +114,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (query) {
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { name: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
+        { name: { $regex: escapedQuery, $options: "i" } },
+        { description: { $regex: escapedQuery, $options: "i" } },
       ];
     }
 
     const total = await StoreModel.countDocuments(filter);
-    const stores = await StoreModel.find(filter)
+    const rawStores = await StoreModel.find(filter)
       .sort({ "metrics.rating": -1, createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
+
+    const stores = rawStores.map((s) => toPublicStoreDTO(s)).filter(Boolean);
 
     const res = NextResponse.json({
       success: true,
@@ -102,14 +157,17 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/stores
- * Unified Seller Onboarding & Storefront Creation Endpoint:
- * Supports both:
- * 1. Unified Seller Onboarding (`sellerType: "student" | "non_student"`):
- *    - Student: Verifies uploaded Student ID card (extracts & matches name against Fullname + checks card validation date) to approve or decline.
- *    - Non-Student: Collects primary operating location + proof document of that location, opens active storefront immediately so seller can post listings, and records location verification application.
- * 2. Legacy Student Storefront creation (`storeType: "student"` without `sellerType`).
+ * Unified Seller Onboarding & Multi-Store Creation Endpoint.
+ * Enforces:
+ * - Rate limit on store creation (prevents slug/name cycling)
+ * - Atomic cap of MAX_STORES_PER_USER (3) non-deleted stores per user
+ * - Atomic cap of MAX_STUDENT_STORES_PER_USER (1) student store per user
+ * - Case-insensitive unique slug (slugLower), format validation, reserved-word check,
+ *   and 409 conflict suggestions on collision.
+ * - Never mutates the user's personal identity (name, email, verification state, handle).
  */
 export async function POST(req: NextRequest) {
+  let targetSlug = "";
   try {
     let body: any;
     try {
@@ -130,28 +188,59 @@ export async function POST(req: NextRequest) {
     const { user, errorResponse } = authResult;
     if (!user || errorResponse) return errorResponse;
 
+    // Rate limit store creation per user/IP
+    const rl = applyRateLimit(req, "store_create", RATE_LIMIT_PRESETS.STORE_CREATE, user.id);
+    if (!rl.allowed && rl.response) {
+      return rl.response;
+    }
+
     await dbConnect();
     await ensureStoreIndexes();
+    await ensureUserStoreCountersInitialized(user.id);
+
+    // Validate slug if explicitly provided, or derive deterministic slug from store name
+    const rawName = String(body.name || "").trim();
+    if (body.slug !== undefined && String(body.slug).trim() !== "") {
+      const slugCheck = validateStoreSlugFormat(String(body.slug));
+      if (!slugCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: slugCheck.error },
+          { status: 400 }
+        );
+      }
+      targetSlug = slugCheck.slug;
+    } else if (rawName) {
+      targetSlug = generateSlug(rawName);
+      const slugCheck = validateStoreSlugFormat(targetSlug);
+      if (!slugCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: slugCheck.error },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (targetSlug) {
+      const reserved = await isSlugReserved(targetSlug, user.id);
+      if (reserved) {
+        const suggestions = await generateSlugSuggestions(targetSlug);
+        return NextResponse.json(
+          {
+            success: false,
+            error: `The store slug "${targetSlug}" is currently reserved and unavailable.`,
+            suggestions,
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     // ------------------------------------------------------------------------
     // UNIFIED SELLER ONBOARDING FLOW (Student / Non-Student Radio)
     // ------------------------------------------------------------------------
     if (isUnifiedOnboarding) {
-      // 1. Ensure user does not already own a verified storefront (allow retry if unverified/rejected)
-      const existingStore = await StoreModel.findOne({ ownerId: user.id });
-      if (existingStore && existingStore.isVerified) {
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "An active verified storefront is already registered to this account. Each account can only manage one storefront.",
-          },
-          { status: 409 }
-        );
-      }
-
       const fullName = String(body.fullName || user.name || "").trim();
-      const name = String(body.name || "").trim();
+      const name = rawName;
       const description = String(body.description || "").trim();
       const category = String(body.category || "").trim();
       const campus = String(body.campus || "").trim();
@@ -181,10 +270,20 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // PATH A: STUDENT SELLER ONBOARDING (Collect Student ID card image and send to Admin for review)
+      // Optional retry for a specific rejected/unverified store owned by user
+      let retryStore: any = null;
+      if (body.retryStoreId && mongoose.Types.ObjectId.isValid(String(body.retryStoreId))) {
+        retryStore = await StoreModel.findOne({
+          _id: body.retryStoreId,
+          ownerId: user.id,
+          status: { $ne: "deleted" },
+          isVerified: false,
+        });
+      }
+
+      // PATH A: STUDENT SELLER ONBOARDING
       if (body.sellerType === "student") {
         const studentIdImage = String(body.studentIdImage || "").trim();
-
         if (!studentIdImage) {
           return NextResponse.json(
             {
@@ -210,8 +309,8 @@ export async function POST(req: NextRequest) {
         });
 
         const now = new Date().toISOString();
-        const newStore = existingStore
-          ? Object.assign(existingStore, {
+        const newStore = retryStore
+          ? Object.assign(retryStore, {
               ...sanitized,
               ownerFullName: fullName,
               storeType: "student_store",
@@ -226,10 +325,11 @@ export async function POST(req: NextRequest) {
               publicId: generateUUIDv7(),
               ownerId: user.id,
               ownerFullName: fullName,
-              slug: generateSlug(name),
+              slug: targetSlug,
+              slugLower: targetSlug,
               storeType: "student_store",
               status: "active",
-              isVerified: false, // Pending admin manual preview and approval
+              isVerified: false,
               verificationType: "student",
               studentIdImage,
               metrics: {
@@ -244,11 +344,40 @@ export async function POST(req: NextRequest) {
             });
 
         await executeInTransaction(async (session) => {
-          if (existingStore) {
-            await (session ? newStore.save({ session }) : newStore.save());
-          } else {
-            await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+          if (!retryStore) {
+            const capUpdate = await UserModel.updateOne(
+              {
+                _id: user.id,
+                storesCount: { $lt: MAX_STORES_PER_USER },
+                studentStoresCount: { $lt: MAX_STUDENT_STORES_PER_USER },
+              },
+              {
+                $inc: { storesCount: 1, studentStoresCount: 1 },
+                $set: {
+                  role: user.role === "admin" ? "admin" : "seller",
+                  sellerStatus: "pending",
+                  onboardingStep: "completed",
+                },
+              },
+              session ? { session } : undefined
+            );
+
+            if (capUpdate.modifiedCount !== 1) {
+              const liveTotal = await StoreModel.countDocuments(
+                { ownerId: user.id, status: { $ne: "deleted" } },
+                session ? { session } : undefined
+              );
+              const capErr: any = new Error(
+                liveTotal >= MAX_STORES_PER_USER
+                  ? `Store limit reached. Each account can own a maximum of ${MAX_STORES_PER_USER} stores.`
+                  : `Student store limit reached. Each account can own at most ${MAX_STUDENT_STORES_PER_USER} student store.`
+              );
+              capErr.statusCode = 409;
+              throw capErr;
+            }
           }
+
+          await (session ? newStore.save({ session }) : newStore.save());
 
           const studentVerificationApp = new BusinessApplicationModel({
             applicantId: user.id,
@@ -273,29 +402,8 @@ export async function POST(req: NextRequest) {
 
           newStore.businessApplicationId = studentVerificationApp._id.toString();
           await (session ? newStore.save({ session }) : newStore.save());
-
-          await UserModel.findByIdAndUpdate(
-            user.id,
-            {
-              $set: {
-                name: fullName,
-                campus,
-                isStudent: true,
-                studentVerified: false,
-                role: "seller",
-                sellerStatus: "pending",
-                onboardingStep: "completed",
-                "profile.displayName": fullName,
-                "profile.avatar": logo,
-                "profile.phone": contact.phone,
-                "profile.whatsapp": contact.whatsapp,
-              },
-            },
-            session ? { session } : undefined
-          );
         });
 
-        // Notify user to wait a maximum of 24 hours for admin reply
         try {
           if (mongoose.Types.ObjectId.isValid(user.id)) {
             await createNotification({
@@ -326,7 +434,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // PATH B: NON-STUDENT BUSINESS ONBOARDING (Collect operating location + proof document, send to admin)
+      // PATH B: NON-STUDENT BUSINESS ONBOARDING
       const operatingLocation = String(body.operatingLocation || "").trim();
       const locationProofDocument = String(body.locationProofDocument || "").trim();
 
@@ -353,8 +461,8 @@ export async function POST(req: NextRequest) {
       });
 
       const now = new Date().toISOString();
-      const newStore = existingStore
-        ? Object.assign(existingStore, {
+      const newStore = retryStore
+        ? Object.assign(retryStore, {
             ...sanitized,
             ownerFullName: fullName,
             storeType: "local_business",
@@ -369,9 +477,10 @@ export async function POST(req: NextRequest) {
             publicId: generateUUIDv7(),
             ownerId: user.id,
             ownerFullName: fullName,
-            slug: generateSlug(name),
+            slug: targetSlug,
+            slugLower: targetSlug,
             storeType: "local_business",
-            status: "active", // Allow posting listings immediately while location document is recorded
+            status: "active",
             isVerified: false,
             verificationType: "business",
             locationProofDocument,
@@ -387,11 +496,33 @@ export async function POST(req: NextRequest) {
           });
 
       await executeInTransaction(async (session) => {
-        if (existingStore) {
-          await (session ? newStore.save({ session }) : newStore.save());
-        } else {
-          await saveStoreWithSlugRetry(newStore, 5, session || undefined);
+        if (!retryStore) {
+          const capUpdate = await UserModel.updateOne(
+            {
+              _id: user.id,
+              storesCount: { $lt: MAX_STORES_PER_USER },
+            },
+            {
+              $inc: { storesCount: 1 },
+              $set: {
+                role: user.role === "admin" ? "admin" : "seller",
+                sellerStatus: "pending",
+                onboardingStep: "completed",
+              },
+            },
+            session ? { session } : undefined
+          );
+
+          if (capUpdate.modifiedCount !== 1) {
+            const capErr: any = new Error(
+              `Store limit reached. Each account can own a maximum of ${MAX_STORES_PER_USER} stores.`
+            );
+            capErr.statusCode = 409;
+            throw capErr;
+          }
         }
+
+        await (session ? newStore.save({ session }) : newStore.save());
 
         const businessApp = new BusinessApplicationModel({
           applicantId: user.id,
@@ -414,25 +545,6 @@ export async function POST(req: NextRequest) {
 
         newStore.businessApplicationId = businessApp._id.toString();
         await (session ? newStore.save({ session }) : newStore.save());
-
-        await UserModel.findByIdAndUpdate(
-          user.id,
-          {
-            $set: {
-              name: fullName,
-              campus,
-              isStudent: false,
-              role: "seller",
-              sellerStatus: "pending",
-              onboardingStep: "completed",
-              "profile.displayName": fullName,
-              "profile.avatar": logo,
-              "profile.phone": contact.phone,
-              "profile.whatsapp": contact.whatsapp,
-            },
-          },
-          session ? { session } : undefined
-        );
       });
 
       try {
@@ -466,7 +578,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ------------------------------------------------------------------------
-    // LEGACY FLOW (Backwards compatibility for direct API callers & test suite)
+    // DIRECT STUDENT STORE CREATION FLOW
     // ------------------------------------------------------------------------
     if (body.storeType === "local_business") {
       return NextResponse.json(
@@ -479,15 +591,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Check student vendor eligibility
-    const eligibility = await checkStudentVendorEligibility(user);
-    if (!eligibility.eligible) {
+    // 1. Check student verification eligibility
+    if (!user.isStudent || !user.studentVerified) {
       return NextResponse.json(
         {
           success: false,
-          error: eligibility.reason,
+          error:
+            "Student eligibility verification required. You must complete campus student verification before opening a student storefront.",
         },
-        { status: eligibility.status || 403 }
+        { status: 403 }
       );
     }
 
@@ -504,17 +616,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Sanitize inputs (ignoring client metrics or status overrides)
+    // 3. Sanitize inputs (ignoring client ownerId, metrics, role, or status overrides)
     const sanitized = sanitizeStoreInput(body);
+    const now = new Date().toISOString();
 
     // 4. Build store document with strict server-enforced values
     const newStore = new StoreModel({
       ...sanitized,
       publicId: generateUUIDv7(),
       ownerId: user.id, // Strictly server-enforced ownerId
-      slug: generateSlug(name),
+      slug: targetSlug,
+      slugLower: targetSlug,
       storeType: "student_store",
-      status: "active", // Student stores activate directly upon verification
+      status: "active",
       isVerified: true,
       verificationType: "student",
       metrics: {
@@ -522,18 +636,44 @@ export async function POST(req: NextRequest) {
         reviewsCount: 0,
         completedDeals: 0,
         listingsCount: 0,
+        followersCount: 0,
       },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     });
 
     await executeInTransaction(async (session) => {
-      await saveStoreWithSlugRetry(newStore, 5, session || undefined);
-      await UserModel.findByIdAndUpdate(
-        user.id,
-        { $set: { role: "seller", sellerStatus: "approved" } },
+      const capUpdate = await UserModel.updateOne(
+        {
+          _id: user.id,
+          storesCount: { $lt: MAX_STORES_PER_USER },
+          studentStoresCount: { $lt: MAX_STUDENT_STORES_PER_USER },
+        },
+        {
+          $inc: { storesCount: 1, studentStoresCount: 1 },
+          $set: {
+            role: user.role === "admin" ? "admin" : "seller",
+            sellerStatus: "approved",
+          },
+        },
         session ? { session } : undefined
       );
+
+      if (capUpdate.modifiedCount !== 1) {
+        const liveTotal = await StoreModel.countDocuments(
+          { ownerId: user.id, status: { $ne: "deleted" } },
+          session ? { session } : undefined
+        );
+        const capErr: any = new Error(
+          liveTotal >= MAX_STORES_PER_USER
+            ? `Store limit reached. Each account can own a maximum of ${MAX_STORES_PER_USER} stores.`
+            : `Student store limit reached. Each account can own at most ${MAX_STUDENT_STORES_PER_USER} student store.`
+        );
+        capErr.statusCode = 409;
+        throw capErr;
+      }
+
+      await (session ? newStore.save({ session }) : newStore.save());
     });
 
     return NextResponse.json(
@@ -545,6 +685,28 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
+    if (error?.statusCode === 409) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.message,
+        },
+        { status: 409 }
+      );
+    }
+
+    if (isDuplicateSlugError(error)) {
+      const suggestions = await generateSlugSuggestions(targetSlug || "store");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "A storefront with this name or slug already exists. Please choose another.",
+          suggestions,
+        },
+        { status: 409 }
+      );
+    }
+
     if (
       error?.code === 11000 ||
       error?.code === 11001 ||
@@ -554,8 +716,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "An active storefront is already registered to this account. Each account can only manage one storefront.",
+          error: "Storefront creation conflict. Please try a different store name or check your store limit.",
         },
         { status: 409 }
       );

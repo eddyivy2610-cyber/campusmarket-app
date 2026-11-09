@@ -57,11 +57,35 @@ export async function PATCH(
 
     const { action, reason, role: newRole } = body;
 
-    if (!["suspend", "restore", "ban", "role_change", "approve"].includes(action)) {
+    if (
+      ![
+        "suspend",
+        "restore",
+        "ban",
+        "role_change",
+        "approve",
+        "revoke_verification",
+        "warn",
+      ].includes(action)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid action. Supported actions are 'suspend', 'restore', 'ban', 'role_change', or 'approve'.",
+          error:
+            "Invalid action. Supported actions are 'suspend', 'restore', 'ban', 'role_change', 'approve', 'revoke_verification', or 'warn'.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      ["suspend", "ban", "role_change"].includes(action) &&
+      String(id) === String(admin.id)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Administrators cannot suspend, ban, or change the role of their own account.",
         },
         { status: 400 }
       );
@@ -339,8 +363,8 @@ export async function PATCH(
       }
 
       if (action === "role_change") {
-        if (!newRole || !["buyer", "seller", "admin"].includes(newRole)) {
-          throw new Error("Invalid role specified. Role must be 'buyer', 'seller', or 'admin'.");
+        if (!newRole || !["user", "buyer", "seller", "admin"].includes(newRole)) {
+          throw new Error("Invalid role specified. Role must be 'user', 'buyer', 'seller', or 'admin'.");
         }
         if (newRole === "seller") {
           throw new Error("Seller role is assigned only by the approved storefront workflows.");
@@ -429,6 +453,79 @@ export async function PATCH(
         return {
           user: updatedUser,
           message: "User approved and student status verified successfully.",
+          storesAffected: 0,
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "revoke_verification") {
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              studentVerified: false,
+              updatedAt: now,
+            },
+          },
+          { returnDocument: "after", ...sessionOpts }
+        );
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "user",
+          targetId: id,
+          action: "revoke_verification",
+          requestId,
+          reason: reason || "Student verification revoked by administrator.",
+          before: { studentVerified: user.studentVerified },
+          after: { studentVerified: updatedUser?.studentVerified },
+          details: {},
+          session: session || undefined,
+        });
+
+        return {
+          user: updatedUser,
+          message: "Student verification revoked.",
+          storesAffected: 0,
+          listingsAffected: 0,
+        };
+      }
+
+      if (action === "warn") {
+        const warningMessage =
+          String(reason || "").trim() ||
+          "Your account has received an official warning from Campus Hive Moderation. Please review our community rules.";
+
+        const { createNotification } = await import("@/lib/notificationService");
+        await createNotification({
+          recipient: id,
+          sender: admin.id,
+          type: "admin_warning",
+          category: "account_security",
+          priority: "high",
+          title: "Official Platform Moderation Warning",
+          message: warningMessage,
+          link: "/profile",
+        });
+
+        await logAdminAudit({
+          actorId: admin.id,
+          actorEmail: admin.email,
+          targetType: "user",
+          targetId: id,
+          action: "warn",
+          requestId,
+          reason: warningMessage,
+          before: { accountStatus: user.accountStatus },
+          after: { accountStatus: user.accountStatus },
+          details: { warningSent: true },
+          session: session || undefined,
+        });
+
+        return {
+          user,
+          message: "Official warning notification sent to user.",
           storesAffected: 0,
           listingsAffected: 0,
         };

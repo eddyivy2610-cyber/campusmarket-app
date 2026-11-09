@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import ListingModel from "@/models/Listing";
+import ListingModel, { toPublicListingDTO } from "@/models/Listing";
 import StoreModel from "@/models/Store";
 import { requireAuth, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
+import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 
 /**
  * GET /api/stores/[id]/listings
- * Retrieve catalog items belonging to a storefront.
+ * Retrieve catalog items belonging to a specific storefront (by Store ID, PublicId, or Slug).
  * STRICT VISIBILITY RULES:
- * 1. Store must exist.
- * 2. If store is suspended, public viewers receive 403 Forbidden (only authenticated owner can inspect).
- * 3. Public viewers can ONLY see status: "active" listings. Store owner can see all (or filter by status).
+ * 1. Never resolves stores by user handle or ownerId.
+ * 2. If store is deleted, returns 404. If suspended/non-active, returns 403 to public viewers.
+ * 3. Public viewers can ONLY see status: "active" listings formatted with toPublicListingDTO.
  */
 export async function GET(
   req: NextRequest,
@@ -20,61 +21,52 @@ export async function GET(
     const { id } = await context.params;
     await dbConnect();
 
-    // 1. Resolve store by ObjectId, ownerId, slug, or user handle
-    let store = null;
     const cleanId = id.trim();
-    const isMe = cleanId.toLowerCase() === "me";
-    const authUser = getServerAuthUser(req);
-
-    if (isMe && authUser?.id) {
-      store = await StoreModel.findOne({ ownerId: authUser.id }).lean();
-    } else if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
-      store = await StoreModel.findById(cleanId).lean();
-      if (!store) {
-        store = await StoreModel.findOne({ ownerId: cleanId }).lean();
-      }
-    }
-
-    if (!store && !isMe) {
-      const escapedSlug = cleanId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      store = await StoreModel.findOne({
-        slug: { $regex: new RegExp(`^${escapedSlug}$`, "i") },
-      }).lean();
-    }
-
-    let matchedUser: any = null;
-    if (!store) {
-      const { default: UserModel } = await import("@/models/User");
-      const normalizedHandle = cleanId.replace(/^@/, "").trim().toLowerCase();
-      if (isMe && authUser?.id) {
-        matchedUser = await UserModel.findById(authUser.id).lean();
-      } else {
-        const userOrConditions: any[] = [{ "profile.handle": normalizedHandle }];
-        if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
-          userOrConditions.push({ _id: cleanId });
-        }
-        matchedUser = await UserModel.findOne({ $or: userOrConditions }).lean();
-      }
-
-      if (matchedUser) {
-        store = await StoreModel.findOne({ ownerId: String(matchedUser._id) }).lean();
-      }
-    }
-
-    if (!store && !matchedUser) {
+    const lowerSlug = cleanId.toLowerCase();
+    if (!cleanId || lowerSlug === "me") {
       return NextResponse.json(
         { success: false, error: "Storefront not found." },
         { status: 404 }
       );
     }
 
-    const effectiveOwnerId = store ? store.ownerId : String(matchedUser._id);
-    const isOwner = Boolean(authUser && authUser.id === effectiveOwnerId);
+    let store: any = null;
+    if (cleanId.match(/^[0-9a-fA-F]{24}$/)) {
+      store = await StoreModel.findById(cleanId).lean();
+    }
+    if (!store) {
+      store = await StoreModel.findOne({
+        $or: [
+          { publicId: cleanId },
+          { slugLower: lowerSlug },
+          { slug: lowerSlug },
+        ],
+      }).lean();
+    }
 
-    // Visibility: Suspended stores cannot be viewed publicly
-    if (store && store.status === "suspended" && !isOwner) {
+    if (!store || store.status === "deleted") {
       return NextResponse.json(
-        { success: false, error: "This storefront is currently suspended." },
+        { success: false, error: "Storefront not found." },
+        { status: 404 }
+      );
+    }
+
+    const authUser = getServerAuthUser(req);
+    const isOwner = Boolean(
+      authUser &&
+        (String(authUser.id) === String(store.ownerId) || authUser.role === "admin")
+    );
+
+    // Visibility: Non-active stores cannot be viewed publicly
+    if (store.status !== "active" && !isOwner) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            store.status === "suspended"
+              ? "This storefront is currently suspended."
+              : "This storefront is currently unavailable.",
+        },
         { status: 403 }
       );
     }
@@ -85,9 +77,9 @@ export async function GET(
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "30", 10)));
 
-    const filter: Record<string, any> = store
-      ? { storeId: store._id.toString() }
-      : { sellerId: String(matchedUser._id) };
+    const filter: Record<string, any> = {
+      storeId: String(store._id),
+    };
 
     // Public users strictly see active items only; owner can see requested status
     if (!isOwner) {
@@ -101,13 +93,17 @@ export async function GET(
     }
 
     const total = await ListingModel.countDocuments(filter);
-    const listings = await ListingModel.find(filter)
-      .sort({ createdAt: -1 })
+    const rawListings = await ListingModel.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    return NextResponse.json({
+    const listings = isOwner
+      ? rawListings
+      : rawListings.map((l) => toPublicListingDTO(l, store));
+
+    const res = NextResponse.json({
       success: true,
       data: listings,
       pagination: {
@@ -117,6 +113,11 @@ export async function GET(
         totalPages: Math.ceil(total / limit),
       },
     });
+
+    const isPublicQuery = !isOwner && store.status === "active";
+    const isPublic = isRequestSafeForPublicCache(req, { isPublicQuery });
+    applyCacheHeaders(res, { isPublic, sMaxAge: 60, staleWhileRevalidate: 300 });
+    return res;
   } catch (error: any) {
     console.error("[GET /api/stores/[id]/listings] Error:", error);
     return NextResponse.json(
@@ -128,14 +129,11 @@ export async function GET(
 
 /**
  * POST /api/stores/[id]/listings
- * Associate existing user listing(s) with this storefront.
+ * Move listing(s) between the authenticated user's own stores.
  * STRICT SECURITY & INTEGRITY:
- * 1. Authenticated user must own the store.
- * 2. Store must NOT be suspended.
- * 3. Supports single { listingId } and batch { listingIds: [...] }.
- * 4. Checks ownership (sellerId === user.id) on EVERY listing.
- * 5. Idempotent: Prevents duplicate associations.
- * 6. Consistently recalculates store metrics.listingsCount via countDocuments.
+ * 1. Authenticated user must own the destination store (and it must be active).
+ * 2. Every listing must be owned by user.id (and its source store must be owned by user.id).
+ * 3. Recomputes metrics.listingsCount for both source store(s) and destination store.
  */
 export async function POST(
   req: NextRequest,
@@ -148,9 +146,10 @@ export async function POST(
     const { id: storeId } = await context.params;
     await dbConnect();
 
-    // 1. Verify store ownership and permitted status (suspended check)
+    // 1. Verify destination store ownership and active status
     const storeCheck = await assertUserOwnsStore(user.id, storeId, {
       checkSuspended: true,
+      requireActive: true,
     });
     if (!storeCheck.ok) {
       return NextResponse.json(
@@ -159,6 +158,7 @@ export async function POST(
       );
     }
     const store = storeCheck.store;
+    const destStoreId = String(store._id);
 
     let body: any;
     try {
@@ -170,12 +170,11 @@ export async function POST(
       );
     }
 
-    // Normalize inputs to support single listingId or array of listingIds
     const rawIds: string[] = Array.isArray(body.listingIds)
       ? body.listingIds
       : body.listingId
-      ? [body.listingId]
-      : [];
+        ? [body.listingId]
+        : [];
 
     if (rawIds.length === 0) {
       return NextResponse.json(
@@ -187,6 +186,14 @@ export async function POST(
       );
     }
 
+    const userStores = await StoreModel.find({
+      ownerId: user.id,
+      status: { $ne: "deleted" },
+    })
+      .select("_id")
+      .lean();
+    const ownedStoreIds = new Set(userStores.map((s: any) => String(s._id)));
+
     const foundListings = await ListingModel.find(
       { _id: { $in: rawIds } },
       "_id sellerId storeId"
@@ -195,25 +202,43 @@ export async function POST(
     const foundMap = new Map(foundListings.map((l: any) => [l._id.toString(), l]));
     const associatedIds: string[] = [];
     const alreadyLinkedIds: string[] = [];
+    const sourceStoreIds = new Set<string>();
     const failedItems: { id: string; reason: string }[] = [];
 
     for (const lid of rawIds) {
       const l = foundMap.get(lid.toString());
       if (!l) {
         failedItems.push({ id: lid, reason: "Listing not found." });
-      } else if (l.sellerId !== user.id) {
+      } else if (String(l.sellerId) !== String(user.id)) {
         failedItems.push({
           id: lid,
           reason: "Forbidden: You do not own this listing.",
         });
-      } else if (l.storeId === store._id.toString()) {
+      } else if (l.storeId && !ownedStoreIds.has(String(l.storeId))) {
+        failedItems.push({
+          id: lid,
+          reason: "Forbidden: Source store is not owned by your account.",
+        });
+      } else if (String(l.storeId) === destStoreId) {
         alreadyLinkedIds.push(lid);
       } else {
+        if (l.storeId) sourceStoreIds.add(String(l.storeId));
         associatedIds.push(lid);
       }
     }
 
-    // 2. Single updateMany on owned, unlinked listings
+    if (failedItems.length > 0 && associatedIds.length === 0 && alreadyLinkedIds.length === 0) {
+      const hasForbidden = failedItems.some((f) => f.reason.startsWith("Forbidden"));
+      return NextResponse.json(
+        {
+          success: false,
+          error: failedItems[0].reason,
+          failed: failedItems,
+        },
+        { status: hasForbidden ? 403 : 404 }
+      );
+    }
+
     const now = new Date().toISOString();
     let updateResultCount = 0;
 
@@ -222,15 +247,11 @@ export async function POST(
         {
           _id: { $in: associatedIds },
           sellerId: user.id,
-          $or: [
-            { storeId: null },
-            { storeId: { $exists: false } },
-            { storeId: "" },
-          ],
         },
         {
           $set: {
-            storeId: store._id.toString(),
+            storeId: destStoreId,
+            sellerId: String(store.ownerId),
             updatedAt: now,
           },
         }
@@ -238,32 +259,38 @@ export async function POST(
       updateResultCount = updateResult.modifiedCount;
     }
 
-    // 3. Recount via $set
-    const activeCount = await ListingModel.countDocuments({
-      storeId: store._id.toString(),
-      status: "active",
-    });
-
-    await StoreModel.findByIdAndUpdate(store._id, {
-      $set: {
-        "metrics.listingsCount": activeCount,
-        updatedAt: now,
-      },
-    });
+    // Recompute metrics.listingsCount for destination store and all affected source stores
+    const storesToRecount = new Set<string>([destStoreId, ...Array.from(sourceStoreIds)]);
+    let destActiveCount = 0;
+    for (const sid of storesToRecount) {
+      const count = await ListingModel.countDocuments({
+        storeId: sid,
+        status: "active",
+      });
+      if (sid === destStoreId) {
+        destActiveCount = count;
+      }
+      await StoreModel.findByIdAndUpdate(sid, {
+        $set: {
+          "metrics.listingsCount": count,
+          updatedAt: now,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Associated ${updateResultCount} listing(s) with storefront catalog.`,
+      message: `Moved ${updateResultCount} listing(s) to storefront catalog.`,
       associatedCount: updateResultCount,
       associatedIds,
       alreadyLinkedIds,
       failed: failedItems,
-      totalCatalogActiveCount: activeCount,
+      totalCatalogActiveCount: destActiveCount,
     });
   } catch (error: any) {
     console.error("[POST /api/stores/[id]/listings] Error:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to associate listings." },
+      { success: false, error: error.message || "Failed to move listings." },
       { status: 500 }
     );
   }
@@ -271,117 +298,16 @@ export async function POST(
 
 /**
  * DELETE /api/stores/[id]/listings
- * Disassociate a listing from this storefront.
- * STRICT SECURITY:
- * Removes store association while preserving the original listing history and properties.
+ * Unlinking listings from a store so they have no store is prohibited.
+ * Every listing must always belong to a store.
  */
-export async function DELETE(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { user, errorResponse } = await requireAuth(req);
-    if (!user || errorResponse) return errorResponse;
-
-    const { id: storeId } = await context.params;
-    await dbConnect();
-
-    // 1. Verify store ownership
-    const storeCheck = await assertUserOwnsStore(user.id, storeId, {
-      checkSuspended: false,
-    });
-    if (!storeCheck.ok) {
-      return NextResponse.json(
-        { success: false, error: storeCheck.error },
-        { status: storeCheck.status || 403 }
-      );
-    }
-    const store = storeCheck.store;
-
-    const { searchParams } = new URL(req.url);
-    const paramId = searchParams.get("listingId");
-    const paramIds = searchParams.get("listingIds");
-    let rawIds: string[] = [];
-
-    if (paramIds) {
-      rawIds = paramIds.split(",").map((s) => s.trim()).filter(Boolean);
-    } else if (paramId) {
-      rawIds = [paramId.trim()];
-    } else {
-      try {
-        const body = await req.json();
-        if (Array.isArray(body.listingIds)) rawIds = body.listingIds;
-        else if (body.listingId) rawIds = [body.listingId];
-      } catch {}
-    }
-
-    if (rawIds.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "listingId or listingIds parameter is required." },
-        { status: 400 }
-      );
-    }
-
-    // If single listing provided, check ownership & existence for precise error feedback
-    if (rawIds.length === 1) {
-      const singleListing = await ListingModel.findById(rawIds[0]).lean();
-      if (!singleListing) {
-        return NextResponse.json(
-          { success: false, error: "Listing not found." },
-          { status: 404 }
-        );
-      }
-      if (singleListing.sellerId !== user.id) {
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Forbidden: You can only manage listings that you personally own.",
-          },
-          { status: 403 }
-        );
-      }
-    }
-
-    // 2. Single updateMany (owned, linked listings) for unlink
-    const now = new Date().toISOString();
-    const unlinkResult = await ListingModel.updateMany(
-      {
-        _id: { $in: rawIds },
-        sellerId: user.id,
-        storeId: store._id.toString(),
-      },
-      {
-        $unset: { storeId: "" },
-        $set: { updatedAt: now },
-      }
-    );
-
-    // 3. Recount via $set
-    const activeCount = await ListingModel.countDocuments({
-      storeId: store._id.toString(),
-      status: "active",
-    });
-
-    await StoreModel.findByIdAndUpdate(store._id, {
-      $set: {
-        "metrics.listingsCount": activeCount,
-        updatedAt: now,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message:
-        "Listing disassociated from storefront. It remains accessible in your personal listings.",
-      disassociatedCount: unlinkResult.modifiedCount,
-      totalCatalogActiveCount: activeCount,
-    });
-  } catch (error: any) {
-    console.error("[DELETE /api/stores/[id]/listings] Error:", error);
-    return NextResponse.json(
-      { success: false, error: error.message || "Failed to remove listing." },
-      { status: 500 }
-    );
-  }
+export async function DELETE() {
+  return NextResponse.json(
+    {
+      success: false,
+      error:
+        "Unlinking listings from a store is not permitted. Every listing must belong to a store.",
+    },
+    { status: 400 }
+  );
 }

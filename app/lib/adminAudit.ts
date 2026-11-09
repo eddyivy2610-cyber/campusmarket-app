@@ -3,7 +3,16 @@ import mongoose from "mongoose";
 export interface AdminAuditLogEntry {
   actorId: string;
   actorEmail?: string;
-  targetType: "user" | "store" | "listing" | "business_application" | "review" | "order" | "banner";
+  targetType:
+    | "user"
+    | "store"
+    | "listing"
+    | "business_application"
+    | "review"
+    | "order"
+    | "banner"
+    | "report"
+    | "settings";
   targetId: string;
   action: string;
   requestId?: string;

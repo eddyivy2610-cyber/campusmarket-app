@@ -147,6 +147,8 @@ export function CreateListingForm() {
   const [customFeatureInput, setCustomFeatureInput] = useState("");
   const [showAddCustomFeature, setShowAddCustomFeature] = useState(false);
   const [publishedListingId, setPublishedListingId] = useState<string | null>(null);
+  const [ownedStores, setOwnedStores] = useState<any[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(storeIdParam || "");
   const [userStore, setUserStore] = useState<any | null>(null);
 
   // Form State (clean defaults — no hardcoded demo listing values)
@@ -187,42 +189,47 @@ export function CreateListingForm() {
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load the authenticated user's Storefront so listings always display storefront identity & details
+  // Load the authenticated user's Storefronts so every listing belongs to an active owned store
   useEffect(() => {
     let isCancelled = false;
     async function loadStorefront() {
       try {
         const res = await apiGet<any>("/api/stores/me");
         if (!isCancelled && res?.success && res?.data) {
-          const store = res.data.store;
-          const app = res.data.businessApplication;
-          if (store) {
-            setUserStore(store);
-            if (store.campus) {
-              setCampus(store.campus);
-            }
-          } else if (app) {
-            setUserStore({
-              name: app.businessName,
-              category: app.businessCategory,
-              campus: app.campus,
-              operatingLocation: app.operatingLocation,
-              isVerified: app.status === "approved",
-            });
-            if (app.campus) {
-              setCampus(app.campus);
+          const allStores: any[] = Array.isArray(res.data.stores)
+            ? res.data.stores
+            : res.data.store
+            ? [res.data.store]
+            : [];
+          const activeStores = allStores.filter((s) => s.status === "active");
+          setOwnedStores(activeStores);
+
+          const chosen =
+            (storeIdParam &&
+              activeStores.find(
+                (s) => String(s._id || s.id) === storeIdParam || s.slug === storeIdParam
+              )) ||
+            activeStores[0] ||
+            res.data.store ||
+            null;
+
+          if (chosen) {
+            setUserStore(chosen);
+            setSelectedStoreId(String(chosen._id || chosen.id || ""));
+            if (chosen.campus) {
+              setCampus(chosen.campus);
             }
           }
         }
       } catch {
-        // Fallback to user profile if store fetch fails
+        // Fallback if store fetch fails
       }
     }
     loadStorefront();
     return () => {
       isCancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, storeIdParam]);
 
   // Restore Draft on mount
   useEffect(() => {
@@ -348,6 +355,9 @@ export function CreateListingForm() {
     const newErrors: Record<string, string> = {};
 
     if (currentStep === 1) {
+      if (!selectedStoreId && !storeIdParam && !userStore?._id) {
+        newErrors.storeId = "Every listing must belong to an active store. Please select or open a store first.";
+      }
       if (!title.trim()) newErrors.title = "Please provide a clear listing title.";
       if (!price.trim() || isNaN(Number(price.replace(/,/g, ""))) || Number(price.replace(/,/g, "")) <= 0) {
         newErrors.price = "Please provide a valid price in Naira.";
@@ -393,7 +403,7 @@ export function CreateListingForm() {
   };
 
   // Storefront Display Identity (Seller appears as their Storefront display name and details)
-  const resolvedStoreId = storeIdParam || userStore?._id || userStore?.id || undefined;
+  const resolvedStoreId = selectedStoreId || storeIdParam || userStore?._id || userStore?.id || undefined;
   const storeDisplayName =
     userStore?.name ||
     (user as any)?.profile?.displayName ||
@@ -814,15 +824,52 @@ export function CreateListingForm() {
                   </div>
 
                   <div className="space-y-4">
-                    {/* Storefront Context Banner if storeIdParam is provided */}
-                    {storeIdParam && (
-                      <div className="radius-native bg-[#FFF8E6] dark:bg-amber-950/20 border border-[#FFE182] dark:border-amber-800/40 rounded-xl p-3 flex items-center gap-2.5 text-[12.5px] font-semibold text-[#7A4F01] dark:text-amber-200">
-                        <BadgeCheck className="w-4 h-4 text-[#D97706] shrink-0" />
-                        <span>
-                          Storefront Item — This listing will be automatically published under your campus store catalog.
-                        </span>
-                      </div>
-                    )}
+                    {/* Store Selector (Every listing must belong to a store) */}
+                    <div>
+                      <label className="block text-[13px] font-bold text-[#3F454D] dark:text-neutral-200 mb-1.5">
+                        Publishing Storefront <span className="text-rose-500">*</span>
+                      </label>
+                      {ownedStores.length > 0 ? (
+                        <select
+                          value={selectedStoreId}
+                          onChange={(e) => {
+                            const nextId = e.target.value;
+                            setSelectedStoreId(nextId);
+                            const found = ownedStores.find(
+                              (s) => String(s._id || s.id) === nextId
+                            );
+                            if (found) setUserStore(found);
+                          }}
+                          className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] font-semibold text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
+                        >
+                          {ownedStores.map((st) => {
+                            const stId = String(st._id || st.id);
+                            return (
+                              <option key={stId} value={stId}>
+                                {st.name} ({st.storeType === "student_store" ? "Student Store" : "Business Store"})
+                              </option>
+                            );
+                          })}
+                        </select>
+                      ) : (
+                        <div className="radius-native bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl p-3 flex items-center justify-between gap-3 text-[12.5px]">
+                          <span className="font-semibold text-amber-800 dark:text-amber-200">
+                            Every listing must belong to a store. Open a store first to publish listings.
+                          </span>
+                          <Link
+                            href="/onboarding/seller"
+                            className="px-3 py-1.5 rounded-lg bg-[#FFC928] text-[#171717] font-bold text-xs shrink-0"
+                          >
+                            Open a Store
+                          </Link>
+                        </div>
+                      )}
+                      {errors.storeId && (
+                        <p className="text-rose-500 text-[12px] font-semibold mt-1">
+                          {errors.storeId}
+                        </p>
+                      )}
+                    </div>
 
                     {/* Listing Type Toggle: Product vs Service */}
                     <div>

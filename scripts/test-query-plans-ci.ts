@@ -93,6 +93,7 @@ async function runCiQueryPlanCheck() {
       schemaVersion: 1,
     });
 
+    const sampleStoreId = new mongoose.Types.ObjectId().toString();
     const listingDocs = [];
     for (let i = 0; i < 200; i++) {
       listingDocs.push({
@@ -104,6 +105,7 @@ async function runCiQueryPlanCheck() {
         campus: i % 2 === 0 ? "ABU Zaria" : "University of Lagos",
         location: "Campus Hostels",
         sellerId: user._id.toString(),
+        storeId: sampleStoreId,
         listingType: i % 4 === 0 ? "service" : "product",
         condition: PRODUCT_CONDITIONS[0],
         status: "active",
@@ -116,9 +118,11 @@ async function runCiQueryPlanCheck() {
 
     const storeDocs = [];
     for (let i = 0; i < 50; i++) {
+      const slugVal = `store-${i}-${Math.random().toString(36).substring(2, 6)}`;
       storeDocs.push({
         name: `Store ${i}`,
-        slug: `store-${i}-${Math.random().toString(36).substring(2, 6)}`,
+        slug: slugVal,
+        slugLower: slugVal.toLowerCase(),
         ownerId: new mongoose.Types.ObjectId().toString(),
         campus: "ABU Zaria",
         operatingLocation: "ABU Zaria Commercial Center",
@@ -274,23 +278,23 @@ async function runCiQueryPlanCheck() {
       `Used correct unified index '${convNextPlan.indexUsed}'`
     );
 
-    // ---------------- 6. Unlinked Listings Picker Guard ----------------
-    console.log("\n--- 6. Guard: Unlinked Listings Picker Query ---");
-    const unlinkedExplain = (await ListingModel.find({
-      sellerId: user._id.toString(),
-      storeId: { $in: [null, undefined] } as any,
+    // ---------------- 6. Store Catalog Listings Query Guard ----------------
+    console.log("\n--- 6. Guard: Store Catalog Listings Query ---");
+    const storeCatalogExplain = (await ListingModel.find({
+      storeId: sampleStoreId,
       status: "active",
     })
+      .sort({ createdAt: -1, _id: -1 })
       .limit(30)
       .explain("executionStats")) as any;
-    const unlinkedStats = unlinkedExplain.executionStats;
-    const unlinkedPlan = extractPlanDetails(unlinkedStats.executionStages);
+    const storeCatalogStats = storeCatalogExplain.executionStats;
+    const storeCatalogPlan = extractPlanDetails(storeCatalogStats.executionStages);
 
-    assert(!unlinkedPlan.hasCollScan, "Unlinked listings query strictly does NOT use COLLSCAN");
+    assert(!storeCatalogPlan.hasCollScan, "Store catalog listings query strictly does NOT use COLLSCAN");
+    assert(!storeCatalogPlan.hasSortStage, "Store catalog listings query strictly does NOT use in-memory SORT");
     assert(
-      unlinkedPlan.indexUsed === "sellerId_1_storeId_1_status_1" ||
-        unlinkedPlan.indexUsed === "sellerId_1_status_1",
-      `Used seller index '${unlinkedPlan.indexUsed}'`
+      String(storeCatalogPlan.indexUsed || "").startsWith("storeId_1_status_1"),
+      `Used storeId compound index '${storeCatalogPlan.indexUsed}'`
     );
 
     // ---------------- 7. Composite Keyset Cursor Pagination Guard ----------------

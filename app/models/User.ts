@@ -33,6 +33,8 @@ export interface IUser {
   emailVerified?: boolean;
   onboardingStep?: string;
   sellerStatus?: "none" | "pending" | "approved" | "rejected";
+  storesCount?: number;
+  studentStoresCount?: number;
   profile?: IUserProfile;
   preferences?: IUserPreferences;
   suspensionReason?: string;
@@ -75,6 +77,17 @@ const UserSchema = new Schema<IUserDocument>(
       enum: ["none", "pending", "approved", "rejected"],
       default: "none",
       index: true,
+    },
+    storesCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      index: true,
+    },
+    studentStoresCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     profile: {
       displayName: { type: String },
@@ -240,6 +253,87 @@ export async function saveUserWithHandleRetry<T extends Document>(
 export const UserModel: Model<IUserDocument> =
   mongoose.models.CampusUser ||
   mongoose.model<IUserDocument>("CampusUser", UserSchema, "users");
+
+/**
+ * Formats a user's name into "First L." (First name plus last initial if present).
+ * Never exposes email, phone, handle, or full surname.
+ */
+export function formatFirstNameInitial(rawName?: string | null): string {
+  const cleaned = String(rawName || "").trim();
+  if (!cleaned) return "Campus Member";
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0];
+  }
+  const first = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return lastInitial ? `${first} ${lastInitial}.` : first;
+}
+
+/**
+ * Minimal visible identity for a buyer interacting with a seller's store (orders, conversations).
+ * Returns only id, displayName (or first name + initial), and avatar if present.
+ * Never returns email, phone, handle, campus, or verification details.
+ */
+export function formatMinimalBuyerIdentity(user: any): {
+  id: string;
+  name: string;
+  displayName: string;
+  avatar: string | null;
+} {
+  if (!user) {
+    return {
+      id: "",
+      name: "Buyer",
+      displayName: "Buyer",
+      avatar: null,
+    };
+  }
+  const id = String(user._id || user.id || "");
+  const display =
+    (typeof user.profile?.displayName === "string" && user.profile.displayName.trim()) ||
+    formatFirstNameInitial(user.name);
+  const avatar =
+    typeof user.profile?.avatar === "string" && user.profile.avatar.trim()
+      ? user.profile.avatar.trim()
+      : null;
+
+  return {
+    id,
+    name: display,
+    displayName: display,
+    avatar,
+  };
+}
+
+/**
+ * Minimal visible identity for a reviewer on a public store/listing review.
+ * Shown strictly as first name plus initial and optional verified student badge.
+ * Never exposes user ID, email, phone, handle, or full surname.
+ */
+export function formatMinimalReviewerIdentity(user: any): {
+  name: string;
+  avatar?: string;
+  isVerifiedStudent: boolean;
+} {
+  if (!user) {
+    return {
+      name: "Verified Buyer",
+      isVerifiedStudent: false,
+    };
+  }
+  const formattedName = formatFirstNameInitial(
+    user.name || user.profile?.displayName || "Verified Buyer"
+  );
+  const result: { name: string; avatar?: string; isVerifiedStudent: boolean } = {
+    name: formattedName,
+    isVerifiedStudent: Boolean(user.studentVerified),
+  };
+  if (typeof user.profile?.avatar === "string" && user.profile.avatar.trim()) {
+    result.avatar = user.profile.avatar.trim();
+  }
+  return result;
+}
 
 export const User = UserModel;
 export default UserModel;

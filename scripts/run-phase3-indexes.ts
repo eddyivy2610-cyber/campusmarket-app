@@ -14,19 +14,23 @@
 
 import mongoose from "mongoose";
 
-async function runIndexMigration() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.error("❌ MONGODB_URI environment variable is required.");
-    process.exit(1);
+export async function runIndexMigration(targetDb?: mongoose.mongo.Db) {
+  let db = targetDb;
+  let shouldDisconnect = false;
+  if (!db) {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      console.error("❌ MONGODB_URI environment variable is required.");
+      process.exit(1);
+    }
+    await mongoose.connect(uri);
+    db = mongoose.connection.db!;
+    shouldDisconnect = true;
   }
 
   console.log("==================================================================");
   console.log(" PHASE 3: PRODUCTION ESR COMPOUND INDEX MIGRATION");
   console.log("==================================================================\n");
-
-  await mongoose.connect(uri);
-  const db = mongoose.connection.db!;
 
   async function safeDropIndex(collName: string, indexName: string) {
     try {
@@ -157,6 +161,17 @@ async function runIndexMigration() {
   await safeDropIndex("stores", "status_1");
   await safeDropIndex("stores", "campus_1_status_1_category_1");
 
+  // Drop legacy unique ownerId_1 index if present before creating non-unique ownerId_1
+  try {
+    const storeIndexes = await db.collection("stores").indexes();
+    const ownerIdx = storeIndexes.find((idx) => idx.name === "ownerId_1");
+    if (ownerIdx && ownerIdx.unique) {
+      await safeDropIndex("stores", "ownerId_1");
+    }
+  } catch {
+    // ignore if collection doesn't exist yet
+  }
+
   await safeCreateIndex(
     "stores",
     { status: 1, campus: 1, "metrics.rating": -1, createdAt: -1 },
@@ -172,8 +187,10 @@ async function runIndexMigration() {
     { storeType: 1, status: 1 },
     { name: "storeType_1_status_1" }
   );
-  await safeCreateIndex("stores", { ownerId: 1 }, { name: "ownerId_1", unique: true });
+  await safeCreateIndex("stores", { ownerId: 1 }, { name: "ownerId_1" });
+  await safeCreateIndex("stores", { ownerId: 1, status: 1 }, { name: "ownerId_1_status_1" });
   await safeCreateIndex("stores", { slug: 1 }, { name: "slug_1", unique: true });
+  await safeCreateIndex("stores", { slugLower: 1 }, { name: "slugLower_1", unique: true });
 
   // --- 3. CONVERSATIONS COLLECTION (Unified across Express & Next.js) ---
   console.log("\n--- 3. Migrating Conversations Collection Indexes ---");
@@ -210,10 +227,14 @@ async function runIndexMigration() {
   console.log(" ✅ ALL PHASE 3 INDEXES APPLIED & SYNCHRONIZED SUCCESSFULLY");
   console.log("==================================================================");
 
-  await mongoose.disconnect();
+  if (shouldDisconnect) {
+    await mongoose.disconnect();
+  }
 }
 
-runIndexMigration().catch((err) => {
-  console.error("Migration failed:", err);
-  process.exit(1);
-});
+if (require.main === module) {
+  runIndexMigration().catch((err) => {
+    console.error("Migration failed:", err);
+    process.exit(1);
+  });
+}

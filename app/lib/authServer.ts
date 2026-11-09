@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import StoreModel, { IStoreDocument } from "../models/Store";
 import UserModel, { User } from "../models/User";
+import { MAX_STORES_PER_USER, MAX_STUDENT_STORES_PER_USER } from "../constants/enums";
 import dbConnect from "./dbConnect";
 import { databaseUnavailableResponse } from "./databaseErrors";
 import { verifyAuthToken, verifyRefreshToken, getRefreshTokenFromRequest, ServerAuthUser } from "./authTokens";
@@ -97,8 +98,8 @@ export async function requireAuth(req: NextRequest): Promise<{
   if (isUserDbAvailable) {
     try {
       const dbUser = mongoose.isValidObjectId(user.id)
-        ? await User.findById(user.id).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion").lean()
-        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion").lean();
+        ? await User.findById(user.id).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion storesCount").lean()
+        : await User.findOne({ email: user.email.toLowerCase() }).select("role accountStatus emailVerified isStudent studentVerified campus onboardingStep tokenVersion storesCount").lean();
       if (dbUser && dbUser.emailVerified === false) {
         return {
           user: null,
@@ -135,7 +136,13 @@ export async function requireAuth(req: NextRequest): Promise<{
         };
       }
       if (dbUser) {
-        user.role = dbUser.role as ServerAuthUser["role"];
+        if (dbUser.role === "admin") {
+          user.role = "admin";
+        } else if (typeof (dbUser as any).storesCount === "number") {
+          user.role = (dbUser as any).storesCount > 0 ? "seller" : (dbUser.role as ServerAuthUser["role"]);
+        } else {
+          user.role = dbUser.role as ServerAuthUser["role"];
+        }
         user.isStudent = Boolean(dbUser.isStudent);
         user.studentVerified = Boolean(dbUser.studentVerified);
         user.campus = dbUser.campus;
@@ -381,7 +388,7 @@ export async function requireParticipant(
 /**
  * Student-Vendor Eligibility Validator:
  * Validates based on existing student verification data and checks that
- * account does NOT already own an active or pending storefront.
+ * account has not exceeded MAX_STORES_PER_USER (3) or MAX_STUDENT_STORES_PER_USER (1).
  */
 export async function checkStudentVendorEligibility(
   user: ServerAuthUser
@@ -401,7 +408,7 @@ export async function checkStudentVendorEligibility(
     };
   }
 
-  // 2. Check if account already owns a storefront (One storefront per account)
+  // 2. Check store cap (max 3 total non-deleted stores, at most 1 student store)
   await dbConnect();
   const isStoreDbAvailable =
     typeof window === "undefined" &&
@@ -410,14 +417,27 @@ export async function checkStudentVendorEligibility(
       Object.prototype.hasOwnProperty.call(StoreModel, "findOne"));
   if (isStoreDbAvailable) {
     try {
-      const existingStore = await StoreModel.findOne({ ownerId: user.id });
-      if (existingStore) {
+      const ownedStores = await StoreModel.find({
+        ownerId: user.id,
+        status: { $ne: "deleted" },
+      });
+      if (ownedStores.length >= MAX_STORES_PER_USER) {
         return {
           eligible: false,
           status: 409,
-          reason:
-            "Account already owns a storefront. Each Campus Hive account is limited to one storefront.",
-          existingStore,
+          reason: `Store limit reached. Each account can own a maximum of ${MAX_STORES_PER_USER} stores.`,
+          existingStore: ownedStores[0] || null,
+        };
+      }
+      const existingStudentStore = ownedStores.find(
+        (s: any) => s.storeType === "student_store"
+      );
+      if (existingStudentStore) {
+        return {
+          eligible: false,
+          status: 409,
+          reason: `Student store limit reached. Each account can own at most ${MAX_STUDENT_STORES_PER_USER} student store.`,
+          existingStore: existingStudentStore,
         };
       }
     } catch {
@@ -429,14 +449,80 @@ export async function checkStudentVendorEligibility(
 }
 
 /**
+ * Derives and synchronizes a user's seller capability and store counters
+ * from their live non-deleted stores count inside or outside a transaction.
+ */
+export async function deriveAndSyncSellerRole(
+  userId: string,
+  session?: mongoose.ClientSession
+): Promise<{
+  storesCount: number;
+  studentStoresCount: number;
+  isSeller: boolean;
+}> {
+  await dbConnect();
+  const queryOpts = session ? { session } : {};
+  const nonDeletedStores = await StoreModel.find(
+    { ownerId: userId, status: { $ne: "deleted" } },
+    null,
+    queryOpts
+  )
+    .select("storeType status")
+    .lean();
+
+  const storesCount = nonDeletedStores.length;
+  const studentStoresCount = nonDeletedStores.filter(
+    (s: any) => s.storeType === "student_store"
+  ).length;
+  const hasActiveOrApprovedStore = nonDeletedStores.some((s: any) =>
+    ["active", "paused", "suspended"].includes(s.status)
+  );
+  const isSeller = storesCount > 0;
+
+  if (mongoose.isValidObjectId(userId)) {
+    const existingUser = await User.findById(userId, null, queryOpts)
+      .select("role sellerStatus")
+      .lean();
+    if (existingUser) {
+      const nextRole =
+        existingUser.role === "admin"
+          ? "admin"
+          : isSeller
+            ? "seller"
+            : "buyer";
+      const nextSellerStatus = !isSeller
+        ? "none"
+        : hasActiveOrApprovedStore
+          ? "approved"
+          : "pending";
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            storesCount,
+            studentStoresCount,
+            role: nextRole,
+            sellerStatus: nextSellerStatus,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        queryOpts
+      );
+    }
+  }
+
+  return { storesCount, studentStoresCount, isSeller };
+}
+
+/**
  * Store Ownership & State Guard:
  * Resolves store, verifies authenticated user is the owner, and checks permitted store status.
- * STRICT SECURITY: Suspended stores cannot publish or associate new catalog items!
+ * STRICT SECURITY: Suspended, paused, removed, or deleted stores cannot publish or associate new catalog items!
  */
 export async function assertUserOwnsStore(
   userId: string,
   storeId: string,
-  options: { checkSuspended?: boolean } = { checkSuspended: true }
+  options: { checkSuspended?: boolean; requireActive?: boolean } = { checkSuspended: true }
 ): Promise<{
   ok: boolean;
   status?: number;
@@ -445,7 +531,12 @@ export async function assertUserOwnsStore(
 }> {
   await dbConnect();
 
+  if (!storeId || typeof storeId !== "string" || !storeId.trim()) {
+    return { ok: false, status: 400, error: "Valid storeId is required." };
+  }
+
   let store: any = null;
+  const cleanStoreId = storeId.trim();
   const isStoreDbAvailable =
     typeof window === "undefined" &&
     (StoreModel.db?.readyState === 1 ||
@@ -453,17 +544,28 @@ export async function assertUserOwnsStore(
       Object.prototype.hasOwnProperty.call(StoreModel, "findOne"));
   if (isStoreDbAvailable) {
     try {
-      store = await StoreModel.findById(storeId);
+      if (mongoose.isValidObjectId(cleanStoreId)) {
+        store = await StoreModel.findById(cleanStoreId);
+      }
+      if (!store) {
+        store = await StoreModel.findOne({
+          $or: [
+            { publicId: cleanStoreId },
+            { slugLower: cleanStoreId.toLowerCase() },
+            { slug: cleanStoreId.toLowerCase() },
+          ],
+        });
+      }
     } catch {
       store = null;
     }
   }
 
-  if (!store) {
+  if (!store || store.status === "deleted") {
     return { ok: false, status: 404, error: "Storefront not found." };
   }
 
-  if (store.ownerId !== userId) {
+  if (String(store.ownerId) !== String(userId)) {
     return {
       ok: false,
       status: 403,
@@ -477,6 +579,15 @@ export async function assertUserOwnsStore(
       status: 403,
       error:
         "Forbidden: This storefront is currently suspended. Suspended storefronts cannot publish or associate catalog items.",
+      store,
+    };
+  }
+
+  if (options.requireActive && store.status !== "active") {
+    return {
+      ok: false,
+      status: 403,
+      error: `Forbidden: Storefront is currently ${store.status}. Only active storefronts can publish or hold active listings.`,
       store,
     };
   }

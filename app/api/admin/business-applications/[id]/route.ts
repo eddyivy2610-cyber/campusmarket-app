@@ -2,22 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import BusinessApplicationModel from "@/models/BusinessApplication";
-import StoreModel from "@/models/Store";
+import StoreModel, { generateSlug } from "@/models/Store";
 import UserModel from "@/models/User";
+import { MAX_STORES_PER_USER } from "@/constants/enums";
 import { requireAdmin } from "@/lib/authServer";
 import { logAdminAudit } from "@/lib/adminAudit";
 import { getRequestId } from "@/lib/apiResponse";
 import { createNotification } from "@/lib/notificationService";
-
-function generateSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const randomSuffix = Math.random().toString(36).substring(2, 6);
-  return `${base || "store"}-${randomSuffix}`;
-}
+import { generateUUIDv7 } from "@/lib/uuidv7";
 
 /**
  * PATCH /api/admin/business-applications/[id]
@@ -86,6 +78,34 @@ export async function PATCH(
       let approvedApplication: any = null;
       let createdOrLinkedStore: any = null;
 
+      // Initialize storesCount on legacy/seeded user documents if missing before transaction
+      if (application.applicantId && mongoose.Types.ObjectId.isValid(application.applicantId)) {
+        const applicantDoc = await UserModel.findById(application.applicantId)
+          .select("storesCount studentStoresCount")
+          .lean();
+        if (
+          applicantDoc &&
+          (typeof (applicantDoc as any).storesCount !== "number" ||
+            typeof (applicantDoc as any).studentStoresCount !== "number")
+        ) {
+          const [liveTotal, liveStudent] = await Promise.all([
+            StoreModel.countDocuments({
+              ownerId: application.applicantId,
+              status: { $ne: "deleted" },
+            }),
+            StoreModel.countDocuments({
+              ownerId: application.applicantId,
+              status: { $ne: "deleted" },
+              storeType: "student_store",
+            }),
+          ]);
+          await UserModel.updateOne(
+            { _id: application.applicantId, storesCount: { $exists: false } },
+            { $set: { storesCount: liveTotal, studentStoresCount: liveStudent } }
+          );
+        }
+      }
+
       const runApprovalTransaction = async (session?: mongoose.ClientSession) => {
         const now = new Date().toISOString();
         const opts = session
@@ -93,6 +113,7 @@ export async function PATCH(
           : { returnDocument: "after" as const };
 
         // 1. Conditional findOneAndUpdate: Only match and update if status is 'pending_review'
+        // Provides strict idempotency without relying on a unique index on stores.ownerId
         const updatedApp = await BusinessApplicationModel.findOneAndUpdate(
           { _id: id, status: "pending_review" },
           {
@@ -119,21 +140,52 @@ export async function PATCH(
           throw conflictErr;
         }
 
-        // Check if applicant already has a store
-        const findStoreQuery = StoreModel.findOne({
-          ownerId: updatedApp.applicantId,
-        });
-        const existingStore = session
-          ? await findStoreQuery.session(session)
-          : await findStoreQuery;
+        // Check if this application was created with a specific pre-linked storeId (Unified Onboarding)
+        let linkedStore: any = null;
+        if (updatedApp.storeId && mongoose.Types.ObjectId.isValid(updatedApp.storeId)) {
+          const findStoreQuery = StoreModel.findOne({
+            _id: updatedApp.storeId,
+            ownerId: updatedApp.applicantId,
+            status: { $ne: "deleted" },
+          });
+          linkedStore = session
+            ? await findStoreQuery.session(session)
+            : await findStoreQuery;
+        }
 
         let storeToLink: any;
 
-        if (!existingStore) {
-          // Store.create([...], { session }) in the same transaction
+        if (!linkedStore) {
+          // Standalone business application: atomically enforce MAX_STORES_PER_USER cap
+          if (mongoose.Types.ObjectId.isValid(updatedApp.applicantId)) {
+            const capUpdate = await UserModel.updateOne(
+              {
+                _id: updatedApp.applicantId,
+                storesCount: { $lt: MAX_STORES_PER_USER },
+              },
+              {
+                $inc: { storesCount: 1 },
+                $set: {
+                  role: "seller",
+                  sellerStatus: "approved",
+                },
+              },
+              session ? { session } : undefined
+            );
+            if (capUpdate.modifiedCount !== 1) {
+              const conflictErr: any = new Error(
+                `Applicant has already reached the maximum of ${MAX_STORES_PER_USER} stores.`
+              );
+              conflictErr.isConflict = true;
+              throw conflictErr;
+            }
+          }
+
           const createOpts = session ? { session } : undefined;
           let targetSlug = generateSlug(updatedApp.businessName);
-          const slugExists = await StoreModel.findOne({ slug: targetSlug }).session(session || null);
+          const slugExists = await StoreModel.findOne({
+            slugLower: targetSlug,
+          }).session(session || null);
           if (slugExists) {
             targetSlug = `${targetSlug}-${Math.floor(100 + Math.random() * 900)}`;
           }
@@ -141,9 +193,11 @@ export async function PATCH(
           const [newStore] = await StoreModel.create(
             [
               {
+                publicId: generateUUIDv7(),
                 ownerId: updatedApp.applicantId,
                 name: updatedApp.businessName,
                 slug: targetSlug,
+                slugLower: targetSlug,
                 description:
                   updatedApp.notes ||
                   `${updatedApp.businessName} - Official verified business serving ${updatedApp.campus}.`,
@@ -166,6 +220,7 @@ export async function PATCH(
                   reviewsCount: 0,
                   completedDeals: 0,
                   listingsCount: 0,
+                  followersCount: 0,
                 },
                 createdAt: now,
                 updatedAt: now,
@@ -175,19 +230,19 @@ export async function PATCH(
           );
           storeToLink = newStore;
         } else {
-          // Upgrade existing store to verified status (preserving student_store vs local_business)
+          // Upgrade the specific linked store to verified status (preserving student_store vs local_business)
           const isStudentVerification =
-            existingStore.verificationType === "student" ||
-            existingStore.storeType === "student_store" ||
+            linkedStore.verificationType === "student" ||
+            linkedStore.storeType === "student_store" ||
             updatedApp.cacNumber === "Student ID Card";
-          existingStore.storeType = isStudentVerification ? "student_store" : "local_business";
-          existingStore.isVerified = true;
-          existingStore.verificationType = isStudentVerification ? "student" : "business";
-          existingStore.status = "active";
-          existingStore.businessApplicationId = updatedApp._id.toString();
-          existingStore.updatedAt = now;
-          await (session ? existingStore.save({ session }) : existingStore.save());
-          storeToLink = existingStore;
+          linkedStore.storeType = isStudentVerification ? "student_store" : "local_business";
+          linkedStore.isVerified = true;
+          linkedStore.verificationType = isStudentVerification ? "student" : "business";
+          linkedStore.status = "active";
+          linkedStore.businessApplicationId = updatedApp._id.toString();
+          linkedStore.updatedAt = now;
+          await (session ? linkedStore.save({ session }) : linkedStore.save());
+          storeToLink = linkedStore;
         }
 
         // Link storeId to application within the same transaction
@@ -199,18 +254,20 @@ export async function PATCH(
           storeToLink?.storeType === "student_store" ||
           updatedApp.cacNumber === "Student ID Card";
 
-        await UserModel.findByIdAndUpdate(
-          updatedApp.applicantId,
-          {
-            $set: {
-              role: "seller",
-              sellerStatus: "approved",
-              ...(storeToLink?.slug ? { "profile.handle": storeToLink.slug } : {}),
-              ...(isStudentApp ? { isStudent: true, studentVerified: true } : {}),
+        // Update seller capability without mutating the user's private profile handle
+        if (mongoose.Types.ObjectId.isValid(updatedApp.applicantId)) {
+          await UserModel.findByIdAndUpdate(
+            updatedApp.applicantId,
+            {
+              $set: {
+                role: "seller",
+                sellerStatus: "approved",
+                ...(isStudentApp ? { isStudent: true, studentVerified: true } : {}),
+              },
             },
-          },
-          session ? { session } : undefined
-        );
+            session ? { session } : undefined
+          );
+        }
 
         approvedApplication = updatedApp;
         createdOrLinkedStore = storeToLink;

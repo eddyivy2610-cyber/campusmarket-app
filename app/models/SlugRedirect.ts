@@ -7,7 +7,11 @@ export interface ISlugRedirect {
   entityType: SlugEntityType;
   oldSlug: string;
   targetPublicId: string;
+  targetStoreId?: string;
   canonicalSlug: string;
+  previousOwnerId?: string;
+  reason?: "rename" | "deletion";
+  reservedUntil?: Date;
   createdAt: Date;
 }
 
@@ -33,9 +37,29 @@ const SlugRedirectSchema = new Schema<ISlugRedirectDocument>(
       required: true,
       index: true,
     },
+    targetStoreId: {
+      type: String,
+      required: false,
+      index: true,
+    },
     canonicalSlug: {
       type: String,
       required: true,
+    },
+    previousOwnerId: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    reason: {
+      type: String,
+      enum: ["rename", "deletion"],
+      default: "rename",
+    },
+    reservedUntil: {
+      type: Date,
+      required: false,
+      index: true,
     },
   },
   {
@@ -45,7 +69,6 @@ const SlugRedirectSchema = new Schema<ISlugRedirectDocument>(
 );
 
 SlugRedirectSchema.index({ entityType: 1, oldSlug: 1 }, { unique: true });
-SlugRedirectSchema.index({ targetPublicId: 1 });
 
 const SlugRedirectModel: Model<ISlugRedirectDocument> =
   mongoose.models.SlugRedirect ||

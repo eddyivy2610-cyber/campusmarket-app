@@ -86,6 +86,8 @@ export interface PublicStoreData {
   };
   openingHours?: string;
   responseTime?: string;
+  showOwnerName?: boolean;
+  ownerDisplayName?: string;
 }
 
 interface PublicStorefrontViewProps {
@@ -476,6 +478,7 @@ export function PublicStorefrontView({
     ? `/messages?${new URLSearchParams({
         from: "store",
         contextType: "store",
+        storeId: store._id || store.id || "",
         participantId: store.ownerId || store._id || store.id || "",
         participantName: store.name || "Store",
         participantAvatar: store.logo || "",
@@ -600,6 +603,12 @@ export function PublicStorefrontView({
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-[#8C929C]" />
                           <span>{store.openingHours}</span>
+                        </div>
+                      )}
+
+                      {store.showOwnerName && store.ownerDisplayName && (
+                        <div className="flex items-center gap-1.5">
+                          <span>Run by {store.ownerDisplayName}</span>
                         </div>
                       )}
                     </div>
@@ -909,6 +918,7 @@ export function PublicStorefrontView({
                     from: "store_listing",
                     contextType: "service",
                     contextId: itemId,
+                    storeId: store._id || store.id || "",
                     title: item.title,
                     price: itemPriceFormatted,
                     numericPrice: item.price ? String(item.price) : "",

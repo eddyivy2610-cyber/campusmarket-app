@@ -254,13 +254,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                                 <div className="w-px h-5 bg-border/60 mx-0.5" />
 
-                                <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-secondary transition-colors group text-left">
-                                    <div className="bg-secondary p-1 rounded-md group-hover:bg-primary/10 transition-colors">
-                                        <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-primary/80 to-primary/40 text-black flex items-center justify-center text-[9px] font-black relative overflow-hidden">
-                                            {user?.avatar || user?.image ? (
+                                <button 
+                                    onClick={() => router.push("/dashboard/settings")}
+                                    className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-secondary transition-colors group text-left"
+                                    title="View Profile & Settings"
+                                >
+                                    <div className="bg-secondary p-0.5 rounded-full group-hover:bg-primary/20 transition-colors">
+                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-primary/80 to-primary/40 text-black flex items-center justify-center text-[11px] font-black relative overflow-hidden border border-border/50 shrink-0">
+                                            {user && (user.avatar || user.image || (user as any)?.profile?.avatar) ? (
                                                 <OptimizedImage
-                                                    src={user.avatar || user.image || ""}
-                                                    alt={user.name}
+                                                    src={user.avatar || user.image || (user as any)?.profile?.avatar || ""}
+                                                    alt={user.name || "User"}
                                                     fill
                                                     className="object-cover"
                                                 />

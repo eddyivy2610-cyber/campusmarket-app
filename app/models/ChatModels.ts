@@ -52,6 +52,7 @@ export interface ChatParticipantProfile {
 export interface ConversationContextRef {
   contextType: ContextEntityType;
   contextId: string;
+  storeId?: string;
   label: string;
   title: string;
   priceFormatted: string;
@@ -91,6 +92,7 @@ export interface StructuredOfferDTO {
 export interface TrackedDealDTO {
   id: string;
   conversationId: string;
+  storeId?: string;
   contextType?: ContextEntityType;
   contextId?: string;
   resourceTitle: string;
@@ -117,6 +119,7 @@ export interface DealReviewDTO {
   id: string;
   dealId: string;
   conversationId: string;
+  storeId?: string;
   reviewerId: string;
   reviewerName: string;
   revieweeId: string;
@@ -145,6 +148,7 @@ export interface ChatMessageDTO {
 
 export interface ConversationDTO {
   id: string;
+  storeId?: string;
   participants: ChatParticipantProfile[];
   otherParticipant: ChatParticipantProfile;
   context: ConversationContextRef | null;
@@ -199,6 +203,7 @@ const ContextRefSchema = new Schema<ConversationContextRef>(
       required: true,
     },
     contextId: { type: String, required: true },
+    storeId: { type: String, required: false },
     label: { type: String, required: true },
     title: { type: String, required: true },
     priceFormatted: { type: String, required: true },
@@ -227,6 +232,7 @@ const ContextRefSchema = new Schema<ConversationContextRef>(
 
 export interface IConversationDoc {
   conversationId: string;
+  storeId?: string;
   participantIds: string[];
   participants: any[];
   context: ConversationContextRef | null;
@@ -243,6 +249,7 @@ export interface IConversationDoc {
 const ConversationSchema = new Schema<IConversationDoc>(
   {
     conversationId: { type: String, required: false, default: () => new mongoose.Types.ObjectId().toString(), index: true },
+    storeId: { type: String, required: false, index: true },
     participantIds: { type: [String], default: [] },
     participants: { type: [Schema.Types.Mixed] as any, required: true },
     context: { type: ContextRefSchema, default: null },
@@ -352,6 +359,7 @@ const DealSchema = new Schema<TrackedDealDTO>(
   {
     id: { type: String, required: true, unique: true, index: true },
     conversationId: { type: String, required: true, index: true },
+    storeId: { type: String, required: false, index: true },
     contextType: { type: String },
     contextId: { type: String },
     resourceTitle: { type: String, required: true },
@@ -393,6 +401,7 @@ const ReviewSchema = new Schema<DealReviewDTO>({
   id: { type: String, required: true, unique: true, index: true },
   dealId: { type: String, required: true, index: true },
   conversationId: { type: String, required: true, index: true },
+  storeId: { type: String, required: false, index: true },
   reviewerId: { type: String, required: true },
   reviewerName: { type: String, required: true },
   revieweeId: { type: String, required: true },

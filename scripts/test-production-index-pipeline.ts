@@ -2,6 +2,7 @@ import { MongoMemoryReplSet } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { verifyProductionIndexes } from "./verify-production-indexes";
 import { runConversationMigration } from "./migrate-conversations-phase3";
+import { runIndexMigration } from "./run-phase3-indexes";
 
 let passed = 0;
 let failed = 0;
@@ -37,13 +38,7 @@ async function run() {
 
   // 2. Run the Phase 3 Index Migration runner
   console.log("\n--- 2. Executing Idempotent Index Migration Runner ---");
-  // Set env URI so script can run or invoke directly
-  process.env.MONGODB_URI = repl.getUri();
-  const { execSync } = await import("child_process");
-  execSync("npx tsx scripts/run-phase3-indexes.ts", {
-    env: { ...process.env, MONGODB_URI: repl.getUri() },
-    stdio: "inherit",
-  });
+  await runIndexMigration(db);
 
   // Ensure unique indexes on users collection for complete verification
   await db.collection("users").createIndex({ email: 1 }, { unique: true });
@@ -51,8 +46,10 @@ async function run() {
     { "profile.handle": 1 },
     { unique: true, partialFilterExpression: { "profile.handle": { $type: "string" } } }
   );
-  await db.collection("stores").createIndex({ ownerId: 1 }, { unique: true });
+  await db.collection("stores").createIndex({ ownerId: 1 });
+  await db.collection("stores").createIndex({ ownerId: 1, status: 1 });
   await db.collection("stores").createIndex({ slug: 1 }, { unique: true });
+  await db.collection("stores").createIndex({ slugLower: 1 }, { unique: true });
 
   // 3. Assert post-migration verification succeeds with 100% active indexes
   console.log("\n--- 3. Post-Migration Verification Asserts All Indexes Active ---");

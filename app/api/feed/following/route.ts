@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import FollowerModel from "@/models/Follower";
-import { StoreModel } from "@/models/Store";
-import { ListingModel } from "@/models/Listing";
-import UserModel from "@/models/User";
+import { StoreModel, toPublicStoreDTO } from "@/models/Store";
+import { ListingModel, toPublicListingDTO } from "@/models/Listing";
 import { requireAuth } from "@/lib/authServer";
 
 export const dynamic = "force-dynamic";
@@ -14,9 +13,9 @@ const PRIVATE_CACHE_HEADERS = {
 };
 
 /**
- * Decodes base64url cursor into { createdAt: Date, id: ObjectId }
+ * Decodes base64url cursor into { createdAt: string, id: ObjectId }
  */
-function decodeCursor(cursorStr: string): { createdAt: Date; id: Types.ObjectId } | null {
+function decodeCursor(cursorStr: string): { createdAt: string; id: Types.ObjectId } | null {
   try {
     const raw = Buffer.from(cursorStr, "base64url").toString("utf-8");
     const [timeStr, idStr] = raw.split("::");
@@ -24,7 +23,7 @@ function decodeCursor(cursorStr: string): { createdAt: Date; id: Types.ObjectId 
     const date = new Date(timeStr);
     if (isNaN(date.getTime())) return null;
     if (!Types.ObjectId.isValid(idStr)) return null;
-    return { createdAt: date, id: new Types.ObjectId(idStr) };
+    return { createdAt: date.toISOString(), id: new Types.ObjectId(idStr) };
   } catch {
     return null;
   }
@@ -32,9 +31,9 @@ function decodeCursor(cursorStr: string): { createdAt: Date; id: Types.ObjectId 
 
 /**
  * GET /api/feed/following
- * Paginated feed of active listings from followed stores and sellers.
+ * Paginated feed of active listings from followed stores.
  * Uses strict compound cursor pagination { createdAt: -1, _id: -1 }.
- * Filters out listings from suspended stores before pagination.
+ * Never exposes seller personal user fields (sellerId, sellerName, sellerHandle).
  */
 export async function GET(req: NextRequest) {
   try {
@@ -50,9 +49,12 @@ export async function GET(req: NextRequest) {
 
     const followerObjectId = new Types.ObjectId(user.id);
 
-    // 1. Fetch followed stores and users
-    const follows = await FollowerModel.find({ followerId: followerObjectId })
-      .select("followingId targetType")
+    // 1. Fetch followed stores
+    const follows = await FollowerModel.find({
+      followerId: followerObjectId,
+      targetType: "store",
+    })
+      .select("followingId")
       .lean();
 
     if (follows.length === 0) {
@@ -69,48 +71,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const followedStoreIds = follows
-      .filter((f) => f.targetType === "store")
-      .map((f) => f.followingId);
+    const followedStoreIds = follows.map((f) => f.followingId);
 
-    const followedUserIds = follows
-      .filter((f) => f.targetType === "user")
-      .map((f) => f.followingId);
+    // 2. Validate stores: only include active stores
+    const activeStores = await StoreModel.find({
+      _id: { $in: followedStoreIds },
+      status: "active",
+    }).lean();
 
-    // 2. Validate stores: only include active stores (not suspended, paused, or removed)
-    let validStoreIds: string[] = [];
-    if (followedStoreIds.length > 0) {
-      const activeStores = await StoreModel.find({
-        _id: { $in: followedStoreIds },
-        status: "active",
-      })
-        .select("_id")
-        .lean();
-      validStoreIds = activeStores.map((s) => s._id.toString());
-    }
-
-    // Also find any stores owned by followed sellers
-    let validSellerIds: string[] = [];
-    if (followedUserIds.length > 0) {
-      const activeUsers = await UserModel.find({
-        _id: { $in: followedUserIds },
-        accountStatus: { $ne: "suspended" },
-      })
-        .select("_id")
-        .lean();
-      validSellerIds = activeUsers.map((u) => u._id.toString());
-    }
-
-    // Target match conditions
-    const targetConditions: any[] = [];
-    if (validStoreIds.length > 0) {
-      targetConditions.push({ storeId: { $in: validStoreIds } });
-    }
-    if (validSellerIds.length > 0) {
-      targetConditions.push({ sellerId: { $in: validSellerIds } });
-    }
-
-    if (targetConditions.length === 0) {
+    if (activeStores.length === 0) {
       return NextResponse.json(
         {
           success: true,
@@ -124,17 +93,24 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 3. Build listing query
+    const storeMap = new Map<string, any>();
+    const validStoreIds: string[] = [];
+    for (const s of activeStores as any[]) {
+      const sid = s._id.toString();
+      validStoreIds.push(sid);
+      storeMap.set(sid, toPublicStoreDTO(s));
+    }
+
+    // 3. Build listing query using { storeId: 1, status: 1, createdAt: -1, _id: -1 } index
     const listingQuery: Record<string, any> = {
+      storeId: { $in: validStoreIds },
       status: "active",
-      $or: targetConditions,
     };
 
     if (listingType && (listingType === "product" || listingType === "service")) {
       listingQuery.listingType = listingType;
     }
 
-    // Cursor pagination keyset seek
     if (cursor) {
       const decoded = decodeCursor(cursor);
       if (!decoded) {
@@ -143,31 +119,18 @@ export async function GET(req: NextRequest) {
           { status: 400, headers: PRIVATE_CACHE_HEADERS }
         );
       }
-      listingQuery.$and = [
+      listingQuery.$or = [
+        { createdAt: { $lt: decoded.createdAt } },
         {
-          $or: [
-            { createdAt: { $lt: decoded.createdAt } },
-            {
-              createdAt: decoded.createdAt,
-              _id: { $lt: decoded.id },
-            },
-          ],
+          createdAt: decoded.createdAt,
+          _id: { $lt: decoded.id },
         },
       ];
     }
 
-    // Fetch limit + 1 to determine hasMore
     const rawListings = await ListingModel.find(listingQuery)
       .sort({ createdAt: -1, _id: -1 })
       .limit(limit + 1)
-      .populate({
-        path: "storeId",
-        select: "name slug logo campus isVerified status",
-      })
-      .populate({
-        path: "sellerId",
-        select: "name profile.displayName profile.avatar profile.handle",
-      })
       .lean();
 
     const hasMore = rawListings.length > limit;
@@ -179,35 +142,10 @@ export async function GET(req: NextRequest) {
       nextCursor = Buffer.from(`${new Date(last.createdAt).toISOString()}::${last._id.toString()}`).toString("base64url");
     }
 
-    const listings = items.map((l: any) => ({
-      _id: l._id.toString(),
-      id: l._id.toString(),
-      title: l.title,
-      price: l.price,
-      currency: l.currency || "NGN",
-      category: l.category,
-      listingType: l.listingType,
-      images: l.images,
-      location: l.location,
-      campus: l.campus,
-      status: l.status,
-      condition: l.condition,
-      sellerId: l.sellerId?._id ? l.sellerId._id.toString() : l.sellerId,
-      sellerName: l.sellerId?.profile?.displayName || l.sellerId?.name || "Campus Seller",
-      sellerHandle: l.sellerId?.profile?.handle,
-      storeId: l.storeId?._id ? l.storeId._id.toString() : l.storeId,
-      store: l.storeId?._id
-        ? {
-            _id: l.storeId._id.toString(),
-            name: l.storeId.name,
-            slug: l.storeId.slug,
-            logo: l.storeId.logo,
-            campus: l.storeId.campus,
-            isVerified: l.storeId.isVerified,
-          }
-        : null,
-      createdAt: l.createdAt,
-    }));
+    const listings = items.map((l: any) => {
+      const storeDto = storeMap.get(String(l.storeId)) || null;
+      return toPublicListingDTO(l, storeDto);
+    });
 
     return NextResponse.json(
       {

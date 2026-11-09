@@ -76,6 +76,7 @@ async function runFollowTestSuite() {
         email: "alice@campushive.edu.ng",
         role: "buyer",
         accountStatus: "active",
+        emailVerified: true,
         isStudent: true,
         studentVerified: true,
         profile: { handle: "alice_f", displayName: "Alice F" },
@@ -86,6 +87,7 @@ async function runFollowTestSuite() {
         email: "bob@campushive.edu.ng",
         role: "seller",
         accountStatus: "active",
+        emailVerified: true,
         isStudent: true,
         studentVerified: true,
         profile: { handle: "bob_m", displayName: "Bob M" },
@@ -96,6 +98,7 @@ async function runFollowTestSuite() {
         email: "sam@campushive.edu.ng",
         role: "seller",
         accountStatus: "suspended",
+        emailVerified: true,
         isStudent: false,
         studentVerified: false,
         profile: { handle: "sam_susp", displayName: "Sam Suspended" },
@@ -378,16 +381,13 @@ async function runFollowTestSuite() {
     assert.strictEqual(followStoreData.targetType, "store");
     assert.strictEqual(followStoreData.isFollowing, true);
 
-    // Check store followers list
+    // Check store followers list (now strictly private -> 403 Forbidden)
     const storeFollowersRes = await handleGetFollowers(
       makeMockRequest(`/api/follow/followers/${storeTargetId}?targetType=store`, { method: "GET" }),
       { params: Promise.resolve({ targetId: storeTargetId }) }
     );
     assert.ok(storeFollowersRes);
-    assert.strictEqual(storeFollowersRes.status, 200);
-    const storeFollowersData = await storeFollowersRes.json();
-    assert.strictEqual(storeFollowersData.total, 1);
-    assert.strictEqual(storeFollowersData.followers[0].follower.name, "Alice Follower");
+    assert.strictEqual(storeFollowersRes.status, 403, "Follower lists are strictly private and never returned publicly");
 
     // Check store follow counts
     const storeCountsRes = await handleGetCounts(
@@ -398,36 +398,38 @@ async function runFollowTestSuite() {
     assert.strictEqual(storeCountsRes.status, 200);
     const storeCountsData = await storeCountsRes.json();
     assert.strictEqual(storeCountsData.followersCount, 1);
-    console.log("  PASS: Store following and scoped follower lists work seamlessly");
+    console.log("  PASS: Store following and public follower count work seamlessly while keeping follower identities private");
 
     // -------------------------------------------------------------------------
     // TEST 7: Scoped Followers and Following Listings
     // -------------------------------------------------------------------------
     console.log("\nTEST 7: Scoped followers and following lists for users");
-    // Alice currently follows Bob (user) and Bob's store (store)
-    const aliceFollowingRes = await handleGetFollowing(
+    // Unauthenticated following list is rejected (private)
+    const unauthFollowingRes = await handleGetFollowing(
       makeMockRequest(`/api/follow/following/${aliceId}`, { method: "GET" }),
+      { params: Promise.resolve({ targetId: aliceId }) }
+    );
+    assert.strictEqual(unauthFollowingRes?.status, 401, "Following list requires authentication");
+
+    // Authenticated owner (Alice) can view her followed stores
+    const aliceFollowingRes = await handleGetFollowing(
+      makeMockRequest(`/api/follow/following/${aliceId}`, { method: "GET" }, tokenAlice),
       { params: Promise.resolve({ targetId: aliceId }) }
     );
     assert.ok(aliceFollowingRes);
     assert.strictEqual(aliceFollowingRes.status, 200);
     const aliceFollowingData = await aliceFollowingRes.json();
-    assert.strictEqual(aliceFollowingData.total, 2, "Alice must have 2 following relationships (1 user + 1 store)");
+    assert.strictEqual(aliceFollowingData.total, 1, "Alice's following list returns her 1 followed store (users are private)");
 
-    // User follower list for Bob
+    // User follower list for Bob is also strictly private (403)
     const bobFollowersRes = await handleGetFollowers(
       makeMockRequest(`/api/follow/followers/${bobId}?targetType=user`, { method: "GET" }),
       { params: Promise.resolve({ targetId: bobId }) }
     );
     assert.ok(bobFollowersRes);
-    assert.strictEqual(bobFollowersRes.status, 200);
-    const bobFollowersData = await bobFollowersRes.json();
-    assert.strictEqual(bobFollowersData.total, 1);
-    assert.strictEqual(bobFollowersData.followers[0].follower.name, "Alice Follower");
-    assert.strictEqual(bobFollowersData.followers[0].follower.email, undefined, "Email must NEVER be exposed in public follower listing");
-    assert.ok(bobFollowersData.followers[0].follower.profile.handle, "Public handle must be present");
-    assert.strictEqual(aliceFollowingData.following[0].target.email, undefined, "Email must NEVER be exposed in public following listing");
-    console.log("  PASS: Scoped listings accurately separate users and stores with strict privacy (zero email exposure)");
+    assert.strictEqual(bobFollowersRes.status, 403);
+    assert.strictEqual(aliceFollowingData.following[0].target.email, undefined, "Email must NEVER be exposed in following listing");
+    console.log("  PASS: Scoped listings accurately enforce private follower lists and owner-only store following list");
 
     // -------------------------------------------------------------------------
     // TEST 8: Suspended Accounts & Non-Existent Target Validation

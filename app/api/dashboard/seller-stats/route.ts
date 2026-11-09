@@ -6,7 +6,7 @@ import { ListingModel } from "@/models/Listing";
 import { OrderModel } from "@/models/Order";
 import { StoreModel } from "@/models/Store";
 import { FollowerModel } from "@/models/Follower";
-import UserModel from "@/models/User";
+import UserModel, { formatMinimalBuyerIdentity } from "@/models/User";
 import { ORDER_STATUSES, OrderStatus } from "@/constants/enums";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
  * - Requires authenticated session (HTTP 401 if missing).
  * - Enforces live account-status check (HTTP 403 if suspended/inactive).
  * - Queries session user by default. Cross-seller querying strictly requires admin role.
+ * - Optional ?storeId= parameter scopes stats to a single store owned by targetSellerId.
  * - Enforces Cache-Control: private, no-store.
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const { searchParams } = new URL(req.url);
     const requestedSellerId = searchParams.get("sellerId");
+    const requestedStoreId = searchParams.get("storeId")?.trim() || null;
 
     let targetSellerId = user.id;
 
@@ -57,9 +59,42 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       targetSellerId = requestedSellerId;
     }
 
-    // 3. Listings Aggregation (single pipeline with zero COLLSCAN)
+    // 3. Store Association & Multi-Store Ownership Verification
+    const ownedStores = await StoreModel.find({
+      ownerId: targetSellerId,
+      status: { $ne: "deleted" },
+    })
+      .sort({ createdAt: 1 })
+      .lean();
+
+    let selectedStore: any = null;
+    if (requestedStoreId) {
+      selectedStore = ownedStores.find(
+        (s: any) => s._id.toString() === requestedStoreId || s.slug === requestedStoreId
+      );
+      if (!selectedStore) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Forbidden: Store not found or does not belong to this seller.",
+          },
+          { status: 403 }
+        );
+      }
+    } else if (ownedStores.length > 0) {
+      selectedStore =
+        ownedStores.find((s: any) => s.status === "active") || ownedStores[0];
+    }
+
+    const scopedStoreId = requestedStoreId && selectedStore ? selectedStore._id.toString() : null;
+    const listingMatchQuery: Record<string, any> = { sellerId: targetSellerId };
+    if (scopedStoreId) {
+      listingMatchQuery.storeId = scopedStoreId;
+    }
+
+    // 4. Listings Aggregation (single pipeline with zero COLLSCAN)
     const [listingSummary] = await ListingModel.aggregate([
-      { $match: { sellerId: targetSellerId } },
+      { $match: listingMatchQuery },
       {
         $group: {
           _id: null,
@@ -74,7 +109,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     ]);
 
     const categoryBreakdown = await ListingModel.aggregate([
-      { $match: { sellerId: targetSellerId } },
+      { $match: listingMatchQuery },
       { $group: { _id: "$category", count: { $sum: 1 } } },
       { $project: { category: "$_id", count: 1, _id: 0 } },
       { $sort: { count: -1 } },
@@ -89,7 +124,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       categories: categoryBreakdown,
     };
 
-    // 4. Orders Aggregation (by canonical status state machine)
+    // 5. Orders Aggregation (by canonical status state machine)
     const sellerObjectId = mongoose.isValidObjectId(targetSellerId)
       ? new mongoose.Types.ObjectId(targetSellerId)
       : targetSellerId;
@@ -97,9 +132,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       ? { $in: [targetSellerId, sellerObjectId] }
       : targetSellerId;
 
+    const orderMatchFilter: Record<string, any> = { sellerId: sellerMatchQuery };
+    if (scopedStoreId) {
+      orderMatchFilter.storeId = mongoose.isValidObjectId(scopedStoreId)
+        ? { $in: [scopedStoreId, new mongoose.Types.ObjectId(scopedStoreId)] }
+        : scopedStoreId;
+    }
+
     const orderGroups: Array<{ _id: string; count: number; totalAmount: number }> =
       await OrderModel.aggregate([
-        { $match: { sellerId: sellerMatchQuery } },
+        { $match: orderMatchFilter },
         {
           $group: {
             _id: "$status",
@@ -149,8 +191,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const cancelledOrdersCount = byStatus.cancelled;
     const disputedOrdersCount = byStatus.disputed;
 
-    // 5. Store Association & Stored Counters Reconciliation
-    const store = await StoreModel.findOne({ ownerId: targetSellerId }).lean();
+    // 6. Stored Counters Reconciliation
     let storeInfo = {
       hasStore: false,
       storeId: null as string | null,
@@ -160,22 +201,29 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       driftDetected: false,
     };
 
-    const followingIds = [targetSellerId];
+    const followingIds: string[] = scopedStoreId
+      ? [scopedStoreId]
+      : [targetSellerId, ...ownedStores.map((s: any) => s._id.toString())];
 
-    if (store) {
-      const storedCount = store.metrics?.listingsCount ?? 0;
+    if (selectedStore) {
+      const storedCount = selectedStore.metrics?.listingsCount ?? 0;
+      const selectedStoreActiveCount = scopedStoreId
+        ? listings.active
+        : await ListingModel.countDocuments({
+            storeId: selectedStore._id.toString(),
+            status: "active",
+          });
       storeInfo = {
         hasStore: true,
-        storeId: store._id.toString(),
-        storeName: store.name,
-        storeRating: store.metrics?.rating ?? 5.0,
+        storeId: selectedStore._id.toString(),
+        storeName: selectedStore.name,
+        storeRating: selectedStore.metrics?.rating ?? 5.0,
         storedListingsCount: storedCount,
-        driftDetected: storedCount !== listings.active,
+        driftDetected: storedCount !== selectedStoreActiveCount,
       };
-      followingIds.push(store._id.toString());
     }
 
-    // 6. Audience & Impressions
+    // 7. Audience & Impressions
     const followersCount = await FollowerModel.countDocuments({
       followingId: { $in: followingIds },
     });
@@ -185,25 +233,26 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       impressions: listingSummary?.totalViews ?? 0,
     };
 
-    // 7. Recent Order Activity (Bounded to 10 records, strict privacy)
+    // 8. Recent Order Activity (Bounded to 10 records, strict privacy)
     const recentOrders = await OrderModel.find(
-      { sellerId: sellerMatchQuery },
-      { orderId: 1, status: 1, totalAmount: 1, items: 1, createdAt: 1, buyerId: 1 }
+      orderMatchFilter,
+      { orderId: 1, storeId: 1, status: 1, totalAmount: 1, items: 1, createdAt: 1, buyerId: 1 }
     )
       .sort({ createdAt: -1, _id: -1 })
       .limit(10)
       .lean();
 
-    // Populate buyer display name securely without exposing email or phone numbers
+    // Populate buyer minimal identity without exposing email, phone, or full last name
     const buyerIds = Array.from(new Set(recentOrders.map((o: any) => o.buyerId).filter(Boolean)));
     const buyers = await UserModel.find(
       { _id: { $in: buyerIds } },
-      { name: 1, "profile.displayName": 1 }
+      { name: 1, "profile.displayName": 1, "profile.avatar": 1 }
     ).lean();
 
     const buyerNameMap = new Map<string, string>();
     buyers.forEach((b: any) => {
-      buyerNameMap.set(b._id.toString(), b.profile?.displayName || b.name || "Campus Buyer");
+      const minimal = formatMinimalBuyerIdentity(b);
+      buyerNameMap.set(b._id.toString(), minimal.displayName);
     });
 
     const recentActivity = recentOrders.map((o: any) => {
@@ -214,6 +263,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return {
         id: o._id.toString(),
         orderId: o.orderId,
+        storeId: o.storeId || null,
         status: o.status,
         totalAmount: o.totalAmount,
         priceFormatted: `₦${Number(o.totalAmount || 0).toLocaleString()}`,
@@ -223,15 +273,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       };
     });
 
-    // 8. Top Performing Items
-    const topItemsDocs = await ListingModel.find({ sellerId: targetSellerId })
+    // 9. Top Performing Items
+    const topItemsDocs = await ListingModel.find(listingMatchQuery)
       .sort({ views: -1, _id: -1 })
       .limit(4)
-      .select("title views price priceFormatted images category status")
+      .select("title views price priceFormatted images category status storeId")
       .lean();
 
     const topItems = topItemsDocs.map((item: any) => ({
       id: item._id.toString(),
+      storeId: item.storeId,
       title: item.title,
       views: item.views || 0,
       price: item.price,
@@ -241,10 +292,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       status: item.status,
     }));
 
+    const storesList = ownedStores.map((s: any) => ({
+      id: s._id.toString(),
+      name: s.name,
+      slug: s.slug,
+      storeType: s.storeType,
+      status: s.status,
+      rating: s.metrics?.rating ?? 5.0,
+      listingsCount: s.metrics?.listingsCount ?? 0,
+    }));
+
     const responsePayload = {
       success: true,
       data: {
         sellerId: targetSellerId,
+        scopedStoreId,
         generatedAt: new Date().toISOString(),
         listings,
         orders: {
@@ -264,6 +326,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         audience,
         store: storeInfo,
+        stores: storesList,
         recentActivity,
         topItems,
       },

@@ -518,17 +518,8 @@ export function CatalogManager({
           </p>
         </div>
 
-        {/* Action Buttons: Add existing listing close to Add listing */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={openAddExistingModal}
-            className="radius-native flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] text-[#171717] dark:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
-          >
-            <FolderPlus className="w-3.5 h-3.5 text-[#D97706]" />
-            <span>Add existing listing</span>
-          </button>
-
           <Link
             href={createListingUrl}
             className="radius-native flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[12.5px] font-extrabold shadow-xs transition-all active:scale-[0.98]"
@@ -741,16 +732,15 @@ export function CatalogManager({
               No listings matched your criteria
             </p>
             <p className="text-[12px] text-[#68707A]">
-              Try adjusting your search terms, changing type, or adding existing personal listings.
+              Try adjusting your search terms, changing type, or posting a new listing for this store.
             </p>
             <div className="pt-2 flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={openAddExistingModal}
+              <Link
+                href={createListingUrl}
                 className="radius-native px-3.5 py-1.5 rounded-xl bg-[#FFC928] text-[12px] font-bold text-[#171717] hover:bg-[#F2BD24] transition-colors cursor-pointer"
               >
-                + Add from personal listings
-              </button>
+                + Add listing
+              </Link>
               <button
                 type="button"
                 onClick={() => {
@@ -871,15 +861,6 @@ export function CatalogManager({
                       className="radius-native px-2.5 py-1 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[11.5px] font-bold text-[#171717] dark:text-white hover:border-[#171717] transition-colors cursor-pointer"
                     >
                       Edit
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setItemToUnlink(item)}
-                      title="Unlink from storefront (retains personal listing)"
-                      className="radius-native p-1.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[#5B636E] hover:text-[#D97706] hover:border-[#D97706] transition-colors cursor-pointer"
-                    >
-                      <Unlink className="w-3.5 h-3.5" />
                     </button>
 
                     <button
@@ -1026,18 +1007,6 @@ export function CatalogManager({
                               <span>Mark as Sold</span>
                             </button>
                           )}
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setItemToUnlink(item);
-                              setActiveMenuId(null);
-                            }}
-                            className="w-full px-3 py-2 text-left hover:bg-amber-50 dark:hover:bg-amber-950/30 text-amber-600 flex items-center gap-2 cursor-pointer"
-                          >
-                            <Unlink className="w-3.5 h-3.5" />
-                            <span>Unlink from store</span>
-                          </button>
 
                           <Link
                             href={`/listings/${item.id}`}
@@ -1386,20 +1355,7 @@ export function CatalogManager({
                 </select>
               </div>
 
-              <div className="pt-2 flex items-center justify-between gap-2 border-t border-[#ECEEF2] dark:border-white/10 mt-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const item = quickEditItem;
-                    setQuickEditItem(null);
-                    setItemToUnlink(item);
-                  }}
-                  className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1"
-                >
-                  <Unlink className="w-3 h-3" />
-                  <span>Unlink from store</span>
-                </button>
-
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#ECEEF2] dark:border-white/10 mt-3">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"

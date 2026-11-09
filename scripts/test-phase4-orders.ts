@@ -70,6 +70,8 @@ async function runOrdersTestSuite() {
         email: "alice@campushive.edu.ng",
         role: "buyer",
         accountStatus: "active",
+        emailVerified: true,
+        onboardingStep: "completed",
       },
       {
         _id: bobId,
@@ -77,6 +79,8 @@ async function runOrdersTestSuite() {
         email: "bob@campushive.edu.ng",
         role: "seller",
         accountStatus: "active",
+        emailVerified: true,
+        onboardingStep: "completed",
       },
       {
         _id: charlieId,
@@ -84,6 +88,8 @@ async function runOrdersTestSuite() {
         email: "charlie@campushive.edu.ng",
         role: "buyer",
         accountStatus: "active",
+        emailVerified: true,
+        onboardingStep: "completed",
       },
       {
         _id: adminId,
@@ -91,6 +97,8 @@ async function runOrdersTestSuite() {
         email: "admin@campushive.edu.ng",
         role: "admin",
         accountStatus: "active",
+        emailVerified: true,
+        onboardingStep: "completed",
       },
     ]);
 
@@ -131,8 +139,10 @@ async function runOrdersTestSuite() {
     });
 
     // 2. Seed Listings: One active, one sold/inactive
+    const bobStoreId = new mongoose.Types.ObjectId().toHexString();
     const activeListing = await ListingModel.create({
       sellerId: bobId,
+      storeId: bobStoreId,
       title: "TI-84 Plus CE Graphing Calculator",
       price: 35000,
       priceFormatted: "₦35,000",
@@ -148,6 +158,7 @@ async function runOrdersTestSuite() {
 
     const inactiveListing = await ListingModel.create({
       sellerId: bobId,
+      storeId: bobStoreId,
       title: "Draft Chemistry Lab Coat",
       price: 6000,
       priceFormatted: "₦6,000",
@@ -442,7 +453,7 @@ async function runOrdersTestSuite() {
     assert.strictEqual(sellerListRes.status, 200);
     const sellerListData = await sellerListRes.json();
     assert.ok(sellerListData.data.length >= 2, "Bob must see all orders placed on his listings");
-    assert.ok(sellerListData.data.every((o: any) => o.sellerId._id.toString() === bobId || o.sellerId.toString() === bobId));
+    assert.ok(sellerListData.data.every((o: any) => (o.sellerId?._id ? o.sellerId._id.toString() : String(o.sellerId)) === bobId));
 
     const buyerListReq = makeMockRequest("/api/orders?role=buyer", { method: "GET" }, tokenAlice);
     const buyerListRes = await handleListOrders(buyerListReq);
@@ -450,7 +461,7 @@ async function runOrdersTestSuite() {
     assert.strictEqual(buyerListRes.status, 200);
     const buyerListData = await buyerListRes.json();
     assert.ok(buyerListData.data.length >= 2, "Alice must see all orders she placed");
-    assert.ok(buyerListData.data.every((o: any) => o.buyerId._id.toString() === aliceId || o.buyerId.toString() === aliceId));
+    assert.ok(buyerListData.data.every((o: any) => (o.buyerId?._id ? o.buyerId._id.toString() : String(o.buyerId)) === aliceId));
     console.log("  PASS: Scoped queries correctly partition buyer vs seller orders");
 
     // -------------------------------------------------------------------------

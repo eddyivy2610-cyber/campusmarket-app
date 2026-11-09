@@ -13,12 +13,13 @@ import {
   ConversationModel,
 } from "../../../models/ChatModels";
 import { requireAuth, requireCompletedOnboarding, ServerAuthUser } from "../../../lib/authServer";
+import { formatFirstNameInitial } from "../../../models/User";
 import dbConnect from "../../../lib/dbConnect";
 
 function buildChatParticipantProfile(user: ServerAuthUser): ChatParticipantProfile {
   return {
     id: user.id,
-    name: user.name || "Campus Member",
+    name: formatFirstNameInitial(user.name),
     subtitle: user.campus || (user.isStudent ? "Verified Student" : "Campus Member"),
     isVerified: user.studentVerified ?? false,
     accountType: "student",
@@ -36,6 +37,7 @@ export async function GET(req: NextRequest) {
 
     const query = searchParams.get("q") || "";
     const filterParam = searchParams.get("filter") || "all";
+    const storeIdFilter = searchParams.get("storeId")?.trim() || "";
     const cursor = searchParams.get("cursor");
     const filter =
       filterParam === "unread" || filterParam === "offers"
@@ -193,6 +195,14 @@ export async function GET(req: NextRequest) {
       limit,
     });
 
+    if (storeIdFilter) {
+      result.conversations = result.conversations.filter(
+        (c: any) =>
+          String(c.storeId || c.context?.storeId || "") === storeIdFilter
+      );
+      result.total = result.conversations.length;
+    }
+
     return NextResponse.json({
       currentUser,
       ...result,
@@ -259,6 +269,7 @@ export async function POST(req: NextRequest) {
       | {
           contextType: ContextEntityType;
           contextId: string;
+          storeId?: string;
           title: string;
           priceFormatted: string;
           numericPrice?: number;
@@ -268,6 +279,8 @@ export async function POST(req: NextRequest) {
         }
       | undefined;
 
+    const topLevelStoreId = body.storeId ? String(body.storeId).trim() : undefined;
+
     if (body.context && body.context.title) {
       const cType: ContextEntityType = validContextTypes.includes(
         body.context.contextType
@@ -275,9 +288,14 @@ export async function POST(req: NextRequest) {
         ? body.context.contextType
         : "product";
 
+      const ctxStoreId = body.context.storeId
+        ? String(body.context.storeId).trim()
+        : topLevelStoreId;
+
       contextPayload = {
         contextType: cType,
         contextId: String(body.context.contextId || `ctx-${Date.now()}`),
+        storeId: ctxStoreId,
         title: String(body.context.title).slice(0, 140),
         priceFormatted: String(body.context.priceFormatted || "Negotiable").slice(
           0,
@@ -295,6 +313,7 @@ export async function POST(req: NextRequest) {
     const result = findOrCreateConversation({
       currentUser,
       targetParticipant,
+      storeId: topLevelStoreId || contextPayload?.storeId,
       context: contextPayload,
     });
 

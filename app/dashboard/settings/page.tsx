@@ -92,8 +92,16 @@ export default function SettingsPage() {
                     {activeTab === "profile" && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                              <div className="flex items-center gap-6 pb-6 border-b border-border/50">
-                                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-primary/40 flex items-center justify-center text-3xl font-bold text-black border-4 border-secondary shadow-xl">
-                                    {user?.name?.[0]?.toUpperCase() || "U"}
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-primary/40 flex items-center justify-center text-3xl font-bold text-black border-4 border-secondary shadow-xl overflow-hidden relative shrink-0">
+                                    {user && (user.avatar || user.image || (user as any)?.profile?.avatar) ? (
+                                        <img
+                                            src={user.avatar || user.image || (user as any)?.profile?.avatar || ""}
+                                            alt={user.name || "User avatar"}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        user?.name?.[0]?.toUpperCase() || "U"
+                                    )}
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold">{user?.name}</h2>

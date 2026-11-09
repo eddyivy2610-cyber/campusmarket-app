@@ -80,6 +80,8 @@ async function runSellerStatsTestSuite() {
       email: "alice@campushive.edu.ng",
       role: "seller",
       accountStatus: "active",
+      emailVerified: true,
+      onboardingStep: "completed",
       profile: { displayName: "Alice's Student Tech", handle: "alice-tech" },
       tokenVersion: 0,
       schemaVersion: 1,
@@ -90,6 +92,8 @@ async function runSellerStatsTestSuite() {
       email: "bob@campushive.edu.ng",
       role: "seller",
       accountStatus: "active",
+      emailVerified: true,
+      onboardingStep: "completed",
       profile: { displayName: "Bob Essentials", handle: "bob-essentials" },
       tokenVersion: 0,
       schemaVersion: 1,
@@ -100,6 +104,8 @@ async function runSellerStatsTestSuite() {
       email: "charlie@campushive.edu.ng",
       role: "buyer",
       accountStatus: "active",
+      emailVerified: true,
+      onboardingStep: "completed",
       profile: { displayName: "Charlie Buyer", handle: "charlie-b" },
       tokenVersion: 0,
       schemaVersion: 1,
@@ -110,6 +116,8 @@ async function runSellerStatsTestSuite() {
       email: "eve@campushive.edu.ng",
       role: "admin",
       accountStatus: "active",
+      emailVerified: true,
+      onboardingStep: "completed",
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -119,6 +127,8 @@ async function runSellerStatsTestSuite() {
       email: "dave@campushive.edu.ng",
       role: "seller",
       accountStatus: "suspended",
+      emailVerified: true,
+      onboardingStep: "completed",
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -128,6 +138,8 @@ async function runSellerStatsTestSuite() {
       email: "fresh@campushive.edu.ng",
       role: "seller",
       accountStatus: "active",
+      emailVerified: true,
+      onboardingStep: "completed",
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -227,7 +239,7 @@ async function runSellerStatsTestSuite() {
       },
       {
         sellerId: alice._id.toString(),
-        // Unlinked personal listing (no storeId)
+        storeId: aliceStore._id.toString(),
         title: "Anker 20000mAh Power Bank",
         price: 18000,
         priceFormatted: "₦18,000",
@@ -255,6 +267,7 @@ async function runSellerStatsTestSuite() {
       },
       {
         sellerId: alice._id.toString(),
+        storeId: aliceStore._id.toString(),
         title: "Thesis Document Typesetting",
         price: 5000,
         priceFormatted: "₦5,000",
@@ -268,10 +281,12 @@ async function runSellerStatsTestSuite() {
       },
     ]);
 
+    const bobStoreId = new mongoose.Types.ObjectId().toString();
     // Seed Bob Listings (isolated from Alice)
     await ListingModel.create([
       {
         sellerId: bob._id.toString(),
+        storeId: bobStoreId,
         title: "Bob's Chemistry Textbook",
         price: 3500,
         priceFormatted: "₦3,500",

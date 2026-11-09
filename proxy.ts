@@ -17,17 +17,8 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const method = request.method;
 
-  // 1. Public Identity & URL Architecture Rewrites & Canonical Redirects
-  // 1a. Rewrite /@username -> /profile/username (preserving query parameters)
-  if (pathname.startsWith("/@")) {
-    const rawUsername = pathname.slice(2);
-    const cleanUsername = decodeURIComponent(rawUsername).replace(/\/+$/, "").trim();
-    if (cleanUsername) {
-      const rewriteUrl = request.nextUrl.clone();
-      rewriteUrl.pathname = `/profile/${cleanUsername}`;
-      return NextResponse.rewrite(rewriteUrl);
-    }
-  }
+  // 1. Public Identity & URL Architecture Canonical Redirects
+  // Public user handles (/@username) and public user profiles are disabled; only stores have public URLs.
 
   // 1b. Canonical 308 Redirect for /stores/[slug] -> /store/[slug] (exclude exact /stores catalog)
   if (pathname.startsWith("/stores/") && pathname !== "/stores/") {

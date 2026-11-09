@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
-import ListingModel, { sanitizeListingInput } from "@/models/Listing";
-import StoreModel from "@/models/Store";
+import ListingModel, { sanitizeListingInput, toPublicListingDTO } from "@/models/Listing";
+import StoreModel, { toPublicStoreDTO } from "@/models/Store";
 import SlugRedirectModel from "@/models/SlugRedirect";
 import { isValidUUIDv7, deriveSlugSuffix, generateUUIDv7 } from "@/lib/uuidv7";
 import { updateSlugPreservingSuffix } from "@/lib/slugUtils";
-import { requireAuth } from "@/lib/authServer";
+import { requireAuth, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
+import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 
 /**
  * GET /api/listings/[id]
- * Fetch a single listing by ID.
+ * Fetch a single listing by ID, PublicId, or Slug.
+ * Public responses use explicit store & listing allowlists (never exposing sellerId or owner user fields).
  */
 export async function GET(
   req: NextRequest,
@@ -34,7 +36,6 @@ export async function GET(
       listing = await ListingModel.findOne({ slug: cleanId.toLowerCase() }).lean();
     }
     if (!listing) {
-      // Historical slug redirect lookup
       const redirectDoc = await SlugRedirectModel.findOne({
         entityType: { $in: ["listing", "service"] },
         oldSlug: cleanId.toLowerCase(),
@@ -55,18 +56,51 @@ export async function GET(
     if (listing.storeId && mongoose.Types.ObjectId.isValid(String(listing.storeId))) {
       store = await StoreModel.findById(listing.storeId).lean();
     }
-    if (!store && listing.sellerId) {
-      store = await StoreModel.findOne({ ownerId: String(listing.sellerId) }).lean();
+
+    const authUser = getServerAuthUser(req);
+    const isOwnerOrAdmin = Boolean(
+      authUser &&
+        (String(authUser.id) === String(listing.sellerId) ||
+          (store && String(authUser.id) === String(store.ownerId)) ||
+          authUser.role === "admin")
+    );
+
+    if (!store || store.status === "deleted") {
+      if (!isOwnerOrAdmin) {
+        return NextResponse.json(
+          { success: false, error: "Listing not found." },
+          { status: 404 }
+        );
+      }
+    } else if (store.status !== "active" && !isOwnerOrAdmin) {
+      return NextResponse.json(
+        { success: false, error: "This listing's storefront is currently unavailable." },
+        { status: 403 }
+      );
     }
 
-    return NextResponse.json({
+    if (listing.status !== "active" && !isOwnerOrAdmin) {
+      return NextResponse.json(
+        { success: false, error: "Listing not found." },
+        { status: 404 }
+      );
+    }
+
+    const publicStore = store ? toPublicStoreDTO(store) : null;
+    const dto = toPublicListingDTO(listing, publicStore);
+
+    const res = NextResponse.json({
       success: true,
       data: {
-        ...listing,
-        storeId: listing.storeId || (store ? String(store._id) : undefined),
-        store: store || null,
+        ...dto,
+        store: publicStore,
       },
     });
+
+    const isPublicQuery = listing.status === "active" && store?.status === "active";
+    const isPublic = isRequestSafeForPublicCache(req, { isPublicQuery });
+    applyCacheHeaders(res, { isPublic, sMaxAge: 60, staleWhileRevalidate: 300 });
+    return res;
   } catch (error: any) {
     console.error("[GET /api/listings/[id]] Error:", error);
     return NextResponse.json(
@@ -125,6 +159,49 @@ export async function PATCH(
     }
 
     const previousStatus = listing.status;
+    const previousStoreId = String(listing.storeId || "");
+
+    // Verify ownership of current store
+    if (previousStoreId) {
+      const currentStoreCheck = await assertUserOwnsStore(user.id, previousStoreId, {
+        checkSuspended: true,
+      });
+      if (!currentStoreCheck.ok) {
+        return NextResponse.json(
+          { success: false, error: currentStoreCheck.error },
+          { status: currentStoreCheck.status || 403 }
+        );
+      }
+    }
+
+    // Handle storeId in update payload: cannot be nulled/cleared; moving requires owning both stores
+    if (body.storeId !== undefined) {
+      if (body.storeId === null || String(body.storeId).trim() === "") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "storeId is required. Every listing must belong to an active store.",
+          },
+          { status: 400 }
+        );
+      }
+      const nextStoreIdCandidate = String(body.storeId).trim();
+      if (nextStoreIdCandidate !== previousStoreId) {
+        const targetStoreCheck = await assertUserOwnsStore(user.id, nextStoreIdCandidate, {
+          checkSuspended: true,
+          requireActive: true,
+        });
+        if (!targetStoreCheck.ok) {
+          return NextResponse.json(
+            { success: false, error: targetStoreCheck.error },
+            { status: targetStoreCheck.status || 403 }
+          );
+        }
+        listing.storeId = String(targetStoreCheck.store._id);
+        listing.sellerId = String(targetStoreCheck.store.ownerId);
+      }
+    }
+
     const sanitized = sanitizeListingInput(body);
 
     // Apply allowed updates
@@ -238,13 +315,23 @@ export async function PATCH(
     listing.updatedAt = new Date().toISOString();
     await listing.save();
 
-    // If store-linked and status changed, refresh store metrics
-    if (listing.storeId && previousStatus !== listing.status) {
+    // Refresh store metrics if status or storeId changed
+    const currentStoreId = String(listing.storeId || "");
+    const storesToRefresh = new Set<string>();
+    if (previousStatus !== listing.status && currentStoreId) {
+      storesToRefresh.add(currentStoreId);
+    }
+    if (previousStoreId && previousStoreId !== currentStoreId) {
+      storesToRefresh.add(previousStoreId);
+      if (currentStoreId) storesToRefresh.add(currentStoreId);
+    }
+
+    for (const sid of storesToRefresh) {
       const activeCount = await ListingModel.countDocuments({
-        storeId: listing.storeId,
+        storeId: sid,
         status: "active",
       });
-      await StoreModel.findByIdAndUpdate(listing.storeId, {
+      await StoreModel.findByIdAndUpdate(sid, {
         "metrics.listingsCount": activeCount,
         updatedAt: new Date().toISOString(),
       });

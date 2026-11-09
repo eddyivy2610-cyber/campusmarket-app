@@ -59,8 +59,15 @@ export const LISTING_REMOVED_BY_REASONS = [
   "seller",
   "account_ban",
   "admin",
+  "store_deletion",
 ] as const;
 export type ListingRemovedBy = (typeof LISTING_REMOVED_BY_REASONS)[number];
+
+// Store Ownership Cap Constants
+export const MAX_STORES_PER_USER = 3;
+export const MAX_STUDENT_STORES_PER_USER = 1;
+export const SLUG_RENAME_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+export const SLUG_RESERVATION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // User Account Status Enums
 export const USER_ACCOUNT_STATUSES = [
@@ -82,6 +89,7 @@ export const STORE_STATUSES = [
   "rejected",
   "suspended",
   "paused",
+  "deleted",
 ] as const;
 export type StoreStatus = (typeof STORE_STATUSES)[number];
 

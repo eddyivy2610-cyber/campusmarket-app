@@ -4,8 +4,9 @@ import dbConnect from "@/lib/dbConnect";
 import { requireAuth, getServerAuthUser } from "@/lib/authServer";
 import ReviewModel from "@/models/Review";
 import OrderModel from "@/models/Order";
-import UserModel from "@/models/User";
+import UserModel, { formatMinimalReviewerIdentity } from "@/models/User";
 import StoreModel from "@/models/Store";
+import ListingModel from "@/models/Listing";
 import { recomputeSellerRating, recomputeStoreRating } from "@/lib/reviewService";
 import { applyRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rateLimit";
 
@@ -132,31 +133,31 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const hasMore = docs.length > limit;
     const items = hasMore ? docs.slice(0, limit) : docs;
 
-    // Batch resolve reviewer display names and avatars with PII protection
+    // Batch resolve reviewer minimal visible identity (first name + initial, avatar, verified student badge)
     const reviewerIds = Array.from(
       new Set(items.map((r: any) => r.reviewerId?.toString()).filter(Boolean))
     );
 
     const reviewers = await UserModel.find(
       { _id: { $in: reviewerIds } },
-      { name: 1, "profile.displayName": 1, "profile.avatar": 1 }
+      { name: 1, studentVerified: 1, "profile.displayName": 1, "profile.avatar": 1 }
     ).lean();
 
-    const reviewerMap = new Map<string, { name: string; avatar?: string }>();
+    const reviewerMap = new Map<
+      string,
+      { name: string; avatar?: string; isVerifiedStudent: boolean }
+    >();
     reviewers.forEach((rev: any) => {
-      reviewerMap.set(rev._id.toString(), {
-        name: rev.profile?.displayName || rev.name || "Campus Buyer",
-        avatar: rev.profile?.avatar,
-      });
+      reviewerMap.set(rev._id.toString(), formatMinimalReviewerIdentity(rev));
     });
 
     const reviews = items.map((r: any) => {
       const revProfile = reviewerMap.get(r.reviewerId?.toString()) || {
         name: "Campus Buyer",
+        isVerifiedStudent: false,
       };
       return {
         id: r._id.toString(),
-        sellerId: r.sellerId?.toString(),
         storeId: r.storeId?.toString(),
         listingId: r.listingId?.toString(),
         rating: r.rating,
@@ -165,7 +166,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         createdAt: r.createdAt,
         reviewer: {
           name: revProfile.name,
-          avatar: revProfile.avatar,
+          ...(revProfile.avatar ? { avatar: revProfile.avatar } : {}),
+          isVerifiedStudent: revProfile.isVerifiedStudent,
         },
       };
     });
@@ -232,16 +234,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Abuse prevention: Enforce rate limit
-    const rateCheck = applyRateLimit(req, "review_create", RATE_LIMIT_PRESETS.REVIEWS, user.id);
-    if (!rateCheck.allowed) {
-      return rateCheck.response!;
-    }
-
     const body = await req.json();
     const { orderId, rating, comment, images } = body;
 
-    // 2. Validate input fields
+    // 2. Validate input fields before consuming write rate-limit tokens
     if (!orderId || typeof orderId !== "string") {
       return NextResponse.json(
         { success: false, error: "A valid orderId is required." },
@@ -341,6 +337,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Abuse prevention: Enforce rate limit on valid review submission attempts
+    const rateCheck = applyRateLimit(req, "review_create", RATE_LIMIT_PRESETS.REVIEWS, user.id);
+    if (!rateCheck.allowed) {
+      return rateCheck.response!;
+    }
+
+    // Resolve storeId from order or first item's listing
+    let effectiveStoreId: any = order.storeId || undefined;
+    if (!effectiveStoreId && order.items?.[0]?.listingId) {
+      const firstListing = await ListingModel.findById(order.items[0].listingId)
+        .select("storeId")
+        .lean();
+      if (firstListing?.storeId) {
+        effectiveStoreId = firstListing.storeId;
+      }
+    }
+
     // 5. Database write with atomic aggregate recomputation
     let createdReview: any;
     let mongoSession: mongoose.ClientSession | null = null;
@@ -356,7 +369,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             sellerId: order.sellerId,
             reviewerId: user.id,
             orderId: order._id,
-            storeId: order.storeId || undefined,
+            storeId: effectiveStoreId,
             listingId: order.items?.[0]?.listingId || undefined,
             rating,
             comment: trimmedComment,
@@ -373,9 +386,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       // Atomically recompute seller rating
       await recomputeSellerRating(order.sellerId.toString(), mongoSession);
 
-      // If store order, atomically recompute store rating
-      if (order.storeId) {
-        await recomputeStoreRating(order.storeId.toString(), mongoSession);
+      // Atomically recompute store rating
+      if (effectiveStoreId) {
+        await recomputeStoreRating(effectiveStoreId.toString(), mongoSession);
       }
 
       await mongoSession.commitTransaction();
@@ -484,6 +497,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         data: {
           id: createdReview._id.toString(),
           sellerId: createdReview.sellerId?.toString(),
+          storeId: createdReview.storeId?.toString(),
           orderId: createdReview.orderId?.toString(),
           rating: createdReview.rating,
           comment: createdReview.comment,

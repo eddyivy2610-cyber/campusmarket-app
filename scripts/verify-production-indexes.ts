@@ -32,7 +32,7 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
     { key: { storeId: 1, status: 1 } },
     { key: { sellerId: 1, status: 1 } },
     { key: { sellerId: 1, storeId: 1, status: 1 } },
-    { key: { status: 1, title: "text", description: "text" } },
+    { name: "status_1_title_text_description_text", key: { status: 1, title: "text", description: "text" } },
     {
       key: { slug: 1 },
       unique: true,
@@ -48,8 +48,10 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
     { key: { status: 1, campus: 1, "metrics.rating": -1, createdAt: -1 } },
     { key: { status: 1, "metrics.rating": -1, createdAt: -1 } },
     { key: { storeType: 1, status: 1 } },
-    { key: { ownerId: 1 }, unique: true },
+    { key: { ownerId: 1 } },
+    { key: { ownerId: 1, status: 1 } },
     { key: { slug: 1 }, unique: true },
+    { key: { slugLower: 1 }, unique: true },
   ],
   conversations: [
     { key: { participants: 1, status: 1, "lastMessage.time": -1, _id: -1 } },

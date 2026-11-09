@@ -166,10 +166,9 @@ function SearchContent() {
       try {
         setIsSearching(true);
         const encoded = encodeURIComponent(query.trim());
-        const [listingsRes, storesRes, profilesRes] = await Promise.all([
+        const [listingsRes, storesRes] = await Promise.all([
           fetch(`/api/listings?q=${encoded}&status=active&limit=30`),
           fetch(`/api/stores?q=${encoded}&status=active&limit=20`),
-          fetch(`/api/users/profile?q=${encoded}&limit=20`),
         ]);
 
         if (!isCancelled) {
@@ -185,12 +184,7 @@ function SearchContent() {
               setDbStores(storeJson.data.map(mapApiStoreToStorefrontItem));
             }
           }
-          if (profilesRes.ok) {
-            const profileJson = await profilesRes.json();
-            if (profileJson.success && Array.isArray(profileJson.data)) {
-              setDbProfiles(profileJson.data);
-            }
-          }
+          setDbProfiles([]);
         }
       } catch (err) {
         console.warn("[SearchPage] Live search failed:", err);

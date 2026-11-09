@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import ListingModel, {
   sanitizeListingInput,
+  toPublicListingDTO,
 } from "@/models/Listing";
 import StoreModel from "@/models/Store";
 import { requireAuth, requireCompletedOnboarding, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
@@ -11,19 +12,34 @@ import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 import {
   encodeListingCursor,
   decodeListingCursor,
-  type DecodedListingCursor,
 } from "@/lib/listingCursor";
 import { createEntityIdentity } from "@/lib/slugUtils";
 
 /**
  * GET /api/listings
- * Discovery query for marketplace listings:
- * Returns both personal and storefront active listings with category and campus filtering.
+ * Discovery query for store-owned marketplace listings.
+ * Every listing belongs to a store; unlinked listings are rejected.
+ * Public responses use toPublicListingDTO (never exposing user fields or sellerId).
  */
 export async function GET(req: NextRequest) {
   try {
     await dbConnect();
     const { searchParams } = new URL(req.url);
+
+    // Reject legacy unlinked=true queries immediately with private, no-store
+    const unlinked = searchParams.get("unlinked");
+    if (unlinked === "true") {
+      const errRes = NextResponse.json(
+        {
+          success: false,
+          error:
+            "Unlinked listings are no longer supported. Every listing must belong to a store.",
+        },
+        { status: 400 }
+      );
+      errRes.headers.set("Cache-Control", "private, no-store, must-revalidate");
+      return errRes;
+    }
 
     const category = searchParams.get("category");
     const campus = searchParams.get("campus");
@@ -39,64 +55,85 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "30", 10)));
 
     const filter: Record<string, any> = {};
+    let isOwnerContext = false;
 
     if (status && status !== "all") {
       filter.status = status;
     }
 
-    const unlinked = searchParams.get("unlinked");
-    if (unlinked === "true") {
-      // STRICT AUTHORIZATION (Critical Check A): Derive seller from auth session
+    if (sellerId) {
       const { user, errorResponse } = await requireAuth(req);
-      if (!user || errorResponse) return errorResponse;
-
-      filter.sellerId = user.id; // Server-derived, ignores any client sellerId
-      filter.storeId = { $in: [null, undefined] };
-    } else if (sellerId) {
-      if (sellerId === "me") {
-        const { user, errorResponse } = await requireAuth(req);
-        if (!user || errorResponse) return errorResponse;
-        filter.sellerId = user.id;
-      } else {
-        // Public seller profile queries only return active listings unless requester is the seller
-        const authUser = getServerAuthUser(req);
-        const isOwner = authUser && authUser.id === sellerId;
-        filter.sellerId = sellerId;
-        if (!isOwner) {
-          filter.status = "active";
+      if (!user || errorResponse) {
+        if (errorResponse) {
+          errorResponse.headers.set("Cache-Control", "private, no-store, must-revalidate");
         }
+        return errorResponse;
       }
+
+      const resolvedSellerId = sellerId === "me" ? user.id : sellerId;
+      if (resolvedSellerId !== user.id && user.role !== "admin") {
+        const forbiddenRes = NextResponse.json(
+          {
+            success: false,
+            error: "Forbidden: Public queries must filter by storeId, not sellerId.",
+          },
+          { status: 403 }
+        );
+        forbiddenRes.headers.set("Cache-Control", "private, no-store, must-revalidate");
+        return forbiddenRes;
+      }
+      filter.sellerId = resolvedSellerId;
+      isOwnerContext = true;
     }
 
     if (storeId) {
-      // If store is requested, confirm store exists and is not suspended/paused
-      const store = await StoreModel.findById(storeId).lean();
-      if (!store || store.status !== "active") {
+      let store: any = null;
+      if (mongoose.Types.ObjectId.isValid(storeId)) {
+        store = await StoreModel.findById(storeId).lean();
+      } else {
+        store = await StoreModel.findOne({
+          $or: [{ publicId: storeId }, { slugLower: storeId.toLowerCase() }],
+        }).lean();
+      }
+
+      const authUser = getServerAuthUser(req);
+      const isStoreOwner = Boolean(
+        authUser && store && (String(authUser.id) === String(store.ownerId) || authUser.role === "admin")
+      );
+      if (isStoreOwner) {
+        isOwnerContext = true;
+      }
+
+      if (!store || store.status === "deleted" || (store.status !== "active" && !isStoreOwner)) {
         return NextResponse.json({
           success: true,
           data: [],
           pagination: { page, limit, total: 0, totalPages: 0 },
         });
       }
-      filter.storeId = storeId;
-    } else if (unlinked !== "true") {
-      // In general public discovery, exclude listings from suspended, pending, or paused stores
+      filter.storeId = String(store._id);
+      if (!isStoreOwner) {
+        filter.status = "active";
+      }
+    } else if (!isOwnerContext) {
+      filter.status = "active";
+      // In general public discovery, exclude listings from non-active stores or missing storeId
       const nonActiveStores = await StoreModel.find({
-        status: { $in: ["suspended", "pending_review", "paused"] },
+        status: { $in: ["suspended", "pending_review", "paused", "rejected", "deleted"] },
       })
         .select("_id")
         .lean();
-      if (nonActiveStores.length > 0) {
-        const nonActiveIds = nonActiveStores.map((s: any) => s._id.toString());
-        filter.storeId = { $nin: nonActiveIds };
+      const excludedStoreIds: any[] = [null, ""];
+      for (const s of nonActiveStores as any[]) {
+        excludedStoreIds.push(String(s._id));
       }
+      filter.storeId = { $nin: excludedStoreIds };
     }
 
     if (listingType && (listingType === "product" || listingType === "service")) {
       filter.listingType = listingType;
     }
 
-    // Exact equality filters enabling ESR compound B-Tree index traversal
     if (category && category !== "All") {
       filter.category = category;
     }
@@ -111,7 +148,6 @@ export async function GET(req: NextRequest) {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // High performance partitioned text index search or compound cursor keyset seek
     let sort: any = { createdAt: -1, _id: -1 };
     let projection: any = null;
 
@@ -120,7 +156,6 @@ export async function GET(req: NextRequest) {
       sort = { score: { $meta: "textScore" } };
       projection = { score: { $meta: "textScore" } };
     } else if (cursor) {
-      // Compound keyset cursor (createdAt, _id) eliminating duplicate/skipped items on timestamp collision
       const decoded = decodeListingCursor(cursor);
       if (!decoded) {
         return NextResponse.json(
@@ -147,7 +182,7 @@ export async function GET(req: NextRequest) {
 
     const listings = await queryBuilder.limit(limit).lean();
 
-    // Enrich listings with Storefront display name & details so sellers appear as their storefront
+    // Enrich listings strictly by their storeId (never by ownerId)
     const storeIds = Array.from(
       new Set(
         listings
@@ -155,55 +190,22 @@ export async function GET(req: NextRequest) {
           .filter((id: any) => typeof id === "string" && mongoose.Types.ObjectId.isValid(id))
       )
     );
-    const sellerIds = Array.from(
-      new Set(
-        listings
-          .map((l: any) => l.sellerId)
-          .filter((id: any) => typeof id === "string" && id.length > 0)
-      )
-    );
 
     const stores =
-      storeIds.length > 0 || sellerIds.length > 0
-        ? await StoreModel.find({
-            $or: [
-              ...(storeIds.length > 0 ? [{ _id: { $in: storeIds } }] : []),
-              ...(sellerIds.length > 0 ? [{ ownerId: { $in: sellerIds } }] : []),
-            ],
-          })
-            .select("name slug logo category campus operatingLocation storeType isVerified metrics ownerId")
+      storeIds.length > 0
+        ? await StoreModel.find({ _id: { $in: storeIds }, status: { $ne: "deleted" } })
+            .select("name slug publicId logo category campus operatingLocation storeType isVerified verificationType metrics")
             .lean()
         : [];
 
     const storeById = new Map<string, any>();
-    const storeByOwnerId = new Map<string, any>();
     for (const s of stores as any[]) {
       storeById.set(String(s._id), s);
-      if (s.ownerId) {
-        storeByOwnerId.set(String(s.ownerId), s);
-      }
     }
 
     const enrichedListings = listings.map((l: any) => {
-      const store =
-        (l.storeId && storeById.get(String(l.storeId))) ||
-        (l.sellerId && storeByOwnerId.get(String(l.sellerId))) ||
-        null;
-      if (!store) return l;
-      return {
-        ...l,
-        storeId: l.storeId || String(store._id),
-        storeName: store.name,
-        storeSlug: store.slug,
-        storeLogo: store.logo,
-        storeCategory: store.category,
-        storeCampus: store.campus,
-        storeOperatingLocation: store.operatingLocation,
-        storeType: store.storeType,
-        storeVerified: Boolean(store.isVerified),
-        storeRating: store.metrics?.rating ?? 5.0,
-        storeReviewsCount: store.metrics?.reviewsCount ?? 0,
-      };
+      const store = l.storeId ? storeById.get(String(l.storeId)) || null : null;
+      return toPublicListingDTO(l, store);
     });
 
     const nextCursor =
@@ -226,12 +228,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Public / Private Cache-Control split: strictly private if session, unlinked, sellerId, or non-active
-    const isPublicQuery =
-      status === "active" &&
-      unlinked !== "true" &&
-      !sellerId;
-
+    const isPublicQuery = status === "active" && !sellerId && !isOwnerContext;
     const isPublic = isRequestSafeForPublicCache(req, { isPublicQuery });
     applyCacheHeaders(res, { isPublic, sMaxAge: 60, staleWhileRevalidate: 300 });
 
@@ -247,11 +244,12 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/listings
- * Create a new product or service listing:
+ * Create a new product or service listing.
  * STRICT SECURITY:
- * 1. Authenticated user identity strictly enforced as sellerId.
- * 2. If storeId provided: verifies store ownership and confirms store is not suspended.
- * 3. Strips client metrics (views, likes, isPromoted).
+ * 1. Explicit storeId is required on every listing creation.
+ * 2. Store must be owned by the authenticated user and must be status === "active".
+ * 3. Listing sellerId is strictly set to store.ownerId (=== user.id).
+ * 4. Strips client metrics (views, likes, isPromoted).
  */
 export async function POST(req: NextRequest) {
   try {
@@ -270,7 +268,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Validate required fields
+    // 1. Require storeId explicitly — no listings without a store, no implicit store selection
+    const requestedStoreId = typeof body.storeId === "string" ? body.storeId.trim() : "";
+    if (!requestedStoreId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "storeId is required. Every listing must belong to an active store you own.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 2. Verify store ownership and active state (blocks suspended, paused, pending_review, rejected, deleted stores)
+    const storeCheck = await assertUserOwnsStore(user.id, requestedStoreId, {
+      checkSuspended: true,
+      requireActive: true,
+    });
+    if (!storeCheck.ok) {
+      return NextResponse.json(
+        { success: false, error: storeCheck.error },
+        { status: storeCheck.status || 403 }
+      );
+    }
+    const linkedStore = storeCheck.store;
+
+    // 3. Validate required listing fields
     const { title, price, description, category, campus, location } = body;
     if (
       !title ||
@@ -299,11 +322,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Security validation for listing image assets
+    // 4. Security validation for listing image assets
     if (Array.isArray(body.images)) {
       for (const imgUrl of body.images) {
         if (typeof imgUrl === "string") {
-          // Strictly reject private verification documents from being attached to public listings
           if (imgUrl.includes("/authenticated/") || imgUrl.includes("campushive/private_docs")) {
             return NextResponse.json(
               {
@@ -314,7 +336,6 @@ export async function POST(req: NextRequest) {
               { status: 400 }
             );
           }
-          // Enforce structural ownership on all Cloudinary listing assets
           if (imgUrl.includes("cloudinary.com")) {
             const isOwner = verifyAssetOwnership(imgUrl, user.id, "listing_image");
             if (!isOwner) {
@@ -332,44 +353,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. If storeId provided, verify store ownership & active status; otherwise auto-link user's storefront
-    let linkedStore: any = null;
-    if (body.storeId) {
-      const storeCheck = await assertUserOwnsStore(user.id, body.storeId, {
-        checkSuspended: true,
-      });
-      if (!storeCheck.ok) {
-        return NextResponse.json(
-          { success: false, error: storeCheck.error },
-          { status: storeCheck.status || 403 }
-        );
-      }
-      linkedStore = storeCheck.store;
-    } else {
-      const userStore = await StoreModel.findOne({
-        ownerId: user.id,
-        status: { $ne: "suspended" },
-      });
-      if (userStore) {
-        linkedStore = userStore;
-      }
-    }
-
-    // 3. Sanitize inputs
+    // 5. Sanitize inputs
     const sanitized = sanitizeListingInput({
       ...body,
       categoryFields: body.categoryFields || body.specs || {},
     });
 
-    // 4. Create listing with strictly server-enforced values and unique identity
+    // 6. Create listing with strictly server-enforced storeId and sellerId === store.ownerId
     const identity = createEntityIdentity(title);
+    const canonicalStoreId = String(linkedStore._id);
     const newListing = new ListingModel({
       ...sanitized,
       publicId: identity.publicId,
       slugSuffix: identity.slugSuffix,
       slug: identity.slug,
-      sellerId: user.id, // Strictly server-enforced sellerId
-      storeId: linkedStore ? linkedStore._id.toString() : body.storeId || undefined,
+      sellerId: String(linkedStore.ownerId), // Always equal to store.ownerId (=== user.id)
+      storeId: canonicalStoreId,
       price: numericPrice,
       priceFormatted: `₦${Math.round(numericPrice).toLocaleString("en-NG")}`,
       views: 0,
@@ -398,15 +397,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. Update store catalog metrics if associated with a store
-    if (linkedStore) {
-      const activeCount = await ListingModel.countDocuments({
-        storeId: linkedStore._id.toString(),
-        status: "active",
-      });
-      linkedStore.metrics.listingsCount = activeCount;
-      await linkedStore.save();
-    }
+    // 7. Recompute store catalog metrics.listingsCount
+    const activeCount = await ListingModel.countDocuments({
+      storeId: canonicalStoreId,
+      status: "active",
+    });
+    linkedStore.metrics.listingsCount = activeCount;
+    await linkedStore.save();
 
     return NextResponse.json(
       {

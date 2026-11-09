@@ -8,22 +8,30 @@ import {
     UserCheck,
     Package,
     Flag,
-    CheckCircle,
-    FileText,
-    Settings,
+    Store,
+    ShoppingBag,
     MessageSquareWarning,
+    Award,
+    Megaphone,
+    BarChart3,
+    History,
+    Settings,
 } from "lucide-react";
 import { IconTooltip } from "../common/IconTooltip";
-
-import { MVP_FEATURE_FLAGS } from "../../config/mvpFeatures";
 
 const ADMIN_NAV_ITEMS = [
     { name: "Overview", href: "/admin", icon: LayoutDashboard },
     { name: "Business Applications", href: "/admin/business-applications", icon: UserCheck },
+    { name: "Stores", href: "/admin/stores", icon: Store },
     { name: "Listing Moderation", href: "/admin/moderation", icon: Package },
-    { name: "Stores", href: "/admin/stores", icon: CheckCircle },
     { name: "Users", href: "/admin/users", icon: Users },
+    { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+    { name: "Dispute Center", href: "/admin/dispute-center", icon: MessageSquareWarning },
     { name: "Reports", href: "/admin/reports", icon: Flag },
+    { name: "Badges & Reviews", href: "/admin/badges", icon: Award },
+    { name: "Banners", href: "/admin/banners", icon: Megaphone },
+    { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    { name: "Audit Logs", href: "/admin/logs", icon: History },
     { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -42,8 +50,8 @@ const AdminSidebar = () => {
     return (
         <>
             {/* Floating Sidebar */}
-            <aside className="w-16 hidden md:flex flex-col items-center py-4 bg-card border border-border/40 rounded-xl shadow-sm fixed top-24 left-3 md:left-6 h-[calc(100vh-8rem)] z-30">
-                <nav className="flex flex-col gap-3 flex-1">
+            <aside className="w-16 hidden md:flex flex-col items-center py-3 bg-card border border-border/40 rounded-xl shadow-sm fixed top-24 left-3 md:left-6 h-[calc(100vh-8rem)] z-30 overflow-y-auto no-scrollbar">
+                <nav className="flex flex-col gap-2 flex-1">
                     {ADMIN_NAV_ITEMS.map((item) => {
                         const active = isActiveRoute(pathname, item.href);
                         return (
@@ -69,7 +77,7 @@ const AdminSidebar = () => {
                 <div className="mx-auto w-full max-w-[560px] px-3 pb-3">
                     <div className="bg-card border border-border/50 rounded-2xl shadow-[0_-6px_24px_rgba(0,0,0,0.08)] px-2 py-2">
                         <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden no-scrollbar px-1 h-12">
-                            {ADMIN_NAV_ITEMS.map((item) => {
+                            {MOBILE_NAV_ITEMS.map((item) => {
                                 const active = isActiveRoute(pathname, item.href);
                                 return (
                                     <Link

@@ -4,9 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { Flag, Send, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../../lib/utils";
+import { apiPost } from "../../lib/apiClient";
 
 interface ReportDropdownProps {
-    reportType: "listing" | "profile";
+    reportType: "listing" | "profile" | "store" | "review" | "radar" | "user";
     targetId: string | number;
     triggerClassName?: string;
     align?: "left" | "right";
@@ -15,6 +16,7 @@ interface ReportDropdownProps {
 
 export function ReportDropdown({ reportType, targetId, triggerClassName, align = "right", children }: ReportDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [category, setCategory] = useState("misleading");
     const [reason, setReason] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -31,7 +33,6 @@ export function ReportDropdown({ reportType, targetId, triggerClassName, align =
             document.addEventListener("mousedown", handleClickOutside);
         } else {
             document.removeEventListener("mousedown", handleClickOutside);
-            // Reset states when closed
             if (!isSubmitting) {
                 setTimeout(() => {
                     setReason("");
@@ -46,16 +47,22 @@ export function ReportDropdown({ reportType, targetId, triggerClassName, align =
         if (!reason.trim()) return;
 
         setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        setIsSubmitting(false);
-        setIsSuccess(true);
-
-        // Close after a delay to show success
-        setTimeout(() => {
-            setIsOpen(false);
-        }, 2000);
+        try {
+            await apiPost("reports", {
+                targetType: reportType === "profile" ? "store" : reportType,
+                targetId: String(targetId),
+                reason: category,
+                details: reason.trim(),
+            });
+            setIsSuccess(true);
+            setTimeout(() => {
+                setIsOpen(false);
+            }, 2000);
+        } catch (err) {
+            console.error("Failed to submit report:", err);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -102,7 +109,7 @@ export function ReportDropdown({ reportType, targetId, triggerClassName, align =
                                 </div>
                             </motion.div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground flex items-center gap-2">
                                         <Flag className="w-3 h-3 text-red-500" />
@@ -116,13 +123,28 @@ export function ReportDropdown({ reportType, targetId, triggerClassName, align =
                                     </button>
                                 </div>
 
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="w-full bg-secondary/30 border border-border/40 rounded-xl px-3 py-2 text-xs font-semibold text-foreground focus:outline-none"
+                                >
+                                    <option value="misleading">Misleading Information</option>
+                                    <option value="scam">Scam / Fraud Attempt</option>
+                                    <option value="counterfeit">Counterfeit Item</option>
+                                    <option value="prohibited_item">Prohibited Item</option>
+                                    <option value="harassment">Harassment / Abuse</option>
+                                    <option value="spam">Spam</option>
+                                    <option value="other">Other</option>
+                                </select>
+
                                 <div className="space-y-2">
                                     <div className="relative">
                                         <textarea
                                             value={reason}
                                             onChange={(e) => setReason(e.target.value.slice(0, charLimit))}
                                             placeholder={`Why are you reporting this ${reportType}?`}
-                                            className="w-full bg-secondary/30 border border-border/40 rounded-xl p-3 text-xs font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 min-h-[100px] resize-none leading-relaxed"
+                                            className="w-full bg-secondary/30 border border-border/40 rounded-xl p-3 text-xs font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 min-h-[90px] resize-none leading-relaxed"
                                             disabled={isSubmitting}
                                         />
                                         <div className={cn(
@@ -149,7 +171,6 @@ export function ReportDropdown({ reportType, targetId, triggerClassName, align =
                             </div>
                         )}
 
-                        {/* Decorative background flair */}
                         <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-red-500/5 rounded-full blur-2xl pointer-events-none" />
                     </motion.div>
                 )}

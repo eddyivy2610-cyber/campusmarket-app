@@ -2,117 +2,83 @@ import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import FollowerModel from "@/models/Follower";
-import UserModel from "@/models/User";
-import StoreModel from "@/models/Store";
-import { resolveAndValidateTarget } from "@/lib/followHelpers";
+import StoreModel, { toPublicStoreDTO } from "@/models/Store";
+import { requireAuth } from "@/lib/authServer";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/follow/following/[targetId]
- * Lists users or stores followed by a specific user.
+ * Private endpoint: lists active stores followed by the authenticated user.
+ * Public enumeration of another user's following list or followed user accounts is prohibited.
  */
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ targetId: string }> }
 ) {
   try {
+    const { user, errorResponse } = await requireAuth(req);
+    if (!user || errorResponse) return errorResponse;
+
     const { targetId } = await context.params;
-    if (!targetId) {
-      return NextResponse.json({ success: false, error: "User ID is required." }, { status: 400 });
+    const cleanTargetId = (targetId || "").trim();
+
+    if (!cleanTargetId || (cleanTargetId !== "me" && String(cleanTargetId) !== String(user.id))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Forbidden: You can only view your own followed stores.",
+        },
+        {
+          status: 403,
+          headers: { "Cache-Control": "private, no-store, must-revalidate" },
+        }
+      );
     }
 
     const { searchParams } = new URL(req.url);
-    const targetTypeFilter = searchParams.get("targetType"); // "user", "store", or all
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10) || 20));
     const skip = (page - 1) * limit;
 
     await dbConnect();
 
-    // Verify user exists
-    const userTarget = await resolveAndValidateTarget(targetId, "user");
-    if (!userTarget.valid || !userTarget.targetId) {
-      return NextResponse.json(
-        { success: false, error: "User not found." },
-        { status: 404 }
-      );
-    }
-
     const query: Record<string, any> = {
-      followerId: userTarget.targetId,
+      followerId: new Types.ObjectId(user.id),
+      targetType: "store",
     };
-    if (targetTypeFilter === "user" || targetTypeFilter === "store") {
-      query.targetType = targetTypeFilter;
-    }
 
     const total = await FollowerModel.countDocuments(query);
     const records = await FollowerModel.find(query)
-      .sort({ createdAt: -1, _id: -1 }) // Deterministic tie-breaker
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    // Separate user vs store followingIds to populate efficiently
-    const userIds = records.filter((r) => r.targetType === "user").map((r) => r.followingId);
-    const storeIds = records.filter((r) => r.targetType === "store").map((r) => r.followingId);
-
-    const [users, stores] = await Promise.all([
-      userIds.length > 0
-        ? UserModel.find({ _id: { $in: userIds }, accountStatus: { $ne: "suspended" } })
-            .select("name profile.displayName profile.avatar profile.handle")
-            .lean()
-        : [],
+    const storeIds = records.map((r) => r.followingId);
+    const stores =
       storeIds.length > 0
-        ? StoreModel.find({ _id: { $in: storeIds }, status: { $ne: "suspended" } })
-            .select("name slug logo campus")
-            .lean()
-        : [],
-    ]);
+        ? await StoreModel.find({ _id: { $in: storeIds }, status: "active" }).lean()
+        : [];
 
-    const userMap = new Map(
-      users.map((u: any) => [
-        u._id.toString(),
-        {
-          _id: u._id.toString(),
-          name: u.name,
-          profile: {
-            displayName: u.profile?.displayName,
-            avatar: u.profile?.avatar,
-            handle: u.profile?.handle,
-          },
-        },
-      ])
-    );
     const storeMap = new Map(
-      stores.map((s: any) => [
-        s._id.toString(),
-        {
-          _id: s._id.toString(),
-          name: s.name,
-          slug: s.slug,
-          logo: s.logo,
-          campus: s.campus,
-        },
-      ])
+      stores.map((s: any) => [s._id.toString(), toPublicStoreDTO(s)])
     );
 
     const following = records
-      .filter((r: any) =>
-        r.targetType === "user" ? userMap.has(r.followingId.toString()) : storeMap.has(r.followingId.toString())
-      )
+      .filter((r: any) => storeMap.has(r.followingId.toString()))
       .map((r: any) => ({
         followId: r._id.toString(),
-        targetType: r.targetType,
+        targetType: "store",
         targetId: r.followingId.toString(),
-        target: r.targetType === "user" ? userMap.get(r.followingId.toString()) : storeMap.get(r.followingId.toString()),
+        target: storeMap.get(r.followingId.toString()),
         followedAt: r.createdAt,
       }));
 
     return NextResponse.json(
       {
         success: true,
-        userId: userTarget.targetId.toString(),
+        userId: user.id,
         total,
         page,
         pages: Math.ceil(total / limit),

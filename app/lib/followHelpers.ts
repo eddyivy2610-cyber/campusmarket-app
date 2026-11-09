@@ -207,23 +207,6 @@ export async function executeFollow(
           { $inc: { "businessProfile.followersCount": 1 } },
           { session: session || undefined }
         );
-
-        // Dispatch notification asynchronously without blocking transaction
-        try {
-          await createNotification({
-            recipient: targetId.toString(),
-            sender: followerObjectId.toString(),
-            type: "new_follower",
-            category: "reviews",
-            title: "New follower",
-            message: `${followerInfo?.name || "A student"} is now following you.`,
-            link: followerInfo?.handle ? `/stores/${followerInfo.handle}` : "",
-            dedupeKey: `follower:${targetId}:${followerObjectId}`,
-            session: session ? (session as any) : undefined,
-          });
-        } catch {
-          // notification dispatch failure non-fatal
-        }
       } else if (targetType === "store") {
         await StoreModel.updateOne(
           { _id: targetId },
@@ -235,6 +218,23 @@ export async function executeFollow(
       return { isFollowing: true, newlyFollowed: true };
     });
 
+    if (result.newlyFollowed && targetType === "user") {
+      try {
+        await createNotification({
+          recipient: targetId.toString(),
+          sender: followerObjectId.toString(),
+          type: "new_follower",
+          category: "reviews",
+          title: "New follower",
+          message: `${followerInfo?.name || "A student"} is now following you.`,
+          link: followerInfo?.handle ? `/stores/${followerInfo.handle}` : "",
+          dedupeKey: `follower:${targetId}:${followerObjectId}`,
+        });
+      } catch {
+        // notification dispatch failure non-fatal
+      }
+    }
+
     const followersCount = await FollowerModel.countDocuments({
       followingId: targetId,
       targetType,
@@ -242,8 +242,14 @@ export async function executeFollow(
 
     return { ...result, followersCount };
   } catch (err: any) {
-    if (err.code === 11000) {
-      // Caught outside transaction: race condition resolved by unique compound index.
+    if (
+      err?.code === 11000 ||
+      err?.code === 251 ||
+      err?.code === 112 ||
+      err?.codeName === "NoSuchTransaction" ||
+      err?.codeName === "WriteConflict"
+    ) {
+      // Caught outside transaction: race condition resolved by unique compound index or concurrent transaction winner.
       const followersCount = await FollowerModel.countDocuments({
         followingId: targetId,
         targetType,

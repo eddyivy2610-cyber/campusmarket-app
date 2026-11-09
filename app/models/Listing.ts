@@ -36,8 +36,8 @@ export interface IServiceDetails {
 
 export interface IListing {
   id: string;
-  sellerId: string; // The user ID who created the listing
-  storeId?: string; // Nullable: null for personal listing; populated if associated with a store
+  sellerId: string; // The user ID who owns the store
+  storeId: string; // Required: every listing must belong to a store
   listingType: ListingType; // "product" or "service"
   title: string;
   price: number;
@@ -80,9 +80,8 @@ const ListingSchema = new Schema<IListingDocument>(
     },
     storeId: {
       type: String,
-      required: false,
-      index: true, // Crucial for querying all catalog items belonging to a store
-      sparse: true,
+      required: true,
+      index: true, // Required: every listing belongs to a store
     },
     listingType: {
       type: String,
@@ -321,6 +320,79 @@ export function sanitizeListingInput(input: Record<string, any>) {
   }
 
   return sanitized;
+}
+
+/**
+ * Explicit allowlist serializer for public Listing responses.
+ * Never includes sellerId, user email, phone, handle, or moderationNotes.
+ * Embeds only public store summary fields if a store object is provided.
+ */
+export function toPublicListingDTO(listing: any, store?: any) {
+  if (!listing) return null;
+  const id = String(listing._id || listing.id || "");
+  const dto: Record<string, any> = {
+    _id: id,
+    id,
+    publicId: listing.publicId || id,
+    storeId: String(listing.storeId || ""),
+    listingType: listing.listingType || "product",
+    title: listing.title,
+    price: Number(listing.price ?? 0),
+    priceFormatted: listing.priceFormatted,
+    description: listing.description,
+    category: listing.category,
+    subcategory: listing.subcategory || undefined,
+    campus: listing.campus,
+    location: listing.location,
+    images: Array.isArray(listing.images) ? listing.images : [],
+    condition: listing.condition || undefined,
+    serviceDetails: listing.serviceDetails || undefined,
+    categoryFields: listing.categoryFields || {},
+    status: listing.status,
+    slug: listing.slug,
+    slugSuffix: listing.slugSuffix,
+    listingCode: listing.listingCode,
+    views: Number(listing.views ?? 0),
+    likes: Number(listing.likes ?? 0),
+    isPromoted: Boolean(listing.isPromoted),
+    createdAt: listing.createdAt,
+    updatedAt: listing.updatedAt,
+  };
+
+  if (store) {
+    dto.storeName = store.name;
+    dto.storeSlug = store.slug;
+    dto.storeLogo = store.logo || "";
+    dto.storeCategory = store.category;
+    dto.storeCampus = store.campus;
+    dto.storeOperatingLocation = store.operatingLocation;
+    dto.storeType = store.storeType;
+    dto.storeVerified = Boolean(store.isVerified);
+    dto.storeRating = Number(store.metrics?.rating ?? 5.0);
+    dto.storeReviewsCount = Number(store.metrics?.reviewsCount ?? 0);
+    dto.store = {
+      id: String(store._id || store.id || listing.storeId || ""),
+      publicId: store.publicId || String(store._id || store.id || ""),
+      name: store.name,
+      slug: store.slug,
+      logo: store.logo || "",
+      campus: store.campus,
+      storeType: store.storeType,
+      isVerified: Boolean(store.isVerified),
+      verificationType: store.verificationType,
+      metrics: store.metrics
+        ? {
+            rating: Number(store.metrics.rating ?? 5.0),
+            reviewsCount: Number(store.metrics.reviewsCount ?? 0),
+            completedDeals: Number(store.metrics.completedDeals ?? 0),
+            listingsCount: Number(store.metrics.listingsCount ?? 0),
+            followersCount: Number(store.metrics.followersCount ?? 0),
+          }
+        : undefined,
+    };
+  }
+
+  return dto;
 }
 
 export default ListingModel;

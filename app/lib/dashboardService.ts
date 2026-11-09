@@ -72,8 +72,11 @@ export const dashboardService = {
     /**
      * Fetch canonical seller dashboard statistics
      */
-    getSellerStats: async (sellerId?: string) => {
-        const query = sellerId ? `?sellerId=${encodeURIComponent(sellerId)}` : "";
+    getSellerStats: async (sellerId?: string, storeId?: string) => {
+        const params = new URLSearchParams();
+        if (sellerId) params.set("sellerId", sellerId);
+        if (storeId) params.set("storeId", storeId);
+        const query = params.toString() ? `?${params.toString()}` : "";
         return apiGet<{ success: boolean; data: SellerStatsResponse }>(`/dashboard/seller-stats${query}`);
     }
 };

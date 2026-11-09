@@ -36,6 +36,7 @@ async function run() {
     email: "private-cache-a@campushive.test",
     role: "buyer",
     accountStatus: "active",
+    emailVerified: true,
     isStudent: true,
     studentVerified: true,
   });
@@ -44,12 +45,16 @@ async function run() {
     email: "private-cache-b@campushive.test",
     role: "buyer",
     accountStatus: "active",
+    emailVerified: true,
     isStudent: true,
     studentVerified: true,
   });
+  const dummyStoreIdA = new mongoose.Types.ObjectId().toString();
+  const dummyStoreIdB = new mongoose.Types.ObjectId().toString();
   await ListingModel.create([
     {
       sellerId: privateUserA._id.toString(),
+      storeId: dummyStoreIdA,
       listingType: "product",
       title: "PRIVATE-A-ONLY",
       price: 10,
@@ -62,6 +67,7 @@ async function run() {
     },
     {
       sellerId: privateUserB._id.toString(),
+      storeId: dummyStoreIdB,
       listingType: "product",
       title: "PRIVATE-B-ONLY",
       price: 20,

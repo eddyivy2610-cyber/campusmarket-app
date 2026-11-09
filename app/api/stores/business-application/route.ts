@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import BusinessApplicationModel from "@/models/BusinessApplication";
-import StoreModel from "@/models/Store";
-import { requireAuth, requireCompletedOnboarding } from "@/lib/authServer";
+import StoreModel, {
+  generateSlug,
+  validateStoreSlugFormat,
+  generateSlugSuggestions,
+} from "@/models/Store";
+import SlugRedirectModel from "@/models/SlugRedirect";
+import { MAX_STORES_PER_USER } from "@/constants/enums";
+import { requireCompletedOnboarding } from "@/lib/authServer";
 
 /**
  * GET /api/stores/business-application
@@ -59,23 +65,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Check if user already owns an active storefront
-    const existingStore = await StoreModel.findOne({ ownerId: user.id });
-    if (existingStore) {
+    // 1. Check if user has reached the maximum store cap (MAX_STORES_PER_USER = 3)
+    const nonDeletedStoreCount = await StoreModel.countDocuments({
+      ownerId: user.id,
+      status: { $ne: "deleted" },
+    });
+    if (nonDeletedStoreCount >= MAX_STORES_PER_USER) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Your account already owns a storefront. Each Campus Hive account is limited to one storefront.",
+          error: `Store limit reached. Each Campus Hive account can own a maximum of ${MAX_STORES_PER_USER} stores.`,
         },
         { status: 409 }
       );
     }
 
-    // 2. Check if user already has an application pending review
+    // 2. Validate requested slug (or generated slug from businessName) and check 30-day reservation
+    const normalizedBizName = String(body.businessName || "").trim();
+    const rawSlugInput = body.slug ? String(body.slug).trim() : generateSlug(normalizedBizName);
+    if (rawSlugInput) {
+      const slugCheck = validateStoreSlugFormat(rawSlugInput);
+      if (!slugCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: slugCheck.error },
+          { status: 400 }
+        );
+      }
+      const candidateSlug = slugCheck.slug;
+      const existingStoreWithSlug = await StoreModel.findOne({
+        slugLower: candidateSlug,
+      }).lean();
+      const reservedRedirect = await SlugRedirectModel.findOne({
+        entityType: "store",
+        oldSlug: candidateSlug,
+      }).lean();
+      const isReserved =
+        reservedRedirect &&
+        (!reservedRedirect.reservedUntil ||
+          new Date(reservedRedirect.reservedUntil) > new Date()) &&
+        (reservedRedirect.reason === "deletion" ||
+          String(reservedRedirect.previousOwnerId || "") !== String(user.id));
+
+      if (existingStoreWithSlug || isReserved) {
+        const suggestions = await generateSlugSuggestions(candidateSlug);
+        return NextResponse.json(
+          {
+            success: false,
+            error: `The store slug "${candidateSlug}" is unavailable or reserved.`,
+            suggestions,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Check if user already has an application pending review for the same business name
     const pendingApp = await BusinessApplicationModel.findOne({
       applicantId: user.id,
       status: "pending_review",
+      ...(normalizedBizName ? { businessName: normalizedBizName } : {}),
     });
     if (pendingApp) {
       return NextResponse.json(

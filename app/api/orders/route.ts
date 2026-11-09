@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import OrderModel, { generateOrderId, saveOrderWithIdRetry, IOrderItem } from "@/models/Order";
 import ListingModel from "@/models/Listing";
+import StoreModel from "@/models/Store";
+import { formatMinimalBuyerIdentity } from "@/models/User";
 import { requireAuth } from "@/lib/authServer";
 import { normalizeOrderStatus } from "@/lib/orderPolicy";
 import { ORDER_FULFILLMENT_METHODS, ORDER_PAYMENT_METHODS } from "@/constants/enums";
@@ -27,12 +29,6 @@ export async function POST(req: NextRequest) {
   try {
     const { user, errorResponse } = await requireAuth(req);
     if (!user || errorResponse) return errorResponse;
-
-    // Rate limiting: prevent order spam
-    const rateCheck = applyRateLimit(req, "order_create", RATE_LIMIT_PRESETS.ORDERS, user.id);
-    if (!rateCheck.allowed) {
-      return rateCheck.response!;
-    }
 
     let body: any;
     try {
@@ -189,6 +185,17 @@ export async function POST(req: NextRequest) {
       }
 
       const sellerIdStr = listing.sellerId.toString();
+      const itemStoreId = listing.storeId ? listing.storeId.toString() : undefined;
+
+      if (!itemStoreId) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Listing "${listing.title}" does not belong to an active store.`,
+          },
+          { status: 400 }
+        );
+      }
 
       // Rule: Self-ordering prohibited
       if (sellerIdStr === user.id.toString()) {
@@ -198,15 +205,15 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Ensure all items in a single order belong to the same seller
+      // Ensure all items in a single order belong to the same seller and same store
       if (!detectedSellerId) {
         detectedSellerId = sellerIdStr;
-        detectedStoreId = listing.storeId ? listing.storeId.toString() : undefined;
-      } else if (detectedSellerId !== sellerIdStr) {
+        detectedStoreId = itemStoreId;
+      } else if (detectedSellerId !== sellerIdStr || detectedStoreId !== itemStoreId) {
         return NextResponse.json(
           {
             success: false,
-            error: "Multi-seller cart orders are not supported. All items must belong to the same seller.",
+            error: "Multi-store or multi-seller cart orders are not supported. All items must belong to the same store.",
           },
           { status: 400 }
         );
@@ -233,6 +240,12 @@ export async function POST(req: NextRequest) {
         { success: false, error: "No valid items could be processed for this order." },
         { status: 400 }
       );
+    }
+
+    // Rate limiting: enforce on valid order creation attempts
+    const rateCheck = applyRateLimit(req, "order_create", RATE_LIMIT_PRESETS.ORDERS, user.id);
+    if (!rateCheck.allowed) {
+      return rateCheck.response!;
     }
 
     const orderId = generateOrderId();
@@ -304,6 +317,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const roleParam = searchParams.get("role")?.toLowerCase() || "buyer";
     const statusParam = searchParams.get("status");
+    const storeIdParam = searchParams.get("storeId")?.trim();
     const limit = Math.min(Math.max(Number(searchParams.get("limit")) || 50, 1), 100);
     const page = Math.max(Number(searchParams.get("page")) || 1, 1);
     const skip = (page - 1) * limit;
@@ -320,6 +334,10 @@ export async function GET(req: NextRequest) {
       query.buyerId = user.id;
     }
 
+    if (storeIdParam && mongoose.Types.ObjectId.isValid(storeIdParam)) {
+      query.storeId = new mongoose.Types.ObjectId(storeIdParam);
+    }
+
     if (statusParam) {
       const canonicalStatus = normalizeOrderStatus(statusParam);
       if (canonicalStatus) {
@@ -328,16 +346,51 @@ export async function GET(req: NextRequest) {
     }
 
     const total = await OrderModel.countDocuments(query);
-    const orders = await OrderModel.find(query)
-      .populate("buyerId", "name email profile.displayName profile.avatar")
-      .populate("sellerId", "name email profile.displayName profile.avatar")
-      .populate("storeId", "storeName storeSlug logo")
+    const rawOrders = await OrderModel.find(query)
+      .populate("buyerId", "name profile.displayName profile.avatar")
+      .populate("storeId", "name slug logo campus")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    return NextResponse.json({
+    const orders = rawOrders.map((o: any) => {
+      const buyerMinimal = formatMinimalBuyerIdentity(o.buyerId);
+      const storeObj =
+        o.storeId && typeof o.storeId === "object" && "_id" in o.storeId
+          ? {
+              _id: String(o.storeId._id),
+              id: String(o.storeId._id),
+              name: o.storeId.name,
+              storeName: o.storeId.name,
+              slug: o.storeId.slug,
+              storeSlug: o.storeId.slug,
+              logo: o.storeId.logo || "",
+              campus: o.storeId.campus || "",
+            }
+          : null;
+
+      return {
+        ...o,
+        buyerId: {
+          _id: buyerMinimal.id,
+          id: buyerMinimal.id,
+          name: buyerMinimal.displayName,
+          displayName: buyerMinimal.displayName,
+          avatar: buyerMinimal.avatar,
+          profile: {
+            displayName: buyerMinimal.displayName,
+            avatar: buyerMinimal.avatar,
+          },
+        },
+        buyer: buyerMinimal,
+        sellerId: String(o.sellerId?._id || o.sellerId || ""),
+        storeId: storeObj ? storeObj.id : o.storeId ? String(o.storeId) : undefined,
+        store: storeObj,
+      };
+    });
+
+    const res = NextResponse.json({
       success: true,
       count: orders.length,
       total,
@@ -346,6 +399,8 @@ export async function GET(req: NextRequest) {
       data: orders,
       orders,
     });
+    res.headers.set("Cache-Control", "private, no-store, must-revalidate");
+    return res;
   } catch (error: any) {
     console.error("[GET /api/orders] Error:", error);
     return NextResponse.json(

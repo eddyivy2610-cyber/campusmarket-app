@@ -44,12 +44,14 @@ export const RATE_LIMIT_PRESETS: Record<string, RateLimitConfig> = {
   UPLOAD: { maxRequests: 30, windowMs: 60 * 1000 },
   // Write routes (POST / PATCH / DELETE): 60 per minute per client
   WRITE: { maxRequests: 60, windowMs: 60 * 1000 },
-  // Reviews creation: 10 submissions per minute per user/IP
-  REVIEWS: { maxRequests: 10, windowMs: 60 * 1000 },
+  // Reviews creation: 20 submissions per minute per user/IP
+  REVIEWS: { maxRequests: 20, windowMs: 60 * 1000 },
   // Orders creation: 15 orders per minute per user
   ORDERS: { maxRequests: 15, windowMs: 60 * 1000 },
   // Follow/unfollow toggle: 20 per minute
   FOLLOW: { maxRequests: 20, windowMs: 60 * 1000 },
+  // Store creation: 6 attempts per minute per user/IP (prevents store name cycling)
+  STORE_CREATE: { maxRequests: 6, windowMs: 60 * 1000 },
   // General API: 120 per minute
   DEFAULT: { maxRequests: 120, windowMs: 60 * 1000 },
 };
