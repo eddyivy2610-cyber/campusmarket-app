@@ -326,11 +326,8 @@ export function RebrandSettingsShell({
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      usernameCheck.status === "taken" ||
-      usernameCheck.status === "invalid" ||
-      usernameCheck.status === "checking"
-    ) {
+    if (!profileData.name.trim()) {
+      setSaveErrorMsg("Full name is required.");
       return;
     }
 
@@ -341,7 +338,6 @@ export function RebrandSettingsShell({
     const finalData: ProfileIdentityData = {
       ...profileData,
       avatar: avatarPreview || profileData.avatar,
-      username: profileData.username.replace(/^@/, "").trim().toLowerCase(),
     };
 
     try {
@@ -350,7 +346,6 @@ export function RebrandSettingsShell({
         bio: finalData.bio,
         campus: finalData.location || finalData.school,
         avatar: finalData.avatar,
-        username: finalData.username,
       });
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
       setProfileData(finalData);
@@ -486,73 +481,6 @@ export function RebrandSettingsShell({
                 />
               </div>
 
-              {/* Username Row with Real-Time Database Availability Prompt (Max 8 Alphanumeric Chars) */}
-              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
-                <label
-                  htmlFor="usernameInput"
-                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 pt-2.5"
-                >
-                  Username
-                </label>
-                <div>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13.5px] font-medium text-[#8C929C]">
-                      @
-                    </span>
-                    <input
-                      id="usernameInput"
-                      type="text"
-                      maxLength={8}
-                      value={profileData.username}
-                      onChange={(e) => {
-                        const val = e.target.value
-                          .replace(/^@/, "")
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]/g, "")
-                          .slice(0, 8);
-                        setProfileData({
-                          ...profileData,
-                          username: val,
-                        });
-                      }}
-                      placeholder="username"
-                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] pl-8 pr-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                    />
-                  </div>
-                  {/* Real-time username prompt */}
-                  <div className="mt-1 min-h-[18px]">
-                    {usernameCheck.status === "checking" && (
-                      <p className="text-[11px] text-[#8C929C] flex items-center gap-1 font-medium">
-                        <span className="w-2.5 h-2.5 border-2 border-[#8C929C] border-t-transparent rounded-full animate-spin" />
-                        <span>Checking availability...</span>
-                      </p>
-                    )}
-                    {usernameCheck.status === "available" && (
-                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>{usernameCheck.message}</span>
-                      </p>
-                    )}
-                    {usernameCheck.status === "taken" && (
-                      <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
-                        <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>{usernameCheck.message}</span>
-                      </p>
-                    )}
-                    {usernameCheck.status === "invalid" && (
-                      <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                        {usernameCheck.message}
-                      </p>
-                    )}
-                    {usernameCheck.status === "idle" && (
-                      <p className="text-[11px] text-[#8C929C] font-medium">
-                        Max 8 characters (lowercase letters &amp; numbers only).
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* Bio Row */}
               <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
                 <label
@@ -665,14 +593,7 @@ export function RebrandSettingsShell({
             <div className="flex items-center gap-3 pt-3">
               <button
                 type="submit"
-                disabled={
-                  isSaving ||
-                  usernameCheck.status === "taken" ||
-                  usernameCheck.status === "invalid" ||
-                  usernameCheck.status === "checking" ||
-                  !profileData.username ||
-                  profileData.username.length < 3
-                }
+                disabled={isSaving || !profileData.name.trim()}
                 className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? "Saving..." : "Save Changes"}

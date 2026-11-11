@@ -919,9 +919,9 @@ export default function ProfilePage() {
 
   const personalBaseProfile: ProfilePreviewData = {
     id: liveUserProfile?._id || liveUserProfile?.id || (isOwnProfile ? user?.id : "") || "my-profile",
-    handle: personalHandleValue,
+    handle: "me",
     name: personalName,
-    username: `@${personalHandleValue.replace(/^@/, "")}`,
+    username: "",
     isStudentSeller: Boolean(
       liveUserProfile?.isStudent ?? (isOwnProfile ? user?.isStudent : true)
     ),
@@ -1266,7 +1266,7 @@ export default function ProfilePage() {
                           )}
                         </div>
 
-                        {profile.username && (
+                        {isCurrentSellerView && profile.username && (
                           <span className="text-[13.5px] font-medium text-[#7A818C] dark:text-neutral-400">
                             {profile.username}
                           </span>
@@ -1375,10 +1375,6 @@ export default function ProfilePage() {
                                   dropUp ? "bottom-full mb-2" : "top-full mt-2"
                                 } left-0`}
                               >
-                                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7A818C] dark:text-neutral-400">
-                                  Switch Persona
-                                </div>
-
                                 {activeProfileMode === "store" ? (
                                   /* When Storefront is active, hide it from dropdown and show Personal Profile */
                                   <button
