@@ -747,9 +747,10 @@ export default function ProfilePage() {
     "me";
 
   const personalName =
-    liveUserProfile?.profile?.displayName ||
     liveUserProfile?.name ||
-    (isOwnProfile ? user?.name || savedOwnProfile?.name : "") ||
+    (isOwnProfile ? user?.name : "") ||
+    liveUserProfile?.profile?.displayName ||
+    savedOwnProfile?.name ||
     "Campus Student";
 
   const dynamicRatingBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
@@ -1169,9 +1170,9 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Right Block: Stats + Action Buttons */}
-                  <div className="md:w-[320px] lg:w-[360px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-3">
-                    {/* Stat Card Box: 3 stats for Sellers / Storefront mode; Student overview for personal mode */}
+                  {/* Right Block: Stats (Storefront Only) + Action Buttons */}
+                  <div className="md:w-[320px] lg:w-[360px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch justify-end gap-3">
+                    {/* Stat Card Box: Only shown when in Storefront mode / seller store */}
                     {isCurrentSellerView ? (
                       <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
                         <div className="grid grid-cols-3 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
@@ -1203,29 +1204,6 @@ export default function ProfilePage() {
                             </div>
                             <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
                               Rating
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : isOwnProfile ? (
-                      <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
-                        <div className="grid grid-cols-2 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
-                          <div className="px-1 sm:px-2">
-                            <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight flex items-center justify-center gap-1.5">
-                              <GraduationCap className="w-4 h-4 text-[#FFC928]" />
-                              <span>{profile.isStudentSeller ? "Student" : "Member"}</span>
-                            </div>
-                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                              {profile.isVerified ? "Verified Student" : "Campus Account"}
-                            </div>
-                          </div>
-                          <div className="px-1 sm:px-2">
-                            <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight flex items-center justify-center gap-1.5">
-                              <Store className="w-4 h-4 text-[#2563EB]" />
-                              <span>{userStores.length}</span>
-                            </div>
-                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
-                              {userStores.length === 1 ? "Active Store" : "Active Stores"}
                             </div>
                           </div>
                         </div>
