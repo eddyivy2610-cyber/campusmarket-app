@@ -571,7 +571,11 @@ function SearchContent() {
                   <div>
                     <Link
                       href={`/stores/${store.slug || store.id}`}
-                      className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center"
+                      className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center ${
+                        store.verificationType === "verified_student"
+                          ? "ring-2 ring-[#FFC928] ring-offset-2 dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     >
                       {store.avatar ? (
                         <img
@@ -600,10 +604,12 @@ function SearchContent() {
                           </h3>
                         </Link>
                         {store.verificationType === "verified_student" && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                            aria-label="Verified student seller"
-                          />
+                          <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
+                            <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
+                              <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                              <circle cx="10" cy="10" r="3" fill="currentColor" />
+                            </svg>
+                          </span>
                         )}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">

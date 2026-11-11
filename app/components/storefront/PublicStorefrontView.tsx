@@ -558,10 +558,20 @@ export function PublicStorefrontView({
                       <img
                         src={store.logo}
                         alt={store.name}
-                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white"
+                        className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all ${
+                          store.isVerified
+                            ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
+                            : ""
+                        }`}
                       />
                     ) : (
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-[#14161D] shadow-md bg-[#FFC928] text-[#171717] flex items-center justify-center font-black text-3xl">
+                      <div
+                        className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-[#14161D] shadow-md bg-[#FFC928] text-[#171717] flex items-center justify-center font-black text-3xl transition-all ${
+                          store.isVerified
+                            ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
+                            : ""
+                        }`}
+                      >
                         {store.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -576,10 +586,13 @@ export function PublicStorefrontView({
 
                       {store.isVerified && (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#FFC928]/20 text-[#855B00] dark:text-[#FFC928] border border-[#FFC928]/40"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFC928]/15 text-[#855B00] dark:text-[#FFC928] border border-[#FFC928]/35"
                           title="Verified campus vendor"
                         >
-                          <BadgeCheck className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928]" />
+                          <svg className="w-3.5 h-3.5 text-[#FFC928] shrink-0" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                            <circle cx="10" cy="10" r="3" fill="currentColor" />
+                          </svg>
                           <span>{isStudentSeller ? "Verified Student Seller" : "Verified Business"}</span>
                         </span>
                       )}

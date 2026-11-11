@@ -1174,7 +1174,11 @@ export default function ListingDetailPage() {
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
-                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
+                      className={`w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10 ${
+                        listing.seller.isVerified
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     />
                   </Link>
                   <div className="min-w-0">
@@ -1186,10 +1190,12 @@ export default function ListingDetailPage() {
                         {listing.seller.name}
                       </Link>
                       {listing.seller.isVerified && (
-                        <BadgeCheck
-                          className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                          aria-label="Verified student seller"
-                        />
+                        <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
+                          <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                            <circle cx="10" cy="10" r="3" fill="currentColor" />
+                          </svg>
+                        </span>
                       )}
                     </div>
 
@@ -1465,7 +1471,11 @@ export default function ListingDetailPage() {
                 <img
                   src={listing.seller.avatar}
                   alt={listing.seller.name}
-                  className="w-9 h-9 rounded-full object-cover"
+                  className={`w-9 h-9 rounded-full object-cover ${
+                    listing.seller.isVerified
+                      ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
+                      : ""
+                  }`}
                 />
                 <div>
                   <div className="flex items-center gap-1">
@@ -1473,10 +1483,12 @@ export default function ListingDetailPage() {
                       {listing.seller.name}
                     </span>
                     {listing.seller.isVerified && (
-                      <BadgeCheck
-                        className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                        aria-label="Verified student seller"
-                      />
+                      <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
+                          <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                          <circle cx="10" cy="10" r="3" fill="currentColor" />
+                        </svg>
+                      </span>
                     )}
                   </div>
                   <p className="text-[11px] text-[#68707A] dark:text-neutral-400">

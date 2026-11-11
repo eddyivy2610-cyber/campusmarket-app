@@ -1238,9 +1238,24 @@ export default function ProfilePage() {
                     {/* Avatar overlapping cover */}
                     <div className="-mt-14 sm:-mt-16 shrink-0 relative z-10">
                       {profile.avatar ? (
-                        <img src={profile.avatar} alt={profile.name} className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white" />
+                        <img
+                          src={profile.avatar}
+                          alt={profile.name}
+                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all ${
+                            isCurrentSellerView && profile.isVerified
+                              ? "ring-[3.5px] sm:ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
+                              : ""
+                          }`}
+                        />
                       ) : (
-                        <div className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10" aria-label="Profile image unavailable" />
+                        <div
+                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10 transition-all ${
+                            isCurrentSellerView && profile.isVerified
+                              ? "ring-[3.5px] sm:ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
+                              : ""
+                          }`}
+                          aria-label="Profile image unavailable"
+                        />
                       )}
                     </div>
 
@@ -1252,11 +1267,21 @@ export default function ProfilePage() {
                           <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                             {profile.name}
                           </h1>
-                          {isCurrentSellerView && profile.isStudentSeller && profile.isVerified && (
-                            <BadgeCheck
-                              className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0 translate-y-[1px]"
-                              aria-label="Verified student seller"
-                            />
+                          {isCurrentSellerView && profile.isVerified && (
+                            <span
+                              title="Hive Verified Store"
+                              className="inline-flex items-center justify-center shrink-0 translate-y-[1px]"
+                            >
+                              <svg
+                                className="w-4.5 h-4.5 text-[#FFC928]"
+                                viewBox="0 0 20 20"
+                                fill="none"
+                                aria-label="Verified store"
+                              >
+                                <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                                <circle cx="10" cy="10" r="3" fill="currentColor" />
+                              </svg>
+                            </span>
                           )}
                           {!isCurrentSellerView && profile.isVerified && (
                             <BadgeCheck
@@ -1427,17 +1452,31 @@ export default function ProfilePage() {
                                               <img
                                                 src={s.logo}
                                                 alt={s.name}
-                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                                                className={`w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
+                                                  s.isVerified ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]" : ""
+                                                }`}
                                               />
                                             ) : (
-                                              <div className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0">
+                                              <div className={`w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0 ${
+                                                s.isVerified ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]" : ""
+                                              }`}>
                                                 <Store className="w-4 h-4 text-[#171717] dark:text-white" />
                                               </div>
                                             )}
                                             <div className="min-w-0">
-                                              <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                                                {s.name}
-                                              </p>
+                                              <div className="flex items-center gap-1.5">
+                                                <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                                                  {s.name}
+                                                </p>
+                                                {s.isVerified && (
+                                                  <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
+                                                    <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
+                                                      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                                                      <circle cx="10" cy="10" r="3" fill="currentColor" />
+                                                    </svg>
+                                                  </span>
+                                                )}
+                                              </div>
                                               <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
                                                 @{s.slug} · Storefront
                                               </p>
@@ -1976,8 +2015,11 @@ export default function ProfilePage() {
                   {isSellerApproved ? (
                     <div className="py-3 first:pt-0 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-[#FFF4CC] flex items-center justify-center shrink-0">
-                          <BadgeCheck className="w-5 h-5 text-[#171717] fill-[#FFC928]" />
+                        <div className="w-9 h-9 rounded-full bg-[#FFC928]/15 border-2 border-[#FFC928] flex items-center justify-center shrink-0">
+                          <svg className="w-4.5 h-4.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
+                            <circle cx="10" cy="10" r="3" fill="currentColor" />
+                          </svg>
                         </div>
                         <div className="min-w-0">
                           <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
