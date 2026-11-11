@@ -788,7 +788,68 @@ export default function ProfilePage() {
     }
   }
 
-  const personalName = resolvedPersonalName || "Campus Student";
+  const COMMON_NAME_PREFIXES = [
+    "lucky", "john", "emmanuel", "david", "daniel", "michael", "james", "paul", "peter",
+    "joseph", "samuel", "grace", "faith", "mary", "esther", "sarah", "blessing", "mercy",
+    "peace", "joy", "chidi", "emeka", "tunde", "femi", "segun", "bisi", "kemi", "bola",
+    "amaka", "chioma", "ngozi", "ifeanyi", "chukwu", "victor", "prince", "praise", "precious",
+    "godwin", "wisdom", "sunday", "monday", "friday", "samson", "stephen", "solomon", "moses",
+    "isaac", "abraham", "joshua", "caleb", "elijah", "alex", "brian", "chris", "george",
+    "mark", "luke", "matthew", "thomas", "philip", "andrew", "simon", "anthony", "charles",
+    "henry", "edward", "william", "richard", "robert", "albert", "arthur", "benjamin", "francis",
+    "felix", "gabriel", "justice", "destiny", "miracle", "bright", "goodluck", "favour",
+    "prosper", "great", "hope", "queen", "king", "beauty", "promise", "success", "glory",
+    "jane", "anne", "rose", "ruth", "hannah", "rebecca", "rachel", "naomi", "deborah",
+    "abigail", "elizabeth", "victoria", "dorothy", "alice", "florence", "helen", "patricia",
+    "linda", "barbara", "susan", "jessica", "jennifer", "karen", "nancy", "lisa"
+  ];
+
+  const formatFullNameWithSpace = (nameStr: string): string => {
+    if (!nameStr) return "Campus Student";
+    const trimmed = nameStr.trim();
+
+    // If it already contains whitespace, ensure proper title casing
+    if (/\s+/.test(trimmed)) {
+      return trimmed
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    // If it contains delimiters (dot, underscore, dash), split into first and last name
+    if (/[._-]+/.test(trimmed)) {
+      return trimmed
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    // If it's camelCase (e.g. LuckyJohn), insert space between first and last name
+    const camelSplit = trimmed.replace(/([a-z])([A-Z])/g, "$1 $2");
+    if (camelSplit.includes(" ")) {
+      return camelSplit
+        .split(/\s+/)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    // If it's a compound single word (e.g. "luckyjohn" or "Luckyjohn"), separate into first and last name
+    const lower = trimmed.toLowerCase();
+    for (const prefix of COMMON_NAME_PREFIXES) {
+      if (lower.startsWith(prefix) && lower.length > prefix.length + 2) {
+        const first = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+        const secondRaw = lower.slice(prefix.length);
+        const second = secondRaw.charAt(0).toUpperCase() + secondRaw.slice(1);
+        return `${first} ${second}`;
+      }
+    }
+
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  };
+
+  const personalName = formatFullNameWithSpace(resolvedPersonalName);
 
   // Ensure personal bio does not inherit storefront description or category
   const storeDesc = (primaryStore?.description || "").trim().toLowerCase();
