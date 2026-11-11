@@ -18,6 +18,11 @@ import {
   ShieldCheck,
   RefreshCw,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  ExternalLink,
+  Clock,
   Lightbulb,
   MapPin,
   Check,
@@ -539,7 +544,30 @@ export default function ProfilePage() {
   const [liveProfileError, setLiveProfileError] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
+  // Profile context switch: default to "personal" user details, with switcher for "store"
+  const [activeProfileMode, setActiveProfileMode] = useState<"personal" | "store">("personal");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const dropdownButtonRef = useRef<HTMLButtonElement | null>(null);
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleDropdownOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleDropdownOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleDropdownOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     try {
@@ -705,11 +733,24 @@ export default function ProfilePage() {
     user?.id,
   ]);
 
-  const resolvedHandleValue =
-    liveUserProfile?.store?.slug ||
+  const userStores: any[] =
+    Array.isArray(liveUserProfile?.stores) && liveUserProfile.stores.length > 0
+      ? liveUserProfile.stores
+      : liveUserProfile?.store
+        ? [liveUserProfile.store]
+        : [];
+  const primaryStore = userStores[0] || null;
+
+  const personalHandleValue =
     liveUserProfile?.profile?.handle ||
     (isOwnProfile ? user?.handle || customSavedHandle : rawHandle) ||
     "me";
+
+  const personalName =
+    liveUserProfile?.profile?.displayName ||
+    liveUserProfile?.name ||
+    (isOwnProfile ? user?.name || savedOwnProfile?.name : "") ||
+    "Campus Student";
 
   const dynamicRatingBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
     stars,
@@ -719,7 +760,7 @@ export default function ProfilePage() {
   const dynamicReviewsCount =
     liveReviews.length > 0
       ? liveReviews.length
-      : (liveUserProfile?.store?.metrics?.reviewsCount ??
+      : (primaryStore?.metrics?.reviewsCount ??
          liveUserProfile?.rating?.count ??
          0);
 
@@ -732,66 +773,97 @@ export default function ProfilePage() {
           ).toFixed(1)
         )
       : Number(
-          liveUserProfile?.store?.metrics?.rating ??
+          primaryStore?.metrics?.rating ??
           liveUserProfile?.rating?.average ??
           5.0
         );
 
-  const ownBaseProfile: ProfilePreviewData = {
+  const personalBaseProfile: ProfilePreviewData = {
     id: liveUserProfile?._id || liveUserProfile?.id || (isOwnProfile ? user?.id : "") || "my-profile",
-    handle: resolvedHandleValue,
-    name:
-      liveUserProfile?.store?.name ||
-      liveUserProfile?.profile?.displayName ||
-      liveUserProfile?.name ||
-      (isOwnProfile ? user?.name || savedOwnProfile?.name : "") ||
-      "Campus Student",
-    username: `@${resolvedHandleValue.replace(/^@/, "")}`,
+    handle: personalHandleValue,
+    name: personalName,
+    username: `@${personalHandleValue.replace(/^@/, "")}`,
     isStudentSeller: Boolean(
       liveUserProfile?.isStudent ?? (isOwnProfile ? user?.isStudent : true)
     ),
     isVerified: Boolean(
-      liveUserProfile?.store?.isVerified ??
-        liveUserProfile?.studentVerified ??
+      liveUserProfile?.studentVerified ??
         (isOwnProfile ? user?.studentVerified : false)
     ),
     location:
-      liveUserProfile?.store?.operatingLocation ||
-      liveUserProfile?.store?.campus ||
       liveUserProfile?.campus ||
+      user?.campus ||
       (!user ? savedOwnProfile?.location : "") ||
       "Campus",
     bio:
-      liveUserProfile?.store?.description ||
       liveUserProfile?.profile?.bio ||
+      liveUserProfile?.bio ||
       (!user ? savedOwnProfile?.bio : "") ||
       "Campus student on Campus Hive.",
     avatar:
-      liveUserProfile?.store?.logo ||
       liveUserProfile?.profile?.avatar ||
+      liveUserProfile?.avatar ||
       (!user ? savedOwnProfile?.avatar : "") ||
       (isOwnProfile ? user?.avatar || user?.image : "") ||
       "",
     coverImage:
-      liveUserProfile?.store?.coverImage ||
       liveUserProfile?.profile?.coverImage ||
+      liveUserProfile?.coverImage ||
       (!user ? savedOwnProfile?.coverImage : "") ||
       "",
-    sales: liveUserProfile?.store?.metrics?.completedDeals ?? 0,
-    rating: dynamicRatingAvg,
-    reviewsCount: dynamicReviewsCount,
+    sales: 0,
+    rating: 5.0,
+    reviewsCount: 0,
     joined: liveUserProfile?.createdAt
       ? new Date(liveUserProfile.createdAt).toLocaleDateString("en-US", {
           month: "short",
           year: "numeric",
         })
       : "Recent",
-    followersCount: liveUserProfile?.store?.metrics?.followersCount ?? 0,
+    followersCount: 0,
+    listingsCount: liveUserListings.length,
+    listings: liveUserListings,
+    reviews: [],
+    ratingBreakdown: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: 0 })),
+  };
+
+  const storeBaseProfile: ProfilePreviewData = {
+    id: primaryStore?._id || primaryStore?.id || "my-store",
+    handle: primaryStore?.slug || "store",
+    name: primaryStore?.name || "Campus Store",
+    username: `@${(primaryStore?.slug || "store").replace(/^@/, "")}`,
+    isStudentSeller: Boolean(primaryStore?.isStudentStore ?? false),
+    isVerified: Boolean(primaryStore?.isVerified ?? false),
+    location:
+      primaryStore?.operatingLocation ||
+      primaryStore?.campus ||
+      "Campus",
+    bio:
+      primaryStore?.description ||
+      "Welcome to our campus storefront.",
+    avatar: primaryStore?.logo || "",
+    coverImage: primaryStore?.coverImage || "",
+    sales: primaryStore?.metrics?.completedDeals ?? 0,
+    rating: dynamicRatingAvg,
+    reviewsCount: dynamicReviewsCount,
+    joined: primaryStore?.createdAt
+      ? new Date(primaryStore.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+      : "Recent",
+    followersCount: primaryStore?.metrics?.followersCount ?? 0,
     listingsCount: liveUserListings.length,
     listings: liveUserListings,
     reviews: liveReviews,
     ratingBreakdown: dynamicRatingBreakdown,
   };
+
+  // By default: user's personal details. Switched to store if activeProfileMode === "store"
+  const ownBaseProfile: ProfilePreviewData =
+    activeProfileMode === "store" && primaryStore
+      ? storeBaseProfile
+      : personalBaseProfile;
 
   const baseProfile: ProfilePreviewData = isOwnProfile
     ? ownBaseProfile
@@ -818,7 +890,13 @@ export default function ProfilePage() {
       : baseProfile;
 
   useEffect(() => {
-    if (baseProfile?.followersCount) {
+    if (isOwnProfile) {
+      if (activeProfileMode === "store") {
+        setFollowersCount(primaryStore?.metrics?.followersCount ?? 0);
+      } else {
+        setFollowersCount(0);
+      }
+    } else if (baseProfile?.followersCount) {
       setFollowersCount(baseProfile.followersCount);
     }
     try {
@@ -841,7 +919,12 @@ export default function ProfilePage() {
 
     window.addEventListener("ch_privacy_update", handlePrivacySync);
     return () => window.removeEventListener("ch_privacy_update", handlePrivacySync);
-  }, [baseProfile?.followersCount]);
+  }, [
+    isOwnProfile,
+    activeProfileMode,
+    primaryStore?.metrics?.followersCount,
+    baseProfile?.followersCount,
+  ]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -856,6 +939,15 @@ export default function ProfilePage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toggleDropdown = () => {
+    if (!isDropdownOpen && dropdownButtonRef.current) {
+      const rect = dropdownButtonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropUp(spaceBelow < 280 && rect.top > 200);
+    }
+    setIsDropdownOpen((prev) => !prev);
+  };
+
   const isSellerAccount = Boolean(
     liveUserProfile?.store ||
       liveUserProfile?.storeId ||
@@ -869,11 +961,15 @@ export default function ProfilePage() {
       PUBLIC_PROFILE_DATA[rawHandle]
   );
 
+  const isCurrentSellerView = isOwnProfile
+    ? activeProfileMode === "store" && Boolean(primaryStore)
+    : isSellerAccount;
+
   const isFollowableSeller = isSellerAccount;
 
   const isSellerApproved = Boolean(
     profile.isVerified ||
-      liveUserProfile?.store?.isVerified ||
+      primaryStore?.isVerified ||
       liveUserProfile?.sellerStatus === "approved" ||
       liveUserProfile?.sellerStatus === "verified" ||
       (isOwnProfile &&
@@ -1031,23 +1127,29 @@ export default function ProfilePage() {
                           <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                             {profile.name}
                           </h1>
-                          {isSellerAccount && profile.isStudentSeller && profile.isVerified && (
+                          {isCurrentSellerView && profile.isStudentSeller && profile.isVerified && (
                             <BadgeCheck
                               className="w-5 h-5 text-[#171717] fill-[#FFC928] shrink-0 translate-y-[1px]"
                               aria-label="Verified student seller"
                             />
                           )}
+                          {!isCurrentSellerView && profile.isVerified && (
+                            <BadgeCheck
+                              className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0 translate-y-[1px]"
+                              aria-label="Verified student"
+                            />
+                          )}
                         </div>
 
-                        {isSellerAccount && (
+                        {profile.username && (
                           <span className="text-[13.5px] font-medium text-[#7A818C] dark:text-neutral-400">
                             {profile.username}
                           </span>
                         )}
                       </div>
 
-                      {/* Row 2: Bio (Only for seller accounts) */}
-                      {isSellerAccount && (
+                      {/* Row 2: Bio */}
+                      {profile.bio && (
                         <p className="text-[13px] text-[#3F454D] dark:text-neutral-300 leading-[1.55] max-w-[490px]">
                           {profile.bio}
                         </p>
@@ -1067,10 +1169,10 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Right Block: Stats (Sellers Only) + Action Buttons */}
+                  {/* Right Block: Stats + Action Buttons */}
                   <div className="md:w-[320px] lg:w-[360px] shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[#ECEEF2] dark:border-white/10 flex flex-col items-stretch gap-3">
-                    {/* Stat Card Box (Only for seller accounts): 3 stats (Followers · Reviews · Rating) */}
-                    {isSellerAccount && (
+                    {/* Stat Card Box: 3 stats for Sellers / Storefront mode; Student overview for personal mode */}
+                    {isCurrentSellerView ? (
                       <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
                         <div className="grid grid-cols-3 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
                           {/* 1. Followers */}
@@ -1105,29 +1207,232 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                    )}
+                    ) : isOwnProfile ? (
+                      <div className="rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F9FAFB] dark:bg-white/[0.03] p-3 sm:p-3.5 shadow-2xs">
+                        <div className="grid grid-cols-2 divide-x divide-[#ECEEF2] dark:divide-white/10 text-center">
+                          <div className="px-1 sm:px-2">
+                            <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight flex items-center justify-center gap-1.5">
+                              <GraduationCap className="w-4 h-4 text-[#FFC928]" />
+                              <span>{profile.isStudentSeller ? "Student" : "Member"}</span>
+                            </div>
+                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                              {profile.isVerified ? "Verified Student" : "Campus Account"}
+                            </div>
+                          </div>
+                          <div className="px-1 sm:px-2">
+                            <div className="text-[14px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white leading-tight flex items-center justify-center gap-1.5">
+                              <Store className="w-4 h-4 text-[#2563EB]" />
+                              <span>{userStores.length}</span>
+                            </div>
+                            <div className="text-[11px] sm:text-[11.5px] font-medium text-[#7A818C] dark:text-neutral-400 mt-0.5">
+                              {userStores.length === 1 ? "Active Store" : "Active Stores"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Action Buttons Row */}
                     <div className="flex items-center gap-2 w-full">
                       {isOwnProfile ? (
                         <>
+                          {/* Button 1: Storefront dropdown switcher with chevron */}
+                          <div className="relative flex-1" ref={dropdownRef}>
+                            <button
+                              type="button"
+                              ref={dropdownButtonRef}
+                              onClick={toggleDropdown}
+                              className="radius-native w-full h-9 px-3 sm:px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer select-none"
+                            >
+                              <Store className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
+                              <span className="truncate">Storefront</span>
+                              {dropUp && isDropdownOpen ? (
+                                <ChevronUp className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
+                              ) : (
+                                <ChevronDown
+                                  className={`w-3.5 h-3.5 stroke-[2.2] shrink-0 transition-transform duration-200 ${
+                                    isDropdownOpen ? "rotate-180" : ""
+                                  }`}
+                                />
+                              )}
+                            </button>
+
+                            {/* Dropdown Menu (Positioned Up or Down depending on viewport) */}
+                            {isDropdownOpen && (
+                              <div
+                                className={`absolute z-50 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-2xl p-2.5 text-left animate-in fade-in duration-150 ${
+                                  dropUp ? "bottom-full mb-2" : "top-full mt-2"
+                                } left-0`}
+                              >
+                                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7A818C] dark:text-neutral-400">
+                                  Switch Profile Context
+                                </div>
+
+                                {/* Personal Profile Option */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveProfileMode("personal");
+                                    setIsDropdownOpen(false);
+                                  }}
+                                  className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between gap-2.5 transition-colors cursor-pointer text-left ${
+                                    activeProfileMode === "personal"
+                                      ? "bg-[#F7F8FA] dark:bg-white/10"
+                                      : "hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    {personalBaseProfile.avatar ? (
+                                      <img
+                                        src={personalBaseProfile.avatar}
+                                        alt={personalBaseProfile.name}
+                                        className="w-8 h-8 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                                      />
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-full bg-[#E8ECF2] dark:bg-white/10 flex items-center justify-center shrink-0 text-[#171717] dark:text-white font-bold text-xs">
+                                        {personalBaseProfile.name.charAt(0).toUpperCase()}
+                                      </div>
+                                    )}
+                                    <div className="min-w-0">
+                                      <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                                        {personalBaseProfile.name}
+                                      </p>
+                                      <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
+                                        Personal Account
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {activeProfileMode === "personal" && (
+                                    <Check className="w-4 h-4 text-[#171717] dark:text-white stroke-[2.5] shrink-0" />
+                                  )}
+                                </button>
+
+                                <div className="my-1.5 border-t border-[#F1F3F6] dark:border-white/10" />
+
+                                {/* Stores Section */}
+                                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#7A818C] dark:text-neutral-400 flex items-center justify-between">
+                                  <span>Campus Storefront</span>
+                                  <span className="text-[10px] font-semibold text-[#9AA1AC] lowercase">1 store max</span>
+                                </div>
+
+                                {userStores.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {userStores.map((s) => {
+                                      const isSelected = activeProfileMode === "store";
+                                      return (
+                                        <button
+                                          key={s._id || s.id || s.slug}
+                                          type="button"
+                                          onClick={() => {
+                                            setActiveProfileMode("store");
+                                            setIsDropdownOpen(false);
+                                          }}
+                                          className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between gap-2.5 transition-colors cursor-pointer text-left ${
+                                            isSelected
+                                              ? "bg-[#FFF9E6] dark:bg-[#FFC928]/15"
+                                              : "hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2.5 min-w-0">
+                                            {s.logo ? (
+                                              <img
+                                                src={s.logo}
+                                                alt={s.name}
+                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                                              />
+                                            ) : (
+                                              <div className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0">
+                                                <Store className="w-4 h-4 text-[#171717] dark:text-white" />
+                                              </div>
+                                            )}
+                                            <div className="min-w-0">
+                                              <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                                                {s.name}
+                                              </p>
+                                              <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
+                                                @{s.slug} · Storefront
+                                              </p>
+                                            </div>
+                                          </div>
+                                          {isSelected && (
+                                            <Check className="w-4 h-4 text-[#171717] dark:text-white stroke-[2.5] shrink-0" />
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+
+                                    <div className="pt-2 mt-1 border-t border-[#F1F3F6] dark:border-white/10 flex items-center justify-between px-1 text-[11.5px]">
+                                      <Link
+                                        href="/stores?tab=my-store"
+                                        onClick={() => setIsDropdownOpen(false)}
+                                        className="text-[#171717] dark:text-white font-bold hover:underline inline-flex items-center gap-1.5 py-1"
+                                      >
+                                        <Store className="w-3.5 h-3.5 text-[#FFC928]" />
+                                        <span>Manage Store</span>
+                                      </Link>
+                                      {primaryStore?.slug && (
+                                        <Link
+                                          href={`/store/${primaryStore.slug}`}
+                                          onClick={() => setIsDropdownOpen(false)}
+                                          className="text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white inline-flex items-center gap-1 py-1"
+                                        >
+                                          <span>Public link</span>
+                                          <ExternalLink className="w-3 h-3" />
+                                        </Link>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-[#FDF6DF] dark:bg-[#FFC928]/10 rounded-xl space-y-2 mt-1">
+                                    <p className="text-[12px] text-[#5B636E] dark:text-neutral-300">
+                                      You haven&apos;t opened a campus storefront yet.
+                                    </p>
+                                    <Link
+                                      href="/stores?tab=my-store&create=1"
+                                      onClick={() => setIsDropdownOpen(false)}
+                                      className="w-full h-8 px-3 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                                    >
+                                      <Store className="w-3.5 h-3.5" />
+                                      <span>Open Storefront</span>
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Button 2: Edit profile */}
                           <Link
-                            href="/stores?view=storefront"
-                            className="radius-native flex-1 h-9 px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                            href={activeProfileMode === "store" ? "/stores?tab=my-store" : "/settings"}
+                            aria-label="Edit profile"
+                            title="Edit profile"
+                            className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0"
                           >
-                            <Store className="w-3.5 h-3.5 stroke-[2.2]" />
-                            <span>Storefront</span>
+                            <Edit3 className="w-3.5 h-3.5 stroke-[2]" />
+                            <span>Edit profile</span>
                           </Link>
 
-                          <Link
-                            href="/settings"
-                            aria-label="Account and profile settings"
-                            title="Settings"
-                            className="radius-native flex-1 h-9 px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+                          {/* Button 3: Share button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const shareUrl =
+                                typeof window !== "undefined"
+                                  ? activeProfileMode === "store" && primaryStore?.slug
+                                    ? `${window.location.origin}/store/${primaryStore.slug}`
+                                    : window.location.href
+                                  : "";
+                              if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                navigator.clipboard.writeText(shareUrl);
+                                showToast("Profile link copied to clipboard");
+                              }
+                            }}
+                            aria-label="Share profile"
+                            title="Share profile"
+                            className="radius-native w-9 h-9 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer"
                           >
-                            <Settings className="w-4 h-4 stroke-[2]" />
-                            <span>Settings</span>
-                          </Link>
+                            <Share2 className="w-4 h-4 stroke-[2]" />
+                          </button>
                         </>
                       ) : (
                         <>
@@ -1251,8 +1556,8 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            {/* 2. PROFILE TABS BAR (Seller Accounts Only) */}
-            {isSellerAccount && (
+            {/* 2. PROFILE TABS BAR (Only in Storefront view or for public seller stores) */}
+            {isCurrentSellerView && (
               <div className="border-b border-[#E5E8EE] dark:border-white/10 flex items-center gap-6 sm:gap-8 px-1">
                 {(
                   [
@@ -1290,18 +1595,18 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* 3. RECENT LISTINGS (Seller) / PROMOTIONS (Non-Seller) SECTION */}
-            {(!isSellerAccount || activeTab === "overview" || activeTab === "listings") && (
+            {/* 3. RECENT LISTINGS / ALL LISTINGS SECTION */}
+            {(!isCurrentSellerView || activeTab === "overview" || activeTab === "listings") && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                    {!isSellerAccount
-                      ? "Promotions"
+                    {!isCurrentSellerView
+                      ? "Listings"
                       : activeTab === "listings"
                         ? "All Listings"
                         : "Recent Listings"}
                   </h2>
-                  {isSellerAccount && activeTab === "overview" && (
+                  {isCurrentSellerView && activeTab === "overview" && (
                     <button
                       type="button"
                       onClick={() => setActiveTab("listings")}
@@ -1315,23 +1620,21 @@ export default function ProfilePage() {
 
                 <div
                   className={
-                    isSellerAccount && activeTab === "overview"
+                    isCurrentSellerView && activeTab === "overview"
                       ? "flex sm:grid sm:grid-cols-2 xl:grid-cols-4 overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-3 sm:gap-4 pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 scrollbar-none"
                       : "grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4"
                   }
                 >
                   {profile.listings.length === 0 ? (
                     <div className="col-span-full py-10 text-center text-[13px] text-[#8C929C] w-full">
-                      {!isSellerAccount
-                        ? "No active promotions posted yet."
-                        : "No active listings posted yet."}
+                      No active listings posted yet.
                     </div>
                   ) : (
                     profile.listings.map((item) => (
                     <div
                       key={item.id}
                       className={`radius-native rounded-xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#181B24] overflow-hidden flex flex-col hover:border-[#D5D9E0] transition-colors ${
-                        isSellerAccount && activeTab === "overview"
+                        isCurrentSellerView && activeTab === "overview"
                           ? "w-[41vw] min-w-[148px] max-w-[180px] sm:w-auto sm:min-w-0 sm:max-w-none shrink-0 snap-start"
                           : ""
                       }`}
@@ -1413,8 +1716,8 @@ export default function ProfilePage() {
               </section>
             )}
 
-            {/* 4. REVIEWS SECTION (Seller Accounts Only) */}
-            {isSellerAccount && (activeTab === "overview" || activeTab === "reviews") && (
+            {/* 4. REVIEWS SECTION (Only in Storefront view or for public seller stores) */}
+            {isCurrentSellerView && (activeTab === "overview" || activeTab === "reviews") && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
@@ -1538,8 +1841,8 @@ export default function ProfilePage() {
               </section>
             )}
 
-            {/* 5. ABOUT TAB VIEW (Seller Accounts Only) */}
-            {isSellerAccount && activeTab === "about" && (
+            {/* 5. ABOUT TAB VIEW (Only in Storefront view or for public seller stores) */}
+            {isCurrentSellerView && activeTab === "about" && (
               <section className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 sm:p-6 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <h2 className="text-[16px] font-extrabold text-[#171717] dark:text-white">
                   About {profile.name}
@@ -1575,8 +1878,8 @@ export default function ProfilePage() {
           {/* RIGHT COLUMN: TRUST AT A GLANCE + MARKETPLACE PROMO             */}
           {/* =============================================================== */}
           <aside className="space-y-5 lg:sticky lg:top-[88px] lg:self-start">
-            {/* Trust at a glance Card (Seller Accounts Only) */}
-            {isSellerAccount && (
+            {/* Trust at a glance Card (Only in Storefront view or for public seller stores) */}
+            {isCurrentSellerView && (
               <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-5 space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                 <h2 className="text-[15px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
                   Trust at a glance
@@ -1619,22 +1922,42 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  <div className="py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
-                        <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
+                  {/* Reliable seller indicator: only claims positive feedback if actual reviews exist */}
+                  {profile.reviewsCount > 0 ? (
+                    <div className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                            {isHighlyReliable ? "Highly Reliable" : "Reliable seller"}
+                          </p>
+                          <p className="text-[11.5px] text-[#7A818C] truncate">
+                            Consistently positive feedback
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
-                          {isHighlyReliable ? "Highly Reliable" : "Reliable seller"}
-                        </p>
-                        <p className="text-[11.5px] text-[#7A818C] truncate">
-                          Consistently positive feedback
-                        </p>
-                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
-                  </div>
+                  ) : (
+                    <div className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-[#F1F3F6] dark:bg-white/10 flex items-center justify-center shrink-0">
+                          <Clock className="w-4.5 h-4.5 text-[#7A818C]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
+                            New Seller
+                          </p>
+                          <p className="text-[11.5px] text-[#7A818C] truncate">
+                            No reviews yet · Building track record
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#9AA1AC] shrink-0" />
+                    </div>
+                  )}
 
                   {profile.reviewsCount > 0 && (
                     <div className="py-3 last:pb-0 flex items-center justify-between gap-3">
@@ -1658,60 +1981,62 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Seller / Non-Seller Right Promo Card */}
-            {isSellerAccount ? (
-              <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
-                    <Lightbulb className="w-4 h-4 text-[#B45309]" />
+            {/* Seller / Non-Seller Right Promo Card (Only for external visitors, never when viewing own profile) */}
+            {!isOwnProfile && (
+              isCurrentSellerView ? (
+                <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
+                      <Lightbulb className="w-4 h-4 text-[#B45309]" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                        Looking for something else?
+                      </h3>
+                      <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
+                        Check out more listings from {profile.name} or browse
+                        similar sellers.
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
-                      Looking for something else?
-                    </h3>
-                    <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
-                      Check out more listings from {profile.name} or browse
-                      similar sellers.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="pl-11">
-                  <Link
-                    href="/explore"
-                    className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <span>Explore marketplace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
-                    <Store className="w-4 h-4 text-[#B45309]" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
-                      Register as a seller for more features
-                    </h3>
-                    <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
-                      Open a campus storefront to unlock full catalog management, verified trust badges, customer reviews, and followers.
-                    </p>
+                  <div className="pl-11">
+                    <Link
+                      href="/explore"
+                      className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
+                    >
+                      <span>Explore marketplace</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
                 </div>
+              ) : (
+                <div className="radius-native rounded-2xl bg-[#FDF6DF] dark:bg-[#FFC928]/10 border border-[#F5E6B8] dark:border-[#FFC928]/25 p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#FFF0B8] flex items-center justify-center shrink-0">
+                      <Store className="w-4 h-4 text-[#B45309]" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white">
+                        Register as a seller for more features
+                      </h3>
+                      <p className="text-[12px] text-[#5B636E] dark:text-neutral-300 leading-relaxed">
+                        Open a campus storefront to unlock full catalog management, verified trust badges, customer reviews, and followers.
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="pl-11">
-                  <Link
-                    href="/onboarding/seller"
-                    className="radius-native h-9 px-4 rounded-full bg-white dark:bg-[#14161D] border border-[#171717]/20 dark:border-white/20 hover:border-[#171717] text-[12px] font-bold text-[#171717] dark:text-white inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <span>Register as a seller</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  <div className="pl-11">
+                    <Link
+                      href="/stores?tab=my-store&create=1"
+                      className="radius-native h-9 px-4 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[12px] font-bold text-[#171717] inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+                    >
+                      <span>Open storefront</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </aside>
         </div>
