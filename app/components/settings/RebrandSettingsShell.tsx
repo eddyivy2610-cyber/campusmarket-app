@@ -203,22 +203,21 @@ export function RebrandSettingsShell({
         const liveData: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
           name:
-            storeObj?.name ||
             data.name ||
             data.profile?.displayName ||
             user.name ||
             "Campus Student",
           username: String(
-            storeObj?.slug || data.profile?.handle || user.handle || ""
+            data.profile?.handle || user.handle || ""
           )
             .replace(/^@/, "")
             .toLowerCase(),
-          bio: storeObj?.description || data.profile?.bio || "",
-          school: data.campus || storeObj?.campus || "",
+          bio: data.profile?.bio || "",
+          school: data.campus || "",
           major: data.profile?.department || "",
           year: data.profile?.level || "",
-          avatar: storeObj?.logo || data.profile?.avatar || user.avatar || "",
-          location: data.campus || storeObj?.operatingLocation || "",
+          avatar: data.profile?.avatar || user.avatar || "",
+          location: data.campus || "",
         };
         setProfileData(liveData);
         setInitialData(liveData);
