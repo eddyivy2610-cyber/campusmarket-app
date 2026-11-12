@@ -28,6 +28,7 @@ import {
   Plus,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
+import { ProfileShareModal } from "../profile/ProfileShareModal";
 import { useAuth } from "../../context/AuthContext";
 import { followService } from "@/lib/followService";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -118,6 +119,7 @@ export function PublicStorefrontView({
   const [isFollowPending, setIsFollowPending] = useState(false);
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -721,7 +723,7 @@ export function PublicStorefrontView({
 
                     <button
                       type="button"
-                      onClick={copyShareLink}
+                      onClick={() => setIsShareModalOpen(true)}
                       aria-label="Share storefront"
                       title="Share link"
                       className="radius-native w-10 h-10 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] text-[#5B636E] dark:text-neutral-300 flex items-center justify-center transition-colors cursor-pointer"
@@ -1039,6 +1041,23 @@ export function PublicStorefrontView({
       </main>
 
       <RebrandFooter />
+
+      {store && (
+        <ProfileShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          profile={{
+            name: store.name,
+            avatar: store.logo,
+            username: store.slug ? `@${store.slug}` : undefined,
+            campus: store.operatingLocation || store.campus,
+            bio: store.description,
+            isVerified: store.isVerified,
+            isStore: true,
+            shareUrl: typeof window !== "undefined" ? window.location.href : "",
+          }}
+        />
+      )}
     </div>
   );
 }

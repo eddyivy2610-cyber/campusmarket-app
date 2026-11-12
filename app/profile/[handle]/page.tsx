@@ -38,6 +38,7 @@ import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { useAuth } from "../../context/AuthContext";
 import { followService } from "@/lib/followService";
 import { apiGet } from "@/lib/apiClient";
+import { ProfileShareModal } from "@/components/profile/ProfileShareModal";
 
 export function formatSalesMilestone(sales: number): string {
   if (sales >= 1000) return `${Math.floor(sales / 1000)}k+`;
@@ -527,6 +528,7 @@ export default function ProfilePage() {
   const [liveReviews, setLiveReviews] = useState<ProfileReviewItem[]>([]);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [reportReason, setReportReason] = useState(
     "Suspicious or misleading activity"
   );
@@ -1541,18 +1543,7 @@ export default function ProfilePage() {
                           {/* Button 3: Share button */}
                           <button
                             type="button"
-                            onClick={() => {
-                              const shareUrl =
-                                typeof window !== "undefined"
-                                  ? activeProfileMode === "store" && primaryStore?.slug
-                                    ? `${window.location.origin}/store/${primaryStore.slug}`
-                                    : window.location.href
-                                  : "";
-                              if (typeof navigator !== "undefined" && navigator.clipboard) {
-                                navigator.clipboard.writeText(shareUrl);
-                                showToast("Profile link copied to clipboard");
-                              }
-                            }}
+                            onClick={() => setIsShareModalOpen(true)}
                             aria-label="Share profile"
                             title="Share profile"
                             className="radius-native w-9 h-9 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer"
@@ -1630,6 +1621,16 @@ export default function ProfilePage() {
                             <span>Message</span>
                           </Link>
 
+                          <button
+                            type="button"
+                            onClick={() => setIsShareModalOpen(true)}
+                            aria-label="Share profile"
+                            title="Share profile"
+                            className="radius-native w-9 h-9 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                          >
+                            <Share2 className="w-4 h-4 stroke-[2]" />
+                          </button>
+
                           <div className="relative shrink-0" ref={moreMenuRef}>
                             <button
                               type="button"
@@ -1647,12 +1648,7 @@ export default function ProfilePage() {
                                   type="button"
                                   onClick={() => {
                                     setIsMoreMenuOpen(false);
-                                    if (typeof window !== "undefined") {
-                                      navigator.clipboard?.writeText(
-                                        window.location.href
-                                      );
-                                    }
-                                    showToast("Profile link copied");
+                                    setIsShareModalOpen(true);
                                   }}
                                   className="w-full px-3.5 py-2 text-left text-[12.5px] font-semibold text-[#171717] dark:text-white hover:bg-[#F7F8FA] dark:hover:bg-white/5 flex items-center gap-2.5 cursor-pointer"
                                 >
@@ -2248,6 +2244,27 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Profile Share Modal (Social Media array, direct link, no canvas card) */}
+      <ProfileShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        profile={{
+          name: profile.name,
+          avatar: profile.avatar,
+          username: isCurrentSellerView ? profile.username : undefined,
+          campus: profile.location,
+          bio: profile.bio,
+          isVerified: profile.isVerified,
+          isStore: isCurrentSellerView,
+          shareUrl:
+            typeof window !== "undefined"
+              ? isCurrentSellerView && (primaryStore?.slug || profile.handle)
+                ? `${window.location.origin}/stores/${primaryStore?.slug || profile.handle}`
+                : window.location.href
+              : "",
+        }}
+      />
     </div>
   );
 }
