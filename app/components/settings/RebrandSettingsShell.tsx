@@ -17,6 +17,9 @@ import {
   LogOut,
   Check,
   X,
+  Flame,
+  Sparkles,
+  Clock,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -155,6 +158,9 @@ export function RebrandSettingsShell({
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
+  // Marketplace Home Feed content preference: "popular" (default), "recent", or "both"
+  const [homeFeedPreference, setHomeFeedPreference] = useState<"popular" | "recent" | "both">("popular");
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load saved profile data
@@ -176,10 +182,27 @@ export function RebrandSettingsShell({
         setProfileData(merged);
         setInitialData(merged);
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
+
+    try {
+      const savedFeedPref = localStorage.getItem("ch_home_feed_preference");
+      if (savedFeedPref === "popular" || savedFeedPref === "recent" || savedFeedPref === "both") {
+        setHomeFeedPreference(savedFeedPref);
+      }
+    } catch {}
   }, []);
+
+  const handleHomeFeedPreferenceChange = (pref: "popular" | "recent" | "both") => {
+    setHomeFeedPreference(pref);
+    try {
+      localStorage.setItem("ch_home_feed_preference", pref);
+      window.dispatchEvent(
+        new CustomEvent("ch_home_feed_preference_update", { detail: { preference: pref } })
+      );
+    } catch {}
+    setSaveSuccessMsg("Home feed preference updated!");
+    setTimeout(() => setSaveSuccessMsg(null), 3000);
+  };
 
   useEffect(() => {
     if (!user?.id) return;
@@ -828,6 +851,104 @@ export function RebrandSettingsShell({
                 <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
               </div>
             )}
+
+            {/* Home Feed Content Discovery Preferences */}
+            <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-4 shadow-xs">
+              <div>
+                <h3 className="text-[15px] font-extrabold text-[#171717] dark:text-white flex items-center gap-2">
+                  <span>Home Feed Content</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FFC928]/20 text-[#B45309] dark:text-[#FFC928]">
+                    Customizable
+                  </span>
+                </h3>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                  Choose what listings are prioritized and displayed in your campus home feed.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 1. Popular Only (Default) */}
+                <button
+                  type="button"
+                  onClick={() => handleHomeFeedPreferenceChange("popular")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    homeFeedPreference === "popular"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 text-[#D97706]" />
+                        <span>Popular Only</span>
+                      </span>
+                      {homeFeedPreference === "popular" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <span className="inline-block px-1.5 py-0.2 rounded text-[9.5px] font-extrabold bg-[#FFC928] text-[#171717] mb-2">
+                      Default (Recommended)
+                    </span>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug">
+                      Most engaged items viewed first based on buyer interest, views, and likes.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 2. Recently Listed */}
+                <button
+                  type="button"
+                  onClick={() => handleHomeFeedPreferenceChange("recent")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    homeFeedPreference === "recent"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#68707A]" />
+                        <span>Recently Added</span>
+                      </span>
+                      {homeFeedPreference === "recent" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug mt-1">
+                      Newest campus products and services listed in reverse chronological order.
+                    </p>
+                  </div>
+                </button>
+
+                {/* 3. Both */}
+                <button
+                  type="button"
+                  onClick={() => handleHomeFeedPreferenceChange("both")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    homeFeedPreference === "both"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
+                        <span>Both Streams</span>
+                      </span>
+                      {homeFeedPreference === "both" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug mt-1">
+                      Balanced discovery feed highlighting trending popular items followed by newest.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
 
             <div className="space-y-3">
               <p className="text-[13px] text-[#68707A] dark:text-neutral-400">

@@ -51,11 +51,11 @@ export function ProfessionalMiniProfile({ vendor }: ProfessionalMiniProfileProps
             </div>
 
             <Link
-                href={`/profile/${(vendor as any).handle || vendor.id}`}
+                href={(vendor as any).slug ? `/stores/${(vendor as any).slug}` : `/profile/${(vendor as any).handle || vendor.id}`}
                 className="flex items-center justify-center gap-2 bg-secondary text-foreground font-bold h-11 px-4 rounded-xl hover:bg-secondary/80 transition-all active:scale-[0.98] text-[10px] uppercase tracking-widest border border-border/40 w-full shadow-sm"
             >
                 <Store className="w-3.5 h-3.5 opacity-70" />
-                View Profile
+                {(vendor as any).slug ? "View Storefront" : "View Profile"}
             </Link>
         </div>
     );

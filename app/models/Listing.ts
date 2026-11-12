@@ -243,6 +243,7 @@ const ListingSchema = new Schema<IListingDocument>(
 
 // High performance ESR compound indexes with (createdAt, _id) tie-breaker for deterministic cursor pagination
 ListingSchema.index({ status: 1, createdAt: -1, _id: -1 });                                            // global feed
+ListingSchema.index({ status: 1, likes: -1, views: -1, createdAt: -1 });                                // popular engagement feed
 ListingSchema.index({ status: 1, campus: 1, createdAt: -1, _id: -1 });                                 // campus feed
 ListingSchema.index({ status: 1, campus: 1, category: 1, createdAt: -1, _id: -1 });                   // campus + category feed
 ListingSchema.index({ status: 1, campus: 1, category: 1, listingType: 1, createdAt: -1, _id: -1 });   // campus + category + type feed

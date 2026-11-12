@@ -1,8 +1,7 @@
 import React from "react";
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandHero } from "../components/home/RebrandHero";
-import { RebrandPopularOnCampus } from "../components/home/RebrandPopularOnCampus";
-import { RebrandLowerSections } from "../components/home/RebrandLowerSections";
+import { RebrandHomeFeed } from "../components/home/RebrandHomeFeed";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { PromotionalStrip } from "../components/promotions/PromotionalStrip";
 
@@ -16,8 +15,7 @@ export default function Home() {
       <main className="flex-1">
         <RebrandHero />
         <PromotionalStrip placement="promo_strip" />
-        <RebrandPopularOnCampus />
-        <RebrandLowerSections />
+        <RebrandHomeFeed />
       </main>
       <RebrandFooter />
     </div>

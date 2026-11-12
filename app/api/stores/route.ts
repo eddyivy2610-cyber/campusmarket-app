@@ -121,9 +121,21 @@ export async function GET(req: NextRequest) {
       ];
     }
 
+    const sortBy = searchParams.get("sort") || "popular";
+    const sort: any =
+      sortBy === "recent"
+        ? { createdAt: -1 }
+        : {
+            "metrics.followersCount": -1,
+            "metrics.completedDeals": -1,
+            "metrics.rating": -1,
+            "metrics.reviewsCount": -1,
+            createdAt: -1,
+          };
+
     const total = await StoreModel.countDocuments(filter);
     const rawStores = await StoreModel.find(filter)
-      .sort({ "metrics.rating": -1, createdAt: -1 })
+      .sort(sort)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();

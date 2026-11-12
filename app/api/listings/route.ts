@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status") || "active";
     const cursor = searchParams.get("cursor");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "30", 10)));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "30", 10)));
+    const sortBy = searchParams.get("sort") || "popular";
 
     const filter: Record<string, any> = {};
     let isOwnerContext = false;
@@ -148,7 +149,7 @@ export async function GET(req: NextRequest) {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    let sort: any = { createdAt: -1, _id: -1 };
+    let sort: any = { likes: -1, views: -1, createdAt: -1 };
     let projection: any = null;
 
     if (query) {
@@ -171,6 +172,16 @@ export async function GET(req: NextRequest) {
         { createdAt: { $lt: decoded.createdAt } },
         { createdAt: decoded.createdAt, _id: { $lt: decoded.id } },
       ];
+      sort = { createdAt: -1, _id: -1 };
+    } else if (sortBy === "recent") {
+      sort = { createdAt: -1, _id: -1 };
+    } else if (sortBy === "price_asc") {
+      sort = { price: 1, createdAt: -1 };
+    } else if (sortBy === "price_desc") {
+      sort = { price: -1, createdAt: -1 };
+    } else {
+      // "popular" or default: most engaged with first (likes, views, then recency)
+      sort = { likes: -1, views: -1, createdAt: -1 };
     }
 
     const total = await ListingModel.countDocuments(filter);

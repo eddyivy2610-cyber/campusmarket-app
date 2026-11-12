@@ -620,6 +620,19 @@ export default function ProfilePage() {
       .then((response) => {
         if (!isCancelled) {
           const loaded = response?.data || response?.user || null;
+          if (!loaded && !isOwnProfile && rawHandle && rawHandle !== "me") {
+            fetch(`/api/stores/${encodeURIComponent(rawHandle)}`)
+              .then((r) => r.json())
+              .then((stData) => {
+                if (stData?.data?.store || stData?.store) {
+                  router.replace(`/stores/${rawHandle}`);
+                } else {
+                  setLiveProfileError(true);
+                }
+              })
+              .catch(() => setLiveProfileError(true));
+            return;
+          }
           setLiveUserProfile(loaded);
           if (isOwnProfile && !loaded) {
             setLiveProfileError(true);
@@ -627,8 +640,23 @@ export default function ProfilePage() {
         }
       })
       .catch(() => {
-        if (!isCancelled && isOwnProfile && !user) {
-          setLiveProfileError(true);
+        if (!isCancelled) {
+          if (!isOwnProfile && rawHandle && rawHandle !== "me") {
+            fetch(`/api/stores/${encodeURIComponent(rawHandle)}`)
+              .then((r) => r.json())
+              .then((stData) => {
+                if (stData?.data?.store || stData?.store) {
+                  router.replace(`/stores/${rawHandle}`);
+                } else {
+                  setLiveProfileError(true);
+                }
+              })
+              .catch(() => setLiveProfileError(true));
+            return;
+          }
+          if (isOwnProfile && !user) {
+            setLiveProfileError(true);
+          }
         }
       })
       .finally(() => {
@@ -1415,13 +1443,10 @@ export default function ProfilePage() {
                                   userStores.length > 0 ? (
                                     <div className="space-y-1">
                                       {userStores.map((s) => (
-                                        <button
+                                        <Link
                                           key={s._id || s.id || s.slug}
-                                          type="button"
-                                          onClick={() => {
-                                            setActiveProfileMode("store");
-                                            setIsDropdownOpen(false);
-                                          }}
+                                          href={`/stores/${s.slug}`}
+                                          onClick={() => setIsDropdownOpen(false)}
                                           className="w-full px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-2.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 transition-colors cursor-pointer text-left"
                                         >
                                           <div className="flex items-center gap-2.5 min-w-0">
@@ -1429,10 +1454,20 @@ export default function ProfilePage() {
                                               <img
                                                 src={s.logo}
                                                 alt={s.name}
-                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                                                className={`w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
+                                                  s.isVerified
+                                                    ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]"
+                                                    : ""
+                                                }`}
                                               />
                                             ) : (
-                                              <div className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0">
+                                              <div
+                                                className={`w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0 ${
+                                                  s.isVerified
+                                                    ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]"
+                                                    : ""
+                                                }`}
+                                              >
                                                 <Store className="w-4 h-4 text-[#171717] dark:text-white" />
                                               </div>
                                             )}
@@ -1441,12 +1476,6 @@ export default function ProfilePage() {
                                                 <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
                                                   {s.name}
                                                 </p>
-                                                {s.isVerified && (
-                                                  <BadgeCheck
-                                                    className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                                                    aria-label="Verified store"
-                                                  />
-                                                )}
                                               </div>
                                               <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
                                                 @{s.slug} · Storefront
@@ -1454,7 +1483,7 @@ export default function ProfilePage() {
                                             </div>
                                           </div>
                                           <ArrowRight className="w-4 h-4 text-[#8C929C] shrink-0" />
-                                        </button>
+                                        </Link>
                                       ))}
 
                                       <div className="pt-2 mt-1 border-t border-[#F1F3F6] dark:border-white/10 flex items-center justify-between px-1 text-[11.5px]">

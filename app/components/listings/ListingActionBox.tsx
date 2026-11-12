@@ -92,10 +92,10 @@ export function ListingActionBox({ product, vendor, onOfferOpen }: ListingAction
                         </button>
 
                         <Link
-                            href={`/profile/${(vendor as any).handle || vendor.id}`}
+                            href={(vendor as any).slug ? `/stores/${(vendor as any).slug}` : `/profile/${(vendor as any).handle || vendor.id}`}
                             className="h-10 bg-card border border-border/80 text-foreground font-bold rounded-lg transition-colors hover:bg-secondary text-[12px] flex items-center justify-center gap-1.5"
                         >
-                            <Store className="w-4 h-4 text-muted-foreground" /> Visit Profile
+                            <Store className="w-4 h-4 text-muted-foreground" /> {(vendor as any).slug ? "Visit Storefront" : "Visit Profile"}
                         </Link>
                     </div>
                 </div>

@@ -570,8 +570,12 @@ function SearchContent() {
                 >
                   <div>
                     <Link
-                      href={`/profile/${store.slug || store.id}`}
-                      className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center"
+                      href={`/stores/${store.slug || store.id}`}
+                      className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center transition-all ${
+                        store.verificationType === "verified_student"
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     >
                       {store.avatar ? (
                         <img
@@ -592,19 +596,13 @@ function SearchContent() {
                     <div className="pt-3 px-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Link
-                          href={`/profile/${store.slug || store.id}`}
+                          href={`/stores/${store.slug || store.id}`}
                           className="min-w-0 truncate"
                         >
                           <h3 className="text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
                             {store.name}
                           </h3>
                         </Link>
-                        {store.verificationType === "verified_student" && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                            aria-label="Verified user"
-                          />
-                        )}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">
                         <MapPin className="w-3 h-3 shrink-0" strokeWidth={2} />
@@ -618,7 +616,7 @@ function SearchContent() {
                       {store.activeListingsCount} listings
                     </span>
                     <Link
-                      href={`/profile/${store.slug || store.id}`}
+                      href={`/stores/${store.slug || store.id}`}
                       className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
                     >
                       <span>Visit</span>

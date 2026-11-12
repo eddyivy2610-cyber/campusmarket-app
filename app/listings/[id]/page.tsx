@@ -193,7 +193,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/profile/campus-closet",
+      storeHref: "/stores/campus-closet",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -252,7 +252,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/profile/campus-closet",
+      storeHref: "/stores/campus-closet",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -383,7 +383,7 @@ export default function ListingDetailPage() {
               rating: String(storeData?.metrics?.rating ?? "5.0"),
               reviewsCount: storeData?.metrics?.reviewsCount ?? 0,
               memberSince: "2026",
-              storeHref: storeData ? `/profile/${storeData.slug || storeData._id}` : `/profile/campus-closet`,
+              storeHref: storeData ? `/stores/${storeData.slug || storeData._id}` : `/stores/campus-closet`,
             },
             reviews: liveReviews,
           };
@@ -479,7 +479,7 @@ export default function ListingDetailPage() {
                 memberSince: "2026",
                 storeHref:
                   foundCreated.storeHref ||
-                  `/profile/${foundCreated.sellerHandle || "me"}`,
+                  (foundCreated.sellerHandle ? `/stores/${foundCreated.sellerHandle}` : "/profile/me"),
               },
               reviews: [],
             };
@@ -1174,7 +1174,11 @@ export default function ListingDetailPage() {
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
-                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
+                      className={`w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10 ${
+                        listing.seller.storeHref?.startsWith("/stores") && listing.seller.isVerified
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     />
                   </Link>
                   <div className="min-w-0">
@@ -1185,7 +1189,7 @@ export default function ListingDetailPage() {
                       >
                         {listing.seller.name}
                       </Link>
-                      {listing.seller.isVerified && (
+                      {listing.seller.isVerified && !listing.seller.storeHref?.startsWith("/stores") && (
                         <BadgeCheck
                           className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
                           aria-label="Verified user"
@@ -1201,8 +1205,8 @@ export default function ListingDetailPage() {
 
                 <Link
                   href={listing.seller.storeHref || "/explore"}
-                  title="Visit profile"
-                  aria-label="Visit profile"
+                  title={listing.seller.storeHref?.startsWith("/stores") ? "Visit storefront" : "Visit profile"}
+                  aria-label={listing.seller.storeHref?.startsWith("/stores") ? "Visit storefront" : "Visit profile"}
                   className="w-8 h-8 rounded-full bg-[#F4F6F8] dark:bg-white/5 hover:bg-[#FFC928] dark:hover:bg-[#FFC928] hover:text-[#171717] text-[#5B636E] dark:text-neutral-300 flex items-center justify-center transition-colors shrink-0"
                 >
                   <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
@@ -1239,7 +1243,7 @@ export default function ListingDetailPage() {
                     <ArrowUpRight className="w-3.5 h-3.5 text-[#68707A]" />
                   </Link>
                   <span className="block text-[11px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                    Profile
+                    {listing.seller.storeHref?.startsWith("/stores") ? "Store" : "Profile"}
                   </span>
                 </div>
               </div>
