@@ -3,17 +3,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import {
-  Flame,
-  Clock,
-  Sparkles,
   ArrowRight,
   Heart,
   MapPin,
   ChevronDown,
   ChevronRight,
   Store,
-  BadgeCheck,
-  SlidersHorizontal,
   Star,
   Users,
 } from "lucide-react";
@@ -291,44 +286,12 @@ export function RebrandHomeFeed() {
     setVisibleCount((prev) => Math.min(allListings.length, prev + pageSize));
   };
 
-  const handlePreferenceQuickSwitch = (pref: HomeFeedPreference) => {
-    setFeedPreference(pref);
-    setVisibleCount(pageSize);
-    try {
-      localStorage.setItem("ch_home_feed_preference", pref);
-      window.dispatchEvent(
-        new CustomEvent("ch_home_feed_preference_update", { detail: { preference: pref } })
-      );
-    } catch {}
-  };
-
-  // Section title and description based on active mode
-  const sectionMeta = useMemo(() => {
-    if (feedPreference === "recent") {
-      return {
-        title: "Recently listed on campus",
-        badge: "Recently Added",
-        desc: "Fresh arrivals and newly posted items across campus halls.",
-        icon: Clock,
-      };
-    }
-    if (feedPreference === "both") {
-      return {
-        title: "Campus Discovery Feed",
-        badge: "Popular & Recent",
-        desc: "Trending items combined with newest student listings.",
-        icon: Sparkles,
-      };
-    }
-    return {
-      title: "Popular on campus",
-      badge: "Most Engaged",
-      desc: "Top trending items with the highest student engagement, views, and inquiries.",
-      icon: Flame,
-    };
+  // Title dynamically adapts to user's saved marketplace setting
+  const feedTitle = useMemo(() => {
+    if (feedPreference === "recent") return "Recently listed on campus";
+    if (feedPreference === "both") return "Campus Discovery Feed";
+    return "Popular on campus";
   }, [feedPreference]);
-
-  const SectionIcon = sectionMeta.icon;
 
   return (
     <div
@@ -339,70 +302,24 @@ export function RebrandHomeFeed() {
       {/* 1. MAIN LISTINGS FEED (Popular / Recent / Both, 50-100 items)         */}
       {/* ===================================================================== */}
       <section className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFF6D6] dark:bg-[#FFC928]/15 flex items-center justify-center shrink-0">
-              <SectionIcon className="w-4 h-4 text-[#D97706] dark:text-[#FFC928]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-[18px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#14171A] dark:text-white leading-tight">
-                  {sectionMeta.title}
-                </h2>
-              </div>
-              <p className="text-[12px] sm:text-[13px] text-[#68707A] dark:text-neutral-400 mt-0.5 hidden sm:block">
-                {sectionMeta.desc}
-              </p>
-            </div>
-          </div>
+        {/* Section Header with Horizontal Divider & See All Link */}
+        <div className="flex items-center justify-between gap-4 mb-3.5 sm:mb-5">
+          <h2 className="text-[16.5px] sm:text-[20px] font-bold tracking-[-0.02em] text-[#14171A] dark:text-white shrink-0">
+            {feedTitle}
+          </h2>
 
-          {/* Feed Filter Pill Switcher + See All Link */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <div className="inline-flex items-center p-0.5 rounded-xl bg-[#ECEEF2] dark:bg-white/10 text-[11px] font-bold">
-              <button
-                type="button"
-                onClick={() => handlePreferenceQuickSwitch("popular")}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  feedPreference === "popular"
-                    ? "bg-white dark:bg-[#181B24] text-[#171717] dark:text-white shadow-2xs font-extrabold"
-                    : "text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                }`}
-              >
-                Popular
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePreferenceQuickSwitch("recent")}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  feedPreference === "recent"
-                    ? "bg-white dark:bg-[#181B24] text-[#171717] dark:text-white shadow-2xs font-extrabold"
-                    : "text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                }`}
-              >
-                Recent
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePreferenceQuickSwitch("both")}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  feedPreference === "both"
-                    ? "bg-white dark:bg-[#181B24] text-[#171717] dark:text-white shadow-2xs font-extrabold"
-                    : "text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white"
-                }`}
-              >
-                Both
-              </button>
-            </div>
+          <div
+            className="hidden sm:block flex-1 h-[1px] bg-[#E8EAEE] dark:bg-white/10"
+            aria-hidden="true"
+          />
 
-            <Link
-              href="/settings?tab=marketplace"
-              title="Customize home feed in marketplace settings"
-              className="p-1.5 rounded-lg border border-[#E4E7EC] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-1 text-[12.5px] sm:text-[13px] font-semibold text-[#D99B00] sm:text-[#22252A] dark:text-[#FFC928] sm:dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white shrink-0 transition-colors"
+          >
+            <span>See All</span>
+            <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+          </Link>
         </div>
 
         {/* Listings Grid */}
@@ -546,35 +463,18 @@ export function RebrandHomeFeed() {
             </div>
 
             {/* Pagination Controls ("See More" / Progressive Load) */}
-            <div className="pt-2 flex flex-col items-center justify-center gap-3">
-              <div className="text-[12px] text-[#68707A] dark:text-neutral-400 font-medium">
-                Showing {visibleListings.length} of {allListings.length} {feedPreference} listings
-              </div>
-
-              {hasMore ? (
+            {hasMore && (
+              <div className="pt-2 sm:pt-4 flex justify-center">
                 <button
                   type="button"
                   onClick={handleSeeMore}
                   className="radius-native inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white dark:bg-[#14161D] hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#171717] dark:text-white text-[13px] font-bold border border-[#DCE0E6] dark:border-white/15 shadow-2xs hover:border-[#171717] dark:hover:border-white transition-all active:scale-[0.98] cursor-pointer"
                 >
-                  <span>See more listings</span>
+                  <span>See more</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="text-[12px] text-[#8C929C] font-semibold">
-                    ✓ You've seen all {allListings.length} {feedPreference} items
-                  </span>
-                  <Link
-                    href="/explore"
-                    className="radius-native inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12px] font-bold shadow-2xs transition-colors"
-                  >
-                    <span>Browse All Categories</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -583,28 +483,21 @@ export function RebrandHomeFeed() {
       {/* 2. STORES SECTION AT THE END (Ranked by engagement)                  */}
       {/* ===================================================================== */}
       <section className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 pt-2 sm:pt-4 border-t border-[#ECEEF2] dark:border-white/10">
-        <div className="flex items-center justify-between gap-4 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFF6D6] dark:bg-[#FFC928]/15 flex items-center justify-center shrink-0">
-              <Store className="w-4 h-4 text-[#D97706] dark:text-[#FFC928]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-[18px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#14171A] dark:text-white leading-tight">
-                  Popular Campus Stores
-                </h2>
-              </div>
-              <p className="text-[12px] sm:text-[13px] text-[#68707A] dark:text-neutral-400 mt-0.5 hidden sm:block">
-                Recognized student merchants and verified hubs ranked by campus reputation and deal activity.
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between gap-4 mb-3.5 sm:mb-5">
+          <h2 className="text-[16.5px] sm:text-[20px] font-bold tracking-[-0.02em] text-[#14171A] dark:text-white shrink-0">
+            Popular campus stores
+          </h2>
+
+          <div
+            className="hidden sm:block flex-1 h-[1px] bg-[#E8EAEE] dark:bg-white/10"
+            aria-hidden="true"
+          />
 
           <Link
             href="/stores"
             className="inline-flex items-center gap-1 text-[12.5px] sm:text-[13px] font-semibold text-[#D99B00] sm:text-[#22252A] dark:text-[#FFC928] sm:dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white shrink-0 transition-colors"
           >
-            <span>All Stores</span>
+            <span>See All</span>
             <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
           </Link>
         </div>
