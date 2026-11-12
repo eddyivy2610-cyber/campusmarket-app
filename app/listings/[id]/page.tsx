@@ -1374,12 +1374,6 @@ export default function ListingDetailPage() {
                       <span className="text-[14.5px] font-extrabold text-[#171717] dark:text-white">
                         {item.priceFormatted}
                       </span>
-                      {(item.sellerType === "verified_student" ||
-                        item.sellerType === "student_store") && (
-                        <span className="w-3.5 h-3.5 rounded-full bg-[#22C55E] flex items-center justify-center">
-                          <Check className="w-2.2 h-2.2 text-white stroke-[3.5]" />
-                        </span>
-                      )}
                     </div>
 
                     <Link

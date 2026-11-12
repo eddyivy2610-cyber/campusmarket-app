@@ -1796,14 +1796,6 @@ export default function ProfilePage() {
                             <p className="text-[14px] font-extrabold text-[#171717] dark:text-white">
                               {item.price}
                             </p>
-                            {profile.isStudentSeller && profile.isVerified && (
-                              <span
-                                title="Verified student seller"
-                                className="radius-native w-3.5 h-3.5 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
-                              >
-                                <Check className="w-2.2 h-2.2 text-white stroke-[3.2]" />
-                              </span>
-                            )}
                           </div>
                           <div className="pt-0.5">
                             <span

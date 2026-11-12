@@ -221,13 +221,6 @@ export function RebrandLowerSections() {
                     </Link>
 
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                      <span
-                        title="Verified campus seller"
-                        className="radius-native w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
-                      >
-                        <Check className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" strokeWidth={3} />
-                      </span>
-
                       <Link
                         href={item.href}
                         className="hidden sm:inline-flex radius-native items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"

@@ -829,14 +829,6 @@ function ExploreContent() {
                         </div>
 
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {(item.sellerType === "verified_student" ||
-                            item.sellerType === "student_store") && (
-                            <BadgeCheck
-                              className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                              aria-label="Verified student seller"
-                            />
-                          )}
-
                           <Link
                             href={item.href}
                             className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2 sm:px-2.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"

@@ -536,18 +536,6 @@ function SearchContent() {
                       {item.priceFormatted}
                     </span>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {(item.sellerType === "verified_student" ||
-                        item.sellerType === "student_store") && (
-                        <span
-                          title="Verified student seller"
-                          className="radius-native w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
-                        >
-                          <Check
-                            className="w-2.5 h-2.5 text-white"
-                            strokeWidth={3}
-                          />
-                        </span>
-                      )}
                       <Link
                         href={item.href}
                         className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"

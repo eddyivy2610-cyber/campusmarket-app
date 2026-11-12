@@ -350,9 +350,6 @@ export function RebrandHomeFeed() {
                 <h2 className="text-[18px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#14171A] dark:text-white leading-tight">
                   {sectionMeta.title}
                 </h2>
-                <span className="radius-native px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#F4F5F7] dark:bg-white/10 text-[#5B636E] dark:text-neutral-300">
-                  {sectionMeta.badge}
-                </span>
               </div>
               <p className="text-[12px] sm:text-[13px] text-[#68707A] dark:text-neutral-400 mt-0.5 hidden sm:block">
                 {sectionMeta.desc}
@@ -534,13 +531,6 @@ export function RebrandHomeFeed() {
                       </Link>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {item.storeVerified && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                            aria-label="Verified user"
-                          />
-                        )}
-
                         <Link
                           href={item.href}
                           className="hidden sm:inline-flex radius-native items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
@@ -603,9 +593,6 @@ export function RebrandHomeFeed() {
                 <h2 className="text-[18px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#14171A] dark:text-white leading-tight">
                   Popular Campus Stores
                 </h2>
-                <span className="radius-native px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#F4F5F7] dark:bg-white/10 text-[#5B636E] dark:text-neutral-300">
-                  Top Engaged
-                </span>
               </div>
               <p className="text-[12px] sm:text-[13px] text-[#68707A] dark:text-neutral-400 mt-0.5 hidden sm:block">
                 Recognized student merchants and verified hubs ranked by campus reputation and deal activity.
