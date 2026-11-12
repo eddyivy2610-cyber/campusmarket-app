@@ -38,6 +38,7 @@ import ListingModel from "../app/models/Listing";
 import ReviewModel from "../app/models/Review";
 import FollowerModel from "../app/models/Follower";
 import OrderModel from "../app/models/Order";
+import BannerModel from "../app/models/Banner";
 import {
   SEED_100_USERS,
   SEED_100_STORES,
@@ -49,6 +50,102 @@ import {
 // Default shared password for all seed accounts
 const SEED_PASSWORD_RAW = "Password123!";
 const SEED_EMAIL_DOMAIN = "@seed.campushive.local";
+
+const SEED_HERO_BANNERS = [
+  {
+    name: "Modern Christmas Sale",
+    headline: "Modern Christmas Sale",
+    description: "",
+    imageUrl: "/Blue Modern Christmas Sale Banner.webp",
+    imageAlt: "Modern Christmas Sale Banner",
+    ctaLabel: "Shop Sale",
+    ctaUrl: "/explore",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 10,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+  {
+    name: "Modern Fashion Style Promo",
+    headline: "Modern Fashion Style Promo",
+    description: "",
+    imageUrl: "/Colorful Bold Modern Fashion Style Promo Facebook Ad (1840 x 800 px).webp",
+    imageAlt: "Modern Fashion Style Promo Banner",
+    ctaLabel: "Shop Fashion",
+    ctaUrl: "/explore?category=Fashion",
+    targetCategory: "Fashion",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 20,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+  {
+    name: "Leems Mega Sale",
+    headline: "Leems Mega Sale",
+    description: "",
+    imageUrl: "/Leems Sale  (1840 x 800 px).webp",
+    imageAlt: "Leems Mega Sale Banner",
+    ctaLabel: "View Deals",
+    ctaUrl: "/explore",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 30,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+  {
+    name: "Food Menu Promo",
+    headline: "Food Menu Promo",
+    description: "",
+    imageUrl: "/Orange and Yellow Modern Food Menu Promo Banner (1840 x 800 px).webp",
+    imageAlt: "Food Menu Promo Banner",
+    ctaLabel: "Explore Food",
+    ctaUrl: "/explore",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 40,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+  {
+    name: "Headphone Sale Promo",
+    headline: "Headphone Sale Promo",
+    description: "",
+    imageUrl: "/Purple White and Red Modern Headphone Sale Promo Banner (1840 x 800 px).webp",
+    imageAlt: "Headphone Sale Promo Banner",
+    ctaLabel: "Shop Audio",
+    ctaUrl: "/explore?category=Electronics",
+    targetCategory: "Electronics",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 50,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+  {
+    name: "Black Friday Electronic Sale",
+    headline: "Black Friday Electronic Sale",
+    description: "",
+    imageUrl: "/Red Modern Black Friday Electronic Sale Facebook Ad (1840 x 800 px).webp",
+    imageAlt: "Black Friday Electronic Sale Banner",
+    ctaLabel: "Shop Electronics",
+    ctaUrl: "/explore?category=Electronics",
+    targetCategory: "Electronics",
+    placement: "homepage_hero",
+    status: "published",
+    priority: 60,
+    startAt: new Date(),
+    createdBy: "admin_seed",
+    updatedBy: "admin_seed",
+  },
+];
 
 interface CliOptions {
   apply: boolean;
@@ -763,6 +860,9 @@ async function cleanSeedData(): Promise<{ users: number; stores: number; listing
   // 8. Delete users
   const delUsers = await UserModel.deleteMany({ _id: { $in: seedUserIds } });
 
+  // 9. Delete seed banners
+  await BannerModel.deleteMany({ createdBy: "admin_seed" });
+
   const result = {
     users: delUsers.deletedCount,
     stores: delStores.deletedCount,
@@ -1022,6 +1122,19 @@ async function runSeed() {
       if (activeFollows.length <= 10 || followCount % 10 === 0 || followCount === activeFollows.length) {
         console.log(`   ✓ Follow [${followCount}/${activeFollows.length}]: ${buyer.name} -> ${store.name}`);
       }
+    }
+
+    // ------------------------------------------------------------------------
+    // 6. SEED HERO BANNERS
+    // ------------------------------------------------------------------------
+    console.log(`\n🎨 Upserting Promotional Hero Banners (${SEED_HERO_BANNERS.length} total)...`);
+    for (const b of SEED_HERO_BANNERS) {
+      await BannerModel.findOneAndUpdate(
+        { name: b.name, placement: b.placement },
+        { $set: b },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      console.log(`   ✓ Banner: ${b.name}`);
     }
 
     // ------------------------------------------------------------------------
