@@ -836,7 +836,7 @@ export function RebrandSettingsShell({
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 <Link
-                  href={`/stores/${backProfileHandle}`}
+                  href="/profile"
                   className="radius-native p-4 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-xl hover:border-[#FFC928] dark:hover:border-[#FFC928] transition-colors shadow-xs group"
                 >
                   <h4 className="text-[13.5px] font-extrabold text-[#171717] dark:text-white group-hover:text-[#D97706] dark:group-hover:text-[#FFC928] transition-colors">
@@ -943,7 +943,7 @@ export function RebrandSettingsShell({
                 Settings
               </h1>
               <Link
-                href={`/stores/${backProfileHandle}`}
+                href="/profile"
                 className="radius-native inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[12px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white bg-[#F7F8FA] dark:bg-white/5 transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -1093,7 +1093,7 @@ export function RebrandSettingsShell({
                 </button>
 
                 <Link
-                  href={`/stores/${backProfileHandle}`}
+                  href="/profile"
                   className="radius-native w-full inline-flex items-center gap-3 px-3.5 py-2 rounded-xl text-[12.5px] font-bold text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-[#F2F4F8] dark:hover:bg-white/5 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5 stroke-[2.2]" />

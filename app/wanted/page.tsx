@@ -722,7 +722,7 @@ function RadarContent() {
                 participantVerified: post.isVerified ? "true" : "false",
               }).toString()}`;
 
-              const userProfileHref = `/@${post.requesterHandle.replace(/^@/, "")}`;
+              const userProfileHref = `/profile/${post.requesterHandle.replace(/^@/, "")}`;
 
               return (
                 <article

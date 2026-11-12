@@ -646,7 +646,7 @@ function SearchContent() {
                 >
                   <div>
                     <Link
-                      href={`/stores/${profile.handle}`}
+                      href={`/profile/${profile.handle}`}
                       className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center"
                     >
                       {profile.avatar ? (
@@ -668,7 +668,7 @@ function SearchContent() {
                     <div className="pt-3 px-0.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Link
-                          href={`/stores/${profile.handle}`}
+                          href={`/profile/${profile.handle}`}
                           className="min-w-0 truncate"
                         >
                           <h3 className="text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
@@ -697,7 +697,7 @@ function SearchContent() {
                       {profile.isStudent ? "Student" : "Member"}
                     </span>
                     <Link
-                      href={`/stores/${profile.handle}`}
+                      href={`/profile/${profile.handle}`}
                       className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
                     >
                       <span>Profile</span>

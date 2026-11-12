@@ -1088,9 +1088,8 @@ export default function ProfilePage() {
       PUBLIC_PROFILE_DATA[rawHandle]
   );
 
-  const isCurrentSellerView = isOwnProfile
-    ? activeProfileMode === "store" && Boolean(primaryStore)
-    : isSellerAccount;
+  const isCurrentSellerView =
+    activeProfileMode === "store" && Boolean(primaryStore);
 
   const isFollowableSeller = isSellerAccount;
 
@@ -1243,19 +1242,11 @@ export default function ProfilePage() {
                         <img
                           src={profile.avatar}
                           alt={profile.name}
-                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all ${
-                            isCurrentSellerView && profile.isVerified
-                              ? "ring-[3.5px] sm:ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
-                              : ""
-                          }`}
+                          className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all"
                         />
                       ) : (
                         <div
-                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10 transition-all ${
-                            isCurrentSellerView && profile.isVerified
-                              ? "ring-[3.5px] sm:ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D] shadow-[0_0_14px_rgba(255,201,40,0.35)]"
-                              : ""
-                          }`}
+                          className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10 transition-all"
                           aria-label="Profile image unavailable"
                         />
                       )}
@@ -1263,32 +1254,16 @@ export default function ProfilePage() {
 
                     {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio for sellers) -> Row 3 (Location + Join Date) */}
                     <div className="min-w-0 flex-1 space-y-2">
-                      {/* Row 1: Name + Single Tick + @username inline */}
+                      {/* Row 1: Name + Single Blue Tick */}
                       <div className="flex items-baseline gap-2 flex-wrap">
                         <div className="inline-flex items-center gap-1.5">
                           <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                             {profile.name}
                           </h1>
-                          {isCurrentSellerView && profile.isVerified && (
-                            <span
-                              title="Hive Verified Store"
-                              className="inline-flex items-center justify-center shrink-0 translate-y-[1px]"
-                            >
-                              <svg
-                                className="w-4.5 h-4.5 text-[#FFC928]"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                aria-label="Verified store"
-                              >
-                                <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                                <circle cx="10" cy="10" r="3" fill="currentColor" />
-                              </svg>
-                            </span>
-                          )}
-                          {!isCurrentSellerView && profile.isVerified && (
+                          {profile.isVerified && (
                             <BadgeCheck
                               className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0 translate-y-[1px]"
-                              aria-label="Verified student"
+                              aria-label="Verified user"
                             />
                           )}
                         </div>

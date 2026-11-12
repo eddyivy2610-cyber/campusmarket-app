@@ -77,7 +77,7 @@ export function AccountDropdown({ isOpen }: AccountDropdownProps) {
                     </Link>
                 )}
 
-                <Link href={user ? `/stores/${user.handle || user.id}` : "/login?next=%2Fstores"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent transition-all duration-200 group hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-white/10">
+                <Link href={user ? "/profile" : "/login?next=%2Fprofile"} className="flex items-center justify-between px-2.5 py-2 rounded-xl border border-transparent transition-all duration-200 group hover:border-primary/40 hover:bg-primary/5 dark:hover:bg-white/10">
                     <div className="flex items-center gap-2.5 text-[11px] font-heading font-semibold text-foreground">
                         <span className="w-7 h-7 rounded-lg bg-primary/20 dark:bg-white/10 text-primary flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                             <User className="w-[14px] h-[14px] transition-transform group-hover:scale-110" strokeWidth={1.5} />

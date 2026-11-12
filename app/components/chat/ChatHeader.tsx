@@ -31,14 +31,14 @@ export function ChatHeader({ participant, onBack }: ChatHeaderProps) {
 
                 {/* Avatar + Info */}
                 <div className="flex items-center gap-3">
-                    <Link href={`/stores/${participant.id}`} className="w-10 h-10 rounded-full bg-secondary overflow-hidden relative shrink-0">
+                    <Link href={`/profile/${participant.id}`} className="w-10 h-10 rounded-full bg-secondary overflow-hidden relative shrink-0">
                         {participant.avatar
                             ? <OptimizedImage src={participant.avatar} alt={participant.name} fill className="object-cover" />
                             : <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-primary">{participant.name.charAt(0)}</span>
                         }
                     </Link>
                     <div className="flex flex-col">
-                        <Link href={`/stores/${participant.id}`} className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
+                        <Link href={`/profile/${participant.id}`} className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate">
                             {participant.name}
                         </Link>
                         <p className="text-[12px] font-medium text-muted-foreground/80 mt-0.5">

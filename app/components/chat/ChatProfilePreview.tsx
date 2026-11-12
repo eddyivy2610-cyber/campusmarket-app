@@ -42,7 +42,7 @@ export function ChatProfilePreview({ participant }: ChatProfilePreviewProps) {
                 </div>
 
                 <Link
-                    href={`/stores/${participant.id}`}
+                    href={`/profile/${participant.id}`}
                     className="flex flex-col items-center justify-center w-full px-4 py-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-xl transition-colors font-bold text-xs gap-2"
                 >
                     <span className="flex items-center justify-center gap-2"><ExternalLink className="w-3.5 h-3.5" />View Full Profile</span>

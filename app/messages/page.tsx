@@ -58,13 +58,8 @@ import type {
 } from "../models/ChatModels";
 
 function getParticipantProfileHref(participant?: ChatParticipantProfile): string {
-  if (!participant || !participant.name) return "/stores";
-  const n = participant.name.toLowerCase();
-  if (n.includes("campus closet")) return "/stores/campus-closet";
-  if (n.includes("tech corner")) return "/stores/tech-corner";
-  if (n.includes("print hub")) return "/stores/the-print-hub";
-  if (n.includes("kongo")) return "/stores/kongo-scholars";
-  return `/stores/${participant.id || "me"}`;
+  if (!participant || !participant.name) return "/profile";
+  return `/profile/${participant.id || "me"}`;
 }
 
 function formatMessageTime(iso: string): string {

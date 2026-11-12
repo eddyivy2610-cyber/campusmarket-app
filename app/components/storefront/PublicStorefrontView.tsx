@@ -586,19 +586,6 @@ export function PublicStorefrontView({
                         {store.name}
                       </h1>
 
-                      {store.isVerified && (
-                        <span
-                          className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFC928]/15 text-[#855B00] dark:text-[#FFC928] border border-[#FFC928]/35"
-                          title="Verified campus vendor"
-                        >
-                          <svg className="w-3.5 h-3.5 text-[#FFC928] shrink-0" viewBox="0 0 20 20" fill="none">
-                            <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                            <circle cx="10" cy="10" r="3" fill="currentColor" />
-                          </svg>
-                          <span>{isStudentSeller ? "Verified Student Seller" : "Verified Business"}</span>
-                        </span>
-                      )}
-
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#F2F4F7] dark:bg-white/10 text-[#5B636E] dark:text-neutral-300">
                         {store.category}
                       </span>

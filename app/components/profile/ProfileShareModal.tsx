@@ -140,19 +140,11 @@ export function ProfileShareModal({
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className={`w-12 h-12 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-white ${
-                    profile.isStore && profile.isVerified
-                      ? "ring-2.5 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                      : ""
-                  }`}
+                  className="w-12 h-12 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-white"
                 />
               ) : (
                 <div
-                  className={`w-12 h-12 rounded-full bg-[#E8ECF2] dark:bg-white/10 flex items-center justify-center text-[#171717] dark:text-white font-bold text-sm ${
-                    profile.isStore && profile.isVerified
-                      ? "ring-2.5 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                      : ""
-                  }`}
+                  className="w-12 h-12 rounded-full bg-[#E8ECF2] dark:bg-white/10 flex items-center justify-center text-[#171717] dark:text-white font-bold text-sm"
                 >
                   {profile.name.charAt(0).toUpperCase()}
                 </div>
@@ -165,31 +157,10 @@ export function ProfileShareModal({
                 <h3 className="text-[14px] font-bold text-[#171717] dark:text-white truncate">
                   {profile.name}
                 </h3>
-                {profile.isStore && profile.isVerified && (
-                  <span
-                    title="Hive Verified Store"
-                    className="inline-flex items-center justify-center shrink-0"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5 text-[#FFC928]"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                    >
-                      <circle
-                        cx="10"
-                        cy="10"
-                        r="7.5"
-                        stroke="currentColor"
-                        strokeWidth="2.25"
-                      />
-                      <circle cx="10" cy="10" r="3" fill="currentColor" />
-                    </svg>
-                  </span>
-                )}
-                {!profile.isStore && profile.isVerified && (
+                {profile.isVerified && (
                   <BadgeCheck
                     className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                    aria-label="Verified student"
+                    aria-label="Verified user"
                   />
                 )}
               </div>
