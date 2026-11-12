@@ -1,9 +1,14 @@
 import React from "react";
+import type { Metadata } from "next";
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandHero } from "../components/home/RebrandHero";
 import { RebrandHomeFeed } from "../components/home/RebrandHomeFeed";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { PromotionalStrip } from "../components/promotions/PromotionalStrip";
+
+export const metadata: Metadata = {
+  title: "Campus Hive - Aspire Elevation",
+};
 
 export default function Home() {
   return (

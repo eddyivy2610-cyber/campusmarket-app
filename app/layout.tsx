@@ -11,7 +11,7 @@ import { SmoothScroll } from "./components/common/SmoothScroll";
 import { LayoutWrapper } from "./components/common/LayoutWrapper";
 
 export const metadata: Metadata = {
-  title: "Campus Hive 2.0 — Aspire Elevation",
+  title: "Campus Hive - Aspire Elevation",
   description: "Student-first hybrid marketplace connecting university students, student entrepreneurs, and approved local businesses.",
 };
 
