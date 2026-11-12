@@ -27,6 +27,9 @@
  *   npx tsx scripts/seed-dev-data.ts --memory --apply
  */
 
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
 import mongoose from "mongoose";
 import argon2 from "argon2";
 import UserModel from "../app/models/User";
@@ -655,7 +658,16 @@ async function connectDb(opts: CliOptions): Promise<{ uri: string; memoryServer:
   }
 
   // Load from .env.local if not already loaded
-  const envUri = process.env.MONGODB_URI || "mongodb://localhost:27017/campushive";
+  let envUri = process.env.MONGODB_URI || "mongodb://localhost:27017/campushive";
+
+  // If Atlas URI does not specify a database name, default to campushive
+  if (envUri.startsWith("mongodb+srv://")) {
+    const parsed = new URL(envUri);
+    if (!parsed.pathname || parsed.pathname === "/" || parsed.pathname === "") {
+      parsed.pathname = "/campushive";
+      envUri = parsed.toString();
+    }
+  }
 
   // Production safety check
   if (
@@ -669,9 +681,10 @@ async function connectDb(opts: CliOptions): Promise<{ uri: string; memoryServer:
     process.exit(1);
   }
 
-  console.log(`🔌 Attempting connection to MongoDB at: ${envUri}`);
+  const maskedUri = envUri.replace(/:([^@]+)@/, ":****@");
+  console.log(`🔌 Attempting connection to MongoDB at: ${maskedUri}`);
   try {
-    await mongoose.connect(envUri, { serverSelectionTimeoutMS: 2500 });
+    await mongoose.connect(envUri, { serverSelectionTimeoutMS: 10000 });
     return { uri: envUri, memoryServer: null };
   } catch (err: any) {
     if (opts.apply) {
