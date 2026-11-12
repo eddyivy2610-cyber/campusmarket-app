@@ -1429,14 +1429,10 @@ export default function ProfilePage() {
                                               <img
                                                 src={s.logo}
                                                 alt={s.name}
-                                                className={`w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
-                                                  s.isVerified ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]" : ""
-                                                }`}
+                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
                                               />
                                             ) : (
-                                              <div className={`w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0 ${
-                                                s.isVerified ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]" : ""
-                                              }`}>
+                                              <div className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0">
                                                 <Store className="w-4 h-4 text-[#171717] dark:text-white" />
                                               </div>
                                             )}
@@ -1446,12 +1442,10 @@ export default function ProfilePage() {
                                                   {s.name}
                                                 </p>
                                                 {s.isVerified && (
-                                                  <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
-                                                    <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
-                                                      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                                                      <circle cx="10" cy="10" r="3" fill="currentColor" />
-                                                    </svg>
-                                                  </span>
+                                                  <BadgeCheck
+                                                    className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                                    aria-label="Verified store"
+                                                  />
                                                 )}
                                               </div>
                                               <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">

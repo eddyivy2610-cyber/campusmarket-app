@@ -290,10 +290,8 @@ export function RebrandLowerSections() {
                     {/* Top Row: Store Avatar */}
                     <div className="flex items-start justify-between gap-2.5">
                       <Link
-                        href={`/stores/${(store as any).slug || store.handle}`}
-                        className={`radius-native w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0 ${
-                          isVerifiedStudent ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]" : ""
-                        }`}
+                        href={`/profile/${store.handle || (store as any).slug}`}
+                        className="radius-native w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0"
                       >
                         {store.avatar ? (
                           <img
@@ -315,7 +313,7 @@ export function RebrandLowerSections() {
                     <div className="mt-3">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Link
-                          href={`/stores/${(store as any).slug || store.handle}`}
+                          href={`/profile/${store.handle || (store as any).slug}`}
                           className="min-w-0 truncate"
                         >
                           <h3 className="text-[13.5px] sm:text-[14px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
@@ -323,12 +321,10 @@ export function RebrandLowerSections() {
                           </h3>
                         </Link>
                         {isVerifiedStudent && (
-                          <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
-                              <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                              <circle cx="10" cy="10" r="3" fill="currentColor" />
-                            </svg>
-                          </span>
+                          <BadgeCheck
+                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                            aria-label="Verified user"
+                          />
                         )}
                       </div>
 
@@ -364,7 +360,7 @@ export function RebrandLowerSections() {
                     </div>
 
                     <Link
-                      href={`/stores/${(store as any).slug || store.handle}`}
+                      href={`/profile/${store.handle || (store as any).slug}`}
                       className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#171717] dark:text-white shrink-0 transition-colors"
                     >
                       <span>Visit store</span>

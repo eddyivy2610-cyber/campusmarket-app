@@ -103,7 +103,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-4">
                         <button
-                            onClick={() => nav(user ? `/stores/${user.handle || user.id}` : "/login")}
+                            onClick={() => nav(user ? "/profile" : "/login")}
                             className="w-full flex items-center justify-between p-4 bg-primary text-primary-foreground rounded-xl shadow-sm hover:bg-primary/90 transition-all active:scale-95 group"
                         >
                             <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     {user && (
                         <Section label="Account">
-                            <NavRow icon={User} label="My Profile" onClick={() => nav(`/stores/${user.handle || user.id}`)} />
+                            <NavRow icon={User} label="My Profile" onClick={() => nav("/profile")} />
                             <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
                             {user.role !== "seller" && user.role !== "admin" && user.sellerStatus !== "approved" && (
                                 <NavRow 

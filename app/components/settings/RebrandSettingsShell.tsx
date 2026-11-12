@@ -892,14 +892,9 @@ export function RebrandSettingsShell({
 
             <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-3.5 shadow-xs">
               <div className="flex items-center gap-2.5">
-                <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
-                    <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                    <circle cx="10" cy="10" r="3" fill="currentColor" />
-                  </svg>
-                </span>
+                <BadgeCheck className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0" aria-label="Verified user" />
                 <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
-                  Verified Student Seller
+                  Verified Student Identity
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border border-[#A7F3D0] dark:border-emerald-500/20">
                   Active
@@ -907,7 +902,7 @@ export function RebrandSettingsShell({
               </div>
 
               <p className="text-[13px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
-                Your identity and university standing have been confirmed. Your storefront displays the Hive Gold verification ring and halo.
+                Your identity and university standing have been confirmed. Your profile displays the verified blue checkmark.
               </p>
 
               <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">

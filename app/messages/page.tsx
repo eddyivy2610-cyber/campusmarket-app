@@ -1378,8 +1378,8 @@ function MessagesWorkspace() {
                               (other.accountType === "student" ||
                                 other.accountType === "student_store") && (
                                 <BadgeCheck
-                                  className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                                  aria-label="Verified student seller"
+                                  className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                  aria-label="Verified user"
                                 />
                               )}
                           </div>
@@ -1500,8 +1500,8 @@ function MessagesWorkspace() {
                           activeConv.otherParticipant.accountType ===
                             "student_store") && (
                           <BadgeCheck
-                            className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                            aria-label="Verified student seller"
+                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                            aria-label="Verified user"
                           />
                         )}
                     </div>

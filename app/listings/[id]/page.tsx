@@ -193,7 +193,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/stores/campus-closet",
+      storeHref: "/profile/campus-closet",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -252,7 +252,7 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
       rating: "4.8",
       reviewsCount: 28,
       memberSince: "Oct 2026",
-      storeHref: "/stores/campus-closet",
+      storeHref: "/profile/campus-closet",
     },
     reviews: DEFAULT_REVIEWS,
   },
@@ -383,7 +383,7 @@ export default function ListingDetailPage() {
               rating: String(storeData?.metrics?.rating ?? "5.0"),
               reviewsCount: storeData?.metrics?.reviewsCount ?? 0,
               memberSince: "2026",
-              storeHref: storeData ? `/stores/${storeData.slug || storeData._id}` : `/stores/campus-closet`,
+              storeHref: storeData ? `/profile/${storeData.slug || storeData._id}` : `/profile/campus-closet`,
             },
             reviews: liveReviews,
           };
@@ -479,7 +479,7 @@ export default function ListingDetailPage() {
                 memberSince: "2026",
                 storeHref:
                   foundCreated.storeHref ||
-                  `/stores/${foundCreated.sellerHandle || "me"}`,
+                  `/profile/${foundCreated.sellerHandle || "me"}`,
               },
               reviews: [],
             };
@@ -1174,11 +1174,7 @@ export default function ListingDetailPage() {
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
-                      className={`w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10 ${
-                        listing.seller.isVerified
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
+                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
                     />
                   </Link>
                   <div className="min-w-0">
@@ -1190,12 +1186,10 @@ export default function ListingDetailPage() {
                         {listing.seller.name}
                       </Link>
                       {listing.seller.isVerified && (
-                        <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
-                          <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
-                            <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                            <circle cx="10" cy="10" r="3" fill="currentColor" />
-                          </svg>
-                        </span>
+                        <BadgeCheck
+                          className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                          aria-label="Verified user"
+                        />
                       )}
                     </div>
 
@@ -1207,8 +1201,8 @@ export default function ListingDetailPage() {
 
                 <Link
                   href={listing.seller.storeHref || "/explore"}
-                  title="Visit storefront"
-                  aria-label="Visit storefront"
+                  title="Visit profile"
+                  aria-label="Visit profile"
                   className="w-8 h-8 rounded-full bg-[#F4F6F8] dark:bg-white/5 hover:bg-[#FFC928] dark:hover:bg-[#FFC928] hover:text-[#171717] text-[#5B636E] dark:text-neutral-300 flex items-center justify-center transition-colors shrink-0"
                 >
                   <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
@@ -1245,7 +1239,7 @@ export default function ListingDetailPage() {
                     <ArrowUpRight className="w-3.5 h-3.5 text-[#68707A]" />
                   </Link>
                   <span className="block text-[11px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                    Store
+                    Profile
                   </span>
                 </div>
               </div>
@@ -1471,11 +1465,7 @@ export default function ListingDetailPage() {
                 <img
                   src={listing.seller.avatar}
                   alt={listing.seller.name}
-                  className={`w-9 h-9 rounded-full object-cover ${
-                    listing.seller.isVerified
-                      ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                      : ""
-                  }`}
+                  className="w-9 h-9 rounded-full object-cover"
                 />
                 <div>
                   <div className="flex items-center gap-1">
@@ -1483,12 +1473,10 @@ export default function ListingDetailPage() {
                       {listing.seller.name}
                     </span>
                     {listing.seller.isVerified && (
-                      <span title="Hive Verified Store" className="inline-flex items-center justify-center shrink-0">
-                        <svg className="w-3.5 h-3.5 text-[#FFC928]" viewBox="0 0 20 20" fill="none">
-                          <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                          <circle cx="10" cy="10" r="3" fill="currentColor" />
-                        </svg>
-                      </span>
+                      <BadgeCheck
+                        className="w-3.5 h-3.5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                        aria-label="Verified user"
+                      />
                     )}
                   </div>
                   <p className="text-[11px] text-[#68707A] dark:text-neutral-400">

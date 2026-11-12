@@ -38,6 +38,7 @@
     "seed:100": "npx tsx scripts/seed-dev-data.ts --scale=100 --apply",
     "seed:100:dry": "npx tsx scripts/seed-dev-data.ts --scale=100 --dry-run",
     "seed:100:memory": "npx tsx scripts/seed-dev-data.ts --scale=100 --memory --apply",
+    "db:dev": "npx tsx scripts/dev-db.ts",
     "backend:install": "cd campus-hive-backend && npm install",
     "backend:dev": "cd campus-hive-backend && npm run dev",
     "dev:all": "concurrently -n web,api -c cyan,green \"npm run dev\" \"npm run backend:dev\""

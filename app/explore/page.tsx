@@ -809,7 +809,7 @@ function ExploreContent() {
                           </div>
 
                           <Link
-                            href={`/stores/${item.sellerHandle}`}
+                            href={`/profile/${item.sellerHandle || "me"}`}
                             className="mt-0.5 block text-[11px] text-[#8C929C] dark:text-neutral-500 hover:text-[#171717] dark:hover:text-white hover:underline truncate"
                           >
                             {item.sellerName}
@@ -831,12 +831,10 @@ function ExploreContent() {
                         <div className="flex items-center gap-1.5 shrink-0">
                           {(item.sellerType === "verified_student" ||
                             item.sellerType === "student_store") && (
-                            <span
-                              title="Verified student seller"
-                              className="radius-native w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
-                            >
-                              <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                            </span>
+                            <BadgeCheck
+                              className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                              aria-label="Verified student seller"
+                            />
                           )}
 
                           <Link

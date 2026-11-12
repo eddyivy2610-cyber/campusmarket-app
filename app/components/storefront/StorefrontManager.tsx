@@ -376,11 +376,7 @@ export function StorefrontManager({
       {currentTab === "dashboard" && (
         <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative ${
-              storeData?.isVerified !== false
-                ? "ring-[2.5px] ring-[#FFC928] ring-offset-2 dark:ring-offset-[#14161D]"
-                : ""
-            }`}>
+            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
               {effectiveAvatar && !avatarError ? (
                 <img
                   src={effectiveAvatar}
@@ -401,20 +397,10 @@ export function StorefrontManager({
                   {storeName}
                 </h2>
                 {storeData?.isVerified !== false ? (
-                  <span
-                    title="Hive Verified Store"
-                    className="inline-flex items-center justify-center shrink-0 translate-y-[1px]"
-                  >
-                    <svg
-                      className="w-4.5 h-4.5 text-[#FFC928]"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      aria-label="Verified campus seller"
-                    >
-                      <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="2.25" />
-                      <circle cx="10" cy="10" r="3" fill="currentColor" />
-                    </svg>
-                  </span>
+                  <BadgeCheck
+                    className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0 translate-y-[1px]"
+                    aria-label="Verified store"
+                  />
                 ) : (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FFF7DB] dark:bg-[#FFC928]/15 text-[#9A6B00] dark:text-[#FFC928] border border-[#FFE599] dark:border-[#FFC928]/25">
                     <Clock className="w-3 h-3" />

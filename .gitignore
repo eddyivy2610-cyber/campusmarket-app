@@ -9,3 +9,4 @@ build
 *.log
 app/components/auth/seller/campushive.code-workspace
 campus-hive-backend/
+.mongo-dev-data/

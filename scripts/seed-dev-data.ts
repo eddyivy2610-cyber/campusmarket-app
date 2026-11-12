@@ -674,6 +674,19 @@ async function connectDb(opts: CliOptions): Promise<{ uri: string; memoryServer:
     await mongoose.connect(envUri, { serverSelectionTimeoutMS: 2500 });
     return { uri: envUri, memoryServer: null };
   } catch (err: any) {
+    if (opts.apply) {
+      console.error(`\n❌ [DATABASE CONNECTION FAILED] Could not connect to MongoDB at: ${envUri}`);
+      console.error(`Reason: ${err.message}`);
+      console.error("\n💡 To seed your application and have data persist in your feed:");
+      console.error("  1. In a separate terminal, start the local persistent database:");
+      console.error("       npm run db:dev");
+      console.error("  2. In this terminal, rerun the seed command:");
+      console.error("       npm run seed:100");
+      console.error("  (Or, configure a live MongoDB Atlas connection string in your .env.local file)");
+      console.error("\n(If you intentionally only want an ephemeral RAM dry-test that deletes on exit, pass --memory)\n");
+      process.exit(1);
+    }
+
     console.warn(`⚠️  Could not connect to external MongoDB: ${err.message}`);
     console.log("💡 Automatically falling back to an in-memory MongoMemoryReplSet so you can test the seed script immediately!");
     const { MongoMemoryReplSet } = await import("mongodb-memory-server");

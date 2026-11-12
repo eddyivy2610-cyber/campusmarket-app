@@ -758,8 +758,8 @@ function RadarContent() {
                           </Link>
                           {post.isVerified && (
                             <BadgeCheck
-                              className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                              aria-label="Verified student seller"
+                              className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                              aria-label="Verified user"
                             />
                           )}
                           <span className="text-[12px] text-[#8C929C] shrink-0">
@@ -933,15 +933,15 @@ function RadarContent() {
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
                                       <Link
-                                        href={`/stores/${reply.authorHandle}`}
+                                        href={`/profile/${reply.authorHandle}`}
                                         className="font-bold text-[#171717] dark:text-white hover:underline"
                                       >
                                         {reply.authorName}
                                       </Link>
                                       {reply.isVerified && (
                                         <BadgeCheck
-                                          className="w-3.5 h-3.5 text-[#171717] fill-[#FFC928] shrink-0"
-                                          aria-label="Verified student seller"
+                                          className="w-3.5 h-3.5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                          aria-label="Verified user"
                                         />
                                       )}
                                       <span className="text-[11px] text-[#8C929C]">
@@ -1055,8 +1055,8 @@ function RadarContent() {
                             </Link>
                             {person.isVerified && person.accountType === "student" && (
                               <BadgeCheck
-                                className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                                aria-label="Verified student seller"
+                                className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                aria-label="Verified user"
                               />
                             )}
                           </div>

@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Star, ExternalLink, MapPin, Tag, Handshake } from "lucide-react";
+import { Heart, Star, ExternalLink, MapPin, Tag, Handshake, BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSaved } from "../../context/SavedContext";
 
@@ -146,9 +146,14 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
                             />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{vendor.name}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                                {vendor.studentVerified ? "Verified Student Seller" : "Verified Campus Seller"}
+                            <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-semibold text-foreground truncate">{vendor.name}</p>
+                                {vendor.studentVerified && (
+                                    <BadgeCheck className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0" aria-label="Verified user" />
+                                )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                                {vendor.campus || "Campus Seller"}
                             </p>
                         </div>
                     </div>

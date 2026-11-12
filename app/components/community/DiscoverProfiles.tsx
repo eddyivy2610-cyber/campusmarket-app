@@ -60,7 +60,7 @@ export function DiscoverProfiles() {
                         {/* View Action overlay (hidden until hover) */}
                         <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                             <Link
-                                href={`/stores/${profile.id}`}
+                                href={`/profile/${profile.id}`}
                                 className="bg-primary text-primary-foreground font-bold px-4 py-1.5 rounded-full text-xs pointer-events-auto transform translate-y-2 group-hover:translate-y-0 transition-all shadow-sm"
                             >
                                 View Profile

@@ -208,7 +208,7 @@ export function IntelligentSearch() {
                                                     {profileResults.slice(0, 3).map(profile => (
                                                         <li key={profile.id}>
                                                             <Link
-                                                                href={`/stores/${profile.handle}`}
+                                                                href={`/profile/${profile.handle}`}
                                                                 className="flex items-center gap-4 px-4 py-3 hover:bg-secondary/50 transition-colors group"
                                                                 onClick={() => addToRecent(query)}
                                                             >
