@@ -284,11 +284,7 @@ export function RebrandLowerSections() {
                     <div className="flex items-start justify-between gap-2.5">
                       <Link
                         href={`/stores/${(store as any).slug || store.handle}`}
-                        className={`radius-native w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0 transition-all ${
-                          isVerifiedStudent
-                            ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                            : ""
-                        }`}
+                        className="radius-native w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0 transition-all"
                       >
                         {store.avatar ? (
                           <img
@@ -317,6 +313,12 @@ export function RebrandLowerSections() {
                             {store.name}
                           </h3>
                         </Link>
+                        {isVerifiedStudent && (
+                          <BadgeCheck
+                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                            aria-label="Verified store"
+                          />
+                        )}
                       </div>
 
                       <p className="text-[11px] sm:text-[11.5px] font-medium text-[#8C929C] dark:text-neutral-400 mt-0.5">

@@ -495,11 +495,7 @@ function StoresContent() {
                           {/* Visual Container */}
                           <Link
                             href={storeHref}
-                            className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl ${store.avatarBg} overflow-hidden flex items-center justify-center cursor-pointer group-hover:scale-[1.01] transition-all duration-200 ${
-                              isStudent
-                                ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                                : ""
-                            }`}
+                            className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl ${store.avatarBg} overflow-hidden flex items-center justify-center cursor-pointer group-hover:scale-[1.01] transition-all duration-200`}
                           >
                             {(store as any).logo ? (
                               <img
@@ -537,11 +533,17 @@ function StoresContent() {
                           <div className="pt-3 px-0.5">
                             <Link
                               href={storeHref}
-                              className="flex items-center gap-1.5"
+                              className="flex items-center gap-1.5 min-w-0"
                             >
                               <h3 className="text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
                                 {store.name}
                               </h3>
+                              {isStudent && (
+                                <BadgeCheck
+                                  className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                  aria-label="Verified store"
+                                />
+                              )}
                             </Link>
 
                             <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">

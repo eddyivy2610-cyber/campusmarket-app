@@ -1454,19 +1454,11 @@ export default function ProfilePage() {
                                               <img
                                                 src={s.logo}
                                                 alt={s.name}
-                                                className={`w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
-                                                  s.isVerified
-                                                    ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]"
-                                                    : ""
-                                                }`}
+                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
                                               />
                                             ) : (
                                               <div
-                                                className={`w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0 ${
-                                                  s.isVerified
-                                                    ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#181B24]"
-                                                    : ""
-                                                }`}
+                                                className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0"
                                               >
                                                 <Store className="w-4 h-4 text-[#171717] dark:text-white" />
                                               </div>
@@ -1476,6 +1468,12 @@ export default function ProfilePage() {
                                                 <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
                                                   {s.name}
                                                 </p>
+                                                {s.isVerified && (
+                                                  <BadgeCheck
+                                                    className="w-3.5 h-3.5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                                                    aria-label="Verified store"
+                                                  />
+                                                )}
                                               </div>
                                               <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
                                                 @{s.slug} · Storefront

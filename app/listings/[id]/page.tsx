@@ -1174,11 +1174,7 @@ export default function ListingDetailPage() {
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
-                      className={`w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10 ${
-                        listing.seller.storeHref?.startsWith("/stores") && listing.seller.isVerified
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
+                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
                     />
                   </Link>
                   <div className="min-w-0">
@@ -1189,10 +1185,10 @@ export default function ListingDetailPage() {
                       >
                         {listing.seller.name}
                       </Link>
-                      {listing.seller.isVerified && !listing.seller.storeHref?.startsWith("/stores") && (
+                      {listing.seller.isVerified && (
                         <BadgeCheck
                           className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                          aria-label="Verified user"
+                          aria-label="Verified"
                         />
                       )}
                     </div>

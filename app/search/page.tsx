@@ -559,11 +559,7 @@ function SearchContent() {
                   <div>
                     <Link
                       href={`/stores/${store.slug || store.id}`}
-                      className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center transition-all ${
-                        store.verificationType === "verified_student"
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
+                      className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center transition-all"
                     >
                       {store.avatar ? (
                         <img
@@ -591,6 +587,12 @@ function SearchContent() {
                             {store.name}
                           </h3>
                         </Link>
+                        {store.verificationType === "verified_student" && (
+                          <BadgeCheck
+                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
+                            aria-label="Verified store"
+                          />
+                        )}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">
                         <MapPin className="w-3 h-3 shrink-0" strokeWidth={2} />
