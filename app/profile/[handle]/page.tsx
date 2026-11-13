@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  BadgeCheck,
   MessageSquare,
   UserPlus,
   UserCheck,
@@ -1270,30 +1269,32 @@ export default function ProfilePage() {
                         <img
                           src={profile.avatar}
                           alt={profile.name}
-                          className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all"
+                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all ${
+                            isSellerApproved
+                              ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
                         />
                       ) : (
                         <div
-                          className="w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10 transition-all"
+                          className={`w-24 h-24 sm:w-[120px] sm:h-[120px] rounded-full border-4 border-white dark:border-[#14161D] shadow-md bg-[#E8ECF2] dark:bg-white/10 transition-all ${
+                            isSellerApproved
+                              ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
                           aria-label="Profile image unavailable"
                         />
                       )}
                     </div>
 
-                    {/* Middle Info: Row 1 (Name + Tick + @username) -> Row 2 (Bio for sellers) -> Row 3 (Location + Join Date) */}
+                    {/* Middle Info: Row 1 (Name + @username) -> Row 2 (Bio for sellers) -> Row 3 (Location + Join Date) */}
                     <div className="min-w-0 flex-1 space-y-2">
-                      {/* Row 1: Name + Single Blue Tick */}
+                      {/* Row 1: Name + Username */}
                       <div className="flex items-baseline gap-2 flex-wrap">
                         <div className="inline-flex items-center gap-1.5">
                           <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                             {profile.name}
                           </h1>
-                          {profile.isVerified && (
-                            <BadgeCheck
-                              className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0 translate-y-[1px]"
-                              aria-label="Verified user"
-                            />
-                          )}
                         </div>
 
                         {isCurrentSellerView && profile.username && (
@@ -1468,12 +1469,6 @@ export default function ProfilePage() {
                                                 <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
                                                   {s.name}
                                                 </p>
-                                                {s.isVerified && (
-                                                  <BadgeCheck
-                                                    className="w-3.5 h-3.5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                                                    aria-label="Verified store"
-                                                  />
-                                                )}
                                               </div>
                                               <p className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
                                                 @{s.slug} · Storefront
@@ -2039,8 +2034,8 @@ export default function ProfilePage() {
                   {profile.reviewsCount > 0 ? (
                     <div className="py-3 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0">
-                          <ShieldCheck className="w-4.5 h-4.5 text-[#2563EB]" />
+                        <div className="w-9 h-9 rounded-full bg-[#FFFBEB] dark:bg-[#FFC928]/10 flex items-center justify-center shrink-0">
+                          <ShieldCheck className="w-4.5 h-4.5 text-[#D97706] dark:text-[#FFC928]" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-[13px] font-bold text-[#171717] dark:text-white truncate">

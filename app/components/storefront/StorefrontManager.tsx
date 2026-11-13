@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Store,
-  BadgeCheck,
   Plus,
   Package,
   TrendingUp,
@@ -376,7 +375,11 @@ export function StorefrontManager({
       {currentTab === "dashboard" && (
         <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
+            <div className={`w-14 h-14 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative ${
+              storeData?.isVerified !== false
+                ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                : ""
+            }`}>
               {effectiveAvatar && !avatarError ? (
                 <img
                   src={effectiveAvatar}
@@ -396,12 +399,6 @@ export function StorefrontManager({
                 <h2 className="text-[18px] sm:text-[20px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
                   {storeName}
                 </h2>
-                {storeData?.isVerified !== false && (
-                  <BadgeCheck
-                    className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                    aria-label="Verified store"
-                  />
-                )}
                 {storeData?.isVerified === false && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FFF7DB] dark:bg-[#FFC928]/15 text-[#9A6B00] dark:text-[#FFC928] border border-[#FFE599] dark:border-[#FFC928]/25">
                     <Clock className="w-3 h-3" />

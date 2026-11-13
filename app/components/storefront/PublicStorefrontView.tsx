@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  BadgeCheck,
   CheckCircle2,
   MapPin,
   Heart,
@@ -560,11 +559,19 @@ export function PublicStorefrontView({
                       <img
                         src={store.logo}
                         alt={store.name}
-                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all"
+                        className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-white dark:border-[#14161D] shadow-md bg-white transition-all ${
+                          store.isVerified
+                            ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
                       />
                     ) : (
                       <div
-                        className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-[#14161D] shadow-md bg-[#FFC928] text-[#171717] flex items-center justify-center font-black text-3xl transition-all"
+                        className={`w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-[#14161D] shadow-md bg-[#FFC928] text-[#171717] flex items-center justify-center font-black text-3xl transition-all ${
+                          store.isVerified
+                            ? "ring-4 ring-[#FFC928] ring-offset-2 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
                       >
                         {store.name.charAt(0).toUpperCase()}
                       </div>
@@ -577,12 +584,6 @@ export function PublicStorefrontView({
                       <h1 className="text-[20px] sm:text-[24px] font-extrabold tracking-[-0.02em] text-[#171717] dark:text-white leading-tight">
                         {store.name}
                       </h1>
-                      {store.isVerified && (
-                        <BadgeCheck
-                          className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                          aria-label="Verified store"
-                        />
-                      )}
 
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#F2F4F7] dark:bg-white/10 text-[#5B636E] dark:text-neutral-300">
                         {store.category}

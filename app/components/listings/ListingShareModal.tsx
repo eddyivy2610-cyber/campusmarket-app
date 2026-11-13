@@ -10,7 +10,6 @@ import {
   ExternalLink,
   Sparkles,
   Store,
-  BadgeCheck,
   Image as ImageIcon,
   Link2,
 } from "lucide-react";

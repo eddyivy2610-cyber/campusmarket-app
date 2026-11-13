@@ -12,7 +12,6 @@ import {
   Heart,
   MapPin,
   Check,
-  BadgeCheck,
   Store,
   Sparkles,
   RotateCcw,

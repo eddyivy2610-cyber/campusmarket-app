@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, BadgeCheck, PenLine, X } from "lucide-react";
+import { Star, PenLine, X } from "lucide-react";
 
 interface Review {
     id: string;
@@ -108,9 +108,6 @@ export function ProductReviews({ recommendedCount, notRecommendedCount, reviews,
                                             <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
                                                 by {review.userName.split(' ')[0]}
                                             </span>
-                                            {review.isVerifiedBuyer && (
-                                                <BadgeCheck className="w-2.5 h-2.5 text-blue-500" fill="currentColor" stroke="white" strokeWidth={2} />
-                                            )}
                                         </div>
                                         <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-[0.1em]">
                                             {review.date}

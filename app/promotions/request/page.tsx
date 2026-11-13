@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { BadgeCheck, Megaphone, ShieldCheck, WalletCards } from "lucide-react";
+import { CheckCircle2, Megaphone, ShieldCheck, WalletCards } from "lucide-react";
 import Image from "next/image";
 import { BackToHomeBar } from "../../components/common/BackToHomeBar";
 import { saveHeroBanner } from "../../lib/heroBanners";
@@ -94,7 +94,7 @@ export default function PromotionRequestPage() {
                     <section className="grid md:grid-cols-3 gap-4">
                         <div className="bg-card border border-border/50 rounded-2xl p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Requirement</p>
-                            <p className="text-sm font-semibold inline-flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-primary" />Valid listing URL</p>
+                            <p className="text-sm font-semibold inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" />Valid listing URL</p>
                         </div>
                         <div className="bg-card border border-border/50 rounded-2xl p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Minimum budget</p>

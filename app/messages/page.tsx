@@ -15,7 +15,6 @@ import {
   Send,
   Search,
   Check,
-  BadgeCheck,
   CheckCircle2,
   ExternalLink,
   ImagePlus,
@@ -1354,10 +1353,20 @@ function MessagesWorkspace() {
                         <img
                           src={other.avatar}
                           alt={other.name}
-                          className="w-10 h-10 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                          className={`w-10 h-10 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
+                            other.isVerified
+                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13.5px] flex items-center justify-center shrink-0">
+                        <div
+                          className={`w-10 h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13.5px] flex items-center justify-center shrink-0 ${
+                            other.isVerified
+                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
+                        >
                           {other.name.charAt(0)}
                         </div>
                       )}
@@ -1374,14 +1383,6 @@ function MessagesWorkspace() {
                             >
                               {other.name}
                             </span>
-                            {other.isVerified &&
-                              (other.accountType === "student" ||
-                                other.accountType === "student_store") && (
-                                <BadgeCheck
-                                  className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                                  aria-label="Verified user"
-                                />
-                              )}
                           </div>
 
                           <span className="text-[10.5px] text-[#8C929C] shrink-0">
@@ -1477,10 +1478,20 @@ function MessagesWorkspace() {
                       <img
                         src={activeConv.otherParticipant.avatar}
                         alt={activeConv.otherParticipant?.name || "Campus Member"}
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8]"
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] ${
+                          activeConv.otherParticipant?.isVerified
+                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
                       />
                     ) : (
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[14px] flex items-center justify-center">
+                      <div
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[14px] flex items-center justify-center ${
+                          activeConv.otherParticipant?.isVerified
+                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
+                      >
                         {(activeConv.otherParticipant?.name || "U").charAt(0)}
                       </div>
                     )}
@@ -1494,16 +1505,6 @@ function MessagesWorkspace() {
                       >
                         {activeConv.otherParticipant?.name || "Campus Member"}
                       </Link>
-                      {activeConv.otherParticipant?.isVerified &&
-                        (activeConv.otherParticipant.accountType ===
-                          "student" ||
-                          activeConv.otherParticipant.accountType ===
-                            "student_store") && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                            aria-label="Verified user"
-                          />
-                        )}
                     </div>
                     <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 truncate">
                       {activeConv.otherParticipant?.subtitle || "Campus Member"}

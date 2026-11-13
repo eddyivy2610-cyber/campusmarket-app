@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GraduationCap, BadgeCheck, Trophy, Shield, Zap, Star } from "lucide-react";
+import { GraduationCap, Trophy, Shield, Zap, Star } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { IconTooltip } from "../common/IconTooltip";
@@ -34,7 +34,7 @@ export function BadgeSystem({ type, value, tier, className }: BadgeProps) {
                 "flex items-center justify-center p-0.5",
                 className
             )}>
-                <BadgeCheck className="w-6 h-6" fill={fillMain} stroke="white" strokeWidth={1.5} />
+                <Shield className="w-6 h-6" fill={fillMain} stroke="white" strokeWidth={1.5} />
             </div>
         );
     }

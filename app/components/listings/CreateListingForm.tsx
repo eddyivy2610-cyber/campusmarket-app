@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
-  BadgeCheck,
   Briefcase,
   Check,
   CheckCircle2,
@@ -1816,7 +1815,11 @@ export function CreateListingForm() {
 
                   {/* Storefront Seller Identity Pill */}
                   <div className="pt-3 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
+                    <div className={`w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0 ${
+                      storeIsVerified
+                        ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                        : ""
+                    }`}>
                       <img
                         src={storeAvatar}
                         alt={storeDisplayName}
@@ -1829,12 +1832,6 @@ export function CreateListingForm() {
                         <span className="text-[13px] font-bold text-[#171717] dark:text-white truncate">
                           {storeDisplayName}
                         </span>
-                        {storeIsVerified && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                            aria-label="Verified user"
-                          />
-                        )}
                       </div>
                       <div className="text-[11px] text-[#7A818C] dark:text-neutral-400 truncate">
                         {storeSubtitle}

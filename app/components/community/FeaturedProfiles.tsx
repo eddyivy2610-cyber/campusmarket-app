@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, BadgeCheck, Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 

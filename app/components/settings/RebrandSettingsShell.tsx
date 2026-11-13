@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   Lock,
-  BadgeCheck,
   SlidersHorizontal,
   ChevronDown,
   LogOut,
@@ -1013,7 +1012,7 @@ export function RebrandSettingsShell({
 
             <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-3.5 shadow-xs">
               <div className="flex items-center gap-2.5">
-                <BadgeCheck className="w-5 h-5 text-[#2563EB] fill-[#2563EB]/15 shrink-0" aria-label="Verified user" />
+                <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-label="Verified user" />
                 <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
                   Verified Student Identity
                 </span>
@@ -1023,7 +1022,7 @@ export function RebrandSettingsShell({
               </div>
 
               <p className="text-[13px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
-                Your identity and university standing have been confirmed. Your profile displays the verified blue checkmark.
+                Your identity and university standing have been confirmed. Your account is verified with approved campus standing.
               </p>
 
               <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">

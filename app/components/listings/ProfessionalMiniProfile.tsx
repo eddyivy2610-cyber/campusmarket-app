@@ -7,8 +7,7 @@ import {
     Star,
     ShoppingBag,
     Calendar,
-    Store,
-    BadgeCheck
+    Store
 } from "lucide-react";
 
 interface ProfessionalMiniProfileProps {
@@ -29,7 +28,9 @@ export function ProfessionalMiniProfile({ vendor }: ProfessionalMiniProfileProps
         <div className="bg-card border border-border/40 rounded-2xl p-5 shadow-sm">
             <div className="flex items-start justify-between mb-5">
                 <div className="flex items-center gap-3.5">
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-secondary/30 ring-2 ring-background ring-offset-2 ring-offset-border/40 shadow-md">
+                    <div className={`relative w-12 h-12 rounded-xl overflow-hidden bg-secondary/30 ring-2 ${
+                        vendor.isVerified ? "ring-[#FFC928]" : "ring-background"
+                    } ring-offset-2 ring-offset-border/40 shadow-md`}>
                         <Image
                             src={vendor.avatar}
                             alt={vendor.name}
@@ -42,9 +43,6 @@ export function ProfessionalMiniProfile({ vendor }: ProfessionalMiniProfileProps
                             <h3 className="font-bold text-sm tracking-tight leading-none truncate">
                                 {vendor.name}
                             </h3>
-                            {vendor.isVerified && (
-                                <BadgeCheck className="w-4 h-4" fill="#1D9BF0" stroke="white" strokeWidth={1.5} />
-                            )}
                         </div>
                     </div>
                 </div>

@@ -21,7 +21,6 @@ import {
     CheckCircle,
     MoreHorizontal,
     Camera,
-    BadgeCheck,
     Flag,
     Users,
     UserPlus,
@@ -295,7 +294,9 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                         <div className="flex flex-col items-center text-center order-first md:order-none">
                             <div className="relative mb-3 md:mb-6 group/avatar">
                                 <div 
-                                    className={`w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-white/30 ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all ${isHost ? "cursor-pointer hover:ring-white/50 group-hover:scale-[1.02]" : ""}`}
+                                    className={`w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ${
+                                        profile.isVerified ? "ring-[#FFC928]" : "ring-white/30"
+                                    } ring-offset-4 ring-offset-transparent shadow-2xl bg-secondary/30 relative z-20 transition-all ${isHost ? "cursor-pointer hover:ring-[#FFC928]/80 group-hover:scale-[1.02]" : ""}`}
                                     onClick={() => isHost && setIsAvatarModalOpen(true)}
                                 >
                                     {previewAvatar || profile.avatar ? (
@@ -329,11 +330,6 @@ export function ProfessionalProfileHeader({ profile, viewAs }: ProfessionalProfi
                                     <h1 className={`text-lg md:text-2xl font-bold tracking-tight drop-shadow-sm ${isCoverLight ? "text-slate-950" : "text-white"}`}>
                                         {profile.name}
                                     </h1>
-                                    {profile.isVerified && (
-                                        <IconTooltip content="Verified Member" position="top">
-                                            <BadgeCheck className="w-6 h-6" style={{ color: "#ffffff", fill: verificationColor }} strokeWidth={2} />
-                                        </IconTooltip>
-                                    )}
                                 </div>
                                 <div className="flex flex-col items-center text-center">
                                      <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 ${isCoverLight ? "text-black/60" : "text-white/60"}`}>

@@ -6,7 +6,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowRight,
   MessageCircle,
-  BadgeCheck,
   CheckCircle2,
   MoreHorizontal,
   User,
@@ -736,10 +735,20 @@ function RadarContent() {
                         <img
                           src={post.requesterAvatar}
                           alt={post.requesterName}
-                          className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
+                          className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 ${
+                            post.isVerified
+                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13px] flex items-center justify-center border border-[#E8E8E8] dark:border-white/10">
+                        <div
+                          className={`w-9 h-9 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13px] flex items-center justify-center border border-[#E8E8E8] dark:border-white/10 ${
+                            post.isVerified
+                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                              : ""
+                          }`}
+                        >
                           {post.requesterName ? post.requesterName.charAt(0).toUpperCase() : "U"}
                         </div>
                       )}
@@ -756,12 +765,6 @@ function RadarContent() {
                           >
                             {post.requesterName}
                           </Link>
-                          {post.isVerified && (
-                            <BadgeCheck
-                              className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                              aria-label="Verified user"
-                            />
-                          )}
                           <span className="text-[12px] text-[#8C929C] shrink-0">
                             · {post.timeAgo}
                           </span>
@@ -938,12 +941,6 @@ function RadarContent() {
                                       >
                                         {reply.authorName}
                                       </Link>
-                                      {reply.isVerified && (
-                                        <BadgeCheck
-                                          className="w-3.5 h-3.5 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                                          aria-label="Verified user"
-                                        />
-                                      )}
                                       <span className="text-[11px] text-[#8C929C]">
                                         · {reply.authorTime}
                                       </span>
@@ -1041,7 +1038,11 @@ function RadarContent() {
                           <img
                             src={person.avatar}
                             alt={person.name}
-                            className="w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10"
+                            className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 ${
+                              person.isVerified
+                                ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                                : ""
+                            }`}
                           />
                         </Link>
 
@@ -1053,12 +1054,6 @@ function RadarContent() {
                             >
                               {person.name}
                             </Link>
-                            {person.isVerified && person.accountType === "student" && (
-                              <BadgeCheck
-                                className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                                aria-label="Verified user"
-                              />
-                            )}
                           </div>
                           <p className="text-[11px] text-[#68707A] dark:text-neutral-400 truncate">
                             {person.similarProducts}

@@ -5,7 +5,6 @@ import { ShieldCheck, ShoppingBag, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "../../../lib/utils";
 import { useAuth } from "../../../context/AuthContext";
-import { BadgeCheck } from "lucide-react";
 
 export function AccountSettings() {
     const { user } = useAuth();
@@ -75,7 +74,7 @@ export function AccountSettings() {
                             "p-2 rounded-xl",
                             isApproved ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
                         )}>
-                            {isApproved ? <BadgeCheck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+                            {isApproved ? <ShieldCheck className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
                         </div>
                         <div>
                             <h3 className="font-bold text-sm">
@@ -103,7 +102,7 @@ export function AccountSettings() {
                                 "flex items-center gap-2 text-[10px] font-bold w-fit px-3 py-1 rounded-full uppercase tracking-wider",
                                 isApproved ? "text-emerald-600 bg-emerald-100/50" : "text-amber-600 bg-amber-100/50"
                             )}>
-                                {isApproved ? <BadgeCheck className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                                <ShieldCheck className="w-3 h-3" />
                                 {isApproved ? "Verified Seller" : "Under Review"}
                             </div>
                         </div>

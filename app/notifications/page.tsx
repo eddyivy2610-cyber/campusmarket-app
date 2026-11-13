@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
-import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { useAuth } from "../context/AuthContext";
 import { apiGet, apiPatch } from "@/lib/apiClient";
 import {
@@ -533,8 +532,6 @@ export default function NotificationsPage() {
           )}
         </div>
       </main>
-
-      <RebrandFooter />
     </div>
   );
 }

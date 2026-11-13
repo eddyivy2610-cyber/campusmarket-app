@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Heart,
   MapPin,
-  BadgeCheck,
   Store,
   User,
   Sparkles,
@@ -19,7 +18,7 @@ import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { PageSkeleton } from "../components/common/LoadingSystem";
 import { ExploreListingItem } from "../data/exploreCatalog";
-import type { StorefrontItem, WantedRequestItem } from "../data/mvpMockData";
+import type { StorefrontItem } from "../data/mvpMockData";
 import { useAuth } from "@/context/AuthContext";
 
 type SearchFeatureTab =
@@ -27,8 +26,7 @@ type SearchFeatureTab =
   | "products"
   | "services"
   | "stores"
-  | "profiles"
-  | "wanted";
+  | "profiles";
 
 interface SearchProfileItem {
   id: string;
@@ -304,8 +302,7 @@ function SearchContent() {
   const matchingListings = useMemo(() => {
     if (
       activeTab === "stores" ||
-      activeTab === "profiles" ||
-      activeTab === "wanted"
+      activeTab === "profiles"
     ) {
       return [];
     }
@@ -335,8 +332,7 @@ function SearchContent() {
     if (
       activeTab === "products" ||
       activeTab === "services" ||
-      activeTab === "profiles" ||
-      activeTab === "wanted"
+      activeTab === "profiles"
     ) {
       return [];
     }
@@ -372,8 +368,7 @@ function SearchContent() {
     if (
       activeTab === "products" ||
       activeTab === "services" ||
-      activeTab === "stores" ||
-      activeTab === "wanted"
+      activeTab === "stores"
     ) {
       return [];
     }
@@ -393,61 +388,6 @@ function SearchContent() {
     });
   }, [dbProfiles, activeTab, user]);
 
-  // Filtered Wanted Requests from local radar requests
-  const matchingWanted = useMemo(() => {
-    if (
-      activeTab === "products" ||
-      activeTab === "services" ||
-      activeTab === "stores" ||
-      activeTab === "profiles"
-    ) {
-      return [];
-    }
-    const q = query.toLowerCase().trim();
-    let localPosts: any[] = [];
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("ch_radar_posts");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) localPosts = parsed;
-        }
-      } catch {}
-    }
-
-    return localPosts
-      .map(
-        (post: any): WantedRequestItem => ({
-          id: post.id,
-          title: post.requestText || "Wanted request",
-          description: post.requestText || "",
-          budgetMin: typeof post.budgetMin === "number" ? post.budgetMin : 5000,
-          budgetMax:
-            typeof post.budgetMax === "number" ? post.budgetMax : 10000,
-          category: post.category || "Academics",
-          campusSlug: "main-campus",
-          campusShortName: "Main Campus",
-          preferredLandmark: post.requesterLocation || "Campus",
-          urgency: "Urgent",
-          status: "Open",
-          requesterName: post.requesterName || "Campus Student",
-          requesterHandle: post.requesterHandle || "student",
-          requesterDepartment: post.requesterDept || "Student",
-          responsesCount: Array.isArray(post.replies) ? post.replies.length : 0,
-          postedAt: post.timeAgo || "Recently",
-        })
-      )
-      .filter((req) => {
-        if (q) {
-          const matchesTitle = req.title.toLowerCase().includes(q);
-          const matchesCat = req.category.toLowerCase().includes(q);
-          const matchesLoc = req.preferredLandmark.toLowerCase().includes(q);
-          if (!matchesTitle && !matchesCat && !matchesLoc) return false;
-        }
-        return true;
-      });
-  }, [query, activeTab]);
-
   // Aggregate item counts
   const productsCount = useMemo(
     () => dbListings.filter((i) => i.itemType === "product").length,
@@ -459,13 +399,11 @@ function SearchContent() {
   );
   const storesCount = matchingStores.length;
   const profilesCount = matchingProfiles.length;
-  const wantedCount = matchingWanted.length;
 
   const totalCount =
     matchingListings.length +
     matchingStores.length +
-    matchingProfiles.length +
-    matchingWanted.length;
+    matchingProfiles.length;
 
   // Compute category counts for listings (strictly hiding categories with 0 matches)
   const categoryCounts = useMemo(() => {
@@ -494,9 +432,8 @@ function SearchContent() {
       { id: "services" as SearchFeatureTab, label: "Services", count: servicesCount },
       { id: "stores" as SearchFeatureTab, label: "Stores", count: storesCount },
       { id: "profiles" as SearchFeatureTab, label: "Profiles", count: profilesCount },
-      { id: "wanted" as SearchFeatureTab, label: "Wanted", count: wantedCount },
     ];
-  }, [totalCount, productsCount, servicesCount, storesCount, profilesCount, wantedCount]);
+  }, [totalCount, productsCount, servicesCount, storesCount, profilesCount]);
 
   // Filter tabs: strictly HIDE any filter with 0 count
   const visibleTabs = useMemo(() => {
@@ -537,7 +474,7 @@ function SearchContent() {
           <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
             {isRandomDefault
               ? "Showing random campus products. Search below to find specific items, stores, or services."
-              : "One search across all products, services, stores, profiles, and wanted requests."}
+              : "One search across all products, services, stores, and profiles."}
           </p>
 
           {/* Clean Focused Search Input */}
@@ -611,7 +548,7 @@ function SearchContent() {
 
               <div className="flex items-center gap-2 text-[12px] font-medium text-[#8C929C] shrink-0">
                 {isRandomDefault && (
-                  <span className="inline-flex items-center gap-1 text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E293B] px-2 py-0.5 rounded-md text-[11px] font-semibold">
+                  <span className="inline-flex items-center gap-1 text-[#9A6B00] dark:text-[#FFC928] bg-[#FFF8E1] dark:bg-[#FFC928]/15 px-2 py-0.5 rounded-md text-[11px] font-semibold">
                     <Sparkles className="w-3 h-3" />
                     Randomized Catalog
                   </span>
@@ -753,6 +690,10 @@ function SearchContent() {
 
             {/* 2. Stores Cards */}
             {matchingStores.map((store) => {
+              const isApproved =
+                store.verificationType === "verified_student" ||
+                store.verificationType === "verified_business";
+
               return (
                 <div
                   key={`store-${store.id}`}
@@ -761,7 +702,11 @@ function SearchContent() {
                   <div>
                     <Link
                       href={`/stores/${store.slug || store.id}`}
-                      className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center transition-all"
+                      className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center transition-all ${
+                        isApproved
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     >
                       {store.avatar ? (
                         <img
@@ -789,12 +734,6 @@ function SearchContent() {
                             {store.name}
                           </h3>
                         </Link>
-                        {store.verificationType === "verified_student" && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0"
-                            aria-label="Verified store"
-                          />
-                        )}
                       </div>
                       <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">
                         <MapPin className="w-3 h-3 shrink-0" strokeWidth={2} />
@@ -823,6 +762,11 @@ function SearchContent() {
             {matchingProfiles.map((profile) => {
               const isSeller =
                 profile.role === "seller" || profile.sellerStatus === "approved";
+              const isApprovedStore =
+                profile.studentVerified ||
+                profile.role === "seller" ||
+                profile.sellerStatus === "approved";
+
               return (
                 <div
                   key={`profile-${profile.id}`}
@@ -831,7 +775,11 @@ function SearchContent() {
                   <div>
                     <Link
                       href={`/profile/${profile.handle}`}
-                      className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center"
+                      className={`radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center ${
+                        isApprovedStore
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
                     >
                       {profile.avatar ? (
                         <img
@@ -859,12 +807,6 @@ function SearchContent() {
                             {profile.name}
                           </h3>
                         </Link>
-                        {profile.studentVerified && (
-                          <BadgeCheck
-                            className="w-4 h-4 text-[#171717] fill-[#FFC928] shrink-0"
-                            aria-label="Verified student"
-                          />
-                        )}
                       </div>
                       <div className="text-[11.5px] font-medium text-[#8C929C] truncate">
                         @{profile.handle}
@@ -891,56 +833,6 @@ function SearchContent() {
                 </div>
               );
             })}
-
-            {/* 4. Wanted Cards */}
-            {matchingWanted.map((req) => (
-              <div
-                key={`wanted-${req.id}`}
-                className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="radius-native relative h-[150px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex flex-col items-center justify-center p-3 text-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C929C] mb-1">
-                      Wanted Need
-                    </span>
-                    <p className="text-[12.5px] font-bold text-[#171717] dark:text-white line-clamp-2 px-2">
-                      {req.title}
-                    </p>
-                    <div className="absolute top-2.5 right-2.5">
-                      <span className="radius-native inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FFF3DC] text-[#B45309]">
-                        {req.urgency}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 px-0.5">
-                    <Link href="/wanted">
-                      <h3 className="text-[13.5px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
-                        {req.title}
-                      </h3>
-                    </Link>
-                    <div className="mt-1 flex items-center gap-1 text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400">
-                      <MapPin className="w-3 h-3 shrink-0" strokeWidth={2} />
-                      <span className="truncate">{req.preferredLandmark}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-2 px-0.5 border-t border-[#F2F4F7] dark:border-white/5 flex items-center justify-between gap-2">
-                  <span className="text-[14px] font-extrabold text-[#14171A] dark:text-white">
-                    ₦{req.budgetMin.toLocaleString()}–₦
-                    {req.budgetMax.toLocaleString()}
-                  </span>
-                  <Link
-                    href="/wanted"
-                    className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#FFE182] hover:text-[#171717] px-2.5 py-1 text-[11.5px] font-semibold text-[#171717] dark:text-white transition-colors"
-                  >
-                    <span>Offer</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </main>

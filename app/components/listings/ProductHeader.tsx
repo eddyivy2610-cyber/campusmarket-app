@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Star, ExternalLink, MapPin, Tag, Handshake, BadgeCheck } from "lucide-react";
+import { Heart, Star, ExternalLink, MapPin, Tag, Handshake } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSaved } from "../../context/SavedContext";
 
@@ -137,7 +137,11 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
             <div className="border border-border/60 rounded-md overflow-hidden bg-background">
                 <div className="flex items-center justify-between gap-3 p-3">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="relative w-9 h-9 rounded-full overflow-hidden border border-border/60">
+                        <div className={`relative w-9 h-9 rounded-full overflow-hidden border border-border/60 ${
+                            vendor.studentVerified
+                                ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-background"
+                                : ""
+                        }`}>
                             <Image 
                                 src={vendor.avatar || "/placeholder-avatar.png"} 
                                 alt={vendor.name} 
@@ -148,9 +152,6 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
                         <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                                 <p className="text-sm font-semibold text-foreground truncate">{vendor.name}</p>
-                                {vendor.studentVerified && (
-                                    <BadgeCheck className="w-4 h-4 text-[#2563EB] fill-[#2563EB]/15 shrink-0" aria-label="Verified user" />
-                                )}
                             </div>
                             <p className="text-[11px] text-muted-foreground truncate">
                                 {vendor.campus || "Campus Seller"}

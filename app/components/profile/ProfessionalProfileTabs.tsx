@@ -15,7 +15,6 @@ import {
     Star,
     User,
     Clock,
-    BadgeCheck,
     MessageSquare,
     Store,
     ShieldCheck,
