@@ -814,7 +814,7 @@ function ExploreContent() {
                           </div>
 
                           <Link
-                            href={`/profile/${item.sellerHandle || "me"}`}
+                            href={`/stores/${item.sellerHandle || "campus-closet"}`}
                             className="mt-0.5 block text-[11px] text-[#8C929C] dark:text-neutral-500 hover:text-[#171717] dark:hover:text-white hover:underline truncate"
                           >
                             {item.sellerName}

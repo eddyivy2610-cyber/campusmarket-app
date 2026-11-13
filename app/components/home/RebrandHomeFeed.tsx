@@ -430,7 +430,7 @@ export function RebrandHomeFeed() {
 
                         {item.sellerName && (
                           <Link
-                            href={`/profile/${item.sellerHandle || "campus"}`}
+                            href={`/stores/${item.sellerHandle || "campus"}`}
                             className="mt-0.5 block text-[10.5px] sm:text-[11px] text-[#8C929C] dark:text-neutral-500 hover:text-[#171717] dark:hover:text-white truncate"
                           >
                             {item.sellerName}

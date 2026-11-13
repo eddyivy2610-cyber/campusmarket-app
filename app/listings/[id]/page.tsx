@@ -39,7 +39,7 @@ import { RebrandFooter } from "../../components/sections/RebrandFooter";
 import { PageSkeleton } from "../../components/common/LoadingSystem";
 import { ListingShareModal } from "../../components/listings/ListingShareModal";
 import { useAuth } from "../../context/AuthContext";
-import type { ExploreListingItem } from "../../data/exploreCatalog";
+import { EXPLORE_LISTINGS, type ExploreListingItem } from "../../data/exploreCatalog";
 
 interface QuickHighlight {
   icon: "cpu" | "ram" | "storage" | "display" | "os" | "tag" | "package" | "clock" | "check";
@@ -258,7 +258,52 @@ const DETAILED_CATALOG: Record<string, DetailedListingData> = {
 };
 
 function buildFallbackListing(id: string): DetailedListingData | null {
-  return DETAILED_CATALOG[id] || null;
+  if (DETAILED_CATALOG[id]) return DETAILED_CATALOG[id];
+  const catalogMatch = EXPLORE_LISTINGS.find((item) => String(item.id) === String(id));
+  if (!catalogMatch) return null;
+  const isService = catalogMatch.itemType === "service";
+  return {
+    id: String(catalogMatch.id),
+    title: catalogMatch.title,
+    price: catalogMatch.price,
+    priceFormatted: catalogMatch.priceFormatted,
+    category: catalogMatch.category,
+    subCategory: catalogMatch.category,
+    conditionLabel: catalogMatch.condition || (isService ? "Service" : "Good"),
+    conditionNote: isService ? "Campus service" : `${catalogMatch.condition || "Good"} condition`,
+    location: catalogMatch.landmark || "Main Campus",
+    postedAgo: "Posted recently",
+    shortSummary: `${catalogMatch.title} available around ${catalogMatch.landmark || "Main Campus"}.`,
+    aboutDescription: `${catalogMatch.title} listed by ${catalogMatch.sellerName} around ${catalogMatch.landmark || "Main Campus"}. Inspect and confirm details before campus meetup.`,
+    whySelling: isService ? "Campus student service." : "Available for campus meetup.",
+    pickupDetails: `Meetup at ${catalogMatch.landmark || "Main Campus"}`,
+    includedItems: [catalogMatch.title, isService ? "Service delivery" : "Inspection before payment"],
+    images: [catalogMatch.imageUrl],
+    quickHighlights: [
+      { icon: "check", label: catalogMatch.condition || (isService ? "Campus Service" : "Good") },
+      { icon: "tag", label: catalogMatch.priceFormatted },
+      { icon: "clock", label: "Campus meetup" },
+    ],
+    specifications: [
+      { label: "Category", value: catalogMatch.category },
+      { label: "Location", value: catalogMatch.landmark || "Main Campus" },
+    ],
+    seller: {
+      name: catalogMatch.sellerName,
+      handle: catalogMatch.sellerHandle,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80",
+      department: catalogMatch.landmark || "Main Campus",
+      badgeLabel: catalogMatch.sellerType === "approved_business" ? "Approved business" : "Student seller",
+      isVerified: true,
+      bio: `Active campus storefront at ${catalogMatch.landmark || "Main Campus"}.`,
+      listingsCount: 4,
+      rating: "4.9",
+      reviewsCount: 12,
+      memberSince: "2026",
+      storeHref: `/stores/${catalogMatch.sellerHandle || "campus-closet"}`,
+    },
+    reviews: DEFAULT_REVIEWS,
+  };
 }
 
 export default function ListingDetailPage() {

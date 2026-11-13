@@ -21,6 +21,7 @@ import { RebrandHeader } from "../header/RebrandHeader";
 import { ProfileShareModal } from "../profile/ProfileShareModal";
 import { useAuth } from "../../context/AuthContext";
 import { followService } from "@/lib/followService";
+import { EXPLORE_LISTINGS } from "@/data/exploreCatalog";
 import { RebrandFooter } from "../sections/RebrandFooter";
 
 export interface PublicStoreListing {
@@ -137,6 +138,57 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
               setIsLoading(false);
             }
             return;
+          }
+          if (storeRes.status === 404) {
+            const cleanSlug = decodeURIComponent(slug).toLowerCase();
+            const matchingCatalogItems = EXPLORE_LISTINGS.filter(
+              (item) => item.sellerHandle.toLowerCase() === cleanSlug
+            );
+            if (matchingCatalogItems.length > 0 && isMounted) {
+              const first = matchingCatalogItems[0];
+              setStore({
+                id: cleanSlug,
+                name: first.sellerName,
+                slug: first.sellerHandle,
+                description: `Active campus storefront around ${first.landmark || "Main Campus"}.`,
+                storeType:
+                  first.sellerType === "approved_business"
+                    ? "approved_business"
+                    : "student_store",
+                category: first.category,
+                campus: "Main Campus",
+                operatingLocation: first.landmark || "Main Campus",
+                logo: "",
+                status: "active",
+                isVerified: true,
+                verificationType:
+                  first.sellerType === "approved_business" ? "business" : "student",
+                metrics: {
+                  rating: 4.9,
+                  reviewsCount: 12,
+                  completedDeals: 18,
+                  listingsCount: matchingCatalogItems.length,
+                  followersCount: 24,
+                },
+              });
+              setListings(
+                matchingCatalogItems.map((item) => ({
+                  id: String(item.id),
+                  title: item.title,
+                  price: item.price,
+                  priceFormatted: item.priceFormatted,
+                  description: `${item.title} available around ${item.landmark || "Main Campus"}.`,
+                  images: [item.imageUrl],
+                  category: item.category,
+                  condition: item.condition,
+                  listingType: item.itemType,
+                  location: item.landmark,
+                  status: "active",
+                }))
+              );
+              setIsLoading(false);
+              return;
+            }
           }
           throw new Error(storeJson.error || "Store not found");
         }
