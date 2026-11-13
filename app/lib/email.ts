@@ -146,19 +146,21 @@ async function sendViaSmtp(
     throw new Error("Invalid SMTP port configuration");
   }
 
+  const isLocalSmtp = host === "127.0.0.1" || host === "localhost" || port === 1025;
   const transporter = nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
-    requireTLS: port === 587,
-    auth: {
+    requireTLS: port === 587 && !isLocalSmtp,
+    ignoreTLS: isLocalSmtp,
+    auth: isLocalSmtp ? undefined : {
       user,
       pass,
     },
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 15_000,
-    tls: {
+    tls: isLocalSmtp ? { rejectUnauthorized: false } : {
       minVersion: "TLSv1.2",
     },
   });

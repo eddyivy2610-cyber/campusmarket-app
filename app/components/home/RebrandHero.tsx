@@ -208,8 +208,14 @@ export function RebrandHero() {
                 theme: "white",
               }));
 
-              // Exclusively display active database banners without hardcoded banners
-              setSlides(apiSlides);
+              if (apiSlides.length > 1) {
+                setSlides(apiSlides);
+              } else {
+                const remainingDefaults = DEFAULT_HERO_SLIDES.filter(
+                  (d) => !apiSlides.some((a) => a.imageUrl === d.imageUrl)
+                );
+                setSlides([...apiSlides, ...remainingDefaults]);
+              }
             }
           }
         }
@@ -333,7 +339,7 @@ export function RebrandHero() {
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className="radius-native relative overflow-hidden flex-1 rounded-2xl aspect-[16/9] sm:aspect-[2.1/1] lg:aspect-[2.3/1] min-h-[170px] sm:min-h-[240px] lg:min-h-[280px] max-h-[380px] flex items-stretch select-none bg-transparent"
+            className="radius-native relative overflow-hidden flex-1 rounded-2xl aspect-[16/9] sm:aspect-[2.1/1] lg:aspect-auto min-h-[170px] sm:min-h-[240px] lg:h-[285px] lg:min-h-[285px] lg:max-h-[285px] flex items-stretch select-none bg-transparent"
             role="region"
             aria-roledescription="carousel"
             aria-label="Campus Marketplace Highlights"

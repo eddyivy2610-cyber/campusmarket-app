@@ -42,11 +42,15 @@ export async function GET(req: NextRequest) {
 
   const payload = {
     status: isReady ? "ok" : "degraded",
+    environment: process.env.NODE_ENV === "production" ? "production" : "staging",
     probe: "readiness",
     uptimeSec,
     database: {
       status: isReady ? "connected" : "disconnected",
       latencyMs: dbHealth.latencyMs,
+    },
+    config: {
+      maxStoresPerUser: parseInt(process.env.MAX_STORES_PER_USER || "1", 10),
     },
     timestamp: new Date().toISOString(),
   };

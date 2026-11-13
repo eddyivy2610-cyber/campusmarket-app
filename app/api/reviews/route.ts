@@ -439,10 +439,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
 
       // If transactions are unsupported (standalone mongo), fallback to sequential write with compensation
-      if (
+      const isReplicaSetError =
         txErr?.message?.includes("Transaction numbers are only allowed on a replica set") ||
-        txErr?.message?.includes("standalone")
-      ) {
+        txErr?.message?.includes("replica set") ||
+        txErr?.message?.includes("retryable writes") ||
+        txErr?.originalError?.message?.includes("replica set") ||
+        txErr?.code === 20 ||
+        txErr?.codeName === "IllegalOperation" ||
+        txErr?.message?.includes("standalone");
+
+      if (isReplicaSetError) {
         try {
           const directReview = await ReviewModel.create({
             sellerId: order.sellerId,

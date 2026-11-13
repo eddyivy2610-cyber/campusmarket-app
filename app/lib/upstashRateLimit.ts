@@ -10,6 +10,9 @@ function getUpstashConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, "");
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
+    if (process.env.NODE_ENV !== "production") {
+      return null;
+    }
     throw new Error("Upstash rate limiting is not configured.");
   }
   return { url, token };
@@ -47,7 +50,11 @@ export async function checkLoginRateLimit(
   email: string,
   ip: string
 ): Promise<UpstashRateLimitResult> {
-  const { url, token } = getUpstashConfig();
+  const config = getUpstashConfig();
+  if (!config) {
+    return { allowed: true, count: 0, retryAfterSeconds: LOGIN_WINDOW_SECONDS };
+  }
+  const { url, token } = config;
   const keys = [
     `campushive:login:email:${email.toLowerCase().trim()}`,
     `campushive:login:ip:${ip || "unknown"}`,
@@ -82,7 +89,12 @@ export async function checkLoginRateLimit(
 export async function checkPasswordResetRateLimit(email: string, ip: string) {
   const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, "");
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new Error("Upstash rate limiting is not configured.");
+  if (!url || !token) {
+    if (process.env.NODE_ENV !== "production") {
+      return { allowed: true, count: 0, retryAfterSeconds: LOGIN_WINDOW_SECONDS };
+    }
+    throw new Error("Upstash rate limiting is not configured.");
+  }
   const keys = [
     `campushive:password-reset:email:${email.toLowerCase().trim()}`,
     `campushive:password-reset:ip:${ip || "unknown"}`,
