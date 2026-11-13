@@ -286,6 +286,21 @@ export default function ListingDetailPage() {
           const item = json.data;
           const isService = item.listingType === "service";
 
+          // Record unique view impression once per session (server also deduplicates 24h)
+          const targetListingId = String(item._id || item.id || rawId);
+          try {
+            const viewedRaw = sessionStorage.getItem("ch_viewed_listings");
+            const viewedMap: Record<string, number> = viewedRaw ? JSON.parse(viewedRaw) : {};
+            if (!viewedMap[targetListingId]) {
+              viewedMap[targetListingId] = Date.now();
+              sessionStorage.setItem("ch_viewed_listings", JSON.stringify(viewedMap));
+              fetch(`/api/listings/${encodeURIComponent(targetListingId)}/view`, {
+                method: "POST",
+                credentials: "include",
+              }).catch(() => {});
+            }
+          } catch {}
+
           // If item belongs to a store, use embedded store info or load store info
           let storeData: any = item.store || null;
           if (!storeData && item.storeId) {

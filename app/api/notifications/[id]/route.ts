@@ -18,5 +18,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     { returnDocument: "after" }
   ).lean();
   if (!notification) return NextResponse.json({ success: false, error: "Notification not found." }, { status: 404 });
-  return NextResponse.json({ success: true, data: notification }, { headers: { "Cache-Control": "private, no-store" } });
+  const unreadCount = await NotificationModel.countDocuments({ recipient: user.id, read: false });
+  return NextResponse.json({ success: true, data: notification, unreadCount }, { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -50,9 +50,19 @@ export function AppPreferencesPanel() {
         if (isMounted && res?.success && res.data) {
           const d = res.data;
           if (d.appearance) {
-            setAppearance(d.appearance);
-            if (d.appearance.theme) {
-              setTheme(d.appearance.theme);
+            const localTheme =
+              typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+            const hasExplicitLocalTheme =
+              localTheme === "light" || localTheme === "dark";
+            const dbTheme = d.appearance.theme;
+            if (dbTheme === "light" || dbTheme === "dark") {
+              setAppearance(d.appearance);
+              setTheme(dbTheme);
+            } else if (hasExplicitLocalTheme) {
+              setAppearance({ ...d.appearance, theme: localTheme });
+            } else {
+              setAppearance(d.appearance);
+              if (dbTheme) setTheme(dbTheme);
             }
           }
           if (d.notifications) setNotifications(d.notifications);
@@ -306,6 +316,9 @@ export function AppPreferencesPanel() {
                     onClick={() => {
                       setAppearance((p) => ({ ...p, theme: mode }));
                       setTheme(mode);
+                      void apiPatch("/api/users/preferences", {
+                        appearance: { theme: mode },
+                      }).catch(() => {});
                     }}
                     className={`radius-native py-2 px-3 rounded-lg text-[12px] font-bold capitalize transition-all border cursor-pointer ${
                       appearance.theme === mode

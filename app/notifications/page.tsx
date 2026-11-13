@@ -189,14 +189,36 @@ export default function NotificationsPage() {
   }, [user?.id, activeFilter]);
 
   const markSingleRead = async (id: string) => {
+    const target = items.find((item) => item._id === id);
+    if (!target || target.read) return;
+
+    // Optimistic update so UI & unread badge update immediately
+    setItems((current) =>
+      activeFilter === "unread"
+        ? current.filter((item) => item._id !== id)
+        : current.map((item) => (item._id === id ? { ...item, read: true } : item))
+    );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
     try {
-      await apiPatch(`/api/notifications/${id}`, {});
-      setItems((current) =>
-        current.map((item) => (item._id === id ? { ...item, read: true } : item))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      const res = await fetch(`/api/notifications/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        credentials: "include",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        if (typeof json?.unreadCount === "number") {
+          setUnreadCount(json.unreadCount);
+        }
+      } else {
+        // Revert optimistic update on failure
+        void loadNotifications();
+      }
     } catch {
-      // Ignored
+      void loadNotifications();
     }
   };
 

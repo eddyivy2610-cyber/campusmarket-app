@@ -664,11 +664,8 @@ export function RebrandSettingsShell({
             {/* Home Feed Content Discovery Preferences */}
             <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-4 shadow-xs">
               <div>
-                <h3 className="text-[15px] font-extrabold text-[#171717] dark:text-white flex items-center gap-2">
-                  <span>Home Feed Content</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FFC928]/20 text-[#B45309] dark:text-[#FFC928]">
-                    Customizable
-                  </span>
+                <h3 className="text-[15px] font-extrabold text-[#171717] dark:text-white">
+                  Home Feed Content
                 </h3>
                 <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
                   Choose what listings are prioritized and displayed in your campus home feed.

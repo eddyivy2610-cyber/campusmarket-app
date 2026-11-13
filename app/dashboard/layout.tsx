@@ -63,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const router = useRouter();
 
-    const { theme, setTheme } = useTheme();
+    const { theme, resolvedTheme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     const currentPageName = useMemo(() => {
@@ -132,7 +132,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }, []);
 
     const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark");
+        const current = resolvedTheme || theme;
+        setTheme(current === "dark" ? "light" : "dark");
     };
 
     const userInitials = user?.name ? user.name.charAt(0).toUpperCase() : "U";
