@@ -1169,11 +1169,7 @@ export default function ListingDetailPage() {
                     <img
                       src={listing.seller.avatar}
                       alt={listing.seller.name}
-                      className={`w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10 ${
-                        listing.seller.isVerified
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
+                      className="w-11 h-11 rounded-full object-cover border border-[#ECEEF2] dark:border-white/10"
                     />
                   </Link>
                   <div className="min-w-0">
@@ -1452,11 +1448,7 @@ export default function ListingDetailPage() {
                 <img
                   src={listing.seller.avatar}
                   alt={listing.seller.name}
-                  className={`w-9 h-9 rounded-full object-cover ${
-                    listing.seller.isVerified
-                      ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                      : ""
-                  }`}
+                  className="w-9 h-9 rounded-full object-cover"
                 />
                 <div>
                   <div className="flex items-center gap-1">

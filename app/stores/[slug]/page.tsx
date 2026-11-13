@@ -1,5 +1,5 @@
 import React from "react";
-import { PublicStorefrontView } from "@/components/storefront/PublicStorefrontView";
+import { StorefrontProfileView } from "@/components/storefront/StorefrontProfileView";
 
 export default async function StorefrontPage({
   params,
@@ -7,5 +7,5 @@ export default async function StorefrontPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  return <PublicStorefrontView slug={slug} />;
+  return <StorefrontProfileView slug={slug} />;
 }

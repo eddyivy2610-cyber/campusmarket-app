@@ -1811,11 +1811,7 @@ export function CreateListingForm() {
 
                   {/* Storefront Seller Identity Pill */}
                   <div className="pt-3 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0 ${
-                      storeIsVerified
-                        ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                        : ""
-                    }`}>
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-[#ECEEF2] dark:border-white/10 bg-neutral-100 shrink-0">
                       <img
                         src={storeAvatar}
                         alt={storeDisplayName}

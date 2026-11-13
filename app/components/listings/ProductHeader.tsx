@@ -137,11 +137,7 @@ export function ProductHeader({ product, vendor }: ProductHeaderProps) {
             <div className="border border-border/60 rounded-md overflow-hidden bg-background">
                 <div className="flex items-center justify-between gap-3 p-3">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className={`relative w-9 h-9 rounded-full overflow-hidden border border-border/60 ${
-                            vendor.studentVerified
-                                ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-background"
-                                : ""
-                        }`}>
+                        <div className="relative w-9 h-9 rounded-full overflow-hidden border border-border/60">
                             <Image 
                                 src={vendor.avatar || "/placeholder-avatar.png"} 
                                 alt={vendor.name} 

@@ -546,6 +546,7 @@ export default function ProfilePage() {
 
   // Profile context switch: default to "personal" user details, with switcher for "store"
   const [activeProfileMode, setActiveProfileMode] = useState<"personal" | "store">("personal");
+  const [selectedStoreSlug, setSelectedStoreSlug] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -767,7 +768,12 @@ export default function ProfilePage() {
       : liveUserProfile?.store
         ? [liveUserProfile.store]
         : [];
-  const primaryStore = userStores[0] || null;
+  const primaryStore =
+    (selectedStoreSlug
+      ? userStores.find((s) => s.slug === selectedStoreSlug)
+      : null) ||
+    userStores[0] ||
+    null;
 
   const personalHandleValue =
     liveUserProfile?.profile?.handle ||
@@ -1443,10 +1449,14 @@ export default function ProfilePage() {
                                   userStores.length > 0 ? (
                                     <div className="space-y-1">
                                       {userStores.map((s) => (
-                                        <Link
+                                        <button
                                           key={s._id || s.id || s.slug}
-                                          href={`/stores/${s.slug}`}
-                                          onClick={() => setIsDropdownOpen(false)}
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedStoreSlug(s.slug);
+                                            setActiveProfileMode("store");
+                                            setIsDropdownOpen(false);
+                                          }}
                                           className="w-full px-2.5 py-2.5 rounded-xl flex items-center justify-between gap-2.5 hover:bg-[#F7F8FA] dark:hover:bg-white/5 transition-colors cursor-pointer text-left"
                                         >
                                           <div className="flex items-center gap-2.5 min-w-0">
@@ -1454,11 +1464,11 @@ export default function ProfilePage() {
                                               <img
                                                 src={s.logo}
                                                 alt={s.name}
-                                                className="w-8 h-8 rounded-lg object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
+                                                className="w-8 h-8 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0"
                                               />
                                             ) : (
                                               <div
-                                                className="w-8 h-8 rounded-lg bg-[#FFC928]/20 flex items-center justify-center shrink-0"
+                                                className="w-8 h-8 rounded-full bg-[#FFC928]/20 flex items-center justify-center shrink-0"
                                               >
                                                 <Store className="w-4 h-4 text-[#171717] dark:text-white" />
                                               </div>
@@ -1475,7 +1485,7 @@ export default function ProfilePage() {
                                             </div>
                                           </div>
                                           <ArrowRight className="w-4 h-4 text-[#8C929C] shrink-0" />
-                                        </Link>
+                                        </button>
                                       ))}
 
                                       <div className="pt-2 mt-1 border-t border-[#F1F3F6] dark:border-white/10 flex items-center justify-between px-1 text-[11.5px]">
