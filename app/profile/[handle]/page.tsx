@@ -1480,7 +1480,7 @@ export default function ProfilePage() {
 
                                       <div className="pt-2 mt-1 border-t border-[#F1F3F6] dark:border-white/10 flex items-center justify-between px-1 text-[11.5px]">
                                         <Link
-                                          href="/stores?tab=my-store"
+                                          href="/stores?view=storefront"
                                           onClick={() => setIsDropdownOpen(false)}
                                           className="text-[#171717] dark:text-white font-bold hover:underline inline-flex items-center gap-1.5 py-1"
                                         >
@@ -1505,7 +1505,7 @@ export default function ProfilePage() {
                                         You haven&apos;t opened a campus storefront yet.
                                       </p>
                                       <Link
-                                        href="/stores?tab=my-store&create=1"
+                                        href="/onboarding/seller"
                                         onClick={() => setIsDropdownOpen(false)}
                                         className="w-full h-8 px-3 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
                                       >
@@ -1521,7 +1521,7 @@ export default function ProfilePage() {
 
                           {/* Button 2: Settings */}
                           <Link
-                            href={activeProfileMode === "store" ? "/stores?tab=my-store" : "/settings"}
+                            href={activeProfileMode === "store" ? "/stores?view=storefront" : "/settings"}
                             aria-label="Settings"
                             title="Settings"
                             className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0"
@@ -2135,7 +2135,7 @@ export default function ProfilePage() {
 
                   <div className="pl-11">
                     <Link
-                      href="/stores?tab=my-store&create=1"
+                      href="/onboarding/seller"
                       className="radius-native h-9 px-4 rounded-full bg-[#FFC928] hover:bg-[#F2BD1E] text-[12px] font-bold text-[#171717] inline-flex items-center gap-1.5 shadow-2xs transition-colors"
                     >
                       <span>Open storefront</span>

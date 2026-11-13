@@ -30,6 +30,10 @@ import {
   TrendingUp,
   Tag,
   Loader2,
+  User,
+  Store,
+  ArrowUpRight,
+  Link as LinkIcon,
 } from "lucide-react";
 import { apiGet, apiPost, apiPatch } from "@/lib/apiClient";
 import type { BannerPlacement, BannerStatus } from "@/models/Banner";
@@ -123,6 +127,56 @@ function AdminBannersPage() {
   const [isIndefinite, setIsIndefinite] = useState(true);
   const [formPriority, setFormPriority] = useState<number>(10);
 
+  // Link Destination Type & Profile Selector
+  type DestinationType = "custom" | "profile" | "store";
+  const [destinationType, setDestinationType] = useState<DestinationType>("custom");
+  const [selectedProfileHandle, setSelectedProfileHandle] = useState("");
+  const [selectedStoreSlug, setSelectedStoreSlug] = useState("");
+  const [userList, setUserList] = useState<any[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
+  // Fetch users for profile linking
+  useEffect(() => {
+    let isMounted = true;
+    async function loadUsers() {
+      try {
+        setIsLoadingUsers(true);
+        const res: any = await apiGet("admin/users?limit=100");
+        if (isMounted && res?.data && Array.isArray(res.data)) {
+          setUserList(res.data);
+        }
+      } catch {
+        // Non-fatal
+      } finally {
+        if (isMounted) setIsLoadingUsers(false);
+      }
+    }
+    loadUsers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const getUserHandle = (u: any): string => {
+    return (
+      u.profile?.handle ||
+      u.handle ||
+      u.username ||
+      u.email?.split("@")[0] ||
+      u._id
+    );
+  };
+
+  const getUserDisplayName = (u: any): string => {
+    return (
+      u.profile?.displayName ||
+      u.fullName ||
+      u.name ||
+      getUserHandle(u) ||
+      "Campus User"
+    );
+  };
+
   // Preview Mode in Editor
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [previewImageError, setPreviewImageError] = useState(false);
@@ -200,6 +254,9 @@ function AdminBannersPage() {
     setFormImageAlt("");
     setFormCtaLabel("Explore now");
     setFormCtaUrl("/explore");
+    setDestinationType("custom");
+    setSelectedProfileHandle("");
+    setSelectedStoreSlug("");
     setFormPlacement("homepage_hero");
     setFormCategory("Electronics");
     setFormStatus("draft");
@@ -224,6 +281,23 @@ function AdminBannersPage() {
     setFormImageAlt(b.imageAlt);
     setFormCtaLabel(b.ctaLabel);
     setFormCtaUrl(b.ctaUrl);
+
+    if (b.ctaUrl.startsWith("/profile/")) {
+      const handle = b.ctaUrl.replace(/^\/profile\//, "").replace(/^\//, "").split("?")[0].split("#")[0];
+      setDestinationType("profile");
+      setSelectedProfileHandle(handle);
+      setSelectedStoreSlug("");
+    } else if (b.ctaUrl.startsWith("/stores/")) {
+      const slug = b.ctaUrl.replace(/^\/stores\//, "").replace(/^\//, "").split("?")[0].split("#")[0];
+      setDestinationType("store");
+      setSelectedStoreSlug(slug);
+      setSelectedProfileHandle("");
+    } else {
+      setDestinationType("custom");
+      setSelectedProfileHandle("");
+      setSelectedStoreSlug("");
+    }
+
     setFormPlacement(b.placement);
     setFormCategory(b.targetCategory || "Electronics");
     setFormStatus(b.status);
@@ -701,6 +775,20 @@ function AdminBannersPage() {
                             <p className="text-[12px] text-[#5B636E] dark:text-neutral-400 truncate">
                               &ldquo;{b.headline}&rdquo;
                             </p>
+                            {b.ctaUrl.startsWith("/profile/") && (
+                              <div className="flex items-center gap-1 mt-0.5">
+                                <Link
+                                  href={b.ctaUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                  <User className="w-3 h-3" />
+                                  <span>Profile: @{b.ctaUrl.replace(/^\/profile\//, "").replace(/^\//, "")}</span>
+                                  <ArrowUpRight className="w-2.5 h-2.5" />
+                                </Link>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -1086,32 +1174,322 @@ function AdminBannersPage() {
                 </div>
 
                 {/* CTA Button Label & Destination URL */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      CTA Button Label *
+                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1.5">
+                      Link Destination Type
                     </label>
-                    <input
-                      type="text"
-                      value={formCtaLabel}
-                      onChange={(e) => setFormCtaLabel(e.target.value)}
-                      placeholder="e.g. Explore now"
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDestinationType("custom");
+                          if (formCtaUrl.startsWith("/profile/") || formCtaUrl.startsWith("/stores/")) {
+                            setFormCtaUrl("/explore");
+                          }
+                        }}
+                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
+                          destinationType === "custom"
+                            ? "bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent shadow-xs"
+                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
+                        }`}
+                      >
+                        <LinkIcon className="w-3.5 h-3.5" />
+                        <span>General Page / URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDestinationType("profile");
+                          let targetHandle = selectedProfileHandle;
+                          if (!targetHandle && userList.length > 0) {
+                            targetHandle = getUserHandle(userList[0]);
+                            setSelectedProfileHandle(targetHandle);
+                          }
+                          setFormCtaUrl(targetHandle ? `/profile/${targetHandle}` : "/profile/");
+                          if (formCtaLabel === "Explore now" || !formCtaLabel) {
+                            setFormCtaLabel("View Profile");
+                          }
+                        }}
+                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
+                          destinationType === "profile"
+                            ? "bg-blue-600 text-white border-transparent shadow-xs"
+                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
+                        }`}
+                      >
+                        <User className="w-3.5 h-3.5" />
+                        <span>Link to Profile</span>
+                        <span className={`px-1.5 py-0.2 rounded-full text-[9.5px] font-bold ${destinationType === "profile" ? "bg-white text-blue-700" : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"}`}>
+                          Feature
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDestinationType("store");
+                          if (!formCtaUrl.startsWith("/stores/")) {
+                            setFormCtaUrl("/stores");
+                          }
+                          if (formCtaLabel === "Explore now" || !formCtaLabel) {
+                            setFormCtaLabel("Visit Store");
+                          }
+                        }}
+                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
+                          destinationType === "store"
+                            ? "bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent shadow-xs"
+                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
+                        }`}
+                      >
+                        <Store className="w-3.5 h-3.5" />
+                        <span>Storefront</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      CTA Destination URL *
-                    </label>
-                    <input
-                      type="text"
-                      value={formCtaUrl}
-                      onChange={(e) => setFormCtaUrl(e.target.value)}
-                      placeholder="/explore or https://..."
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    />
+                  {/* Profile Link Setup Panel */}
+                  {destinationType === "profile" && (
+                    <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <span>Select Profile to Link Banner</span>
+                        </span>
+                        {selectedProfileHandle && (
+                          <Link
+                            href={`/profile/${selectedProfileHandle}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Open Profile in Tab</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400">
+                          Choose Registered User or Seller ({userList.length} available)
+                        </label>
+                        <select
+                          value={selectedProfileHandle}
+                          onChange={(e) => {
+                            const handle = e.target.value;
+                            setSelectedProfileHandle(handle);
+                            if (handle) {
+                              setFormCtaUrl(`/profile/${handle}`);
+                              if (formCtaLabel === "Explore now" || !formCtaLabel) {
+                                setFormCtaLabel("View Profile");
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12.5px] text-[#171717] dark:text-white focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="">-- Choose registered profile or enter handle below --</option>
+                          {userList.map((u) => {
+                            const handle = getUserHandle(u);
+                            const name = getUserDisplayName(u);
+                            return (
+                              <option key={u._id} value={handle}>
+                                {name} (@{handle}) {u.studentVerified ? "· [Verified Student]" : ""} {u.role === "admin" ? "· [Admin]" : ""}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
+                            Or Enter Handle Directly
+                          </label>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-[#8C929C] text-[12px] font-bold">@</span>
+                            <input
+                              type="text"
+                              value={selectedProfileHandle}
+                              onChange={(e) => {
+                                const clean = e.target.value.replace(/^@/, "").trim().toLowerCase();
+                                setSelectedProfileHandle(clean);
+                                setFormCtaUrl(clean ? `/profile/${clean}` : "/profile/");
+                              }}
+                              placeholder="e.g. tunde_bello"
+                              className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
+                            Target Profile URL
+                          </label>
+                          <div className="px-3 py-1.5 rounded-lg bg-white/80 dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] font-mono font-semibold text-blue-700 dark:text-blue-300 truncate">
+                            {formCtaUrl || "/profile/"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {selectedProfileHandle && (
+                        <div className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-blue-200/60 dark:border-white/10 flex items-center justify-between">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-[12px] shrink-0">
+                              {selectedProfileHandle.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[12px] font-bold text-[#171717] dark:text-white truncate">
+                                @{selectedProfileHandle}
+                              </p>
+                              <p className="text-[10.5px] text-[#5B636E] dark:text-neutral-400">
+                                Banner clicks will route directly to this student profile
+                              </p>
+                            </div>
+                          </div>
+                          <Link
+                            href={`/profile/${selectedProfileHandle}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="radius-native px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold inline-flex items-center gap-1 shrink-0 transition-colors"
+                          >
+                            <span>Visit Profile</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Storefront Link Setup Panel */}
+                  {destinationType === "store" && (
+                    <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                          <Store className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                          <span>Link Banner to Campus Storefront</span>
+                        </span>
+                        {selectedStoreSlug && (
+                          <Link
+                            href={`/stores/${selectedStoreSlug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11.5px] font-bold text-amber-700 dark:text-amber-400 hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>Open Storefront in Tab</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
+                            Store Slug
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedStoreSlug}
+                            onChange={(e) => {
+                              const clean = e.target.value.trim().toLowerCase();
+                              setSelectedStoreSlug(clean);
+                              setFormCtaUrl(clean ? `/stores/${clean}` : "/stores");
+                            }}
+                            placeholder="e.g. campus-closet"
+                            className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
+                            Target Storefront URL
+                          </label>
+                          <div className="px-3 py-1.5 rounded-lg bg-white/80 dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] font-mono font-semibold text-amber-700 dark:text-amber-300 truncate">
+                            {formCtaUrl || "/stores"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Button Label & Final Destination URL */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[12px] font-bold text-[#171717] dark:text-white">
+                          CTA Button Label *
+                        </label>
+                        {destinationType === "profile" && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setFormCtaLabel("View Profile")}
+                              className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              &ldquo;View Profile&rdquo;
+                            </button>
+                            <span className="text-[#8C929C] text-[10px]">·</span>
+                            <button
+                              type="button"
+                              onClick={() => setFormCtaLabel("Visit Seller")}
+                              className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              &ldquo;Visit Seller&rdquo;
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="text"
+                        value={formCtaLabel}
+                        onChange={(e) => setFormCtaLabel(e.target.value)}
+                        placeholder="e.g. Explore now or View Profile"
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
+                        CTA Destination URL *
+                      </label>
+                      <input
+                        type="text"
+                        value={formCtaUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormCtaUrl(val);
+                          if (val.startsWith("/profile/")) {
+                            setDestinationType("profile");
+                            setSelectedProfileHandle(val.replace("/profile/", "").replace(/^@/, ""));
+                          } else if (val.startsWith("/stores/")) {
+                            setDestinationType("store");
+                            setSelectedStoreSlug(val.replace("/stores/", ""));
+                          }
+                        }}
+                        placeholder="/explore, /profile/handle, or https://..."
+                        className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
+                      />
+                    </div>
                   </div>
+
+                  {destinationType === "custom" && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="text-[11px] font-semibold text-[#8C929C]">Quick presets:</span>
+                      {[
+                        { label: "Marketplace", url: "/explore" },
+                        { label: "Wanted Radar", url: "/wanted" },
+                        { label: "All Stores", url: "/stores" },
+                      ].map((preset) => (
+                        <button
+                          key={preset.url}
+                          type="button"
+                          onClick={() => setFormCtaUrl(preset.url)}
+                          className="px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[#F1F3F6] dark:bg-white/5 hover:bg-[#E4E7EC] dark:hover:bg-white/10 text-[#3B4148] dark:text-neutral-300 transition-colors cursor-pointer"
+                        >
+                          {preset.label} ({preset.url})
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Schedule: Start, Indefinite, End, Priority */}
@@ -1340,11 +1718,18 @@ function AdminBannersPage() {
                       {formStatus}
                     </strong>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span>Destination:</span>
-                    <strong className="text-[#171717] dark:text-white truncate max-w-[180px]">
-                      {formCtaUrl}
-                    </strong>
+                    <div className="flex items-center gap-1.5 truncate max-w-[200px]">
+                      {formCtaUrl.startsWith("/profile/") && (
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 shrink-0">
+                          Profile
+                        </span>
+                      )}
+                      <strong className="text-[#171717] dark:text-white truncate">
+                        {formCtaUrl}
+                      </strong>
+                    </div>
                   </div>
                 </div>
               </div>
