@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronRight,
   ArrowRight,
@@ -11,11 +10,9 @@ import {
   Tag,
   Store,
   Megaphone,
-  Clock,
   Sparkles,
   Check,
-  Radio,
-  ShoppingBag,
+  Clock,
 } from "lucide-react";
 import type { PublicBannerDTO } from "@/lib/bannerService";
 
@@ -130,18 +127,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
-const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : "-100%",
-  }),
-  center: {
-    x: "0%",
-  },
-  exit: (direction: number) => ({
-    x: direction > 0 ? "-100%" : "100%",
-  }),
-};
-
 export function RebrandHero() {
   const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -151,6 +136,38 @@ export function RebrandHero() {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const touchStartXRef = useRef<number | null>(null);
+  const preloadedUrls = useRef<Set<string>>(new Set());
+
+  // Cache & Pre-decode all banner images into memory and browser Cache API
+  useEffect(() => {
+    if (!slides || slides.length === 0) return;
+
+    slides.forEach((slide) => {
+      const url = slide.imageUrl;
+      if (!url || preloadedUrls.current.has(url)) return;
+      preloadedUrls.current.add(url);
+
+      // 1. In-memory pre-decode to ensure instant rendering without blank flash
+      if (typeof window !== "undefined") {
+        const img = new window.Image();
+        img.src = url;
+        if ("decode" in img) {
+          img.decode().catch(() => {});
+        }
+
+        // 2. Browser Cache Storage API so subsequent loads never require network
+        if ("caches" in window) {
+          caches.open("campushive-banner-cache-v1").then((cache) => {
+            cache.match(url).then((matching) => {
+              if (!matching) {
+                cache.add(url).catch(() => {});
+              }
+            });
+          }).catch(() => {});
+        }
+      }
+    });
+  }, [slides]);
 
   // Fetch active promotional banners from the server queue
   useEffect(() => {
@@ -188,7 +205,7 @@ export function RebrandHero() {
                 mobileImageUrl: b.mobileImageUrl,
                 imageAlt: b.imageAlt || b.headline,
                 isFullGraphic: Boolean(b.imageUrl && (!b.description || b.description.trim() === "")),
-                theme: "gold",
+                theme: "white",
               }));
 
               // Exclusively display active database banners without hardcoded banners
@@ -274,10 +291,6 @@ export function RebrandHero() {
     touchStartXRef.current = null;
   };
 
-  const currentSlide = slides[currentIndex] || slides[0];
-  const BadgeIcon = currentSlide.badgeIcon || Sparkles;
-  const isImageBroken = currentSlide.imageUrl ? imageErrors[currentSlide.id] : false;
-
   return (
     <section
       style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
@@ -320,145 +333,110 @@ export function RebrandHero() {
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className="radius-native relative overflow-hidden flex-1 rounded-2xl min-h-[220px] sm:min-h-[265px] lg:min-h-[285px] flex items-stretch select-none"
+            className="radius-native relative overflow-hidden flex-1 rounded-2xl aspect-[16/9] sm:aspect-[2.1/1] lg:aspect-[2.3/1] min-h-[170px] sm:min-h-[240px] lg:min-h-[280px] max-h-[380px] flex items-stretch select-none bg-transparent"
             role="region"
             aria-roledescription="carousel"
             aria-label="Campus Marketplace Highlights"
           >
-            <AnimatePresence initial={false} custom={direction}>
-              <motion.div
-                key={`${currentSlide.id}-${currentIndex}`}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "tween", ease: [0.25, 1, 0.5, 1], duration: 0.65 },
-                }}
-                className={`absolute inset-0 w-full h-full p-5 sm:p-7 lg:p-8 flex flex-col justify-center overflow-hidden transition-colors ${currentSlide.theme === "gold"
-                  ? "bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717]"
-                  : "bg-white/80 dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_4px_24px_rgba(15,23,42,0.035)] backdrop-blur-md text-[#171717] dark:text-white"
-                  }`}
-              >
-                {/* Ambient Radial Highlight */}
-                <div
-                  aria-hidden="true"
-                  className="absolute -left-12 -top-12 w-48 h-48 rounded-full bg-[#FFC928]/20 dark:bg-[#FFC928]/10 blur-2xl pointer-events-none"
-                />
+            {/* Continuous GPU-Accelerated Banner Slider Track (Zero Remounting, Zero Blank Flash) */}
+            <div
+              className="relative w-full h-full flex transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-transform bg-transparent"
+              style={{
+                transform: `translateX(-${currentIndex * 100}%)`,
+              }}
+            >
+              {slides.map((slide) => {
+                const isFullGraphic =
+                  slide.isFullGraphic || (!slide.description && Boolean(slide.imageUrl));
+                const isBroken = Boolean(slide.imageUrl && imageErrors[slide.id]);
+                const BadgeIcon = slide.badgeIcon || Sparkles;
 
-                {/* Background Image Layer (When custom banner is active) */}
-                {currentSlide.imageUrl && !isImageBroken && (
-                  <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                    <picture>
-                      {currentSlide.mobileImageUrl && (
-                        <source
-                          media="(max-width: 640px)"
-                          srcSet={currentSlide.mobileImageUrl}
+                return (
+                  <div
+                    key={slide.id}
+                    className="w-full h-full shrink-0 relative bg-transparent overflow-hidden rounded-2xl flex items-center justify-center"
+                    style={{ minWidth: "100%" }}
+                  >
+                    {isFullGraphic && slide.imageUrl && !isBroken ? (
+                      <div className="relative w-full h-full bg-transparent overflow-hidden rounded-2xl">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={slide.imageUrl}
+                          alt={slide.imageAlt || slide.headline}
+                          loading="eager"
+                          decoding="async"
+                          onError={() =>
+                            setImageErrors((prev) => ({ ...prev, [slide.id]: true }))
+                          }
+                          className="w-full h-full object-cover object-center select-none rounded-2xl pointer-events-none"
                         />
-                      )}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={currentSlide.imageUrl}
-                        alt={currentSlide.imageAlt || currentSlide.headline}
-                        onError={() =>
-                          setImageErrors((prev) => ({ ...prev, [currentSlide.id]: true }))
-                        }
-                        className="w-full h-full object-cover object-right opacity-30 sm:opacity-40 mix-blend-multiply transition-opacity duration-300"
-                      />
-                    </picture>
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#FFE182] via-[#FFE182]/85 to-transparent dark:from-[#F5C84C] dark:via-[#F5C84C]/90" />
-                  </div>
-                )}
+                        <Link
+                          href={slide.ctaUrl || "/explore"}
+                          className="absolute inset-0 z-10"
+                          aria-label={slide.headline}
+                        />
+                      </div>
+                    ) : (
+                      /* Standard Banner Content Layout */
+                      <div className="relative z-10 w-full h-full p-5 sm:p-7 lg:p-8 flex flex-col justify-center bg-transparent">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 lg:gap-8 h-full">
+                          {slide.illustration && (
+                            <div className="relative shrink-0 w-[110px] sm:w-[145px] md:w-[165px] lg:w-[190px] flex items-center justify-center">
+                              <Image
+                                src={slide.illustration}
+                                alt={slide.headline}
+                                width={190}
+                                height={190}
+                                priority
+                                className="w-full h-auto object-contain drop-shadow-xs select-none"
+                              />
+                            </div>
+                          )}
 
-                {/* Full Graphic Vector Banner Mode */}
-                {currentSlide.isFullGraphic && currentSlide.imageUrl ? (
-                  <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={currentSlide.imageUrl}
-                      alt={currentSlide.imageAlt || currentSlide.headline}
-                      className="w-full h-full object-cover object-left select-none"
-                    />
-                    <Link
-                      href={currentSlide.ctaUrl || "/explore"}
-                      className="absolute inset-0 z-10"
-                      aria-label={currentSlide.headline}
-                    />
-                  </div>
-                ) : (
-                  /* Standard Banner Content Layout */
-                  <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-6 lg:gap-8 h-full">
-                    {/* Optional SVG Illustration */}
-                    {currentSlide.illustration && (
-                      <div className="relative shrink-0 w-[110px] sm:w-[145px] md:w-[165px] lg:w-[190px] flex items-center justify-center">
-                        <Image
-                          src={currentSlide.illustration}
-                          alt={currentSlide.headline}
-                          width={190}
-                          height={190}
-                          priority
-                          className="w-full h-auto object-contain drop-shadow-xs select-none"
-                        />
+                          <div className="flex-1 text-center sm:text-left space-y-2 sm:space-y-2.5 max-w-xl">
+                            {slide.badge && (
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase bg-black/5 dark:bg-white/10 text-[#171717] dark:text-white">
+                                <BadgeIcon className="w-3 h-3" />
+                                <span>{slide.badge}</span>
+                              </div>
+                            )}
+
+                            <h1 className="text-[20px] sm:text-[24px] lg:text-[27px] font-extrabold tracking-[-0.025em] leading-[1.18] text-[#171717] dark:text-white">
+                              {slide.headline}
+                            </h1>
+
+                            {slide.description && (
+                              <p className="text-[12.5px] sm:text-[13px] leading-relaxed font-normal max-w-lg text-[#5B636E] dark:text-neutral-300">
+                                {slide.description}
+                              </p>
+                            )}
+
+                            <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                              <Link
+                                href={slide.ctaUrl || "/explore"}
+                                className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] px-4 py-2 text-[12px] sm:text-[12.5px] font-bold shadow-xs transition-colors cursor-pointer"
+                              >
+                                <span>{slide.ctaLabel}</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
+
+                              {slide.secondaryCtaLabel && slide.secondaryCtaUrl && (
+                                <Link
+                                  href={slide.secondaryCtaUrl}
+                                  className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-[#171717] dark:text-white px-3.5 py-2 text-[12px] sm:text-[12.5px] font-bold transition-colors cursor-pointer"
+                                >
+                                  <span>{slide.secondaryCtaLabel}</span>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
-
-                    {/* Text Details & Interactive Buttons */}
-                    <div className="flex-1 text-center sm:text-left space-y-2 sm:space-y-2.5 max-w-xl">
-                      {/* Badge */}
-                      {currentSlide.badge && (
-                        <div
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase ${currentSlide.theme === "gold"
-                            ? "bg-black/10 dark:bg-black/20 text-[#171717] border border-black/10"
-                            : "bg-[#FFC928]/15 dark:bg-[#FFC928]/20 border border-[#FFC928]/30 text-[#A06E00] dark:text-[#FFC928]"
-                            }`}
-                        >
-                          <BadgeIcon className="w-3 h-3" />
-                          <span>{currentSlide.badge}</span>
-                        </div>
-                      )}
-
-                      {/* Headline */}
-                      <h1 className="text-[20px] sm:text-[24px] lg:text-[27px] font-extrabold tracking-[-0.025em] leading-[1.18] text-[#171717] dark:text-white">
-                        {currentSlide.headline}
-                      </h1>
-
-                      {/* Description */}
-                      {currentSlide.description && (
-                        <p
-                          className={`text-[12.5px] sm:text-[13px] leading-relaxed font-normal max-w-lg ${currentSlide.theme === "gold"
-                            ? "text-[#262626]"
-                            : "text-[#5B636E] dark:text-neutral-300"
-                            }`}
-                        >
-                          {currentSlide.description}
-                        </p>
-                      )}
-
-                      {/* CTA Actions */}
-                      <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                        <Link
-                          href={currentSlide.ctaUrl || "/explore"}
-                          className="radius-native inline-flex items-center gap-1.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] px-4 py-2 text-[12px] sm:text-[12.5px] font-bold shadow-xs transition-colors cursor-pointer"
-                        >
-                          <span>{currentSlide.ctaLabel}</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-
-                        {currentSlide.secondaryCtaLabel && currentSlide.secondaryCtaUrl && (
-                          <Link
-                            href={currentSlide.secondaryCtaUrl}
-                            className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-[#171717] dark:text-white px-3.5 py-2 text-[12px] sm:text-[12.5px] font-bold transition-colors cursor-pointer"
-                          >
-                            <span>{currentSlide.secondaryCtaLabel}</span>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
                   </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                );
+              })}
+            </div>
 
             {/* Carousel Controls: Left / Right Arrows & Animated Progress Countdown Counter */}
             {slideCount > 1 && (
