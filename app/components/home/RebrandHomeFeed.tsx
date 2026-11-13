@@ -9,8 +9,6 @@ import {
   ChevronDown,
   ChevronRight,
   Store,
-  Star,
-  Users,
 } from "lucide-react";
 
 export type HomeFeedPreference = "popular" | "recent" | "both";
@@ -36,24 +34,6 @@ interface HomeListingItem {
   engagementScore: number;
 }
 
-interface HomeStoreItem {
-  id: string;
-  name: string;
-  handle: string;
-  slug: string;
-  category: string;
-  campus: string;
-  tagline?: string;
-  logo?: string;
-  isVerified: boolean;
-  ratingFormatted: string;
-  reviewsCount: number;
-  completedDeals: number;
-  followersCount: number;
-  activeListingsCount: number;
-  engagementScore: number;
-}
-
 /**
  * Calculates a deterministic engagement score for listings:
  * Engagement = (likes * 3) + (views * 1) + recency bonus for popular sorting
@@ -65,26 +45,10 @@ function calculateListingEngagement(l: any): number {
   return likes * 3 + views * 1 + (isPromoted ? 10 : 0);
 }
 
-/**
- * Calculates a deterministic engagement score for campus stores:
- * Engagement = (followers * 3) + (deals * 5) + (reviews * 4) + (rating * 10) + listings
- */
-function calculateStoreEngagement(s: any): number {
-  const metrics = s.metrics || {};
-  const followers = Number(metrics.followersCount ?? 0);
-  const deals = Number(metrics.completedDeals ?? 0);
-  const reviews = Number(metrics.reviewsCount ?? metrics.reviewCount ?? 0);
-  const rating = Number(metrics.rating ?? 5.0);
-  const listings = Number(metrics.listingsCount ?? metrics.activeListingCount ?? 0);
-  return followers * 3 + deals * 5 + reviews * 4 + Math.round(rating * 10) + listings * 1;
-}
-
 export function RebrandHomeFeed() {
   const [feedPreference, setFeedPreference] = useState<HomeFeedPreference>("popular");
   const [allListings, setAllListings] = useState<HomeListingItem[]>([]);
-  const [stores, setStores] = useState<HomeStoreItem[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
-  const [loadingStores, setLoadingStores] = useState(true);
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
 
   // Pagination: progressive client-side disclosure
@@ -203,50 +167,7 @@ export function RebrandHomeFeed() {
       }
     }
 
-    async function loadStoresData() {
-      setLoadingStores(true);
-      try {
-        // Fetch up to 12 stores sorted by popularity / engagement
-        const storesRes = await fetch("/api/stores?limit=12&status=active&sort=popular");
-        if (storesRes.ok && !isCancelled) {
-          const storeJson = await storesRes.json();
-          if (storeJson.success && Array.isArray(storeJson.data)) {
-            const mappedStores: HomeStoreItem[] = storeJson.data.map((s: any) => {
-              const engScore = calculateStoreEngagement(s);
-              const metrics = s.metrics || {};
-              return {
-                id: String(s._id || s.id),
-                name: s.name || "Student Store",
-                handle: s.slug || String(s._id || s.id),
-                slug: s.slug || String(s._id || s.id),
-                category: s.category || "General",
-                campus: s.campus || "Main Campus",
-                tagline: s.description || s.tagline || "Active campus storefront.",
-                logo: s.logo || s.avatar || "",
-                isVerified: Boolean(s.isVerified),
-                ratingFormatted: (Number(metrics.rating ?? 5.0)).toFixed(1),
-                reviewsCount: Number(metrics.reviewsCount ?? metrics.reviewCount ?? 0),
-                completedDeals: Number(metrics.completedDeals ?? 0),
-                followersCount: Number(metrics.followersCount ?? 0),
-                activeListingsCount: Number(metrics.listingsCount ?? metrics.activeListingCount ?? 0),
-                engagementScore: engScore,
-              };
-            });
-
-            // Sort stores strictly by highest engagement first
-            mappedStores.sort((a, b) => b.engagementScore - a.engagementScore);
-            setStores(mappedStores);
-          }
-        }
-      } catch (err) {
-        console.warn("[RebrandHomeFeed] Could not load stores:", err);
-      } finally {
-        if (!isCancelled) setLoadingStores(false);
-      }
-    }
-
     loadFeedData();
-    loadStoresData();
 
     return () => {
       isCancelled = true;
@@ -475,130 +396,6 @@ export function RebrandHomeFeed() {
                 </button>
               </div>
             )}
-          </div>
-        )}
-      </section>
-
-      {/* ===================================================================== */}
-      {/* 2. STORES SECTION AT THE END (Ranked by engagement)                  */}
-      {/* ===================================================================== */}
-      <section className="max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 pt-2 sm:pt-4 border-t border-[#ECEEF2] dark:border-white/10">
-        <div className="flex items-center justify-between gap-4 mb-3.5 sm:mb-5">
-          <h2 className="text-[16.5px] sm:text-[20px] font-bold tracking-[-0.02em] text-[#14171A] dark:text-white shrink-0">
-            Popular campus stores
-          </h2>
-
-          <div
-            className="hidden sm:block flex-1 h-[1px] bg-[#E8EAEE] dark:bg-white/10"
-            aria-hidden="true"
-          />
-
-          <Link
-            href="/stores"
-            className="inline-flex items-center gap-1 text-[12.5px] sm:text-[13px] font-semibold text-[#D99B00] sm:text-[#22252A] dark:text-[#FFC928] sm:dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white shrink-0 transition-colors"
-          >
-            <span>See All</span>
-            <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
-          </Link>
-        </div>
-
-        {/* Stores Grid */}
-        {loadingStores ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5 py-4">
-            {[1, 2, 3, 4].map((n) => (
-              <div
-                key={n}
-                className="h-44 rounded-2xl bg-neutral-200 dark:bg-neutral-800 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : stores.length === 0 ? (
-          <div className="py-8 text-center text-neutral-500 text-sm">
-            No active stores found on campus.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
-            {stores.map((store) => (
-              <div
-                key={store.id}
-                className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3.5 sm:p-4 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Top Row: Store Avatar */}
-                  <div className="flex items-start justify-between gap-2.5">
-                    <Link
-                      href={`/stores/${store.slug || store.handle}`}
-                      className={`radius-native w-11 h-11 rounded-xl bg-[#F6F7F9] dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 overflow-hidden flex items-center justify-center shrink-0 transition-all ${
-                        store.isVerified
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
-                    >
-                      {store.logo ? (
-                        <img
-                          src={store.logo}
-                          alt={store.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Store
-                          className="w-5 h-5 text-[#22252A] dark:text-neutral-200"
-                          strokeWidth={1.8}
-                        />
-                      )}
-                    </Link>
-
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#68707A] dark:text-neutral-400">
-                      <span className="flex items-center gap-0.5 text-[#14171A] dark:text-white">
-                        <span>{store.ratingFormatted}</span>
-                        <Star className="w-3 h-3 fill-[#FFC928] text-[#FFC928]" />
-                      </span>
-                      <span>·</span>
-                      <span>{store.activeListingsCount} items</span>
-                    </div>
-                  </div>
-
-                  {/* Store Name, Category & Tagline */}
-                  <div className="mt-3">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Link
-                        href={`/stores/${store.slug || store.handle}`}
-                        className="min-w-0 truncate"
-                      >
-                        <h3 className="text-[13.5px] sm:text-[14px] font-bold text-[#171717] dark:text-white leading-snug truncate group-hover:underline">
-                          {store.name}
-                        </h3>
-                      </Link>
-                    </div>
-
-                    <p className="text-[11px] sm:text-[11.5px] font-medium text-[#8C929C] dark:text-neutral-400 mt-0.5">
-                      {store.category} · {store.campus}
-                    </p>
-
-                    <p className="mt-1.5 text-[11.5px] sm:text-[12px] text-[#5B636E] dark:text-neutral-400 leading-[1.45] line-clamp-2">
-                      {store.tagline}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom Row: Landmark + Visit Store Action */}
-                <div className="mt-3.5 pt-2.5 border-t border-[#F1F3F6] dark:border-white/5 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1 text-[11px] font-medium text-[#68707A] dark:text-neutral-400 min-w-0">
-                    <Users className="w-3 h-3 shrink-0" strokeWidth={2} />
-                    <span className="truncate">{store.followersCount} followers</span>
-                  </div>
-
-                  <Link
-                    href={`/stores/${store.slug || store.handle}`}
-                    className="radius-native inline-flex items-center gap-1 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-2.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#171717] dark:text-white shrink-0 transition-colors"
-                  >
-                    <span>Visit store</span>
-                    <ArrowRight className="w-3 h-3" strokeWidth={2} />
-                  </Link>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </section>
