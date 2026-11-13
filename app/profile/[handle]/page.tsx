@@ -19,7 +19,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Edit3,
   ExternalLink,
   Clock,
   Lightbulb,
@@ -1520,15 +1519,15 @@ export default function ProfilePage() {
                             )}
                           </div>
 
-                          {/* Button 2: Edit profile */}
+                          {/* Button 2: Settings */}
                           <Link
                             href={activeProfileMode === "store" ? "/stores?tab=my-store" : "/settings"}
-                            aria-label="Edit profile"
-                            title="Edit profile"
+                            aria-label="Settings"
+                            title="Settings"
                             className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0"
                           >
-                            <Edit3 className="w-3.5 h-3.5 stroke-[2]" />
-                            <span>Edit profile</span>
+                            <Settings className="w-3.5 h-3.5 stroke-[2]" />
+                            <span>Settings</span>
                           </Link>
 
                           {/* Button 3: Share button */}
