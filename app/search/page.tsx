@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState, useMemo, useEffect } from "react";
+import React, { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -9,10 +9,10 @@ import {
   ArrowRight,
   Heart,
   MapPin,
-  Check,
   BadgeCheck,
   Store,
   User,
+  Sparkles,
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
@@ -41,6 +41,15 @@ interface SearchProfileItem {
   studentVerified: boolean;
   avatar: string;
   bio: string;
+}
+
+function shuffleListings<T>(items: T[]): T[] {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 function mapApiListingToExploreItem(item: any): ExploreListingItem {
@@ -140,12 +149,17 @@ function SearchContent() {
 
   const [query, setQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState<SearchFeatureTab>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [savedIds, setSavedIds] = useState<Record<string, boolean>>({});
 
   const [dbListings, setDbListings] = useState<ExploreListingItem[]>([]);
   const [dbStores, setDbStores] = useState<StorefrontItem[]>([]);
   const [dbProfiles, setDbProfiles] = useState<SearchProfileItem[]>([]);
-  const [, setIsSearching] = useState(false);
+  const [popularSearches, setPopularSearches] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isRandomDefault, setIsRandomDefault] = useState(false);
+
+  const trackedQueriesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (initialQuery) {
@@ -153,21 +167,94 @@ function SearchContent() {
     }
   }, [initialQuery]);
 
-  // Live search from canonical Next.js APIs (Products, Services, Stores, Profiles)
+  // Load dynamically popular searches (strictly count >= 10, otherwise empty array)
   useEffect(() => {
     let isCancelled = false;
-    async function executeLiveSearch() {
-      if (!query.trim()) {
-        setDbListings([]);
-        setDbStores([]);
-        setDbProfiles([]);
+    async function fetchPopular() {
+      try {
+        const res = await fetch("/api/search/popular");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && !isCancelled) {
+            setPopularSearches(json.data);
+          }
+        }
+      } catch (err) {
+        console.warn("[SearchPage] Failed to fetch popular searches:", err);
+      }
+    }
+    fetchPopular();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  // Track user searches dynamically (debounced 1200ms for queries >= 2 characters)
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return;
+
+    const timer = setTimeout(async () => {
+      const normalized = trimmed.toLowerCase();
+      if (trackedQueriesRef.current.has(normalized)) return;
+      trackedQueriesRef.current.add(normalized);
+
+      try {
+        await fetch("/api/search/popular", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ term: trimmed }),
+        });
+      } catch {
+        // non-blocking tracking
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Live search from canonical Next.js APIs or Random default products when no query
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function executeSearch() {
+      const trimmed = query.trim();
+
+      if (!trimmed) {
+        setIsSearching(true);
+        try {
+          // Default when no input: fetch random products (not popular, not new)
+          const res = await fetch(
+            "/api/listings?status=active&listingType=product&limit=48&sort=random",
+            { cache: "no-store" }
+          );
+          if (res.ok && !isCancelled) {
+            const listJson = await res.json();
+            if (listJson.success && Array.isArray(listJson.data)) {
+              const mapped = listJson.data.map(mapApiListingToExploreItem);
+              setDbListings(shuffleListings(mapped));
+              setIsRandomDefault(true);
+            }
+          }
+        } catch (err) {
+          console.warn("[SearchPage] Failed to fetch random products:", err);
+        } finally {
+          if (!isCancelled) {
+            setDbStores([]);
+            setDbProfiles([]);
+            setIsSearching(false);
+          }
+        }
         return;
       }
+
+      // Query present: perform matched search across listings and stores
       try {
         setIsSearching(true);
-        const encoded = encodeURIComponent(query.trim());
+        setIsRandomDefault(false);
+        const encoded = encodeURIComponent(trimmed);
         const [listingsRes, storesRes] = await Promise.all([
-          fetch(`/api/listings?q=${encoded}&status=active&limit=30`),
+          fetch(`/api/listings?q=${encoded}&status=active&limit=40`),
           fetch(`/api/stores?q=${encoded}&status=active&limit=20`),
         ]);
 
@@ -177,13 +264,19 @@ function SearchContent() {
             if (listJson.success && Array.isArray(listJson.data)) {
               setDbListings(listJson.data.map(mapApiListingToExploreItem));
             }
+          } else {
+            setDbListings([]);
           }
+
           if (storesRes.ok) {
             const storeJson = await storesRes.json();
             if (storeJson.success && Array.isArray(storeJson.data)) {
               setDbStores(storeJson.data.map(mapApiStoreToStorefrontItem));
             }
+          } else {
+            setDbStores([]);
           }
+
           setDbProfiles([]);
         }
       } catch (err) {
@@ -193,7 +286,8 @@ function SearchContent() {
       }
     }
 
-    const timer = setTimeout(executeLiveSearch, 200);
+    const hasQuery = Boolean(query.trim());
+    const timer = setTimeout(executeSearch, hasQuery ? 250 : 0);
     return () => {
       isCancelled = true;
       clearTimeout(timer);
@@ -220,6 +314,7 @@ function SearchContent() {
     return dbListings.filter((item) => {
       if (activeTab === "products" && item.itemType !== "product") return false;
       if (activeTab === "services" && item.itemType !== "service") return false;
+      if (selectedCategory && item.category !== selectedCategory) return false;
 
       if (q) {
         const matchesTitle = item.title.toLowerCase().includes(q);
@@ -233,7 +328,7 @@ function SearchContent() {
       }
       return true;
     });
-  }, [dbListings, query, activeTab]);
+  }, [dbListings, query, activeTab, selectedCategory]);
 
   // Filtered Stores
   const matchingStores = useMemo(() => {
@@ -353,11 +448,78 @@ function SearchContent() {
       });
   }, [query, activeTab]);
 
+  // Aggregate item counts
+  const productsCount = useMemo(
+    () => dbListings.filter((i) => i.itemType === "product").length,
+    [dbListings]
+  );
+  const servicesCount = useMemo(
+    () => dbListings.filter((i) => i.itemType === "service").length,
+    [dbListings]
+  );
+  const storesCount = matchingStores.length;
+  const profilesCount = matchingProfiles.length;
+  const wantedCount = matchingWanted.length;
+
   const totalCount =
     matchingListings.length +
     matchingStores.length +
     matchingProfiles.length +
     matchingWanted.length;
+
+  // Compute category counts for listings (strictly hiding categories with 0 matches)
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of dbListings) {
+      if (activeTab === "products" && item.itemType !== "product") continue;
+      if (activeTab === "services" && item.itemType !== "service") continue;
+      if (item.category) {
+        counts[item.category] = (counts[item.category] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [dbListings, activeTab]);
+
+  const availableCategories = useMemo(() => {
+    return Object.entries(categoryCounts)
+      .filter(([_, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1]);
+  }, [categoryCounts]);
+
+  // Feature tabs candidate list
+  const candidateTabs = useMemo(() => {
+    return [
+      { id: "all" as SearchFeatureTab, label: "All", count: totalCount },
+      { id: "products" as SearchFeatureTab, label: "Products", count: productsCount },
+      { id: "services" as SearchFeatureTab, label: "Services", count: servicesCount },
+      { id: "stores" as SearchFeatureTab, label: "Stores", count: storesCount },
+      { id: "profiles" as SearchFeatureTab, label: "Profiles", count: profilesCount },
+      { id: "wanted" as SearchFeatureTab, label: "Wanted", count: wantedCount },
+    ];
+  }, [totalCount, productsCount, servicesCount, storesCount, profilesCount, wantedCount]);
+
+  // Filter tabs: strictly HIDE any filter with 0 count
+  const visibleTabs = useMemo(() => {
+    return candidateTabs.filter((tab) => tab.count > 0);
+  }, [candidateTabs]);
+
+  // Automatically reset active tab to "all" if current tab has 0 matches
+  useEffect(() => {
+    if (activeTab === "all") return;
+    const currentTabObj = candidateTabs.find((t) => t.id === activeTab);
+    if (!currentTabObj || currentTabObj.count === 0) {
+      setActiveTab("all");
+    }
+  }, [candidateTabs, activeTab]);
+
+  // Reset selected category if its count drops to 0
+  useEffect(() => {
+    if (!selectedCategory) return;
+    const count = categoryCounts[selectedCategory] || 0;
+    if (count === 0) {
+      setSelectedCategory("");
+    }
+  }, [categoryCounts, selectedCategory]);
 
   return (
     <div
@@ -373,7 +535,9 @@ function SearchContent() {
             Search Campus Hive
           </h1>
           <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
-            One search across all products, services, stores, profiles, and wanted requests.
+            {isRandomDefault
+              ? "Showing random campus products. Search below to find specific items, stores, or services."
+              : "One search across all products, services, stores, profiles, and wanted requests."}
           </p>
 
           {/* Clean Focused Search Input */}
@@ -400,70 +564,108 @@ function SearchContent() {
             </div>
           </div>
 
-          {/* Quick Trending Suggestions */}
-          <div className="flex items-center justify-center gap-2 flex-wrap text-[11.5px] text-[#8C929C] pt-1">
-            <span>Popular:</span>
-            {[
-              "Calculator",
-              "Standing fan",
-              "MacBook",
-              "Graphics",
-              "Course packs",
-            ].map((term) => (
-              <button
-                key={term}
-                type="button"
-                onClick={() => setQuery(term)}
-                className="hover:text-[#171717] dark:hover:text-white underline cursor-pointer"
-              >
-                {term}
-              </button>
-            ))}
-          </div>
+          {/* Dynamic Trending Searches (Only visible if 10 or more users searched for an item, otherwise completely hidden) */}
+          {popularSearches.length > 0 && (
+            <div className="flex items-center justify-center gap-2 flex-wrap text-[11.5px] text-[#8C929C] pt-1">
+              <span className="font-semibold text-[#14171A] dark:text-neutral-300">Popular:</span>
+              {popularSearches.map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  onClick={() => setQuery(term)}
+                  className="radius-native px-2.5 py-0.5 rounded-full bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 hover:border-[#171717] dark:hover:border-white text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white transition-all cursor-pointer font-medium"
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* Feature Tabs & Result Count */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-[#ECEEF2] dark:border-white/10">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto">
-            {[
-              { id: "all", label: `All (${totalCount})` },
-              {
-                id: "products",
-                label: `Products (${dbListings.filter((i) => i.itemType === "product").length})`,
-              },
-              {
-                id: "services",
-                label: `Services (${dbListings.filter((i) => i.itemType === "service").length})`,
-              },
-              { id: "stores", label: `Stores (${dbStores.length})` },
-              { id: "profiles", label: `Profiles (${dbProfiles.length})` },
-              { id: "wanted", label: `Wanted (${matchingWanted.length})` },
-            ].map((tab) => {
-              const isSelected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as SearchFeatureTab)}
-                  className={`radius-native px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all cursor-pointer shrink-0 ${
-                    isSelected
-                      ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717] shadow-xs"
-                      : "bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:border-[#171717]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Feature Tabs & Dynamic Filter Bar (Filters with 0 count are hidden) */}
+        {visibleTabs.length > 0 && (
+          <div className="space-y-3 pt-2 border-t border-[#ECEEF2] dark:border-white/10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto">
+                {visibleTabs.map((tab) => {
+                  const isSelected = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setSelectedCategory("");
+                      }}
+                      className={`radius-native px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all cursor-pointer shrink-0 ${
+                        isSelected
+                          ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717] shadow-xs"
+                          : "bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:border-[#171717]"
+                      }`}
+                    >
+                      {tab.label} ({tab.count})
+                    </button>
+                  );
+                })}
+              </div>
 
-          <span className="text-[12px] font-medium text-[#8C929C]">
-            {totalCount} total {totalCount === 1 ? "match" : "matches"}
-          </span>
-        </div>
+              <div className="flex items-center gap-2 text-[12px] font-medium text-[#8C929C] shrink-0">
+                {isRandomDefault && (
+                  <span className="inline-flex items-center gap-1 text-[#2563EB] dark:text-[#60A5FA] bg-[#EFF6FF] dark:bg-[#1E293B] px-2 py-0.5 rounded-md text-[11px] font-semibold">
+                    <Sparkles className="w-3 h-3" />
+                    Randomized Catalog
+                  </span>
+                )}
+                <span>
+                  {totalCount} total {totalCount === 1 ? "match" : "matches"}
+                </span>
+              </div>
+            </div>
+
+            {/* Category Filter Chips (Only rendered if count > 0) */}
+            {(activeTab === "all" || activeTab === "products" || activeTab === "services") &&
+              availableCategories.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-0.5">
+                  <span className="text-[11.5px] font-medium text-[#8C929C] mr-1 shrink-0">
+                    Category:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory("")}
+                    className={`radius-native px-2.5 py-1 rounded-lg text-[11.5px] font-medium transition-all cursor-pointer shrink-0 ${
+                      !selectedCategory
+                        ? "bg-[#EAEAEA] dark:bg-white/20 text-[#171717] dark:text-white font-bold"
+                        : "bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:text-[#171717]"
+                    }`}
+                  >
+                    All ({activeTab === "products" ? productsCount : activeTab === "services" ? servicesCount : (productsCount + servicesCount)})
+                  </button>
+                  {availableCategories.map(([cat, count]) => {
+                    const isCatSelected = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() =>
+                          setSelectedCategory(isCatSelected ? "" : cat)
+                        }
+                        className={`radius-native px-2.5 py-1 rounded-lg text-[11.5px] font-medium transition-all cursor-pointer shrink-0 ${
+                          isCatSelected
+                            ? "bg-[#171717] text-white dark:bg-white dark:text-[#171717] font-bold"
+                            : "bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-400 hover:text-[#171717]"
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+          </div>
+        )}
 
         {/* Unified Results Grid */}
-        {totalCount === 0 ? (
+        {totalCount === 0 && !isSearching ? (
           <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto">
             <Search className="w-8 h-8 text-[#8C929C] mx-auto mb-2 opacity-60" />
             <h3 className="text-[15px] font-bold text-[#171717] dark:text-white">

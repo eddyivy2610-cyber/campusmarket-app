@@ -179,19 +179,30 @@ export async function GET(req: NextRequest) {
       sort = { price: 1, createdAt: -1 };
     } else if (sortBy === "price_desc") {
       sort = { price: -1, createdAt: -1 };
+    } else if (sortBy === "random") {
+      // Handled via aggregation sample below
     } else {
       // "popular" or default: most engaged with first (likes, views, then recency)
       sort = { likes: -1, views: -1, createdAt: -1 };
     }
 
     const total = await ListingModel.countDocuments(filter);
-    const queryBuilder = ListingModel.find(filter, projection).sort(sort);
+    let listings: any[] = [];
 
-    if (!cursor && page > 1) {
-      queryBuilder.skip((page - 1) * limit);
+    if (sortBy === "random" && !cursor) {
+      listings = await ListingModel.aggregate([
+        { $match: filter },
+        { $sample: { size: limit } },
+      ]);
+    } else {
+      const queryBuilder = ListingModel.find(filter, projection).sort(sort);
+
+      if (!cursor && page > 1) {
+        queryBuilder.skip((page - 1) * limit);
+      }
+
+      listings = await queryBuilder.limit(limit).lean();
     }
-
-    const listings = await queryBuilder.limit(limit).lean();
 
     // Enrich listings strictly by their storeId (never by ownerId)
     const storeIds = Array.from(
@@ -239,7 +250,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const isPublicQuery = status === "active" && !sellerId && !isOwnerContext;
+    const isPublicQuery = status === "active" && !sellerId && !isOwnerContext && sortBy !== "random";
     const isPublic = isRequestSafeForPublicCache(req, { isPublicQuery });
     applyCacheHeaders(res, { isPublic, sMaxAge: 60, staleWhileRevalidate: 300 });
 
