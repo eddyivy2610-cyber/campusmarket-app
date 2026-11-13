@@ -437,22 +437,13 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
 
                 <div className="flex items-center gap-2 w-full">
                   {isOwner ? (
-                    <>
-                      <Link
-                        href="/stores?view=storefront"
-                        className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
-                      >
-                        <StoreIcon className="w-3.5 h-3.5 stroke-[2.2]" />
-                        <span>Manage Store</span>
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <Settings className="w-3.5 h-3.5 stroke-[2]" />
-                        <span>Settings</span>
-                      </Link>
-                    </>
+                    <Link
+                      href="/stores?view=storefront"
+                      className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                    >
+                      <StoreIcon className="w-3.5 h-3.5 stroke-[2.2]" />
+                      <span>Manage Store</span>
+                    </Link>
                   ) : (
                     <>
                       <button

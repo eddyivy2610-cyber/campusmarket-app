@@ -77,10 +77,13 @@ export function StorefrontManager({
   const [landmark, setLandmark] = useState(initialStore?.operatingLocation || "Main Campus");
   const [contactChannel, setContactChannel] = useState("in_app");
   const [showOwnerName, setShowOwnerName] = useState<boolean>(Boolean(initialStore?.showOwnerName));
+  const [storeLogo, setStoreLogo] = useState<string>(initialStore?.logo || "");
   const [avatarError, setAvatarError] = useState(false);
+  const storeLogoInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Compute effective avatar from store logo or authenticated user's profile image
   const effectiveAvatar =
+    storeLogo ||
     storeData?.logo ||
     user?.avatar ||
     user?.image ||
@@ -94,6 +97,8 @@ export function StorefrontManager({
     setCategory(st?.category || "Laptops & Computers");
     setLandmark(st?.operatingLocation || "Main Campus");
     setShowOwnerName(Boolean(st?.showOwnerName));
+    setStoreLogo(st?.logo || "");
+    setAvatarError(false);
   };
 
   // Sync when parent passes updated initialHasStore / initialStore
@@ -690,10 +695,19 @@ export function StorefrontManager({
                       category,
                       operatingLocation: landmark,
                       showOwnerName,
+                      ...(storeLogo ? { logo: storeLogo } : {}),
                     }),
                   });
                   const data = await res.json();
                   if (data.success) {
+                    if (data.data) {
+                      setStoreData(data.data);
+                      setStoresList((prev) =>
+                        prev.map((s) =>
+                          String(s._id) === String(data.data._id) ? data.data : s
+                        )
+                      );
+                    }
                     showToast("Storefront settings updated successfully.");
                   } else {
                     showToast(data.error || "Failed to update settings.");
@@ -708,29 +722,57 @@ export function StorefrontManager({
             className="space-y-4"
           >
             {/* Storefront Avatar Identity Card */}
-            <div className="flex items-center gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-[#ECEEF2] dark:border-white/10">
-              <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
-                {effectiveAvatar && !avatarError ? (
-                  <img
-                    src={effectiveAvatar}
-                    alt={storeName}
-                    onError={() => setAvatarError(true)}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#FFC928]/20 flex items-center justify-center">
-                    <Store className="w-8 h-8 text-[#D97706] dark:text-[#FFC928]" />
-                  </div>
-                )}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900/50 border border-[#ECEEF2] dark:border-white/10">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-16 h-16 rounded-full bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden shadow-xs relative">
+                  {effectiveAvatar && !avatarError ? (
+                    <img
+                      src={effectiveAvatar}
+                      alt={storeName}
+                      onError={() => setAvatarError(true)}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#FFC928]/20 flex items-center justify-center">
+                      <Store className="w-8 h-8 text-[#D97706] dark:text-[#FFC928]" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[13px] font-bold text-[#171717] dark:text-white block">
+                    Storefront Avatar
+                  </span>
+                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                    Update your store&apos;s public avatar independently from your personal profile.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <span className="text-[13px] font-bold text-[#171717] dark:text-white block">
-                  Storefront Avatar
-                </span>
-                <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                  Your store avatar is automatically synchronized with your user profile picture.
-                </p>
-              </div>
+
+              <input
+                ref={storeLogoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    if (typeof reader.result === "string") {
+                      setStoreLogo(reader.result);
+                      setAvatarError(false);
+                    }
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => storeLogoInputRef.current?.click()}
+                className="radius-native px-3.5 py-2 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12px] font-bold text-[#171717] dark:text-white hover:border-[#FFC928] transition-colors cursor-pointer shrink-0"
+              >
+                Change Store Avatar
+              </button>
             </div>
 
             <div>

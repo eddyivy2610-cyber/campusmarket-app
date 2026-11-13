@@ -901,8 +901,6 @@ export default function ProfilePage() {
       ? rawBio
       : "";
 
-  // Ensure personal avatar does not inherit storefront logo
-  const storeLogo = (primaryStore?.logo || "").trim();
   const rawAvatar = (
     liveUserProfile?.profile?.avatar ||
     liveUserProfile?.avatar ||
@@ -911,9 +909,8 @@ export default function ProfilePage() {
     ""
   ).trim();
   const personalAvatar =
-    rawAvatar && rawAvatar !== storeLogo
-      ? rawAvatar
-      : `https://api.dicebear.com/7.x/avataaars/svg?seed=${personalHandleValue}`;
+    rawAvatar ||
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${personalHandleValue}`;
 
   const storeCover = (primaryStore?.coverImage || "").trim();
   const rawCover = (
@@ -1529,15 +1526,24 @@ export default function ProfilePage() {
                             )}
                           </div>
 
-                          {/* Button 2: Settings */}
+                          {/* Button 2: Manage Store (Storefront mode) or Settings (Personal mode) */}
                           <Link
                             href={activeProfileMode === "store" ? "/stores?view=storefront" : "/settings"}
-                            aria-label="Settings"
-                            title="Settings"
+                            aria-label={activeProfileMode === "store" ? "Manage Store" : "Settings"}
+                            title={activeProfileMode === "store" ? "Manage Store" : "Settings"}
                             className="radius-native flex-1 h-9 px-3 sm:px-3.5 rounded-lg border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#171717] dark:hover:border-white text-[#171717] dark:text-white text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 transition-colors shrink-0"
                           >
-                            <Settings className="w-3.5 h-3.5 stroke-[2]" />
-                            <span>Settings</span>
+                            {activeProfileMode === "store" ? (
+                              <>
+                                <Store className="w-3.5 h-3.5 stroke-[2]" />
+                                <span>Manage Store</span>
+                              </>
+                            ) : (
+                              <>
+                                <Settings className="w-3.5 h-3.5 stroke-[2]" />
+                                <span>Settings</span>
+                              </>
+                            )}
                           </Link>
 
                           {/* Button 3: Share button */}

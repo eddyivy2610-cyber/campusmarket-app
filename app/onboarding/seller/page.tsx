@@ -147,8 +147,21 @@ export default function SellerOnboardingPage() {
     if (user?.name && !fullName) {
       setFullName(user.name);
     }
-    if ((user?.avatar || user?.image) && !avatarPreview) {
-      setAvatarPreview(user.avatar || user.image || "");
+    if (!avatarPreview) {
+      const hasExistingStore = Boolean(
+        ((user as any)?.storesCount ?? 0) >= 1 ||
+          (user as any)?.storeId ||
+          user?.role === "seller"
+      );
+      if (hasExistingStore) {
+        setAvatarPreview(
+          `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(
+            user?.id || "store"
+          )}`
+        );
+      } else if (user?.avatar || user?.image) {
+        setAvatarPreview(user.avatar || user.image || "");
+      }
     }
     if (user?.isStudent === false) {
       setSellerType("non_student");
@@ -336,13 +349,11 @@ export default function SellerOnboardingPage() {
         return;
       }
 
-      // 4. Sync AuthContext user state immediately
+      // 4. Sync AuthContext user state immediately (preserve personal avatar)
       if (user) {
         login({
           ...user,
           name: fullName.trim(),
-          avatar: finalLogoUrl || user.avatar,
-          image: finalLogoUrl || user.image,
           role: "seller",
           sellerStatus: "pending",
           isStudent: sellerType === "student",
