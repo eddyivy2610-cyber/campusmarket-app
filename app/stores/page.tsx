@@ -1,10 +1,10 @@
 "use client";
 
-import React, { Suspense, useState, useMemo, useEffect } from "react";
+import React, { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { cardInViewProps, SPRING_MODAL } from "@/lib/motion";
+import { cardInViewProps, SPRING_MODAL, SPRING_POPOVER } from "@/lib/motion";
 import {
   Store,
   CheckCircle2,
@@ -25,6 +25,8 @@ import {
   Settings as SettingsIcon,
   Megaphone,
   Search,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
@@ -67,8 +69,28 @@ function StoresContent() {
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCampus, setSelectedCampus] = useState("all");
+  const [isCampusMenuOpen, setIsCampusMenuOpen] = useState(false);
+  const campusMenuRef = useRef<HTMLDivElement>(null);
   const [savedStoreIds, setSavedStoreIds] = useState<Record<string, boolean>>({});
   const [dbStores, setDbStores] = useState<StoreProfile[]>([]);
+
+  useEffect(() => {
+    if (!isCampusMenuOpen) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (campusMenuRef.current && !campusMenuRef.current.contains(e.target as Node)) {
+        setIsCampusMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsCampusMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCampusMenuOpen]);
 
   // Modals
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
@@ -444,16 +466,70 @@ function StoresContent() {
                     />
                   </div>
 
-                  <select
-                    value={selectedCampus}
-                    onChange={(e) => setSelectedCampus(e.target.value)}
-                    className="radius-native px-3 py-1.5 text-[12px] rounded-xl bg-white dark:bg-white/5 border border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 focus:outline-none focus:border-[#FFC928] cursor-pointer"
-                  >
-                    <option value="all">All Campuses</option>
-                    <option value="Main Campus">Main Campus</option>
-                    <option value="Student Hostels">Student Hostels</option>
-                    <option value="Off-Campus">Off-Campus</option>
-                  </select>
+                  <div ref={campusMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsCampusMenuOpen((prev) => !prev)}
+                      aria-haspopup="listbox"
+                      aria-expanded={isCampusMenuOpen}
+                      className={`radius-native inline-flex items-center justify-between gap-2 min-w-[146px] px-3 py-1.5 text-[12px] font-medium rounded-xl bg-white dark:bg-[#14161D] border transition-colors cursor-pointer ${
+                        isCampusMenuOpen
+                          ? "border-[#FFC928] text-[#171717] dark:text-white"
+                          : "border-[#ECEEF2] dark:border-white/10 text-[#5B636E] dark:text-neutral-200 hover:border-[#171717] dark:hover:border-white/30"
+                      }`}
+                    >
+                      <span className="truncate">
+                        {selectedCampus === "all" ? "All Campuses" : selectedCampus}
+                      </span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 shrink-0 text-[#8C929C] transition-transform duration-200 ${
+                          isCampusMenuOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    <AnimatePresence>
+                      {isCampusMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                          transition={SPRING_POPOVER}
+                          role="listbox"
+                          className="radius-native absolute right-0 mt-1.5 w-48 z-30 rounded-xl bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 shadow-[0_12px_32px_rgba(15,23,42,0.14)] dark:shadow-[0_14px_36px_rgba(0,0,0,0.45)] p-1.5 space-y-0.5"
+                        >
+                          {[
+                            { value: "all", label: "All Campuses" },
+                            { value: "Main Campus", label: "Main Campus" },
+                            { value: "Student Hostels", label: "Student Hostels" },
+                            { value: "Off-Campus", label: "Off-Campus" },
+                          ].map((opt) => {
+                            const isSelected = selectedCampus === opt.value;
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                role="option"
+                                aria-selected={isSelected}
+                                onClick={() => {
+                                  setSelectedCampus(opt.value);
+                                  setIsCampusMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-[12px] text-left transition-colors cursor-pointer ${
+                                  isSelected
+                                    ? "bg-[#FFC928]/15 text-[#9A6B00] dark:bg-[#FFC928]/15 dark:text-[#FFC928] font-semibold"
+                                    : "text-[#171717] dark:text-neutral-200 hover:bg-[#F7F8FA] dark:hover:bg-white/5"
+                                }`}
+                              >
+                                <span>{opt.label}</span>
+                                {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                              </button>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
 

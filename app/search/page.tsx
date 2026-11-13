@@ -3,6 +3,8 @@
 import React, { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { cardInViewProps } from "@/lib/motion";
 import {
   Search,
   X,
@@ -11,7 +13,6 @@ import {
   MapPin,
   Store,
   User,
-  Sparkles,
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
@@ -221,9 +222,9 @@ function SearchContent() {
       if (!trimmed) {
         setIsSearching(true);
         try {
-          // Default when no input: fetch random products (not popular, not new)
+          // Default when no input: fetch a small sample of listings
           const res = await fetch(
-            "/api/listings?status=active&listingType=product&limit=48&sort=random",
+            "/api/listings?status=active&listingType=product&limit=8&sort=random",
             { cache: "no-store" }
           );
           if (res.ok && !isCancelled) {
@@ -299,14 +300,19 @@ function SearchContent() {
   };
 
   // Filtered Products & Services
+  const hasActiveSearch = Boolean(query.trim());
+
   const matchingListings = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) {
+      return dbListings.slice(0, 8);
+    }
     if (
       activeTab === "stores" ||
       activeTab === "profiles"
     ) {
       return [];
     }
-    const q = query.toLowerCase().trim();
 
     return dbListings.filter((item) => {
       if (activeTab === "products" && item.itemType !== "product") return false;
@@ -472,9 +478,7 @@ function SearchContent() {
             Search Campus Hive
           </h1>
           <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
-            {isRandomDefault
-              ? "Showing random campus products. Search below to find specific items, stores, or services."
-              : "One search across all products, services, stores, and profiles."}
+            One search across all products, services, stores, and profiles.
           </p>
 
           {/* Clean Focused Search Input */}
@@ -519,8 +523,8 @@ function SearchContent() {
           )}
         </section>
 
-        {/* Feature Tabs & Dynamic Filter Bar (Filters with 0 count are hidden) */}
-        {visibleTabs.length > 0 && (
+        {/* Feature Tabs & Dynamic Filter Bar (Only shown after user enters a search query) */}
+        {hasActiveSearch && visibleTabs.length > 0 && (
           <div className="space-y-3 pt-2 border-t border-[#ECEEF2] dark:border-white/10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto">
@@ -547,12 +551,6 @@ function SearchContent() {
               </div>
 
               <div className="flex items-center gap-2 text-[12px] font-medium text-[#8C929C] shrink-0">
-                {isRandomDefault && (
-                  <span className="inline-flex items-center gap-1 text-[#9A6B00] dark:text-[#FFC928] bg-[#FFF8E1] dark:bg-[#FFC928]/15 px-2 py-0.5 rounded-md text-[11px] font-semibold">
-                    <Sparkles className="w-3 h-3" />
-                    Randomized Catalog
-                  </span>
-                )}
                 <span>
                   {totalCount} total {totalCount === 1 ? "match" : "matches"}
                 </span>
@@ -602,7 +600,26 @@ function SearchContent() {
         )}
 
         {/* Unified Results Grid */}
-        {totalCount === 0 && !isSearching ? (
+        {isSearching && totalCount === 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={`search-skel-${i}`}
+                className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-2.5 sm:p-3 space-y-3"
+              >
+                <div className="h-[135px] sm:h-[160px] w-full rounded-xl bg-neutral-200 dark:bg-white/5 animate-pulse" />
+                <div className="space-y-2 px-0.5">
+                  <div className="h-3.5 w-3/4 rounded bg-neutral-200 dark:bg-white/5 animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-neutral-200 dark:bg-white/5 animate-pulse" />
+                </div>
+                <div className="pt-2 border-t border-[#F2F4F7] dark:border-white/5 flex items-center justify-between">
+                  <div className="h-4 w-16 rounded bg-neutral-200 dark:bg-white/5 animate-pulse" />
+                  <div className="h-6 w-12 rounded-lg bg-neutral-200 dark:bg-white/5 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : totalCount === 0 && !isSearching ? (
           <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto">
             <Search className="w-8 h-8 text-[#8C929C] mx-auto mb-2 opacity-60" />
             <h3 className="text-[15px] font-bold text-[#171717] dark:text-white">
@@ -613,16 +630,30 @@ function SearchContent() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 220, damping: 26, mass: 0.9 }}
+            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5"
+          >
             {/* 1. Products & Services Cards */}
-            {matchingListings.map((item) => {
+            {matchingListings.map((item, idx) => {
               const isSaved = Boolean(savedIds[`prod-${item.id}`]);
               const isService = item.itemType === "service";
 
               return (
-                <div
+                <motion.div
                   key={`prod-${item.id}`}
-                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 240,
+                    damping: 25,
+                    mass: 0.85,
+                    delay: Math.min(idx * 0.045, 0.3),
+                  }}
+                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="radius-native relative h-[135px] sm:h-[160px] w-full rounded-xl bg-[#F6F7F9] dark:bg-white/5 overflow-hidden flex items-center justify-center">
@@ -684,20 +715,21 @@ function SearchContent() {
                       </Link>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
 
             {/* 2. Stores Cards */}
-            {matchingStores.map((store) => {
+            {matchingStores.map((store, idx) => {
               const isApproved =
                 store.verificationType === "verified_student" ||
                 store.verificationType === "verified_business";
 
               return (
-                <div
+                <motion.div
                   key={`store-${store.id}`}
-                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                  {...cardInViewProps(idx)}
+                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <Link
@@ -754,12 +786,12 @@ function SearchContent() {
                       <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
 
             {/* 3. Profiles Cards */}
-            {matchingProfiles.map((profile) => {
+            {matchingProfiles.map((profile, idx) => {
               const isSeller =
                 profile.role === "seller" || profile.sellerStatus === "approved";
               const isApprovedStore =
@@ -768,9 +800,10 @@ function SearchContent() {
                 profile.sellerStatus === "approved";
 
               return (
-                <div
+                <motion.div
                   key={`profile-${profile.id}`}
-                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                  {...cardInViewProps(idx)}
+                  className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <Link
@@ -830,10 +863,10 @@ function SearchContent() {
                       <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </main>
 

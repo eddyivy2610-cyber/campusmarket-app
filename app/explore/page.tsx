@@ -117,8 +117,12 @@ function ExploreContent() {
   const [hasFetchedFollowing, setHasFetchedFollowing] = useState(false);
 
   // Live database data state
+  const EXPLORE_PAGE_SIZE = 30;
   const [dbListings, setDbListings] = useState<ExploreListingItem[]>([]);
   const [isLoadingLive, setIsLoadingLive] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(EXPLORE_PAGE_SIZE);
 
   // B. Category navigation state
   const [selectedCategory, setSelectedCategory] = useState<ExploreCategory>(
@@ -142,13 +146,14 @@ function ExploreContent() {
     async function fetchLiveExplore() {
       try {
         setIsLoadingLive(true);
-        const listingsRes = await fetch("/api/listings?limit=50&status=active");
+        const listingsRes = await fetch(`/api/listings?limit=${EXPLORE_PAGE_SIZE}&status=active&sort=recent`);
 
         if (!isCancelled) {
           if (listingsRes.ok) {
             const listJson = await listingsRes.json();
             if (listJson.success && Array.isArray(listJson.data)) {
               setDbListings(listJson.data.map(mapApiListingToExploreItem));
+              setNextCursor(listJson.pagination?.nextCursor || null);
             }
           }
         }
@@ -353,6 +358,66 @@ function ExploreContent() {
   ]);
 
   const totalResultsCount = filteredListings.length;
+  const visibleListings = useMemo(
+    () => filteredListings.slice(0, visibleCount),
+    [filteredListings, visibleCount]
+  );
+
+  // Reset visible page size to 30 when filters change
+  useEffect(() => {
+    setVisibleCount(EXPLORE_PAGE_SIZE);
+  }, [
+    activeContentType,
+    showSavedOnly,
+    selectedCategory,
+    selectedLandmark,
+    selectedConditions,
+    selectedSellerType,
+    pricePreset,
+    customMinPrice,
+    customMaxPrice,
+    searchQuery,
+    sortBy,
+  ]);
+
+  const canLoadMore =
+    visibleCount < filteredListings.length ||
+    (activeContentType !== "following" && Boolean(nextCursor));
+
+  const handleLoadMore = async () => {
+    const nextVisible = visibleCount + EXPLORE_PAGE_SIZE;
+    setVisibleCount(nextVisible);
+
+    if (
+      activeContentType !== "following" &&
+      nextCursor &&
+      nextVisible >= filteredListings.length &&
+      !isLoadingMore
+    ) {
+      setIsLoadingMore(true);
+      try {
+        const res = await fetch(
+          `/api/listings?limit=${EXPLORE_PAGE_SIZE}&status=active&sort=recent&cursor=${encodeURIComponent(nextCursor)}`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            const incoming = json.data.map(mapApiListingToExploreItem);
+            setDbListings((prev) => {
+              const seen = new Set(prev.map((p) => String(p.id)));
+              const uniqueNew = incoming.filter((item: ExploreListingItem) => !seen.has(String(item.id)));
+              return [...prev, ...uniqueNew];
+            });
+            setNextCursor(json.pagination?.nextCursor || null);
+          }
+        }
+      } catch (err) {
+        console.warn("[ExplorePage] Failed to load more listings:", err);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    }
+  };
 
   const savedCount = Object.values(savedIds).filter(Boolean).length;
 
@@ -487,14 +552,20 @@ function ExploreContent() {
         {/* ========================================================= */}
         {/* MAIN BODY: Collapsible Left Filter Panel + Listing Grid */}
         {/* ========================================================= */}
-        <div className="flex items-start gap-7">
+        <div className="flex items-start">
           {/* Desktop Filter Panel */}
+          <AnimatePresence initial={false}>
           {showDesktopFilters && (
-            <aside
+            <motion.aside
+              key="desktop-filters-aside"
+              initial={{ width: 0, opacity: 0, x: -18, marginRight: 0 }}
+              animate={{ width: 260, opacity: 1, x: 0, marginRight: 28 }}
+              exit={{ width: 0, opacity: 0, x: -18, marginRight: 0 }}
+              transition={{ type: "spring", stiffness: 210, damping: 26, mass: 0.95 }}
               aria-label="Filter listings"
-              className="hidden lg:block w-[260px] shrink-0 sticky top-[182px] max-h-[calc(100vh-200px)] overflow-y-auto pr-1 scrollbar-thin space-y-4"
+              className="hidden lg:block shrink-0 sticky top-[182px] max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin space-y-4"
             >
-              <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.025)] space-y-4">
+              <div className="w-[256px] radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.025)] space-y-4">
                 <div className="flex items-center justify-between pb-2.5 border-b border-[#ECEEF2] dark:border-white/10">
                   <h2 className="text-[13.5px] font-bold text-[#171717] dark:text-white">
                     Refine Results
@@ -658,13 +729,18 @@ function ExploreContent() {
                   </div>
                 </div>
               </div>
-            </aside>
+            </motion.aside>
           )}
+          </AnimatePresence>
 
           {/* ========================================================= */}
           {/* SECTION D: Listing Grid (Products, Services, Stores) */}
           {/* ========================================================= */}
-          <div className="flex-1 min-w-0">
+          <motion.div
+            layout
+            transition={{ layout: { type: "spring", stiffness: 210, damping: 26, mass: 0.95 } }}
+            className="flex-1 min-w-0"
+          >
             {activeContentType === "following" && !user ? (
               <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-12 text-center max-w-md mx-auto my-8">
                 <div className="radius-native w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 mx-auto flex items-center justify-center mb-4">
@@ -738,7 +814,10 @@ function ExploreContent() {
                 </div>
               )
             ) : (
-              <div
+              <>
+              <motion.div
+                layout
+                transition={{ layout: { type: "spring", stiffness: 210, damping: 26, mass: 0.95 } }}
                 className={`grid grid-cols-2 ${
                   showDesktopFilters
                     ? "sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3"
@@ -746,14 +825,19 @@ function ExploreContent() {
                 } gap-3 sm:gap-4 lg:gap-5`}
               >
                 {/* 1. Products & Services Cards */}
-                {filteredListings.map((item, idx) => {
+                {visibleListings.map((item, idx) => {
                   const isSaved = Boolean(savedIds[item.id]);
                   const isService = item.itemType === "service";
 
                   return (
                     <motion.div
                       key={item.id}
+                      layout="position"
                       {...cardInViewProps(idx)}
+                      transition={{
+                        ...cardInViewProps(idx).transition,
+                        layout: { type: "spring", stiffness: 210, damping: 26, mass: 0.95 },
+                      }}
                       className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                     >
                       <div>
@@ -849,9 +933,24 @@ function ExploreContent() {
                     </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
+
+              {canLoadMore && (
+                <div className="pt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                    className="radius-native inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white dark:bg-[#14161D] hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#171717] dark:text-white text-[13px] font-bold border border-[#DCE0E6] dark:border-white/15 shadow-2xs hover:border-[#171717] dark:hover:border-white transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                  >
+                    <span>{isLoadingMore ? "Loading..." : "Load more"}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* ========================================================= */}
