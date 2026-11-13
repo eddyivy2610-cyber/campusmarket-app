@@ -643,28 +643,6 @@ export function RebrandSettingsShell({
                 Cancel
               </button>
             </div>
-
-            {/* Session & Sign Out */}
-            <div className="pt-6 border-t border-[#ECEEF2] dark:border-white/10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20">
-                <div>
-                  <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white">
-                    Sign out of CampusHive
-                  </h3>
-                  <p className="text-[12px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                    End your current session on this browser and return to the home screen.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="radius-native inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer shrink-0"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Log Out</span>
-                </button>
-              </div>
-            </div>
           </form>
         );
 
