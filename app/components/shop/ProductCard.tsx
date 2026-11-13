@@ -18,7 +18,6 @@ import { OptimizedImage } from "../common/OptimizedImage";
 import { motion } from "framer-motion";
 import { useSaved } from "../../context/SavedContext";
 import { QuickViewModal } from "../modals/QuickViewModal";
-import { VerificationBadge } from "../shared/VerificationBadge";
 import { MVP_FEATURE_FLAGS } from "../../config/mvpFeatures";
 import Link from "next/link";
 
@@ -154,10 +153,6 @@ export function ProductCard({ product, isOwner = false, viewAs = "public" }: { p
                         <span className="text-[10px] text-amber-800 dark:text-amber-400/90 font-medium bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-sm shrink-0">
                             {product.category}
                         </span>
-                        <VerificationBadge
-                            type={product.sellerVerificationType || "verified_student"}
-                            compact
-                        />
                     </div>
 
                     {MVP_FEATURE_FLAGS.UNRESTRICTED_STAR_RATINGS ? (

@@ -123,24 +123,6 @@ export function ListingShareModal({
     ctx.font = "bold 18px sans-serif";
     ctx.fillText("CAMPUS MARKETPLACE", brandX + 58, brandY + 46);
 
-    // Verified Platform Badge (Right side of header)
-    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-    const badgeW = 230;
-    const badgeH = 44;
-    const badgeX = W - 60 - badgeW;
-    const badgeY = brandY;
-    ctx.beginPath();
-    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 22);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255, 201, 40, 0.4)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.fillStyle = "#FFC928";
-    ctx.font = "bold 18px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("✦ Verified Listing", badgeX + badgeW / 2, badgeY + 28);
-
     // 3. Main Product Image (Hero)
     const imgX = 60;
     const imgY = 160;

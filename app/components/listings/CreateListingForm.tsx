@@ -1396,7 +1396,7 @@ export function CreateListingForm() {
                             onClick={() => handleSetPrimaryImage(idx)}
                             className={`radius-native group relative aspect-square rounded-xl overflow-hidden border ${
                               idx === 0
-                                ? "border-[#FFC928] ring-2 ring-[#FFC928]/30"
+                                ? "border-[#171717] dark:border-white ring-2 ring-[#171717]/20 dark:ring-white/20"
                                 : "border-[#ECEEF2] dark:border-white/10"
                             } bg-neutral-100 dark:bg-neutral-800 cursor-pointer`}
                           >

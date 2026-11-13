@@ -805,7 +805,7 @@ export default function ListingDetailPage() {
                         onClick={() => setSelectedImageIdx(idx)}
                         className={`radius-native w-14 h-14 sm:w-[60px] sm:h-[60px] rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-white dark:bg-[#14161D] ${
                           isActive
-                            ? "border-[#FFC928] ring-2 ring-[#FFC928]/25 scale-[1.02]"
+                            ? "border-[#171717] dark:border-white ring-2 ring-[#171717]/15 dark:ring-white/20 scale-[1.02]"
                             : "border-[#ECEEF2] dark:border-white/10 opacity-75 hover:opacity-100"
                         }`}
                       >
