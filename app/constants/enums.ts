@@ -63,8 +63,12 @@ export const LISTING_REMOVED_BY_REASONS = [
 ] as const;
 export type ListingRemovedBy = (typeof LISTING_REMOVED_BY_REASONS)[number];
 
-// Store Ownership Cap Constants
-export const MAX_STORES_PER_USER = 3;
+// Store Ownership Cap Constants (single source of truth read once from env; default 1)
+function resolveMaxStoresPerUser(): number {
+  const parsed = Number.parseInt(process.env.MAX_STORES_PER_USER ?? "1", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+export const MAX_STORES_PER_USER = resolveMaxStoresPerUser();
 export const MAX_STUDENT_STORES_PER_USER = 1;
 export const SLUG_RENAME_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export const SLUG_RESERVATION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days

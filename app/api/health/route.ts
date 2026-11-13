@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkDbHealth } from "@/lib/dbConnect";
+import { MAX_STORES_PER_USER } from "@/constants/enums";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
       latencyMs: dbHealth.latencyMs,
     },
     config: {
-      maxStoresPerUser: parseInt(process.env.MAX_STORES_PER_USER || "1", 10),
+      maxStoresPerUser: MAX_STORES_PER_USER,
     },
     timestamp: new Date().toISOString(),
   };
