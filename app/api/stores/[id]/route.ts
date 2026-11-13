@@ -142,30 +142,30 @@ export async function GET(
       followingId: targetObjectId,
     });
 
-    // Fall back to owner's avatar URL string only if store logo is empty
-    if (!store.logo || store.logo.trim() === "") {
-      try {
-        const ownerDoc = await UserModel.findById(store.ownerId)
-          .select("profile.avatar")
-          .lean();
-        if (ownerDoc?.profile?.avatar) {
-          store.logo = ownerDoc.profile.avatar;
-        }
-      } catch {}
-    }
+    let ownerVacationMode = false;
+    try {
+      const ownerDoc = await UserModel.findById(store.ownerId)
+        .select("profile.avatar preferences.seller.vacationMode")
+        .lean();
+      if ((!store.logo || store.logo.trim() === "") && ownerDoc?.profile?.avatar) {
+        store.logo = ownerDoc.profile.avatar;
+      }
+      ownerVacationMode = Boolean(ownerDoc?.preferences?.seller?.vacationMode);
+    } catch {}
 
-    const dto = toPublicStoreDTO(store, actualFollowersCount);
+    const baseDto = toPublicStoreDTO(store, actualFollowersCount);
+    const dto = baseDto ? { ...baseDto, vacationMode: ownerVacationMode } : null;
 
     const responseBody: Record<string, any> = {
       success: true,
       data: dto,
     };
 
-    if (redirectedFromSlug && dto) {
+    if (redirectedFromSlug && baseDto) {
       responseBody.redirect = true;
       responseBody.oldSlug = redirectedFromSlug;
-      responseBody.canonicalSlug = dto.slug;
-      responseBody.redirectTo = `/store/${dto.slug}`;
+      responseBody.canonicalSlug = baseDto.slug;
+      responseBody.redirectTo = `/store/${baseDto.slug}`;
     }
 
     const res = NextResponse.json(responseBody);

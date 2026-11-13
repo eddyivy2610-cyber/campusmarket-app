@@ -5,17 +5,16 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   User,
-  Shield,
   ShoppingBag,
   ShieldCheck,
   ArrowLeft,
   CheckCircle2,
+  AlertCircle,
   Lock,
   SlidersHorizontal,
   ChevronDown,
   LogOut,
   Check,
-  X,
   Flame,
   Sparkles,
   Clock,
@@ -24,12 +23,11 @@ import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
 import { AppPreferencesPanel } from "./AppPreferencesPanel";
 import { useAuth } from "@/context/AuthContext";
-import { apiGet, apiPatch } from "@/lib/apiClient";
+import { apiGet, apiPatch, apiPost } from "@/lib/apiClient";
 
 export type SettingsTabId =
   | "profile"
   | "preferences"
-  | "privacy"
   | "security"
   | "marketplace"
   | "verification";
@@ -47,20 +45,14 @@ const SETTINGS_TABS: SettingsTabItem[] = [
   {
     id: "profile",
     label: "Profile & Identity",
-    subtitle: "Display name, avatar, bio, and academic details",
+    subtitle: "Display name, avatar, bio, and campus",
     icon: User,
   },
   {
     id: "preferences",
     label: "App Preferences",
-    subtitle: "Theme, discovery defaults, notifications, and layout",
+    subtitle: "Theme, notifications, and storefront vacation mode",
     icon: SlidersHorizontal,
-  },
-  {
-    id: "privacy",
-    label: "Contact & Privacy",
-    subtitle: "Messaging permissions, contact channel, and online status",
-    icon: Shield,
   },
   {
     id: "security",
@@ -71,13 +63,13 @@ const SETTINGS_TABS: SettingsTabItem[] = [
   {
     id: "marketplace",
     label: "Marketplace",
-    subtitle: "Quick access to your listings, requests, and stores",
+    subtitle: "Home feed preference and quick shortcuts",
     icon: ShoppingBag,
   },
   {
     id: "verification",
     label: "Trust & Verification",
-    subtitle: "Campus verification badge and account standing",
+    subtitle: "Email, student, and seller verification status",
     icon: ShieldCheck,
   },
 ];
@@ -86,9 +78,6 @@ interface ProfileIdentityData {
   name: string;
   username: string;
   bio: string;
-  school: string;
-  major: string;
-  year: string;
   avatar: string;
   coverImage?: string;
   location?: string;
@@ -98,12 +87,19 @@ const EMPTY_PROFILE_DATA: ProfileIdentityData = {
   name: "",
   username: "",
   bio: "",
-  school: "",
-  major: "",
-  year: "",
   avatar: "",
-  location: "Main Campus",
+  location: "",
 };
+
+interface VerificationState {
+  emailVerified: boolean;
+  isStudent: boolean;
+  studentVerified: boolean;
+  sellerStatus: "none" | "pending" | "approved" | "rejected";
+  accountStatus: string;
+  storesCount: number;
+  primaryStoreSlug?: string;
+}
 
 export function RebrandSettingsShell({
   initialDestination = "profile",
@@ -139,23 +135,23 @@ export function RebrandSettingsShell({
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasStorefront, setHasStorefront] = useState(false);
-  const [handleUpdatedAt, setHandleUpdatedAt] = useState<string | null>(null);
-
-  // Real-time username availability check state
-  const [usernameCheck, setUsernameCheck] = useState<{
-    status: "idle" | "checking" | "available" | "taken" | "invalid";
-    message: string;
-  }>({ status: "idle", message: "" });
-
-  // Contact & Privacy state
-  const [messagingPreference, setMessagingPreference] = useState("everyone");
-  const [contactChannel, setContactChannel] = useState("in_app");
-  const [showOnlineStatus, setShowOnlineStatus] = useState(true);
 
   // Account & Security state
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [securityErrorMsg, setSecurityErrorMsg] = useState<string | null>(null);
+
+  // Trust & Verification state
+  const [verificationState, setVerificationState] = useState<VerificationState>({
+    emailVerified: false,
+    isStudent: true,
+    studentVerified: false,
+    sellerStatus: "none",
+    accountStatus: "active",
+    storesCount: 0,
+  });
 
   // Marketplace Home Feed content preference: "popular" (default), "recent", or "both"
   const [homeFeedPreference, setHomeFeedPreference] = useState<"popular" | "recent" | "both">("popular");
@@ -171,9 +167,6 @@ export function RebrandSettingsShell({
         const merged: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
           ...parsed,
-          school: parsed.school || parsed.faculty || EMPTY_PROFILE_DATA.school,
-          major: parsed.major || parsed.department || EMPTY_PROFILE_DATA.major,
-          year: parsed.year || parsed.level || EMPTY_PROFILE_DATA.year,
           username: String(parsed.username || EMPTY_PROFILE_DATA.username)
             .replace(/^@/, "")
             .toLowerCase(),
@@ -219,9 +212,6 @@ export function RebrandSettingsShell({
             user.sellerStatus === "approved"
         );
         setHasStorefront(isSellerOrStore);
-        setHandleUpdatedAt(
-          data.profile?.handleUpdatedAt || storeObj?.slugUpdatedAt || null
-        );
         const liveData: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
           name:
@@ -235,98 +225,24 @@ export function RebrandSettingsShell({
             .replace(/^@/, "")
             .toLowerCase(),
           bio: data.profile?.bio || "",
-          school: data.campus || "",
-          major: data.profile?.department || "",
-          year: data.profile?.level || "",
           avatar: data.profile?.avatar || user.avatar || "",
           location: data.campus || "",
         };
         setProfileData(liveData);
         setInitialData(liveData);
         setEmail(data.email || user.email || "");
+        setVerificationState({
+          emailVerified: Boolean(data.emailVerified),
+          isStudent: data.isStudent !== false,
+          studentVerified: Boolean(data.studentVerified),
+          sellerStatus: data.sellerStatus || (isSellerOrStore ? "approved" : "none"),
+          accountStatus: data.accountStatus || "active",
+          storesCount: Number(data.storesCount || 0),
+          primaryStoreSlug: storeObj?.slug,
+        });
       })
       .catch(() => {});
   }, [user?.id, user?.role, user?.sellerStatus]);
-
-  // Real-time username verification against MongoDB (debounced 300ms)
-  useEffect(() => {
-    const raw = (profileData.username || "").replace(/^@/, "").trim().toLowerCase();
-    const initialRaw = (initialData.username || "").replace(/^@/, "").trim().toLowerCase();
-
-    if (!raw) {
-      setUsernameCheck({
-        status: "invalid",
-        message: "Username is required (3–8 characters)",
-      });
-      return;
-    }
-
-    if (raw.length < 3) {
-      setUsernameCheck({
-        status: "invalid",
-        message: "Username must be at least 3 characters",
-      });
-      return;
-    }
-
-    if (raw.length > 8) {
-      setUsernameCheck({
-        status: "invalid",
-        message: "Username must be at most 8 characters",
-      });
-      return;
-    }
-
-    if (!/^[a-z0-9]+$/.test(raw)) {
-      setUsernameCheck({
-        status: "invalid",
-        message: "Only lowercase letters and numbers allowed",
-      });
-      return;
-    }
-
-    if (raw === initialRaw) {
-      setUsernameCheck({ status: "idle", message: "" });
-      return;
-    }
-
-    let isCancelled = false;
-    setUsernameCheck({ status: "checking", message: "Checking availability..." });
-
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/users/check-username?username=${encodeURIComponent(raw)}`
-        );
-        const json = await res.json();
-        if (isCancelled) return;
-
-        if (json.available) {
-          setUsernameCheck({
-            status: "available",
-            message: `✓ @${raw} is available`,
-          });
-        } else {
-          setUsernameCheck({
-            status: "taken",
-            message: json.message || `✗ @${raw} is already taken`,
-          });
-        }
-      } catch {
-        if (!isCancelled) {
-          setUsernameCheck({
-            status: "idle",
-            message: "Could not verify username right now.",
-          });
-        }
-      }
-    }, 300);
-
-    return () => {
-      isCancelled = true;
-      clearTimeout(timer);
-    };
-  }, [profileData.username, initialData.username]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -366,7 +282,7 @@ export function RebrandSettingsShell({
       const response = await apiPatch<any>("/api/users/profile", {
         displayName: finalData.name,
         bio: finalData.bio,
-        campus: finalData.location || finalData.school,
+        campus: finalData.location,
         avatar: finalData.avatar,
       });
       localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
@@ -375,11 +291,6 @@ export function RebrandSettingsShell({
       setAvatarPreview(null);
       const saved = response?.data || response?.user;
       if (saved) {
-        if (saved.profile?.handleUpdatedAt || saved.store?.slugUpdatedAt) {
-          setHandleUpdatedAt(
-            saved.profile?.handleUpdatedAt || saved.store?.slugUpdatedAt
-          );
-        }
         if (user) {
           login({
             ...user,
@@ -410,6 +321,45 @@ export function RebrandSettingsShell({
     setAvatarPreview(null);
     setSaveSuccessMsg(null);
     setSaveErrorMsg(null);
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityErrorMsg(null);
+    setSaveSuccessMsg(null);
+
+    if (!currentPassword || !newPassword) {
+      setSecurityErrorMsg("Please enter both your current and new password.");
+      return;
+    }
+    if (
+      newPassword.length < 8 ||
+      !/[a-zA-Z]/.test(newPassword) ||
+      !/[0-9]/.test(newPassword)
+    ) {
+      setSecurityErrorMsg(
+        "New password must be at least 8 characters and include a letter and a number."
+      );
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const res: any = await apiPost("/api/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setSaveSuccessMsg(res?.message || "Password updated successfully.");
+      setTimeout(() => setSaveSuccessMsg(null), 3500);
+    } catch (err: any) {
+      setSecurityErrorMsg(
+        err?.message || "Could not update password. Please try again."
+      );
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   const effectiveAvatar = avatarPreview || profileData.avatar;
@@ -528,87 +478,27 @@ export function RebrandSettingsShell({
                 </div>
               </div>
 
-              {/* Academic Details Section */}
-              <div className="pt-2">
-                <div className="flex items-center gap-2 mb-2.5">
-                  <h3 className="text-[14px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
-                    Academic Details
-                  </h3>
-                  <span className="text-[11px] font-semibold text-[#8C929C] bg-[#F2F4F8] dark:bg-white/5 px-2 py-0.5 rounded-md">
-                    Campus Identity
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <div>
-                    <label
-                      htmlFor="schoolInput"
-                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                    >
-                      School
-                    </label>
-                    <input
-                      id="schoolInput"
-                      type="text"
-                      value={profileData.school}
-                      onChange={(e) =>
-                        setProfileData({
-                          ...profileData,
-                          school: e.target.value,
-                        })
-                      }
-                      placeholder="e.g. Your University Name"
-                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="majorInput"
-                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                    >
-                      Major / Department
-                    </label>
-                    <input
-                      id="majorInput"
-                      type="text"
-                      value={profileData.major}
-                      onChange={(e) =>
-                        setProfileData({
-                          ...profileData,
-                          major: e.target.value,
-                        })
-                      }
-                      placeholder="e.g. Computer Science"
-                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="yearSelect"
-                      className="block text-[12px] font-bold text-[#68707A] dark:text-neutral-400 mb-1.5"
-                    >
-                      Year / Level
-                    </label>
-                    <select
-                      id="yearSelect"
-                      value={profileData.year}
-                      onChange={(e) =>
-                        setProfileData({ ...profileData, year: e.target.value })
-                      }
-                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3 py-2 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                    >
-                      <option value="">Select year</option>
-                      <option value="100 Level">100 Level</option>
-                      <option value="200 Level">200 Level</option>
-                      <option value="300 Level">300 Level</option>
-                      <option value="400 Level">400 Level</option>
-                      <option value="500 Level">500 Level</option>
-                      <option value="Graduate">Graduate</option>
-                    </select>
-                  </div>
-                </div>
+              {/* Campus Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-center gap-2 sm:gap-4">
+                <label
+                  htmlFor="campusInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
+                >
+                  Campus
+                </label>
+                <input
+                  id="campusInput"
+                  type="text"
+                  value={profileData.location || ""}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      location: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. UNILAG, OAU, UI..."
+                  className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                />
               </div>
             </div>
 
@@ -634,111 +524,16 @@ export function RebrandSettingsShell({
       case "preferences":
         return <AppPreferencesPanel />;
 
-      case "privacy":
-        return (
-          <div className="space-y-6">
-            {!isMobileAccordion && (
-              <div>
-                <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
-                  Contact & Privacy
-                </h2>
-                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                  Control who can message you and manage your visibility in campus chat.
-                </p>
-                <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
-              </div>
-            )}
-
-            {saveSuccessMsg && (
-              <div className="radius-native p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>{saveSuccessMsg}</span>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                  Who can message you
-                </label>
-                <select
-                  value={messagingPreference}
-                  onChange={(e) => setMessagingPreference(e.target.value)}
-                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                >
-                  <option value="everyone">Everyone on campus</option>
-                  <option value="verified">Verified students only</option>
-                  <option value="listings">
-                    Inquiries on active listings only
-                  </option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                  Contact channel
-                </label>
-                <select
-                  value={contactChannel}
-                  onChange={(e) => setContactChannel(e.target.value)}
-                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs cursor-pointer"
-                >
-                  <option value="in_app">
-                    In-app messages only (Recommended)
-                  </option>
-                  <option value="whatsapp">
-                    Allow WhatsApp handoff after deal starts
-                  </option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
-                  Online presence
-                </label>
-                <label className="inline-flex items-center gap-2.5 cursor-pointer text-[13px] font-medium text-[#4B5563] dark:text-neutral-300">
-                  <input
-                    type="checkbox"
-                    checked={showOnlineStatus}
-                    onChange={(e) => setShowOnlineStatus(e.target.checked)}
-                    className="w-4 h-4 rounded border-[#DCE0E6] text-[#FFC928] focus:ring-[#FFC928] accent-[#FFC928] cursor-pointer"
-                  />
-                  <span>Show when I am active in chat threads</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setSaveSuccessMsg("Privacy preferences saved.");
-                  setTimeout(() => setSaveSuccessMsg(null), 3000);
-                }}
-                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-              >
-                Save Changes
-              </button>
-              <button
-                type="button"
-                className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        );
-
       case "security":
         return (
-          <div className="space-y-6">
+          <form onSubmit={handlePasswordChange} className="space-y-6">
             {!isMobileAccordion && (
               <div>
                 <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
                   Account & Security
                 </h2>
                 <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                  Update your account credentials, login email, and authentication passwords.
+                  View your login email and update your account password.
                 </p>
                 <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
               </div>
@@ -751,61 +546,98 @@ export function RebrandSettingsShell({
               </div>
             )}
 
+            {securityErrorMsg && (
+              <div className="radius-native p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-300 text-[13px] font-semibold flex items-center gap-2 shadow-xs">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                <span>{securityErrorMsg}</span>
+              </div>
+            )}
+
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start gap-2 sm:gap-4">
+                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 sm:pt-2.5">
                   Email Address
                 </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                />
+                <div className="w-full max-w-md space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="email"
+                      value={email}
+                      readOnly
+                      disabled
+                      className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-[#F3F4F6] dark:bg-white/5 px-3.5 py-2.5 text-[13.5px] text-[#5B636E] dark:text-neutral-300 cursor-not-allowed"
+                    />
+                    <span
+                      className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                        verificationState.emailVerified
+                          ? "bg-[#E8F8F0] text-[#15803D] border-[#A7F3D0] dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
+                          : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
+                      }`}
+                    >
+                      {verificationState.emailVerified ? "Verified" : "Unverified"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#68707A] dark:text-neutral-400">
+                    Your primary login email cannot be changed directly.
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+                <label
+                  htmlFor="currentPasswordInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300"
+                >
                   Current Password
                 </label>
                 <input
+                  id="currentPasswordInput"
                   type="password"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-center gap-2 sm:gap-4">
-                <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300">
+              <div className="grid grid-cols-1 sm:grid-cols-[160px_1fr] items-start gap-2 sm:gap-4">
+                <label
+                  htmlFor="newPasswordInput"
+                  className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 sm:pt-2.5"
+                >
                   New Password
                 </label>
-                <input
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="radius-native w-full max-w-md rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
-                />
+                <div className="w-full max-w-md space-y-1">
+                  <input
+                    id="newPasswordInput"
+                    type="password"
+                    placeholder="At least 8 chars, letter & number"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="radius-native w-full rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] px-3.5 py-2.5 text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#FFC928] focus:ring-2 focus:ring-[#FFC928]/25 transition-all shadow-xs"
+                  />
+                </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3 pt-3">
               <button
+                type="submit"
+                disabled={isUpdatingPassword || !currentPassword || !newPassword}
+                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdatingPassword ? "Updating..." : "Update Password"}
+              </button>
+              <button
                 type="button"
                 onClick={() => {
                   setCurrentPassword("");
                   setNewPassword("");
-                  setSaveSuccessMsg("Security settings updated.");
-                  setTimeout(() => setSaveSuccessMsg(null), 3000);
+                  setSecurityErrorMsg(null);
+                  setSaveSuccessMsg(null);
                 }}
-                className="radius-native px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[13px] font-bold shadow-xs transition-all active:scale-[0.98] cursor-pointer"
-              >
-                Save Changes
-              </button>
-              <button
-                type="button"
                 className="radius-native px-4 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[13px] font-bold text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
               >
                 Cancel
@@ -833,7 +665,7 @@ export function RebrandSettingsShell({
                 </button>
               </div>
             </div>
-          </div>
+          </form>
         );
 
       case "marketplace":
@@ -995,7 +827,25 @@ export function RebrandSettingsShell({
           </div>
         );
 
-      case "verification":
+      case "verification": {
+        const sellerLabel =
+          verificationState.sellerStatus === "approved"
+            ? "Approved"
+            : verificationState.sellerStatus === "pending"
+            ? "Pending Review"
+            : verificationState.sellerStatus === "rejected"
+            ? "Rejected"
+            : "Not Applied";
+
+        const sellerBadgeClass =
+          verificationState.sellerStatus === "approved"
+            ? "bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border-[#A7F3D0] dark:border-emerald-500/20"
+            : verificationState.sellerStatus === "pending"
+            ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+            : verificationState.sellerStatus === "rejected"
+            ? "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200 dark:border-rose-500/20"
+            : "bg-[#F3F4F6] text-[#5B636E] dark:bg-white/5 dark:text-neutral-400 border-[#DCE0E6] dark:border-white/10";
+
         return (
           <div className="space-y-6">
             {!isMobileAccordion && (
@@ -1004,39 +854,120 @@ export function RebrandSettingsShell({
                   Trust & Verification
                 </h2>
                 <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                  Check your university verification status and buyer trust tier.
+                  Review your live email, student, and storefront verification standing.
                 </p>
                 <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
               </div>
             )}
 
-            <div className="radius-native p-5 bg-white dark:bg-[#181B24] border border-[#ECEEF2] dark:border-white/10 rounded-2xl space-y-3.5 shadow-xs">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" aria-label="Verified user" />
-                <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
-                  Verified Student Identity
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border border-[#A7F3D0] dark:border-emerald-500/20">
-                  Active
+            <div className="divide-y divide-[#ECEEF2] dark:divide-white/10 rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#181B24] overflow-hidden shadow-xs">
+              {/* 1. Email Verification */}
+              <div className="p-5 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck
+                      className={`w-4 h-4 shrink-0 ${
+                        verificationState.emailVerified
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-amber-500"
+                      }`}
+                    />
+                    <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                      Email Verification
+                    </span>
+                  </div>
+                  <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400">
+                    {email || "No email on file"}
+                  </p>
+                </div>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
+                    verificationState.emailVerified
+                      ? "bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border-[#A7F3D0] dark:border-emerald-500/20"
+                      : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20"
+                  }`}
+                >
+                  {verificationState.emailVerified ? "Verified" : "Unverified"}
                 </span>
               </div>
 
-              <p className="text-[13px] text-[#4A5058] dark:text-neutral-300 leading-relaxed">
-                Your identity and university standing have been confirmed. Your account is verified with approved campus standing.
-              </p>
-
-              <div className="pt-3 text-[12px] font-medium text-[#7A818C] dark:text-neutral-400 border-t border-[#ECEEF2] dark:border-white/10 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                <span>
-                  Institutional email:{" "}
-                  <strong className="text-[#171717] dark:text-white font-semibold">
-                    {email || "Not provided"}
-                  </strong>
+              {/* 2. Student Identity */}
+              <div className="p-5 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                    Student Standing
+                  </span>
+                  <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400">
+                    {verificationState.studentVerified
+                      ? "Your campus student status is verified."
+                      : verificationState.isStudent
+                      ? "Student account pending verification."
+                      : "Registered as a non-student account."}
+                  </p>
+                </div>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
+                    verificationState.studentVerified
+                      ? "bg-[#E8F8F0] text-[#15803D] dark:bg-emerald-500/10 dark:text-emerald-400 border-[#A7F3D0] dark:border-emerald-500/20"
+                      : "bg-[#F3F4F6] text-[#5B636E] dark:bg-white/5 dark:text-neutral-400 border-[#DCE0E6] dark:border-white/10"
+                  }`}
+                >
+                  {verificationState.studentVerified
+                    ? "Verified Student"
+                    : verificationState.isStudent
+                    ? "Pending"
+                    : "Standard"}
                 </span>
+              </div>
+
+              {/* 3. Seller / Storefront Standing */}
+              <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-[14px] font-extrabold text-[#171717] dark:text-white">
+                    Storefront Verification
+                  </span>
+                  <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400">
+                    {verificationState.sellerStatus === "approved"
+                      ? `Active storefront (${verificationState.storesCount || 1} store${
+                          verificationState.storesCount === 1 ? "" : "s"
+                        }).`
+                      : verificationState.sellerStatus === "pending"
+                      ? "Your storefront application is under review."
+                      : verificationState.sellerStatus === "rejected"
+                      ? "Your previous storefront application was not approved."
+                      : "Apply to open a verified campus storefront."}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${sellerBadgeClass}`}
+                  >
+                    {sellerLabel}
+                  </span>
+                  {verificationState.sellerStatus === "approved" &&
+                  verificationState.primaryStoreSlug ? (
+                    <Link
+                      href={`/store/${verificationState.primaryStoreSlug}`}
+                      className="radius-native px-3 py-1.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD24] text-[#171717] text-[12px] font-bold transition-colors"
+                    >
+                      View Store
+                    </Link>
+                  ) : verificationState.sellerStatus !== "approved" &&
+                    verificationState.sellerStatus !== "pending" ? (
+                    <Link
+                      href="/stores/onboarding"
+                      className="radius-native px-3 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[#171717] dark:text-white text-[12px] font-bold hover:border-[#FFC928] transition-colors"
+                    >
+                      Apply
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
         );
+      }
     }
   };
 

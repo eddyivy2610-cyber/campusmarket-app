@@ -5,6 +5,7 @@ import {
   getConversationWithMessages,
 } from "../../../../../lib/chatRepository";
 import { MessageModel, ConversationModel } from "../../../../../models/ChatModels";
+import UserModel from "../../../../../models/User";
 import { requireParticipant } from "../../../../../lib/authServer";
 import dbConnect from "../../../../../lib/dbConnect";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "../../../../../lib/databaseErrors";
@@ -370,6 +371,90 @@ export async function POST(
         console.warn(
           `[RealtimeOutbox] Publication failed for message ${result.message.id}. Saved in DB and recoverable on client cursor reconnect.`
         );
+      }
+
+      // Seller Auto-Reply / Vacation Mode auto-response (at most once per 12h per thread)
+      if (counterpartId && mongoose.connection.readyState === 1) {
+        try {
+          const counterpartUser: any = await UserModel.findById(counterpartId)
+            .select("preferences.seller")
+            .lean();
+          const sellerPrefs = counterpartUser?.preferences?.seller;
+          const customAutoReply =
+            typeof sellerPrefs?.autoReply === "string"
+              ? sellerPrefs.autoReply.trim()
+              : "";
+          const isVacation = Boolean(sellerPrefs?.vacationMode);
+          const autoReplyText =
+            customAutoReply ||
+            (isVacation
+              ? "Hi! My store is currently on a short break. I'll reply as soon as I'm back."
+              : "");
+
+          if (autoReplyText) {
+            const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+            const recentSellerMsg = await MessageModel.findOne({
+              conversationId: String(conversationId),
+              senderId: String(counterpartId),
+              createdAt: { $gte: twelveHoursAgo },
+            })
+              .select("_id")
+              .lean();
+
+            if (!recentSellerMsg) {
+              const autoClientMsgId = `autoreply:${result.message.id}`;
+              const autoRes = appendMessageToConversation({
+                conversationId,
+                senderId: String(counterpartId),
+                text: autoReplyText,
+                clientMessageId: autoClientMsgId,
+              });
+
+              if (!autoRes.duplicate) {
+                const autoCreatedAt = new Date().toISOString();
+                await MessageModel.create({
+                  id: autoRes.message.id,
+                  clientMessageId: autoClientMsgId,
+                  conversationId: String(conversationId),
+                  senderId: String(counterpartId),
+                  type: autoRes.message.type,
+                  text: autoRes.message.text,
+                  deliveryStatus: "delivered",
+                  schemaVersion: 1,
+                  createdAt: autoCreatedAt,
+                } as any);
+
+                const isConvObjId = mongoose.isValidObjectId(conversationId);
+                await ConversationModel.updateOne(
+                  isConvObjId
+                    ? { $or: [{ _id: new mongoose.Types.ObjectId(conversationId) }, { conversationId }] }
+                    : { conversationId },
+                  {
+                    $set: {
+                      lastMessage: {
+                        text: autoRes.message.text,
+                        senderId: mongoose.isValidObjectId(counterpartId)
+                          ? new mongoose.Types.ObjectId(counterpartId)
+                          : counterpartId,
+                        createdAt: autoCreatedAt,
+                        time: new Date(),
+                        type: autoRes.message.type,
+                      },
+                      updatedAt: new Date(),
+                    },
+                  }
+                );
+
+                await publishConversationEvent(conversationId, "new-message", {
+                  message: autoRes.message,
+                  conversation: autoRes.conversation,
+                });
+              }
+            }
+          }
+        } catch (autoReplyErr) {
+          console.warn("[MessagesPOST] Seller auto-reply failed:", autoReplyErr);
+        }
       }
     }
 

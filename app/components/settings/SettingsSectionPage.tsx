@@ -13,8 +13,8 @@ const MAP_LEGACY_SECTION_ID: Record<SectionId, SettingsDestinationId> = {
   security: "security",
   preferences: "preferences",
   help: "verification",
-  "account-status": "security",
-  "profile-activity": "privacy",
+  "account-status": "verification",
+  "profile-activity": "profile",
   logout: "security",
   "switch-account": "security",
 };

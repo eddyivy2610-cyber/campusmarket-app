@@ -88,6 +88,7 @@ export interface PublicStoreData {
   responseTime?: string;
   showOwnerName?: boolean;
   ownerDisplayName?: string;
+  vacationMode?: boolean;
 }
 
 interface PublicStorefrontViewProps {
@@ -472,7 +473,7 @@ export function PublicStorefrontView({
 
   const isStudentSeller =
     store.storeType === "student_store" || store.storeType === "student_owned";
-  const isPaused = store.status === "paused";
+  const isPaused = store.status === "paused" || Boolean(store.vacationMode);
   const isOwner = Boolean(user?.id && store.ownerId && store.ownerId === user.id);
 
   const messageUrl = user
