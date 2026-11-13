@@ -442,7 +442,13 @@ function ExploreContent() {
               <button
                 type="button"
                 onClick={() => setShowDesktopFilters((prev) => !prev)}
-                className="hidden lg:inline-flex radius-native items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 text-[12.5px] font-semibold text-[#171717] dark:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
+                aria-pressed={showDesktopFilters}
+                aria-expanded={showDesktopFilters}
+                className={`hidden lg:inline-flex radius-native items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#14161D] text-[12.5px] font-semibold transition-all cursor-pointer ${
+                  showDesktopFilters
+                    ? "border border-[#171717] dark:border-white text-[#171717] dark:text-white shadow-xs"
+                    : "border border-transparent text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:border-[#ECEEF2] dark:hover:border-white/10"
+                }`}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 <span>Filters</span>
