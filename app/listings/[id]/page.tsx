@@ -3,6 +3,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { SPRING_MODAL } from "@/lib/motion";
 import {
   ArrowLeft,
   ArrowRight,
@@ -1499,9 +1501,22 @@ export default function ListingDetailPage() {
       {/* ========================================================= */}
       {/* CONTEXTUAL CHAT MODAL (Automatically Attaches Listing)    */}
       {/* ========================================================= */}
+      <AnimatePresence>
       {isChatModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 18 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={SPRING_MODAL}
+            className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+          >
             {/* Modal Header: Seller Info */}
             <div className="px-4 py-3.5 border-b border-[#ECEEF2] dark:border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -1635,16 +1650,30 @@ export default function ListingDetailPage() {
                 </Link>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ========================================================= */}
       {/* REPORT LISTING MODAL                                      */}
       {/* ========================================================= */}
+      <AnimatePresence>
       {isReportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl p-5 space-y-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 18 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={SPRING_MODAL}
+            className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl p-5 space-y-4"
+          >
             <div className="flex items-center justify-between pb-2.5 border-b border-[#ECEEF2] dark:border-white/10">
               <div className="flex items-center gap-2">
                 <Flag className="w-4 h-4 text-rose-600" />
@@ -1707,9 +1736,10 @@ export default function ListingDetailPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ========================================================= */}
       {/* LISTING SHARE MODAL (PNG CARD & SOCIAL LINK ARRAY)        */}

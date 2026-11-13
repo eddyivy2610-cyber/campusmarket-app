@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SPRING_MODAL } from "@/lib/motion";
 
 interface BaseModalProps {
     isOpen: boolean;
@@ -58,9 +59,10 @@ export function BaseModal({
 
                     {/* Modal Content */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.94, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        exit={{ opacity: 0, scale: 0.96, y: 14 }}
+                        transition={SPRING_MODAL}
                         className={cn(
                             "relative w-full bg-card border border-border/50 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col max-h-[90vh] font-sans",
                             maxWidth,

@@ -3,6 +3,8 @@
 import React, { Suspense, useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cardInViewProps, SPRING_DRAWER } from "@/lib/motion";
 import {
   Search,
   X,
@@ -744,14 +746,15 @@ function ExploreContent() {
                 } gap-3 sm:gap-4 lg:gap-5`}
               >
                 {/* 1. Products & Services Cards */}
-                {filteredListings.map((item) => {
+                {filteredListings.map((item, idx) => {
                   const isSaved = Boolean(savedIds[item.id]);
                   const isService = item.itemType === "service";
 
                   return (
-                    <div
+                    <motion.div
                       key={item.id}
-                      className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                      {...cardInViewProps(idx)}
+                      className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                     >
                       <div>
                         {/* Image Container */}
@@ -843,7 +846,7 @@ function ExploreContent() {
                           </Link>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -886,14 +889,25 @@ function ExploreContent() {
         {/* ========================================================= */}
         {/* MOBILE SORT & FILTERS BOTTOM SHEET                        */}
         {/* ========================================================= */}
+        <AnimatePresence>
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
-            <div
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black/40 backdrop-blur-xs"
               onClick={() => setShowMobileFilters(false)}
               aria-hidden="true"
             />
-            <div className="radius-native relative z-10 w-full max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#14161D] border-t border-[#ECEEF2] dark:border-white/10 p-6 shadow-2xl space-y-5">
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={SPRING_DRAWER}
+              className="radius-native relative z-10 w-full max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#14161D] border-t border-[#ECEEF2] dark:border-white/10 p-6 shadow-2xl space-y-5"
+            >
               <div className="flex items-center justify-between pb-3 border-b border-[#ECEEF2] dark:border-white/10">
                 <h2 className="text-[16px] font-bold text-[#171717] dark:text-white">
                   Sort & Filters
@@ -1064,9 +1078,10 @@ function ExploreContent() {
                   Show ({totalResultsCount})
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
+        </AnimatePresence>
       </main>
 
       <RebrandFooter />

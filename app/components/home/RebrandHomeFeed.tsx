@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { cardInViewProps } from "@/lib/motion";
 import {
   ArrowRight,
   Heart,
@@ -272,13 +274,14 @@ export function RebrandHomeFeed() {
         ) : (
           <div className="space-y-6 sm:space-y-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-              {visibleListings.map((item) => {
+              {visibleListings.map((item, idx) => {
                 const isSaved = Boolean(savedIds[item.id]);
 
                 return (
-                  <div
+                  <motion.div
                     key={item.id}
-                    className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                    {...cardInViewProps(idx)}
+                    className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-2.5 sm:p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                   >
                     <div>
                       {/* Product Image Container */}
@@ -378,7 +381,7 @@ export function RebrandHomeFeed() {
                         </Link>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>

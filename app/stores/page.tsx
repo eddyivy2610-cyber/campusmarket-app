@@ -3,6 +3,8 @@
 import React, { Suspense, useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { cardInViewProps, SPRING_MODAL } from "@/lib/motion";
 import {
   Store,
   CheckCircle2,
@@ -480,15 +482,16 @@ function StoresContent() {
               ) : (
                 /* 4-Column Uniform Storefront Card Grid */
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                  {filteredStores.map((store) => {
+                  {filteredStores.map((store, idx) => {
                     const isSaved = Boolean(savedStoreIds[store.id]);
                     const isStudent = store.businessType === "student_owned";
                     const storeHref = `/stores/${store.slug || store.id}`;
 
                     return (
-                      <div
+                      <motion.div
                         key={store.id}
-                        className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-all duration-200 flex flex-col justify-between"
+                        {...cardInViewProps(idx)}
+                        className="radius-native group rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 shadow-[0_4px_20px_rgba(15,23,42,0.025)] hover:shadow-[0_8px_28px_rgba(15,23,42,0.06)] transition-shadow duration-200 flex flex-col justify-between"
                       >
                         <div>
                           {/* Visual Container */}
@@ -570,7 +573,7 @@ function StoresContent() {
                             </Link>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -580,9 +583,22 @@ function StoresContent() {
         </div>
 
         {/* Modal: Open a Store */}
+        <AnimatePresence>
         {isRegisterModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <div className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl p-6 space-y-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={SPRING_MODAL}
+              className="radius-native w-full max-w-md rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-2xl p-6 space-y-4"
+            >
               <div className="flex items-center justify-between pb-3 border-b border-[#ECEEF2] dark:border-white/10">
                 <div>
                   <h3 className="text-[16px] font-extrabold text-[#171717] dark:text-white">
@@ -646,9 +662,10 @@ function StoresContent() {
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </main>
 
       {!isStorefrontView && <RebrandFooter />}

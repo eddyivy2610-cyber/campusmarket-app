@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { SPRING_DRAWER } from "@/lib/motion";
 import { Logo } from "../ui/Logo";
 import { useAuth } from "../../context/AuthContext";
 import { apiGet } from "@/lib/apiClient";
@@ -258,6 +260,7 @@ export function RebrandHeader() {
       </header>
 
       {/* Mobile Slide-Over Hamburger Drawer (Navigation + Categories + Around Your Campus) */}
+      <AnimatePresence>
       {mobileMenuOpen && (
         <div
           style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}
@@ -267,14 +270,24 @@ export function RebrandHeader() {
           aria-label="Mobile navigation menu"
         >
           {/* Dark Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-[1px] transition-opacity"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-[1px]"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
           {/* Slide-Over Panel */}
-          <div className="relative z-10 w-[84%] max-w-[320px] h-full bg-white dark:bg-[#14161D] text-[#171717] dark:text-white shadow-2xl flex flex-col overflow-y-auto">
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={SPRING_DRAWER}
+            className="relative z-10 w-[84%] max-w-[320px] h-full bg-white dark:bg-[#14161D] text-[#171717] dark:text-white shadow-2xl flex flex-col overflow-y-auto"
+          >
             {/* Drawer Header: Close X + Brand Logo */}
             <div className="sticky top-0 z-20 flex items-center gap-3 px-4 h-[60px] bg-white dark:bg-[#14161D] border-b border-[#ECEEF2] dark:border-white/10 shrink-0">
               <button
@@ -461,9 +474,10 @@ export function RebrandHeader() {
                 })}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </>
   );
 }
