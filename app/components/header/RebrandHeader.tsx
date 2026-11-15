@@ -251,7 +251,10 @@ export function RebrandHeader() {
               href="/profile"
               aria-label="Profile"
               title="Profile"
-              className="radius-native h-9 w-9 rounded-full flex items-center justify-center text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10 transition-colors"
+              className={`radius-native h-9 w-9 rounded-full flex items-center justify-center transition-colors ${pathname?.startsWith("/profile")
+                ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
+                : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
+                }`}
             >
               <User className="w-[19px] h-[19px]" strokeWidth={1.8} />
             </Link>
