@@ -440,47 +440,6 @@ export function CreateListingForm() {
     >
       <RebrandHeader />
 
-      {/* Top Action Bar */}
-      <div className="bg-white dark:bg-[#14161D] border-b border-[#ECEEF2] dark:border-white/10 sticky top-[64px] z-30">
-        <div className="max-w-[1160px] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={handleBackToPrevious}
-              className="radius-native inline-flex items-center justify-center w-8 h-8 rounded-full border border-[#DCE0E6] dark:border-white/15 text-[#5B636E] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="text-[16px] sm:text-[18px] font-extrabold text-[#171717] dark:text-white tracking-[-0.015em] truncate">
-                Create New Listing
-              </h1>
-              <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 truncate">
-                Posting as <strong className="text-[#171717] dark:text-white">{storeDisplayName}</strong>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            {draftSavedAt && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11.5px] text-[#68707A] dark:text-neutral-400">
-                <Check className="w-3.5 h-3.5 text-emerald-500" />
-                Draft {draftSavedAt}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleSaveDraft}
-              className="radius-native inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12.5px] font-bold text-[#171717] dark:text-white hover:border-[#171717] dark:hover:border-white transition-colors cursor-pointer"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Draft</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {showDraftToast && (
         <div className="fixed bottom-5 right-5 z-50 bg-[#171717] dark:bg-white text-white dark:text-[#171717] px-4 py-2.5 rounded-xl text-[12.5px] font-bold shadow-xl flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
@@ -488,7 +447,51 @@ export function CreateListingForm() {
         </div>
       )}
 
-      <main className="flex-1 max-w-[1160px] w-full mx-auto px-4 sm:px-8 py-7 sm:py-9">
+      <main className="flex-1 max-w-[1160px] w-full mx-auto px-4 sm:px-8 pt-6 pb-14">
+        {/* Explore-matched Page Header */}
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={handleBackToPrevious}
+              className="radius-native inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 text-[#171717] dark:text-white transition-colors cursor-pointer shrink-0"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-[18px] sm:text-[20px] font-bold tracking-[-0.02em] text-[#14171A] dark:text-white shrink-0 truncate">
+                Create New Listing
+              </h1>
+              <p className="text-[12.5px] text-[#8C929C] dark:text-neutral-400 mt-0.5 font-normal truncate">
+                Posting as <strong className="text-[#171717] dark:text-white font-semibold">{storeDisplayName}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div
+            className="hidden sm:block flex-1 h-[1px] bg-[#E8EAEE] dark:bg-white/10"
+            aria-hidden="true"
+          />
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            {draftSavedAt && (
+              <span className="hidden md:inline-flex items-center gap-1 text-[11.5px] text-[#8C929C] dark:text-neutral-400">
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+                Draft {draftSavedAt}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="radius-native inline-flex items-center gap-1.5 rounded-lg border border-[#E4E7EC] dark:border-white/15 bg-white dark:bg-white/5 hover:bg-[#F7F8FA] dark:hover:bg-white/10 px-3 py-1.5 text-[12px] font-semibold text-[#171717] dark:text-white shrink-0 transition-colors cursor-pointer"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Draft</span>
+            </button>
+          </div>
+        </div>
+
         <form onSubmit={handlePublishListing} className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
           {/* Left: Streamlined Essential Fields */}
           <motion.div
@@ -845,7 +848,7 @@ export function CreateListingForm() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...SPRING_SMOOTH, delay: 0.08 }}
-            className="lg:col-span-5 sticky top-[140px] space-y-3"
+            className="lg:col-span-5 sticky top-[96px] space-y-3"
           >
             <div className="text-[12px] font-bold uppercase tracking-wider text-[#8C929C]">
               Live Card Preview
