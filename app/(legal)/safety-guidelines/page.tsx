@@ -77,7 +77,7 @@ export default function SafetyGuidelinesPage() {
                   <MapPin className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
-                  1. Designated Public Meetup Spots
+                  1. Safe Campus Meetup Spots
                 </h3>
               </div>
               <p className="text-[12.5px] text-[#5B636E] dark:text-neutral-400 leading-relaxed">
@@ -86,15 +86,15 @@ export default function SafetyGuidelinesPage() {
               <ul className="space-y-2 text-[12.5px] text-[#5B636E] dark:text-neutral-300">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span><strong>Recommended:</strong> Kashim Ibrahim Library lobby, Student Social Centre (SUB), Faculty auditoriums.</span>
+                  <span><strong>Best spots:</strong> Always meet in busy, open places on campus.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Bring a roommate or course mate along for high-value gadget transactions.</span>
+                  <span>Bring a roommate or course mate along when buying or selling expensive gadgets.</span>
                 </li>
                 <li className="flex items-start gap-2 text-red-600 dark:text-red-400">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>Avoid meeting after dark, in isolated bush paths, or in private quarters.</span>
+                  <span>Avoid meeting at night, in quiet bush paths, or inside private hostel rooms.</span>
                 </li>
               </ul>
             </div>
@@ -106,24 +106,24 @@ export default function SafetyGuidelinesPage() {
                   <CreditCard className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
-                  2. Payment & Bank Transfer Security
+                  2. Payment &amp; Transfer Safety
                 </h3>
               </div>
               <p className="text-[12.5px] text-[#5B636E] dark:text-neutral-400 leading-relaxed">
-                Counter fake receipt scams and fake SMS alerts with mandatory live balance confirmation.
+                Protect yourself from fake alerts and edited transfer receipts.
               </p>
               <ul className="space-y-2 text-[12.5px] text-[#5B636E] dark:text-neutral-300">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Log into your authentic banking app and confirm the balance credit yourself.</span>
+                  <span>Open your banking app and confirm the money has landed in your balance.</span>
                 </li>
                 <li className="flex items-start gap-2 text-red-600 dark:text-red-400">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span><strong>Never rely on screenshots:</strong> Fake transfer generator apps produce counterfeit receipt images in seconds.</span>
+                  <span><strong>Never trust screenshots or SMS alerts alone:</strong> Scammers use fake receipt apps to generate false proof of payment in seconds.</span>
                 </li>
                 <li className="flex items-start gap-2 text-red-600 dark:text-red-400">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>Do not release goods until your bank reflects the cleared funds.</span>
+                  <span>Do not hand over any item until your bank balance updates.</span>
                 </li>
               </ul>
             </div>
@@ -135,24 +135,24 @@ export default function SafetyGuidelinesPage() {
                   <Eye className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
-                  3. In-Person Product Inspection
+                  3. Inspect Items Before Paying
                 </h3>
               </div>
               <p className="text-[12.5px] text-[#5B636E] dark:text-neutral-400 leading-relaxed">
-                Take the time to thoroughly test and examine equipment before concluding any deal.
+                Check and test everything properly before sealing the deal.
               </p>
               <ul className="space-y-2 text-[12.5px] text-[#5B636E] dark:text-neutral-300">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span><strong>Phones & Laptops:</strong> Test Wi-Fi, camera, ports, charging, and battery cycle health.</span>
+                  <span><strong>Phones &amp; Laptops:</strong> Test the Wi-Fi, camera, charging port, speakers, and battery health.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Check for iCloud, Google FRP locks, or BIOS locks before the seller leaves.</span>
+                  <span>Make sure there are no iCloud, Google, or BIOS locks before the seller leaves.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Request original receipt or proof of purchase for high-end electronics.</span>
+                  <span>Ask for the original receipt or proof of purchase for expensive gadgets.</span>
                 </li>
               </ul>
             </div>
@@ -164,24 +164,24 @@ export default function SafetyGuidelinesPage() {
                   <MessageSquare className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
-                  4. Keep Negotiations in Campus Hive
+                  4. Keep Chats Inside Campus Hive
                 </h3>
               </div>
               <p className="text-[12.5px] text-[#5B636E] dark:text-neutral-400 leading-relaxed">
-                Keeping chat records inside the platform provides irrefutable evidence in dispute investigations.
+                Keeping your conversations on the app gives you clear proof if a dispute happens.
               </p>
               <ul className="space-y-2 text-[12.5px] text-[#5B636E] dark:text-neutral-300">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Our audit logging protects both parties if a dispute arises.</span>
+                  <span>In-app chat records help protect both buyers and sellers.</span>
                 </li>
                 <li className="flex items-start gap-2 text-red-600 dark:text-red-400">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>Be skeptical of users demanding immediate external WhatsApp calls before an offer is made.</span>
+                  <span>Be careful of anyone rushing you to move to WhatsApp before agreeing on a deal.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>Always check the student verification tick on the seller&apos;s profile card.</span>
+                  <span>Always check for the student verification badge on the user&apos;s profile.</span>
                 </li>
               </ul>
             </div>
@@ -191,10 +191,10 @@ export default function SafetyGuidelinesPage() {
           <div className="radius-native rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <h4 className="text-[14px] font-bold text-[#171717] dark:text-white">
-                Spotted a suspicious listing or harassment?
+                Spotted a fake listing or bad behavior?
               </h4>
               <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400">
-                Our student moderation team acts immediately on flagged listings, counterfeit goods, and safety complaints.
+                Report it right away. Our student moderation team acts fast on scams, fake items, and safety issues.
               </p>
             </div>
             <Link

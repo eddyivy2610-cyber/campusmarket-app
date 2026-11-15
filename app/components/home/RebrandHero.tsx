@@ -444,72 +444,38 @@ export function RebrandHero() {
               })}
             </div>
 
-            {/* Carousel Controls: Left / Right Arrows & Animated Progress Countdown Counter */}
+            {/* Compact Visual Progress Dots (minimal footprint so banner info isn't hidden) */}
             {slideCount > 1 && (
               <div
-                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-6 z-20 flex items-center gap-2"
-                role="region"
-                aria-label="Carousel navigation"
+                className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-xs border border-white/10"
+                role="tablist"
+                aria-label="Banner slides"
               >
-                {/* Button 1: Left Arrow ( ← ) */}
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label="Previous banner"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer backdrop-blur-sm border border-white/10"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" strokeWidth={2.2} />
-                </button>
-
-                {/* Button 2: Right Arrow ( → ) */}
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label="Next banner"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer backdrop-blur-sm border border-white/10"
-                >
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" strokeWidth={2.2} />
-                </button>
-
-                {/* Button 3: Progress Ring with Two-Digit Counter ( 00 ) */}
-                <button
-                  type="button"
-                  onClick={() => setIsPaused((prev) => !prev)}
-                  title={isPaused ? "Resume autoplay" : "Pause autoplay"}
-                  aria-label={`Slide ${currentIndex + 1} of ${slideCount}. Click to ${isPaused ? "play" : "pause"}`}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1E2024]/90 hover:bg-[#2A2D33] flex items-center justify-center relative cursor-pointer shadow-md active:scale-95 transition-all backdrop-blur-sm border border-white/10"
-                >
-                  <svg
-                    className="w-full h-full -rotate-90 absolute inset-0 pointer-events-none p-[2px]"
-                    viewBox="0 0 36 36"
-                  >
-                    {/* Background Track Circle */}
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="15"
-                      fill="none"
-                      stroke="rgba(255, 255, 255, 0.15)"
-                      strokeWidth="2"
-                    />
-                    {/* Animated Sky Blue Progress Ring */}
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="15"
-                      fill="none"
-                      stroke="#38BDF8"
-                      strokeWidth="2"
-                      strokeDasharray="94.25"
-                      strokeDashoffset={94.25 - (94.25 * Math.min(progress, 100)) / 100}
-                      strokeLinecap="round"
-                      className="transition-[stroke-dashoffset] duration-75 ease-linear"
-                    />
-                  </svg>
-                  <span className="text-[11px] sm:text-[12px] font-mono font-bold text-white relative z-10 tabular-nums select-none tracking-tight">
-                    {String(currentIndex).padStart(2, "0")}
-                  </span>
-                </button>
+                {slides.map((slide, idx) => {
+                  const isActive = idx === currentIndex;
+                  return (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-label={`Go to banner ${idx + 1} of ${slideCount}`}
+                      onClick={() => handleDotClick(idx)}
+                      className={`relative h-1.5 rounded-full overflow-hidden transition-all duration-300 cursor-pointer ${
+                        isActive
+                          ? "w-6 sm:w-7 bg-white/35"
+                          : "w-1.5 bg-white/45 hover:bg-white/80"
+                      }`}
+                    >
+                      {isActive && (
+                        <span
+                          className="absolute inset-y-0 left-0 rounded-full bg-[#FFC928] transition-[width] duration-75 ease-linear"
+                          style={{ width: `${Math.min(progress, 100)}%` }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
