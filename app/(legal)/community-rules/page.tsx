@@ -54,10 +54,6 @@ export default function CommunityRulesPage() {
         <div className="space-y-6">
           {/* Core Principle */}
           <div className="radius-native rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] p-6 sm:p-8 shadow-xs space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#FFC928]/20 text-[#171717] dark:text-[#FFC928] border border-[#FFC928]/40">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Campus Code of Conduct</span>
-            </span>
             <h2 className="text-[18px] sm:text-[20px] font-extrabold text-[#171717] dark:text-white tracking-[-0.01em]">
               Respect, transparency, and accountability between fellow students.
             </h2>
