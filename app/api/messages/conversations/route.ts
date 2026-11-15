@@ -14,6 +14,7 @@ import {
 } from "../../../models/ChatModels";
 import { requireAuth, requireCompletedOnboarding, ServerAuthUser } from "../../../lib/authServer";
 import { formatFirstNameInitial } from "../../../models/User";
+import StoreModel from "../../../models/Store";
 import dbConnect from "../../../lib/dbConnect";
 
 function buildChatParticipantProfile(user: ServerAuthUser): ChatParticipantProfile {
@@ -225,8 +226,35 @@ export async function POST(req: NextRequest) {
     const currentUser = buildChatParticipantProfile(user);
     const body = await req.json();
 
-    const participantId = String(body.participantId || "").trim();
-    const participantName = String(body.participantName || "").trim();
+    let participantId = String(body.participantId || "").trim();
+    let participantName = String(body.participantName || "").trim();
+    let resolvedStoreAvatar: string | undefined = body.participantAvatar
+      ? String(body.participantAvatar)
+      : undefined;
+
+    const topLevelStoreId = body.storeId ? String(body.storeId).trim() : undefined;
+
+    if (topLevelStoreId) {
+      try {
+        await dbConnect();
+        const storeDoc: any = mongoose.isValidObjectId(topLevelStoreId)
+          ? await StoreModel.findById(topLevelStoreId).select("ownerId name logo").lean()
+          : await StoreModel.findOne({ slug: topLevelStoreId.toLowerCase() })
+              .select("ownerId name logo")
+              .lean();
+        if (storeDoc?.ownerId) {
+          participantId = String(storeDoc.ownerId);
+        }
+        if (!participantName && storeDoc?.name) {
+          participantName = String(storeDoc.name);
+        }
+        if (!resolvedStoreAvatar && storeDoc?.logo) {
+          resolvedStoreAvatar = String(storeDoc.logo);
+        }
+      } catch {
+        // Fallback to provided participantId if store lookup fails
+      }
+    }
 
     if (!participantId || !participantName) {
       return NextResponse.json(
@@ -249,7 +277,7 @@ export async function POST(req: NextRequest) {
         0,
         100
       ),
-      avatar: body.participantAvatar ? String(body.participantAvatar) : undefined,
+      avatar: resolvedStoreAvatar,
       isVerified: Boolean(body.participantVerified ?? true),
       accountType:
         body.accountType === "student_store" ||
@@ -278,8 +306,6 @@ export async function POST(req: NextRequest) {
           href: string;
         }
       | undefined;
-
-    const topLevelStoreId = body.storeId ? String(body.storeId).trim() : undefined;
 
     if (body.context && body.context.title) {
       const cType: ContextEntityType = validContextTypes.includes(

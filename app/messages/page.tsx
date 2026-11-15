@@ -399,7 +399,8 @@ function MessagesWorkspace() {
     const participantId =
       searchParams.get("participantId") ||
       searchParams.get("user") ||
-      searchParams.get("recipient");
+      searchParams.get("recipient") ||
+      searchParams.get("storeId");
     const participantName =
       searchParams.get("participantName") ||
       searchParams.get("name") ||
@@ -829,6 +830,7 @@ function MessagesWorkspace() {
             "x-campus-user-id": currentUser.id,
           },
           body: JSON.stringify({
+            storeId: searchParams.get("storeId") || undefined,
             participantId: activeConv.otherParticipant.id,
             participantName: activeConv.otherParticipant.name,
             participantSubtitle: activeConv.otherParticipant.subtitle,

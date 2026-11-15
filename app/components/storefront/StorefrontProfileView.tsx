@@ -89,11 +89,46 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isOwnerByApi, setIsOwnerByApi] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  useEffect(() => {
+    let isCancelled = false;
+    async function checkOwnership() {
+      if (!user?.id || !store) {
+        if (!isCancelled) setIsOwnerByApi(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/stores/me", { credentials: "include" });
+        if (!res.ok) return;
+        const json = await res.json();
+        const ownedList: any[] = Array.isArray(json?.data?.stores)
+          ? json.data.stores
+          : json?.data?.store
+          ? [json.data.store]
+          : [];
+        const targetId = String(store._id || store.id || "");
+        const targetSlug = String(store.slug || "").toLowerCase();
+        const matched = ownedList.some(
+          (s) =>
+            (targetId && String(s._id || s.id || "") === targetId) ||
+            (targetSlug && String(s.slug || "").toLowerCase() === targetSlug)
+        );
+        if (!isCancelled) setIsOwnerByApi(matched);
+      } catch {
+        // Ignore ownership check failure
+      }
+    }
+    checkOwnership();
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.id, store?._id, store?.id, store?.slug]);
 
   useEffect(() => {
     if (store?._id || store?.id) {
@@ -321,7 +356,7 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
   }
 
   const isPaused = store.status === "paused" || Boolean(store.vacationMode);
-  const isOwner = Boolean(user?.id && store.ownerId && store.ownerId === user.id);
+  const isOwner = Boolean(isOwnerByApi || (user?.id && store.ownerId && store.ownerId === user.id));
   const reviewsCount = store.metrics?.reviewsCount ?? 0;
   const rating = store.metrics?.rating ?? 5.0;
   const joinedLabel = store.createdAt
@@ -331,6 +366,11 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
       })
     : "Recent";
 
+  const safeStoreAvatar =
+    store.logo && !store.logo.startsWith("data:") && store.logo.length <= 512
+      ? store.logo
+      : "";
+
   const messageUrl = user
     ? `/messages?${new URLSearchParams({
         from: "store",
@@ -338,7 +378,7 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
         storeId: store._id || store.id || "",
         participantId: store.ownerId || store._id || store.id || "",
         participantName: store.name || "Store",
-        participantAvatar: store.logo || "",
+        ...(safeStoreAvatar ? { participantAvatar: safeStoreAvatar } : {}),
         participantSubtitle:
           store.storeType === "student_store" || store.storeType === "student_owned"
             ? "Student Store"
