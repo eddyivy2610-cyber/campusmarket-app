@@ -545,7 +545,12 @@ function MessagesWorkspace() {
     }
   }, [searchParams, currentUser, conversations]);
 
+  const prevSelectedConvIdRef = useRef<string | null>(null);
+
   useEffect(() => {
+    const prevId = prevSelectedConvIdRef.current;
+    prevSelectedConvIdRef.current = selectedConvId;
+
     if (selectedConvId) {
       if (selectedConvId.startsWith("draft-")) {
         return;
@@ -553,7 +558,7 @@ function MessagesWorkspace() {
       fetchConversationDetails(selectedConvId, 1, false);
       setActAsOtherParticipant(false);
       setShowTrackDealForm(false);
-    } else {
+    } else if (prevId !== null) {
       setActiveConv(null);
       setMessages([]);
     }
