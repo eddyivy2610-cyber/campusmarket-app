@@ -1444,27 +1444,20 @@ function MessagesWorkspace() {
                           : "hover:bg-[#F7F8FA] dark:hover:bg-white/[0.03]"
                       }`}
                     >
-                      {other.avatar ? (
-                        <img
-                          src={other.avatar}
-                          alt={other.name}
-                          className={`w-10 h-10 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 shrink-0 ${
-                            other.isVerified
-                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                              : ""
-                          }`}
-                        />
-                      ) : (
-                        <div
-                          className={`w-10 h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13.5px] flex items-center justify-center shrink-0 ${
-                            other.isVerified
-                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                              : ""
-                          }`}
-                        >
-                          {other.name.charAt(0)}
-                        </div>
-                      )}
+                      <img
+                        src={
+                          other.avatar ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                            other.id || other.name || "campus"
+                          )}`
+                        }
+                        alt={other.name}
+                        className={`w-10 h-10 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-[#F7F8FA] shrink-0 ${
+                          other.isVerified
+                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
+                      />
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -1569,27 +1562,22 @@ function MessagesWorkspace() {
                     href={getParticipantProfileHref(activeConv.otherParticipant)}
                     className="shrink-0"
                   >
-                    {activeConv.otherParticipant?.avatar ? (
-                      <img
-                        src={activeConv.otherParticipant.avatar}
-                        alt={activeConv.otherParticipant?.name || "Campus Member"}
-                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] ${
-                          activeConv.otherParticipant?.isVerified
-                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                            : ""
-                        }`}
-                      />
-                    ) : (
-                      <div
-                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[14px] flex items-center justify-center ${
-                          activeConv.otherParticipant?.isVerified
-                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                            : ""
-                        }`}
-                      >
-                        {(activeConv.otherParticipant?.name || "U").charAt(0)}
-                      </div>
-                    )}
+                    <img
+                      src={
+                        activeConv.otherParticipant?.avatar ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                          activeConv.otherParticipant?.id ||
+                            activeConv.otherParticipant?.name ||
+                            "campus"
+                        )}`
+                      }
+                      alt={activeConv.otherParticipant?.name || "Campus Member"}
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] bg-[#F7F8FA] ${
+                        activeConv.otherParticipant?.isVerified
+                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                          : ""
+                      }`}
+                    />
                   </Link>
 
                   <div className="min-w-0">
