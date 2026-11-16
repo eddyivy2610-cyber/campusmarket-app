@@ -642,6 +642,17 @@ export default function ListingDetailPage() {
 
     const defaultMsg = "ill love to know more about this product";
 
+    const safeImage =
+      listing.images[0] && !listing.images[0].startsWith("data:") && listing.images[0].length <= 512
+        ? listing.images[0]
+        : "";
+    const safeAvatar =
+      listing.seller.avatar &&
+      !listing.seller.avatar.startsWith("data:") &&
+      listing.seller.avatar.length <= 512
+        ? listing.seller.avatar
+        : "";
+
     const params = new URLSearchParams({
       from: "listing",
       contextType: isService ? "service" : "product",
@@ -649,16 +660,17 @@ export default function ListingDetailPage() {
       title: listing.title,
       price: listing.priceFormatted,
       numericPrice: String(listing.price),
-      image: listing.images[0] || "",
+      ...(safeImage ? { image: safeImage } : {}),
       status: isMarkedSold ? "Sold" : "Available",
       href: `/listings/${listing.id}`,
       participantId: sellerParticipantId,
       participantName: listing.seller.name,
       participantSubtitle: listing.seller.department,
-      participantAvatar: listing.seller.avatar,
+      ...(safeAvatar ? { participantAvatar: safeAvatar } : {}),
       participantVerified: listing.seller.isVerified ? "true" : "false",
       service: isService ? String(listing.id) : "",
       store: storeParam,
+      ...(storeParam ? { storeId: storeParam } : {}),
       defaultMessage: defaultMsg,
     });
     router.push(`/messages?${params.toString()}`);
