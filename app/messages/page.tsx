@@ -1451,7 +1451,7 @@ function MessagesWorkspace() {
 
                   <div className="mt-7">
                     <Link
-                      href="/sell"
+                      href="/listings/create"
                       className="radius-native inline-flex items-center justify-center min-w-[190px] px-6 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-extrabold text-[13.5px] shadow-xs transition-colors"
                     >
                       List your product
