@@ -13,7 +13,7 @@ import {
   ConversationModel,
 } from "../../../models/ChatModels";
 import { requireAuth, requireCompletedOnboarding, ServerAuthUser } from "../../../lib/authServer";
-import { formatFirstNameInitial } from "../../../models/User";
+import UserModel, { formatFirstNameInitial } from "../../../models/User";
 import StoreModel from "../../../models/Store";
 import dbConnect from "../../../lib/dbConnect";
 
@@ -51,6 +51,19 @@ export async function GET(req: NextRequest) {
     );
 
     await dbConnect();
+
+    // Hydrate sender's profile avatar from MongoDB so recipients see the sender's real avatar
+    if (mongoose.connection.readyState === 1 && mongoose.isValidObjectId(currentUser.id)) {
+      try {
+        const senderDoc: any = await UserModel.findById(currentUser.id)
+          .select("avatar profile.avatar")
+          .lean();
+        const senderAvatar = senderDoc?.profile?.avatar || senderDoc?.avatar;
+        if (senderAvatar) {
+          currentUser.avatar = String(senderAvatar);
+        }
+      } catch {}
+    }
 
     // 1. Cursor Pagination on MongoDB if cursor is passed or DB has conversations
     if (mongoose.connection.readyState === 1 && (cursor || !page || page === 1)) {
@@ -98,6 +111,37 @@ export async function GET(req: NextRequest) {
               ? paginated[paginated.length - 1].conversationId || paginated[paginated.length - 1]._id.toString()
               : null;
 
+          const missingUserIds = new Set<string>();
+          if (mongoose.isValidObjectId(currentUser.id)) {
+            missingUserIds.add(currentUser.id);
+          }
+          for (const c of paginated) {
+            const pIds: string[] = Array.isArray(c.participantIds) ? c.participantIds.map(String) : [];
+            const oid = pIds.find((id) => id !== currentUser.id) || "";
+            if (oid && mongoose.isValidObjectId(oid)) {
+              missingUserIds.add(oid);
+            }
+          }
+
+          const avatarByUserId = new Map<string, string>();
+          if (missingUserIds.size > 0) {
+            try {
+              const userDocs: any[] = await UserModel.find({
+                _id: { $in: Array.from(missingUserIds).map((id) => new mongoose.Types.ObjectId(id)) },
+              })
+                .select("avatar profile.avatar")
+                .lean();
+              for (const u of userDocs) {
+                const av = u?.profile?.avatar || u?.avatar;
+                if (av) avatarByUserId.set(String(u._id), String(av));
+              }
+            } catch {}
+          }
+
+          if (!currentUser.avatar && avatarByUserId.has(currentUser.id)) {
+            currentUser.avatar = avatarByUserId.get(currentUser.id);
+          }
+
           const mappedConversations = paginated.map((c: any) => {
             const convId = c.conversationId || c._id.toString();
             const participantIds: string[] = Array.isArray(c.participantIds) && c.participantIds.length > 0
@@ -115,17 +159,20 @@ export async function GET(req: NextRequest) {
                   return pid && pid !== currentUser.id;
                 })
               : null;
+            const resolvedOtherAvatar =
+              (rawOther as any)?.avatar || avatarByUserId.get(otherId) || undefined;
             const otherParticipant: ChatParticipantProfile =
               rawOther && typeof rawOther === "object" && "name" in rawOther
                 ? {
                     ...rawOther,
                     id: rawOther.id ? String(rawOther.id) : otherId,
+                    ...(resolvedOtherAvatar ? { avatar: resolvedOtherAvatar } : {}),
                   }
                 : {
                     id: otherId,
                     name: (rawOther as any)?.name || "Campus Member",
                     subtitle: (rawOther as any)?.subtitle || "Campus Member",
-                    avatar: (rawOther as any)?.avatar,
+                    avatar: resolvedOtherAvatar,
                     isVerified: Boolean((rawOther as any)?.isVerified),
                     accountType: (rawOther as any)?.accountType || "student",
                   };
@@ -252,6 +299,19 @@ export async function POST(req: NextRequest) {
     if (topLevelStoreId) {
       try {
         await dbConnect();
+
+    // Hydrate sender's profile avatar from MongoDB so recipients see the sender's real avatar
+    if (mongoose.connection.readyState === 1 && mongoose.isValidObjectId(currentUser.id)) {
+      try {
+        const senderDoc: any = await UserModel.findById(currentUser.id)
+          .select("avatar profile.avatar")
+          .lean();
+        const senderAvatar = senderDoc?.profile?.avatar || senderDoc?.avatar;
+        if (senderAvatar) {
+          currentUser.avatar = String(senderAvatar);
+        }
+      } catch {}
+    }
         const storeDoc: any = mongoose.isValidObjectId(topLevelStoreId)
           ? await StoreModel.findById(topLevelStoreId).select("ownerId name logo").lean()
           : await StoreModel.findOne({ slug: topLevelStoreId.toLowerCase() })
@@ -352,6 +412,19 @@ export async function POST(req: NextRequest) {
     }
 
     await dbConnect();
+
+    // Hydrate sender's profile avatar from MongoDB so recipients see the sender's real avatar
+    if (mongoose.connection.readyState === 1 && mongoose.isValidObjectId(currentUser.id)) {
+      try {
+        const senderDoc: any = await UserModel.findById(currentUser.id)
+          .select("avatar profile.avatar")
+          .lean();
+        const senderAvatar = senderDoc?.profile?.avatar || senderDoc?.avatar;
+        if (senderAvatar) {
+          currentUser.avatar = String(senderAvatar);
+        }
+      } catch {}
+    }
 
     // Check MongoDB for an existing conversation between these two participants across serverless instances
     if (mongoose.connection.readyState === 1) {
