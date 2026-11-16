@@ -386,8 +386,18 @@ function MessagesWorkspace() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Handle Entry Points (Product, Service, Wanted/Radar, Store, Profile)
+  // Handle Entry Points (Direct Conversation ID, Product, Service, Wanted/Radar, Store, Profile)
   useEffect(() => {
+    const directConvId = searchParams.get("conversation");
+    if (directConvId) {
+      if (entryContextProcessedRef.current !== `conv:${directConvId}`) {
+        entryContextProcessedRef.current = `conv:${directConvId}`;
+        setSelectedConvId(directConvId);
+        setMobileShowThread(true);
+      }
+      return;
+    }
+
     const contextType = searchParams.get("contextType");
     const fromParam = searchParams.get("from");
     const participantId =

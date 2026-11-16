@@ -173,15 +173,30 @@ export async function GET(req: NextRequest) {
             };
           });
 
-          if (cursor) {
-            return NextResponse.json({
-              currentUser,
-              conversations: mappedConversations,
-              nextCursor,
-              hasMore,
-              total: mappedConversations.length,
-            });
+          let filteredConversations = mappedConversations;
+          if (query) {
+            const q = query.toLowerCase();
+            filteredConversations = filteredConversations.filter(
+              (c: any) =>
+                c.otherParticipant?.name?.toLowerCase().includes(q) ||
+                c.lastMessage?.text?.toLowerCase().includes(q) ||
+                c.context?.title?.toLowerCase().includes(q)
+            );
           }
+          if (storeIdFilter) {
+            filteredConversations = filteredConversations.filter(
+              (c: any) =>
+                String(c.storeId || c.context?.storeId || "") === storeIdFilter
+            );
+          }
+
+          return NextResponse.json({
+            currentUser,
+            conversations: filteredConversations,
+            nextCursor,
+            hasMore,
+            total: filteredConversations.length,
+          });
         }
       } catch (dbErr) {
         console.warn("[ConversationsGET] MongoDB cursor lookup fallback:", dbErr);
