@@ -5,6 +5,8 @@ import {
   setBannerCollapsedState,
 } from "../../../../lib/chatRepository";
 import { ContextWorkflowStatus, MessageModel } from "../../../../models/ChatModels";
+import UserModel from "../../../../models/User";
+import StoreModel from "../../../../models/Store";
 import { requireParticipant } from "../../../../lib/authServer";
 import dbConnect from "../../../../lib/dbConnect";
 
@@ -78,6 +80,35 @@ export async function GET(
       } catch (dbErr) {
         console.warn("[ConversationGET] MongoDB messages hydration failed:", dbErr);
       }
+    }
+
+    // Hydrate otherParticipant avatar from MongoDB if missing
+    if (result.conversation?.otherParticipant && !result.conversation.otherParticipant.avatar) {
+      try {
+        await dbConnect();
+        if (mongoose.connection.readyState === 1) {
+          const otherId = String(result.conversation.otherParticipant.id || "");
+          if (mongoose.isValidObjectId(otherId)) {
+            const userDoc: any = await UserModel.findById(otherId)
+              .select("avatar profile.avatar")
+              .lean();
+            const userAvatar = userDoc?.profile?.avatar || userDoc?.avatar;
+            if (userAvatar) {
+              result.conversation.otherParticipant.avatar = String(userAvatar);
+            } else if (
+              result.conversation.otherParticipant.accountType === "student_store" ||
+              result.conversation.otherParticipant.accountType === "approved_business"
+            ) {
+              const storeDoc: any = await StoreModel.findOne({ ownerId: otherId })
+                .select("logo")
+                .lean();
+              if (storeDoc?.logo) {
+                result.conversation.otherParticipant.avatar = String(storeDoc.logo);
+              }
+            }
+          }
+        }
+      } catch {}
     }
 
     return NextResponse.json(result);
