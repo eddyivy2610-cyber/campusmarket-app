@@ -53,8 +53,16 @@ export async function GET(
     }
 
     let store: any = null;
-    if (listing.storeId && mongoose.Types.ObjectId.isValid(String(listing.storeId))) {
-      store = await StoreModel.findById(listing.storeId).lean();
+    if (listing.storeId) {
+      const storeIdStr = String(listing.storeId);
+      if (mongoose.Types.ObjectId.isValid(storeIdStr)) {
+        store = await StoreModel.findById(storeIdStr).lean();
+      }
+      if (!store) {
+        store = await StoreModel.findOne({
+          $or: [{ publicId: storeIdStr }, { slug: storeIdStr.toLowerCase() }],
+        }).lean();
+      }
     }
 
     const authUser = getServerAuthUser(req);

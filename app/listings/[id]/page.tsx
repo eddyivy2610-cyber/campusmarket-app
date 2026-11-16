@@ -327,7 +327,19 @@ export default function ListingDetailPage() {
         setIsLoadingListing(true);
       }
       try {
-        const res = await fetch(`/api/listings/${encodeURIComponent(rawId)}`);
+        const headers: Record<string, string> = {};
+        try {
+          const token =
+            localStorage.getItem("hive_access_token") ||
+            localStorage.getItem("accessToken") ||
+            localStorage.getItem("token");
+          if (token) headers.Authorization = `Bearer ${token}`;
+        } catch {}
+
+        const res = await fetch(`/api/listings/${encodeURIComponent(rawId)}`, {
+          headers,
+          credentials: "include",
+        });
         const json = await res.json();
         if (json.success && json.data && !isCancelled) {
           const item = json.data;
@@ -393,8 +405,12 @@ export default function ListingDetailPage() {
               ];
 
           let liveReviews: ReviewItem[] = [];
-          try {
-            const revRes = await fetch(`/api/reviews?sellerId=${item.sellerId}`).then((r) => r.json());
+          if (item.storeId || item.sellerId) {
+            try {
+              const revQuery = item.storeId
+                ? `storeId=${encodeURIComponent(item.storeId)}`
+                : `sellerId=${encodeURIComponent(item.sellerId)}`;
+              const revRes = await fetch(`/api/reviews?${revQuery}`).then((r) => r.json());
             if (revRes?.success && Array.isArray(revRes.data)) {
               liveReviews = revRes.data.map((r: any) => ({
                 id: r.id,
@@ -406,8 +422,9 @@ export default function ListingDetailPage() {
                 verifiedItem: "Verified Campus Transaction",
               }));
             }
-          } catch {
-            liveReviews = [];
+            } catch {
+              liveReviews = [];
+            }
           }
 
           const mapped: DetailedListingData = {
