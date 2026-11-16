@@ -336,12 +336,71 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    await dbConnect();
+
+    // Check MongoDB for an existing conversation between these two participants across serverless instances
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const existingDbConv: any = await ConversationModel.findOne({
+          participantIds: { $all: [currentUser.id, participantId] },
+          $expr: { $eq: [{ $size: "$participantIds" }, 2] },
+        }).lean();
+
+        if (existingDbConv) {
+          const convId = existingDbConv.conversationId || String(existingDbConv._id);
+          registerConversationDoc(convId, {
+            conversationId: convId,
+            participantIds: existingDbConv.participantIds || [currentUser.id, participantId],
+            participants: existingDbConv.participants || [currentUser, targetParticipant],
+            context: existingDbConv.context || null,
+            additionalContexts: existingDbConv.additionalContexts || [],
+            collapsedBy: existingDbConv.collapsedBy || [],
+            unreadCounts: existingDbConv.unreadCounts || { [currentUser.id]: 0, [participantId]: 0 },
+            lastMessage: existingDbConv.lastMessage || undefined,
+            createdAt: existingDbConv.createdAt || new Date().toISOString(),
+            updatedAt: existingDbConv.updatedAt || new Date().toISOString(),
+          });
+        }
+      } catch (lookupErr) {
+        console.warn("[ConversationsPOST] Existing DB lookup failed:", lookupErr);
+      }
+    }
+
     const result = findOrCreateConversation({
       currentUser,
       targetParticipant,
       storeId: topLevelStoreId || contextPayload?.storeId,
       context: contextPayload,
     });
+
+    // Persist conversation to MongoDB so subsequent /messages requests on any serverless instance find it
+    if (mongoose.connection.readyState === 1 && result?.conversation?.id) {
+      try {
+        const conv = result.conversation;
+        await ConversationModel.findOneAndUpdate(
+          { conversationId: conv.id },
+          {
+            $setOnInsert: {
+              conversationId: conv.id,
+              participantIds: [currentUser.id, targetParticipant.id],
+              participants: conv.participants || [currentUser, targetParticipant],
+              unreadCounts: { [currentUser.id]: 0, [targetParticipant.id]: 0 },
+              status: "active",
+              schemaVersion: 1,
+              createdAt: new Date(),
+            },
+            $set: {
+              ...(conv.context ? { context: conv.context } : {}),
+              additionalContexts: conv.additionalContexts || [],
+              updatedAt: new Date(),
+            },
+          },
+          { upsert: true, new: true }
+        );
+      } catch (persistErr) {
+        console.error("[ConversationsPOST] MongoDB persistence failed:", persistErr);
+      }
+    }
 
     return NextResponse.json(result, { status: result.reused ? 200 : 201 });
   } catch (error) {
