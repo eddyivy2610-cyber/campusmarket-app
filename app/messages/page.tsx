@@ -148,7 +148,7 @@ function MessagesWorkspace() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Current user identity & optional role switcher for testing both sides of check-ins
+  // Current user identity
   const [currentUser, setCurrentUser] = useState<ChatParticipantProfile>({
     id: "user-current-student",
     name: "Usman Ibrahim",
@@ -156,7 +156,6 @@ function MessagesWorkspace() {
     isVerified: true,
     accountType: "student",
   });
-  const [actAsOtherParticipant, setActAsOtherParticipant] = useState(false);
 
   // Left Column: Conversation List State
   const [conversations, setConversations] = useState<ConversationDTO[]>([]);
@@ -280,12 +279,7 @@ function MessagesWorkspace() {
     setTimeout(() => setToastMessage(null), 3200);
   }, []);
 
-  const effectiveActorId = useMemo(() => {
-    if (actAsOtherParticipant && activeConv?.otherParticipant) {
-      return activeConv.otherParticipant.id;
-    }
-    return currentUser.id;
-  }, [actAsOtherParticipant, activeConv, currentUser.id]);
+  const effectiveActorId = currentUser.id;
 
   // Fetch Conversation List
   const fetchConversations = useCallback(async () => {
@@ -556,13 +550,96 @@ function MessagesWorkspace() {
         return;
       }
       fetchConversationDetails(selectedConvId, 1, false);
-      setActAsOtherParticipant(false);
       setShowTrackDealForm(false);
     } else if (prevId !== null) {
       setActiveConv(null);
       setMessages([]);
     }
   }, [selectedConvId, fetchConversationDetails]);
+
+  // Hydrate missing store avatar and listing image from database
+  useEffect(() => {
+    if (!activeConv) return;
+    let isCancelled = false;
+    const targetConvId = activeConv.id;
+    const targetContextId = activeConv.context?.contextId;
+
+    const needsListingImage = Boolean(
+      activeConv.context?.contextId &&
+        !activeConv.context.image &&
+        (activeConv.context.contextType === "product" ||
+          activeConv.context.contextType === "service")
+    );
+    const storeRef =
+      searchParams.get("storeId") ||
+      searchParams.get("store") ||
+      (activeConv.otherParticipant?.accountType === "student_store" ||
+      activeConv.otherParticipant?.accountType === "approved_business"
+        ? activeConv.otherParticipant.id
+        : "");
+    const needsStoreAvatar = Boolean(!activeConv.otherParticipant?.avatar && storeRef);
+
+    if (!needsListingImage && !needsStoreAvatar) return;
+
+    async function hydrateFromDb() {
+      let resolvedListingImg: string | undefined;
+      let resolvedStoreAvatar: string | undefined;
+
+      if (needsListingImage && targetContextId) {
+        try {
+          const res = await fetch(
+            `/api/listings/${encodeURIComponent(targetContextId)}`,
+            { credentials: "include" }
+          );
+          if (res.ok) {
+            const json = await res.json();
+            const item = json?.data;
+            if (item?.images?.[0]) resolvedListingImg = item.images[0];
+            if (item?.store?.logo) resolvedStoreAvatar = item.store.logo;
+          }
+        } catch {}
+      }
+
+      if (needsStoreAvatar && !resolvedStoreAvatar && storeRef) {
+        try {
+          const res = await fetch(`/api/stores/${encodeURIComponent(storeRef)}`, {
+            credentials: "include",
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data?.logo) resolvedStoreAvatar = json.data.logo;
+          }
+        } catch {}
+      }
+
+      if (isCancelled || (!resolvedListingImg && !resolvedStoreAvatar)) return;
+
+      setActiveConv((prev) => {
+        if (!prev || prev.id !== targetConvId) return prev;
+        return {
+          ...prev,
+          otherParticipant: resolvedStoreAvatar
+            ? { ...prev.otherParticipant, avatar: resolvedStoreAvatar }
+            : prev.otherParticipant,
+          context:
+            resolvedListingImg && prev.context
+              ? { ...prev.context, image: resolvedListingImg }
+              : prev.context,
+        };
+      });
+    }
+
+    hydrateFromDb();
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    activeConv?.id,
+    activeConv?.otherParticipant?.avatar,
+    activeConv?.context?.contextId,
+    activeConv?.context?.image,
+    searchParams,
+  ]);
 
   // Realtime subscription for incoming messages, typing events, and deal updates
   useEffect(() => {
@@ -1520,36 +1597,8 @@ function MessagesWorkspace() {
                   </div>
                 </div>
 
-                {/* Right Header Controls: Perspective Switcher + Context Drawer Toggle */}
+                {/* Right Header Controls: Context Drawer Toggle */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActAsOtherParticipant((prev) => !prev);
-                      showToast(
-                        !actAsOtherParticipant
-                          ? `Switched to ${activeConv.otherParticipant.name}'s view for testing`
-                          : `Switched back to your view (${currentUser.name})`
-                      );
-                    }}
-                    className={`radius-native px-2.5 py-1.5 rounded-xl border text-[11.5px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                      actAsOtherParticipant
-                        ? "bg-[#171717] text-[#FFC928] border-[#171717]"
-                        : "bg-[#F7F8FA] dark:bg-white/5 border-[#E8E8E8] dark:border-white/10 text-[#4A5058] dark:text-neutral-300 hover:border-[#171717]"
-                    }`}
-                  >
-                    <SlidersHorizontal className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">
-                      {actAsOtherParticipant
-                        ? `Viewing as ${
-                            activeConv.otherParticipant.name.split(" ")[0]
-                          }`
-                        : `Simulate ${
-                            activeConv.otherParticipant.name.split(" ")[0]
-                          }`}
-                    </span>
-                  </button>
-
                   {/* Toggle Right Context Sidebar on Desktop (lg+) */}
                   <button
                     type="button"
