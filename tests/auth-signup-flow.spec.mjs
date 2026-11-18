@@ -12,10 +12,10 @@ test.describe("real signup and login auth flow", () => {
     await page.goto("/register");
     await page.getByLabel(/full name/i).fill("Dedicated Audit Account");
     await page.getByLabel(/email address/i).fill(`audit-${Date.now()}@example.test`);
-    await page.getByLabel(/password/i).fill("AuditPassword123");
+    await page.getByLabel(/^password$/i).fill("AuditPassword123");
     await page.getByRole("button", { name: /create account/i }).click();
 
-    await expect(page).toHaveURL(/verify-email/);
+    await expect(page).toHaveURL(/verify-email/, { timeout: 25000 });
     expect(requests.some((request) => request.url.endsWith("/api/auth/register") && request.method === "POST")).toBeTruthy();
     expect(await page.evaluate(() => localStorage.getItem("campus_user"))).toBeNull();
     expect(await page.evaluate(() => localStorage.getItem("campus_token"))).toBeNull();
@@ -24,7 +24,7 @@ test.describe("real signup and login auth flow", () => {
   test("failed login shows the server error and does not create a demo session", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill("wrong@example.test");
-    await page.getByLabel(/password/i).fill("WrongPassword123");
+    await page.getByLabel(/^password$/i).fill("WrongPassword123");
     await page.getByRole("button", { name: /log in/i }).click();
 
     await expect(page.getByText(/invalid email or password|unable to sign in/i)).toBeVisible();

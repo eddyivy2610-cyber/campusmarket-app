@@ -93,10 +93,11 @@ export default function RegisterPage() {
       <form onSubmit={handleRegister} className="space-y-4">
         {/* Full Name */}
         <div className="space-y-1.5">
-          <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+          <label htmlFor="register-fullName" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
             Full name or display name
           </label>
           <input
+            id="register-fullName"
             type="text"
             value={fullName}
             onChange={(e) => {
@@ -112,10 +113,11 @@ export default function RegisterPage() {
 
         {/* Email Address */}
         <div className="space-y-1.5">
-          <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+          <label htmlFor="register-email" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
             Email address
           </label>
           <input
+            id="register-email"
             type="email"
             value={email}
             onChange={(e) => {
@@ -131,11 +133,12 @@ export default function RegisterPage() {
 
         {/* Password */}
         <div className="space-y-1.5">
-          <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+          <label htmlFor="register-password" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
             Password
           </label>
           <div className="relative">
             <input
+              id="register-password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => {

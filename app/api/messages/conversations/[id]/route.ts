@@ -74,7 +74,7 @@ export async function GET(
                   : String(m.createdAt || new Date().toISOString()),
             }));
             result.totalMessages = totalDb;
-            result.hasMore = skip + dbMsgs.length < totalDb;
+            result.hasOlderMessages = skip + dbMsgs.length < totalDb;
           }
         }
       } catch (dbErr) {

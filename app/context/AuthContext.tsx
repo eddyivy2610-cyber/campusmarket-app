@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from "react";
 import { apiPost } from "@/lib/apiClient";
+import { coalescedRefresh, clearCoalescedRefreshState } from "@/lib/refreshCoalescer";
 import { generateDefaultUsername } from "@/lib/usernameUtils";
 
 interface User {
@@ -124,18 +125,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refreshUser = useCallback(async (): Promise<User | null> => {
         try {
-            let response: any;
+            let result: Awaited<ReturnType<typeof coalescedRefresh>> | null = null;
             for (let attempt = 0; attempt < 3; attempt += 1) {
-                try {
-                    response = await apiPost("auth/refresh");
-                    break;
-                } catch (error: any) {
-                    if (error?.status !== 503 || attempt === 2) throw error;
-                    await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-                }
+                result = await coalescedRefresh();
+                if (result.ok || result.status !== 503 || attempt === 2) break;
+                await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
             }
 
-            const userData = response?.user || response?.data || response;
+            if (!result || !result.ok) {
+                const err: any = new Error("Session refresh failed");
+                err.status = result?.status || 500;
+                throw err;
+            }
+
+            const userData = result.user;
             const fallback = getStoredFallback();
             const refreshed = normalizeUserPayload(userData, fallback);
 

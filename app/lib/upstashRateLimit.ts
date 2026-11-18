@@ -5,6 +5,23 @@ export interface UpstashRateLimitResult {
 }
 
 const LOGIN_WINDOW_SECONDS = 15 * 60;
+const localFallbackCounters = new Map<string, { count: number; expiresAt: number }>();
+
+function checkLocalFallbackLimit(
+  key: string,
+  limit: number,
+  windowSeconds: number
+): UpstashRateLimitResult {
+  const now = Date.now();
+  const existing = localFallbackCounters.get(key);
+  if (!existing || existing.expiresAt <= now) {
+    localFallbackCounters.set(key, { count: 1, expiresAt: now + windowSeconds * 1000 });
+    return { allowed: 1 <= limit, count: 1, retryAfterSeconds: windowSeconds };
+  }
+  existing.count += 1;
+  const retryAfterSeconds = Math.max(1, Math.ceil((existing.expiresAt - now) / 1000));
+  return { allowed: existing.count <= limit, count: existing.count, retryAfterSeconds };
+}
 
 function getUpstashConfig() {
   const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, "");
@@ -27,7 +44,7 @@ export async function checkUpstashLimit(
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
     if (process.env.NODE_ENV !== "production") {
-      return { allowed: true, count: 0, retryAfterSeconds: windowSeconds };
+      return checkLocalFallbackLimit(key, limit, windowSeconds);
     }
     throw new Error("Upstash rate limiting is not configured.");
   }

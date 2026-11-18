@@ -44,6 +44,8 @@ function getStoredAccessToken(isAdminUrl = false): string | null {
   }
 }
 
+import { coalescedRefresh } from "./refreshCoalescer";
+
 function setStoredAccessToken(token: string | null): void {
   if (typeof window === "undefined") return;
   try {
@@ -59,23 +61,15 @@ async function performSilentRefresh(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {
-      const refreshRes = await fetch(normalizeUrl("/api/auth/refresh"), {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        if (refreshData?.token) {
-          setStoredAccessToken(refreshData.token);
-          if (typeof window !== "undefined" && refreshData.user) {
-            window.dispatchEvent(
-              new CustomEvent("campus_auth_refreshed", { detail: refreshData.user })
-            );
-          }
-          return true;
-        }
-      } else if (refreshRes.status === 401 || refreshRes.status === 403) {
+      const result = await coalescedRefresh(
+        (u, i) => fetch(u, i),
+        normalizeUrl("/api/auth/refresh")
+      );
+      if (result.ok && (result.token || result.coalescedFromPeer)) {
+        if (result.token) setStoredAccessToken(result.token);
+        return true;
+      }
+      if (result.status === 401 || result.status === 403) {
         setStoredAccessToken(null);
       }
       return false;

@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import argon2 from "argon2";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
-import { createAccessToken, createRefreshToken, setAccessTokenCookie, setRefreshTokenCookie } from "@/lib/authTokens";
+import { createAccessToken, isRequestHttps, setAccessTokenCookie, setRefreshTokenCookie } from "@/lib/authTokens";
+import { issueTrackedRefreshToken } from "@/lib/refreshTokens";
 import { checkLoginRateLimit } from "@/lib/upstashRateLimit";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 const GENERIC_LOGIN_ERROR = "Invalid email or password.";
+const DUMMY_PASSWORD_SEED = "campushive_dummy_timing_equalization_v1";
+let dummyHashPromise: Promise<string> | null = null;
+
+function getDummyPasswordHash(): Promise<string> {
+  if (!dummyHashPromise) {
+    dummyHashPromise = argon2.hash(DUMMY_PASSWORD_SEED);
+  }
+  return dummyHashPromise;
+}
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -58,6 +68,13 @@ export async function POST(req: NextRequest) {
     } catch {
       passwordMatches = false;
     }
+  } else {
+    try {
+      const dummyHash = await getDummyPasswordHash();
+      await argon2.verify(dummyHash, password);
+    } catch {
+      // Ignore dummy verification errors; still fail with 401
+    }
   }
   if (!user || !passwordMatches) {
     return NextResponse.json({ success: false, message: GENERIC_LOGIN_ERROR }, { status: 401 });
@@ -93,7 +110,12 @@ export async function POST(req: NextRequest) {
     user._id.toString();
 
   const accessToken = createAccessToken(payload);
-  const refreshToken = createRefreshToken(payload);
+  const { token: refreshToken } = await issueTrackedRefreshToken(
+    user._id.toString(),
+    undefined,
+    payload.tokenVersion
+  );
+  const secureCookie = isRequestHttps(req);
   const response = NextResponse.json({
     success: true,
     token: accessToken,
@@ -115,7 +137,7 @@ export async function POST(req: NextRequest) {
       },
     },
   });
-  setAccessTokenCookie(response, accessToken);
-  setRefreshTokenCookie(response, refreshToken);
+  setAccessTokenCookie(response, accessToken, { secure: secureCookie });
+  setRefreshTokenCookie(response, refreshToken, { secure: secureCookie });
   return response;
 }

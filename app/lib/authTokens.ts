@@ -211,8 +211,8 @@ export function verifyAuthToken(token: string): ServerAuthUser | null {
       return null;
     }
 
-    // Refresh token cannot be used as an access token
-    if (payload.tokenType && payload.tokenType !== "access") {
+    // Require explicit access tokenType so refresh or typeless tokens cannot be used
+    if (payload.tokenType !== "access") {
       return null;
     }
 
@@ -334,6 +334,16 @@ export interface RefreshTokenCookieOptions {
   maxAge: number;
 }
 
+export function isRequestHttps(req?: {
+  url?: string;
+  headers?: { get(name: string): string | null };
+}): boolean {
+  if (process.env.NODE_ENV === "production") return true;
+  if (req?.url?.startsWith("https://")) return true;
+  const proto = req?.headers?.get("x-forwarded-proto");
+  return proto?.split(",")[0]?.trim().toLowerCase() === "https";
+}
+
 export function getRefreshTokenCookieOptions(
   maxAgeSeconds: number = REFRESH_TOKEN_EXPIRY_SECONDS,
   secureOverride?: boolean
@@ -344,7 +354,7 @@ export function getRefreshTokenCookieOptions(
     httpOnly: true,
     secure,
     sameSite: "lax",
-    path: "/",
+    path: "/api/auth",
     maxAge: maxAgeSeconds,
   };
 }
@@ -364,13 +374,18 @@ export function setRefreshTokenCookie(
   });
 }
 
-export function setAccessTokenCookie(res: any, accessToken: string): void {
+export function setAccessTokenCookie(
+  res: any,
+  accessToken: string,
+  options?: Partial<RefreshTokenCookieOptions>
+): void {
   res.cookies.set("campus_token", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: ACCESS_TOKEN_EXPIRY_SECONDS,
+    ...options,
   });
 }
 

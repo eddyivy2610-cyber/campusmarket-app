@@ -1,42 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import {
-  verifyRefreshToken,
   createAccessToken,
-  createRefreshToken,
+  isRequestHttps,
   setRefreshTokenCookie,
   setAccessTokenCookie,
   clearRefreshTokenCookie,
   getRefreshTokenFromRequest,
+  ServerAuthUser,
 } from "@/lib/authTokens";
-import UserModel, { User } from "@/models/User";
+import {
+  hashOpaqueRefreshToken,
+  isRefreshTokenFamilyRevoked,
+  issueTrackedRefreshToken,
+  revokeRefreshTokenFamily,
+} from "@/lib/refreshTokens";
+import { User } from "@/models/User";
+import RefreshTokenModel from "@/models/RefreshToken";
 import dbConnect from "@/lib/dbConnect";
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Extract refresh token from httpOnly cookie or fallback to request body
-    let refreshToken = getRefreshTokenFromRequest(req);
-    if (!refreshToken) {
-      try {
-        const body = await req.json();
-        if (body?.refreshToken && typeof body.refreshToken === "string") {
-          refreshToken = body.refreshToken.trim();
-        }
-      } catch {
-        // No body
-      }
-    }
-
-    if (!refreshToken) {
+    // 1. Extract opaque refresh token strictly from httpOnly cookie
+    const rawRefreshToken = getRefreshTokenFromRequest(req);
+    if (!rawRefreshToken) {
       return NextResponse.json(
         { success: false, error: "No active session." },
         { status: 401 }
       );
     }
 
-    // 2. Cryptographically verify the refresh token
-    const user = verifyRefreshToken(refreshToken);
-    if (!user) {
+    let dbConnection;
+    try {
+      dbConnection = await dbConnect();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Authentication service temporarily unavailable." },
+        { status: 503 }
+      );
+    }
+
+    if (!dbConnection || mongoose.connection.readyState !== 1) {
+      return NextResponse.json(
+        { success: false, error: "Authentication service temporarily unavailable." },
+        { status: 503 }
+      );
+    }
+
+    const now = new Date();
+    const tokenHash = hashOpaqueRefreshToken(rawRefreshToken);
+    const stored = await RefreshTokenModel.findOne({ tokenHash }).lean();
+
+    if (!stored) {
       const res = NextResponse.json(
         { success: false, error: "Invalid or expired refresh token." },
         { status: 401 }
@@ -45,7 +60,74 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    if (user.emailVerified === false) {
+    if (
+      stored.usedAt !== null ||
+      stored.revokedAt !== null ||
+      (await isRefreshTokenFamilyRevoked(stored.familyId))
+    ) {
+      await revokeRefreshTokenFamily(stored.familyId, now);
+      const res = NextResponse.json(
+        { success: false, error: "Session expired or was revoked (refresh token reuse detected)." },
+        { status: 401 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
+    if (new Date(stored.expiresAt) <= now) {
+      await RefreshTokenModel.deleteOne({ _id: stored._id });
+      const res = NextResponse.json(
+        { success: false, error: "Invalid or expired refresh token." },
+        { status: 401 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
+    // 2. Atomically mark this refresh token as used; concurrent reuse revokes family
+    const consumed = await RefreshTokenModel.findOneAndUpdate(
+      { _id: stored._id, usedAt: null, revokedAt: null, expiresAt: { $gt: now } },
+      { $set: { usedAt: now } },
+      { new: true }
+    );
+    if (!consumed) {
+      await revokeRefreshTokenFamily(stored.familyId, now);
+      const res = NextResponse.json(
+        { success: false, error: "Refresh token reuse detected; session family revoked." },
+        { status: 401 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
+    const selectFields =
+      "role accountStatus emailVerified tokenVersion name email isStudent studentVerified campus sellerStatus onboardingStep profile";
+    const dbUser: any = await User.findById(stored.userId).select(selectFields).lean();
+
+    if (!dbUser || dbUser.accountStatus === "suspended" || dbUser.accountStatus === "banned") {
+      await revokeRefreshTokenFamily(stored.familyId, now);
+      const res = NextResponse.json(
+        { success: false, error: "Account is suspended or inactive." },
+        { status: 403 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
+    if (
+      typeof stored.tokenVersion === "number" &&
+      stored.tokenVersion !== (dbUser.tokenVersion ?? 0)
+    ) {
+      await revokeRefreshTokenFamily(stored.familyId, now);
+      const res = NextResponse.json(
+        { success: false, error: "Session expired or was revoked." },
+        { status: 401 }
+      );
+      clearRefreshTokenCookie(res);
+      return res;
+    }
+
+    if (dbUser.emailVerified === false || dbUser.accountStatus !== "active") {
       const res = NextResponse.json(
         { success: false, error: "Email verification is required." },
         { status: 403 }
@@ -54,145 +136,55 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    // 3. Database status re-check: Account suspension or revocation stops refresh immediately.
-    // Do NOT clear the refresh cookie on transient 503 DB connectivity issues so client retries succeed.
-    const isMasterAdmin = user.id === "admin-master-01" && user.role === "admin";
-    let dbConnection;
-    if (!isMasterAdmin) {
-      try {
-        dbConnection = await dbConnect();
-      } catch {
-        if (process.env.NODE_ENV === "production") {
-          return NextResponse.json(
-            { success: false, error: "Authentication service temporarily unavailable." },
-            { status: 503 }
-          );
-        }
-      }
+    const userPayload: ServerAuthUser = {
+      id: dbUser._id.toString(),
+      name: dbUser.name || dbUser.profile?.displayName || "User",
+      email: dbUser.email,
+      role: (dbUser.role || "buyer") as "buyer" | "seller" | "admin",
+      isStudent: Boolean(dbUser.isStudent),
+      studentVerified: Boolean(dbUser.studentVerified),
+      emailVerified: dbUser.emailVerified !== false,
+      campus: dbUser.campus,
+      tokenVersion: typeof dbUser.tokenVersion === "number" ? dbUser.tokenVersion : 0,
+    };
 
-      if (process.env.NODE_ENV === "production" && (!dbConnection || mongoose.connection.readyState !== 1)) {
-        return NextResponse.json(
-          { success: false, error: "Authentication service temporarily unavailable." },
-          { status: 503 }
-        );
-      }
-    }
-
-    const isUserDbAvailable =
-      typeof window === "undefined" &&
-      (UserModel.db?.readyState === 1 ||
-        Object.prototype.hasOwnProperty.call(UserModel, "findOne") ||
-        Object.prototype.hasOwnProperty.call(UserModel, "findById"));
-
-    if (isUserDbAvailable) {
-      try {
-        const selectFields =
-          "role accountStatus emailVerified tokenVersion name email isStudent studentVerified campus sellerStatus onboardingStep profile";
-        let dbUser = mongoose.isValidObjectId(user.id)
-          ? await User.findById(user.id).select(selectFields).lean()
-          : null;
-        if (!dbUser && user.email) {
-          dbUser = await User.findOne({ email: user.email.toLowerCase() }).select(selectFields).lean();
-        }
-
-        if (dbUser) {
-          if (dbUser.emailVerified === false) {
-            const res = NextResponse.json(
-              { success: false, error: "Email verification is required." },
-              { status: 403 }
-            );
-            clearRefreshTokenCookie(res);
-            return res;
-          }
-          if (dbUser.accountStatus !== "active") {
-            const res = NextResponse.json(
-              {
-                success: false,
-                error: `Account is ${dbUser.accountStatus || "inactive"}. Token refresh rejected.`,
-              },
-              { status: 403 }
-            );
-            clearRefreshTokenCookie(res);
-            return res;
-          }
-
-          // Invalidation check: Compare tokenVersion to detect revoked/replayed tokens
-          const currentVersion = typeof (dbUser as any).tokenVersion === "number" ? (dbUser as any).tokenVersion : 0;
-          const tokenVersion = typeof user.tokenVersion === "number" ? user.tokenVersion : 0;
-          if (currentVersion !== tokenVersion) {
-            const res = NextResponse.json(
-              {
-                success: false,
-                error: "Session has expired or was revoked. Please log in again.",
-              },
-              { status: 401 }
-            );
-            clearRefreshTokenCookie(res);
-            return res;
-          }
-
-          user.id = String(dbUser._id || user.id);
-          user.tokenVersion = currentVersion;
-          user.role = (dbUser.role as any) || user.role;
-          user.name = dbUser.name || dbUser.profile?.displayName || user.name;
-          user.email = dbUser.email || user.email;
-          user.isStudent = Boolean(dbUser.isStudent);
-          user.studentVerified = Boolean(dbUser.studentVerified);
-          user.campus = dbUser.campus;
-          (user as any).sellerStatus = (dbUser as any).sellerStatus || "none";
-          (user as any).onboardingStep = (dbUser as any).onboardingStep || "completed";
-          (user as any).handle =
-            dbUser.profile?.handle ||
-            (dbUser.name || user.email.split("@")[0] || "")
-              .toLowerCase()
-              .replace(/[^a-z0-9]/g, "") ||
-            user.id;
-          (user as any).avatar = dbUser.profile?.avatar;
-          (user as any).displayName = dbUser.profile?.displayName || user.name;
-        }
-      } catch {
-        if (process.env.NODE_ENV === "production") {
-          return NextResponse.json(
-            { success: false, error: "Authentication service temporarily unavailable." },
-            { status: 503 }
-          );
-        }
-      }
-    }
-
-    // 4. Issue new 15-minute access token and rotated refresh token
-    const newAccessToken = createAccessToken(user);
-    const newRefreshToken = createRefreshToken(user);
+    const resolvedHandle = dbUser.profile?.handle || dbUser._id.toString();
+    const newAccessToken = createAccessToken(userPayload);
+    const { token: newRefreshToken } = await issueTrackedRefreshToken(
+      dbUser._id.toString(),
+      stored.familyId,
+      userPayload.tokenVersion
+    );
+    const secureCookie = isRequestHttps(req);
 
     const res = NextResponse.json(
       {
         success: true,
         token: newAccessToken,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          handle: (user as any).handle || user.id,
-          role: user.role,
-          sellerStatus: (user as any).sellerStatus || "none",
-          onboardingStep: (user as any).onboardingStep || "completed",
-          isStudent: user.isStudent,
-          studentVerified: user.studentVerified,
-          emailVerified: user.emailVerified,
-          campus: user.campus,
+          id: userPayload.id,
+          name: userPayload.name,
+          email: userPayload.email,
+          handle: resolvedHandle,
+          role: userPayload.role,
+          sellerStatus: dbUser.sellerStatus || "none",
+          onboardingStep: dbUser.onboardingStep || "completed",
+          isStudent: userPayload.isStudent,
+          studentVerified: userPayload.studentVerified,
+          emailVerified: userPayload.emailVerified,
+          campus: userPayload.campus,
           profile: {
-            handle: (user as any).handle || user.id,
-            displayName: (user as any).displayName || user.name,
-            avatar: (user as any).avatar,
+            handle: resolvedHandle,
+            displayName: dbUser.profile?.displayName || userPayload.name,
+            avatar: dbUser.profile?.avatar,
           },
         },
       },
       { status: 200 }
     );
 
-    // 5. Update httpOnly, Secure, SameSite access and refresh token cookies
-    setAccessTokenCookie(res, newAccessToken);
-    setRefreshTokenCookie(res, newRefreshToken);
+    setAccessTokenCookie(res, newAccessToken, { secure: secureCookie });
+    setRefreshTokenCookie(res, newRefreshToken, { secure: secureCookie });
 
     return res;
   } catch (err: any) {

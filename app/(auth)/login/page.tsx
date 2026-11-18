@@ -128,10 +128,11 @@ function LoginFormContent() {
       <form onSubmit={handleLogin} className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1.5">
-          <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+          <label htmlFor="login-email" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
             Email
           </label>
           <input
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => {
@@ -147,11 +148,12 @@ function LoginFormContent() {
 
         {/* Password Field */}
         <div className="space-y-1.5">
-          <label className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+          <label htmlFor="login-password" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
             Password
           </label>
           <div className="relative">
             <input
+              id="login-password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => {

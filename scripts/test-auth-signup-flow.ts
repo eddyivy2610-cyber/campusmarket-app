@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 process.env.OTP_PEPPER = process.env.OTP_PEPPER || "auth-signup-test-pepper-32-characters-long";
 
+async function main() {
 const { generateOtp, hashOtp } = await import("../app/lib/otpService");
 const root = process.cwd();
 const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
@@ -52,5 +53,11 @@ const forbiddenHits = sourceFiles("app").flatMap((file) => {
   return forbidden.filter((marker) => contents.includes(marker)).map((marker) => `${file}:${marker}`);
 });
 check("application source contains no known demo authentication/profile markers", forbiddenHits.length === 0);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
 
 console.log("Auth signup static guard checks completed.");

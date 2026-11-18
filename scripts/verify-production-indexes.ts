@@ -17,6 +17,7 @@ interface ExpectedIndex {
   name?: string;
   key: Record<string, number | string>;
   unique?: boolean;
+  expireAfterSeconds?: number;
   partialFilterExpression?: Record<string, unknown>;
 }
 
@@ -66,6 +67,28 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex[]> = {
       key: { "profile.handle": 1 },
       unique: true,
       partialFilterExpression: { "profile.handle": { $type: "string" } },
+    },
+  ],
+  refreshtokens: [
+    { key: { tokenHash: 1 }, unique: true },
+    { key: { userId: 1 } },
+    { key: { familyId: 1 } },
+    { key: { expiresAt: 1 }, expireAfterSeconds: 0 },
+  ],
+  refreshtokenfamilies: [
+    { key: { familyId: 1 }, unique: true },
+    { key: { userId: 1 } },
+  ],
+  reviews: [
+    {
+      key: { reviewerId: 1, orderId: 1 },
+      unique: true,
+      partialFilterExpression: { orderId: { $exists: true } },
+    },
+    {
+      key: { reviewerId: 1, dealId: 1 },
+      unique: true,
+      partialFilterExpression: { dealId: { $exists: true } },
     },
   ],
 };
@@ -129,6 +152,9 @@ export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
         totalMissing++;
       } else {
         const uniqueMismatch = Boolean(exp.unique) !== Boolean(found.unique);
+        const ttlMismatch =
+          exp.expireAfterSeconds !== undefined &&
+          found.expireAfterSeconds !== exp.expireAfterSeconds;
         const partialMismatch =
           exp.partialFilterExpression !== undefined &&
           !valueMatches(found.partialFilterExpression, exp.partialFilterExpression);
@@ -136,6 +162,11 @@ export async function verifyProductionIndexes(targetDb?: mongoose.mongo.Db) {
         if (uniqueMismatch) {
           console.error(
             `  ❌ CONSTRAINT MISMATCH: Index '${found.name}' on '${collName}' expected unique=${Boolean(exp.unique)}, found unique=${Boolean(found.unique)}`
+          );
+          totalMissing++;
+        } else if (ttlMismatch) {
+          console.error(
+            `  ❌ TTL MISMATCH: Index '${found.name}' on '${collName}' expected expireAfterSeconds=${exp.expireAfterSeconds}, found ${found.expireAfterSeconds}`
           );
           totalMissing++;
         } else if (partialMismatch) {

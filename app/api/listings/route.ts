@@ -173,7 +173,7 @@ export async function GET(req: NextRequest) {
         { createdAt: decoded.createdAt, _id: { $lt: decoded.id } },
       ];
       sort = { createdAt: -1, _id: -1 };
-    } else if (sortBy === "recent") {
+    } else if (sortBy === "recent" || sortBy === "newest") {
       sort = { createdAt: -1, _id: -1 };
     } else if (sortBy === "price_asc") {
       sort = { price: 1, createdAt: -1 };

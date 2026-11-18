@@ -309,7 +309,7 @@ export async function verifyOtpCode(
     { returnDocument: "after" }
   );
 
-  const currentAttempts = updated?.attempts || existingRecord.attempts + 1;
+  const currentAttempts = updated ? updated.attempts : MAX_VERIFICATION_ATTEMPTS;
 
   if (currentAttempts >= MAX_VERIFICATION_ATTEMPTS) {
     return {

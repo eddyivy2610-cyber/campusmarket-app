@@ -54,6 +54,26 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    const backendBUrl = process.env.BACKEND_B_URL?.trim().replace(/\/$/, "");
+    if (!backendBUrl) {
+      return { beforeFiles: [], afterFiles: [], fallback: [] };
+    }
+    return {
+      beforeFiles: [
+        {
+          source: "/api/health",
+          destination: `${backendBUrl}/health`,
+        },
+        {
+          source: "/api/:path*",
+          destination: `${backendBUrl}/api/v1/:path*`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
 };
 
 export default nextConfig;

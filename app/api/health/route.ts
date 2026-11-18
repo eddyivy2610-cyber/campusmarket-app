@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         status: "ok",
+        backend: "mongo-next",
         probe: "liveness",
         uptimeSec,
         timestamp: new Date().toISOString(),
@@ -32,6 +33,7 @@ export async function GET(req: NextRequest) {
         headers: {
           "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
           "Content-Type": "application/json",
+          "X-Backend-Identity": "mongo-next",
         },
       }
     );
@@ -43,7 +45,11 @@ export async function GET(req: NextRequest) {
 
   const payload = {
     status: isReady ? "ok" : "degraded",
-    environment: process.env.NODE_ENV === "production" ? "production" : "staging",
+    backend: "mongo-next",
+    environment:
+      process.env.APP_ENV ||
+      (process.env.VERCEL_ENV === "preview" ? "staging" : undefined) ||
+      (process.env.NODE_ENV === "production" ? "production" : "staging"),
     probe: "readiness",
     uptimeSec,
     database: {
@@ -61,6 +67,7 @@ export async function GET(req: NextRequest) {
     headers: {
       "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
       "Content-Type": "application/json",
+      "X-Backend-Identity": "mongo-next",
     },
   });
 }

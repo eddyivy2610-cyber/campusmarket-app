@@ -1,0 +1,73 @@
+name: Contract Parity Gate (Backend A)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contract-parity:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout Backend A (campushive)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: backend-a
+
+      - name: Checkout campus-hive-contract (Pinned v0.2.0-rc2 SHA)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: campushive/campus-hive-contract
+          ref: ed704c744877af9bfa7982b540fc20df6054315b
+          token: ${{ secrets.CONTRACT_REPO_READ_TOKEN }}
+          path: contract
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+
+      - name: Install & Start Backend A
+        working-directory: backend-a
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/campushive_test
+          AUTH_SECRET: ci-test-auth-secret-minimum-32-characters
+          MAX_STORES_PER_USER: '1'
+        run: |
+          npm ci
+          npx tsx scripts/validate-build-env.ts
+          npx tsx scripts/migrate-auth-review-indexes.ts
+          nohup npm run dev > backend-a.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s -f "http://127.0.0.1:3000/api/health"; then break; fi
+            sleep 2
+          done
+
+      - name: Run Contract Suite (Pinned v0.2.0-rc2)
+        working-directory: contract
+        env:
+          BACKEND: mongo-next
+          TARGET: local
+          CONTRACT_BASE_URL: http://127.0.0.1:3000
+          MONGODB_URI: mongodb://127.0.0.1:27017/campushive_test
+          STORE_CAP: '1'
+        run: |
+          npm ci
+          npm run lint:assertions
+          npx vitest run --no-file-parallelism --reporter=verbose
+
+      - name: Run Playwright E2E (Signup/Login & Two-Tab Refresh)
+        working-directory: backend-a
+        env:
+          MONGODB_URI: mongodb://127.0.0.1:27017/campushive_test
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: |
+          npx playwright install chromium
+          npx playwright test tests/auth-signup-flow.spec.mjs tests/two-tab-refresh.spec.mjs

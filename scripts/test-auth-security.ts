@@ -17,9 +17,17 @@ import {
   getAuthSecret,
 } from "../app/lib/authTokens";
 import { getServerAuthUser, requireAuth, requireAdmin, requireParticipant } from "../app/lib/authServer";
+import { issueTrackedRefreshToken } from "../app/lib/refreshTokens";
+import dbConnect from "../app/lib/dbConnect";
+import RefreshTokenModel from "../app/models/RefreshToken";
 import { GET as getAdminOverview } from "../app/api/admin/overview/route";
 import { POST as adminSignIn } from "../app/api/admin/auth/signin/route";
-import { POST as adminSignUp, constantTimeKeyCompare, _resetRateLimitForTesting, GENERIC_ADMIN_REG_ERROR } from "../app/api/admin/auth/signup/route";
+import { POST as adminSignUp } from "../app/api/admin/auth/signup/route";
+import {
+  constantTimeKeyCompare,
+  _resetRateLimitForTesting,
+  GENERIC_ADMIN_REG_ERROR,
+} from "../app/lib/adminAuthHelpers";
 import { GET as adminMe } from "../app/api/admin/auth/me/route";
 import { POST as authRefresh } from "../app/api/auth/refresh/route";
 import { POST as adminAuthRefresh } from "../app/api/admin/auth/refresh/route";
@@ -744,6 +752,20 @@ async function runAuthSecurityTests() {
           }),
         }),
       });
+      (UserModel as any).findOne = (query: any) => {
+        if (query?.email === "admin@campushive.edu.ng") {
+          return {
+            select: () => ({
+              lean: async () => ({
+                _id: "active-admin-01",
+                role: "admin",
+                accountStatus: "active",
+              }),
+            }),
+          };
+        }
+        return Promise.resolve(null);
+      };
       const adminAuthorizedReq = new NextRequest("http://localhost:3000/api/admin/auth/signup", {
         method: "POST",
         headers: {
@@ -1686,7 +1708,7 @@ async function runAuthSecurityTests() {
         "POST /api/stores/[id]/listings enforces assertUserOwnsStore: Non-owner rejected with 403 Forbidden"
       );
 
-      // 4. DELETE /api/stores/[id]/listings - non-owner rejected
+      // 4. DELETE /api/stores/[id]/listings - unlinking listings from a store is prohibited (400)
       const deleteStoreListingsReq = new NextRequest(
         "http://localhost:3000/api/stores/store-alpha-01/listings?listingId=listing-101",
         {
@@ -1701,8 +1723,8 @@ async function runAuthSecurityTests() {
         params: Promise.resolve({ id: "store-alpha-01" }),
       });
       assert(
-        deleteStoreListingsRes?.status === 403,
-        "DELETE /api/stores/[id]/listings enforces assertUserOwnsStore: Non-owner rejected with 403 Forbidden"
+        deleteStoreListingsRes?.status === 400,
+        "DELETE /api/stores/[id]/listings returns 400 Bad Request (unlinking listings prohibited)"
       );
 
       // 5. Direct helper verification for legitimate owner
@@ -1801,8 +1823,8 @@ async function runAuthSecurityTests() {
       "Refresh token cookie option specifies SameSite: lax/strict (mitigates CSRF)"
     );
     assert(
-      cookieOpts.path === "/",
-      "Refresh token cookie option specifies path: '/'"
+      cookieOpts.path === "/api/auth",
+      "Refresh token cookie option specifies path: '/api/auth'"
     );
     assert(
       cookieOpts.maxAge === REFRESH_TOKEN_EXPIRY_SECONDS,
@@ -1849,10 +1871,28 @@ async function runAuthSecurityTests() {
     );
 
     // 6. POST /api/auth/refresh with valid cookie generates new access token & rotates cookie
+    await dbConnect();
+    const mongooseMod = await import("mongoose");
+    (UserModel as any).db = mongooseMod.default.connection;
+    (RefreshTokenModel as any).db = mongooseMod.default.connection;
+    const g22User = await UserModel.create({
+      name: sampleUser.name,
+      email: `g22_${Date.now()}@campushive.edu.ng`,
+      role: "buyer",
+      accountStatus: "active",
+      emailVerified: true,
+      tokenVersion: 0,
+      schemaVersion: 1,
+    });
+    const { token: trackedRefreshToken } = await issueTrackedRefreshToken(
+      g22User._id.toString(),
+      undefined,
+      0
+    );
     const refreshReqWithCookie = new NextRequest("http://localhost:3000/api/auth/refresh", {
       method: "POST",
       headers: {
-        cookie: `${REFRESH_TOKEN_COOKIE_NAME}=${refreshToken}`,
+        cookie: `${REFRESH_TOKEN_COOKIE_NAME}=${trackedRefreshToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -1868,7 +1908,7 @@ async function runAuthSecurityTests() {
     );
     const newAccessDecoded = verifyAuthToken(refreshData.token);
     assert(
-      newAccessDecoded?.id === sampleUser.id,
+      newAccessDecoded?.id === g22User._id.toString(),
       "New access token from refresh endpoint verifies for expected user"
     );
     const rotatedCookieHeader = refreshRes.headers.get("set-cookie") || "";
@@ -1876,6 +1916,8 @@ async function runAuthSecurityTests() {
       rotatedCookieHeader.includes(REFRESH_TOKEN_COOKIE_NAME),
       "POST /api/auth/refresh rotates the httpOnly refresh token cookie in response"
     );
+    const rotatedMatch = rotatedCookieHeader.match(/refreshToken=([^;]+)/);
+    const rotatedTokenForSuspend = rotatedMatch ? rotatedMatch[1] : "";
 
     // 7. POST /api/auth/refresh rejects missing token with 401
     const unauthRefreshReq = new NextRequest("http://localhost:3000/api/auth/refresh", {
@@ -1917,49 +1959,26 @@ async function runAuthSecurityTests() {
     );
 
     // 10. POST /api/auth/refresh rejects suspended user with 403 Forbidden
+    await UserModel.findByIdAndUpdate(g22User._id, { accountStatus: "suspended" });
+    const suspendedRefreshReq = new NextRequest("http://localhost:3000/api/auth/refresh", {
+      method: "POST",
+      headers: {
+        cookie: `${REFRESH_TOKEN_COOKIE_NAME}=${rotatedTokenForSuspend}`,
+        "Content-Type": "application/json",
+      },
+    });
+    const suspendedRefreshRes = await authRefresh(suspendedRefreshReq);
+    assert(
+      suspendedRefreshRes.status === 403,
+      "POST /api/auth/refresh checks DB and strictly rejects suspended account with 403 Forbidden"
+    );
+    await RefreshTokenModel.deleteMany({ userId: g22User._id });
+    await UserModel.deleteOne({ _id: g22User._id });
+
+    // 11. POST /api/admin/auth/refresh rejects demoted admin with 403 Forbidden
     const origFindById = (UserModel as any).findById;
     const origFindOne = (UserModel as any).findOne;
     const origDb = (UserModel as any).db;
-    try {
-      (UserModel as any).db = { readyState: 1 };
-      (UserModel as any).findById = (id: any) => ({
-        select: () => ({
-          lean: async () => ({
-            _id: id,
-            role: "buyer",
-            accountStatus: "suspended", // Account suspended!
-          }),
-        }),
-      });
-      (UserModel as any).findOne = (query: any) => ({
-        select: () => ({
-          lean: async () => ({
-            _id: sampleUser.id,
-            role: "buyer",
-            accountStatus: "suspended",
-          }),
-        }),
-      });
-
-      const suspendedRefreshReq = new NextRequest("http://localhost:3000/api/auth/refresh", {
-        method: "POST",
-        headers: {
-          cookie: `${REFRESH_TOKEN_COOKIE_NAME}=${refreshToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const suspendedRefreshRes = await authRefresh(suspendedRefreshReq);
-      assert(
-        suspendedRefreshRes.status === 403,
-        "POST /api/auth/refresh checks DB and strictly rejects suspended account with 403 Forbidden"
-      );
-    } finally {
-      (UserModel as any).findById = origFindById;
-      (UserModel as any).findOne = origFindOne;
-      (UserModel as any).db = origDb;
-    }
-
-    // 11. POST /api/admin/auth/refresh rejects demoted admin with 403 Forbidden
     const adminUser = {
       id: "admin-user-01",
       name: "Admin User",
@@ -2011,7 +2030,7 @@ async function runAuthSecurityTests() {
     }
 
     // 12. POST /api/auth/logout clears refresh token cookie
-    const logoutRes = await authLogout();
+    const logoutRes = await authLogout(new NextRequest("http://localhost:3000/api/auth/logout", { method: "POST" }));
     assert(
       logoutRes.status === 200,
       "POST /api/auth/logout responds with 200 OK"

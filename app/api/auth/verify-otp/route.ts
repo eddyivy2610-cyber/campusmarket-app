@@ -4,10 +4,11 @@ import { verifyOtpCode } from "@/lib/otpService";
 import UserModel from "@/models/User";
 import {
   createAccessToken,
-  createRefreshToken,
+  isRequestHttps,
   setAccessTokenCookie,
   setRefreshTokenCookie,
 } from "@/lib/authTokens";
+import { issueTrackedRefreshToken } from "@/lib/refreshTokens";
 import dbConnect from "@/lib/dbConnect";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +67,12 @@ export async function POST(req: NextRequest) {
     };
 
     const accessToken = createAccessToken(userPayload);
-    const refreshToken = createRefreshToken(userPayload);
+    const { token: refreshToken } = await issueTrackedRefreshToken(
+      user._id.toString(),
+      undefined,
+      userPayload.tokenVersion
+    );
+    const secureCookie = isRequestHttps(req);
 
     const res = NextResponse.json({
       success: true,
@@ -90,8 +96,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    setRefreshTokenCookie(res, refreshToken);
-    setAccessTokenCookie(res, accessToken);
+    setRefreshTokenCookie(res, refreshToken, { secure: secureCookie });
+    setAccessTokenCookie(res, accessToken, { secure: secureCookie });
     return res;
   } catch (error: any) {
     console.error("[POST /api/auth/verify-otp] Error:", error);

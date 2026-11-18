@@ -18,6 +18,7 @@ import {
   ServerAuthUser,
   REFRESH_TOKEN_COOKIE_NAME,
 } from "../app/lib/authTokens";
+import { issueTrackedRefreshToken } from "../app/lib/refreshTokens";
 import UserModel from "../app/models/User";
 import { POST as refreshRoute } from "../app/api/auth/refresh/route";
 import { POST as adminRefreshRoute } from "../app/api/admin/auth/refresh/route";
@@ -76,6 +77,7 @@ async function runTokenVersionTests() {
       email: "student.active@abu.edu.ng",
       role: "buyer",
       accountStatus: "active",
+      emailVerified: true,
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -90,7 +92,11 @@ async function runTokenVersionTests() {
       tokenVersion: 0,
     };
 
-    const validRefreshToken = createRefreshToken(activeUserAuth);
+    const { token: validRefreshToken } = await issueTrackedRefreshToken(
+      dbUser._id.toString(),
+      undefined,
+      dbUser.tokenVersion ?? 0
+    );
 
     const refreshReq = new NextRequest("http://localhost:3000/api/auth/refresh", {
       method: "POST",
@@ -148,6 +154,7 @@ async function runTokenVersionTests() {
       email: "seller.suspension@abu.edu.ng",
       role: "seller",
       accountStatus: "active",
+      emailVerified: true,
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -157,6 +164,7 @@ async function runTokenVersionTests() {
       email: "admin.overseer@campushive.edu.ng",
       role: "admin",
       accountStatus: "active",
+      emailVerified: true,
       tokenVersion: 0,
       schemaVersion: 1,
     });
@@ -170,15 +178,11 @@ async function runTokenVersionTests() {
       studentVerified: false,
     });
 
-    const sellerRefreshToken = createRefreshToken({
-      id: sellerUser._id.toString(),
-      name: sellerUser.name,
-      email: sellerUser.email,
-      role: "seller",
-      isStudent: true,
-      studentVerified: true,
-      tokenVersion: 0,
-    });
+    const { token: sellerRefreshToken } = await issueTrackedRefreshToken(
+      sellerUser._id.toString(),
+      undefined,
+      0
+    );
 
     // Suspend user via Admin PATCH
     const suspendReq = new NextRequest(`http://localhost:3000/api/admin/users/${sellerUser._id}`, {

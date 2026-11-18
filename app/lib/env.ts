@@ -56,15 +56,24 @@ export const envSchema = z.object({
   ADMIN_REGISTRATION_KEY: z
     .string()
     .optional(),
+  MAX_STORES_PER_USER: z.coerce
+    .number()
+    .int()
+    .min(1, "MAX_STORES_PER_USER must be a positive integer >= 1")
+    .default(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 export function validateEnv(customEnv?: Record<string, any>): Env {
+  const isBackendBProxy = Boolean((customEnv?.BACKEND_B_URL ?? process.env.BACKEND_B_URL)?.trim());
   const raw = customEnv || {
     NODE_ENV: process.env.NODE_ENV,
-    MONGODB_URI: process.env.MONGODB_URI,
-    AUTH_SECRET: process.env.AUTH_SECRET || process.env.JWT_SECRET,
+    MONGODB_URI: process.env.MONGODB_URI || (isBackendBProxy ? "mongodb://proxy-mode-unused" : undefined),
+    AUTH_SECRET:
+      process.env.AUTH_SECRET ||
+      process.env.JWT_SECRET ||
+      (isBackendBProxy ? "proxy-mode-unused-secret-at-least-32-chars" : undefined),
     SMTP_USER: process.env.SMTP_USER || process.env.EMAIL_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD || process.env.EMAIL_PASSWORD,
     SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -74,7 +83,17 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     ADMIN_REGISTRATION_KEY: process.env.ADMIN_REGISTRATION_KEY,
+    MAX_STORES_PER_USER:
+      process.env.MAX_STORES_PER_USER ??
+      (process.env.NODE_ENV === "production" ? undefined : "1"),
   };
+
+  if (
+    (raw.NODE_ENV === "production" || process.env.NODE_ENV === "production") &&
+    (raw.MAX_STORES_PER_USER === undefined || String(raw.MAX_STORES_PER_USER).trim() === "")
+  ) {
+    throw new Error("Application startup aborted: MAX_STORES_PER_USER is required in production.");
+  }
 
   const result = envSchema.safeParse(raw);
 
@@ -99,7 +118,7 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
     process.env.npm_lifecycle_event === "build" ||
     process.argv.some((arg) => typeof arg === "string" && arg.includes("build"));
 
-  if (result.data.NODE_ENV === "production" && !isBuilding) {
+  if (result.data.NODE_ENV === "production" && !isBuilding && !isBackendBProxy) {
     const missing: string[] = [];
     if (!result.data.OTP_PEPPER) missing.push("OTP_PEPPER");
     if (!result.data.ADMIN_REGISTRATION_KEY) missing.push("ADMIN_REGISTRATION_KEY");
