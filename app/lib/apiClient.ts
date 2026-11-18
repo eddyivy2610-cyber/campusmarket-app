@@ -150,9 +150,10 @@ const apiRequest = async <T>(
   }
 
   if (!response.ok) {
-    const payloadMessage =
-      (payload as { message?: string; error?: string })?.error ||
-      (payload as { message?: string; error?: string })?.message;
+    const rawErr = (payload as { error?: string })?.error;
+    const rawMsg = (payload as { message?: string })?.message;
+    const isCodeOnly = typeof rawErr === "string" && /^[a-z0-9_ ]{1,32}$/.test(rawErr);
+    const payloadMessage = isCodeOnly ? rawMsg || rawErr : rawErr || rawMsg;
 
     const payloadErrors = Array.isArray(
       (payload as { errors?: unknown })?.errors
