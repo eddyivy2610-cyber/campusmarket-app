@@ -85,10 +85,11 @@ export function validateEnv(customEnv?: Record<string, any>): Env {
     ADMIN_REGISTRATION_KEY: process.env.ADMIN_REGISTRATION_KEY,
     MAX_STORES_PER_USER:
       process.env.MAX_STORES_PER_USER ??
-      (process.env.NODE_ENV === "production" ? undefined : "1"),
+      (process.env.NODE_ENV === "production" && !isBackendBProxy ? undefined : "1"),
   };
 
   if (
+    !isBackendBProxy &&
     (raw.NODE_ENV === "production" || process.env.NODE_ENV === "production") &&
     (raw.MAX_STORES_PER_USER === undefined || String(raw.MAX_STORES_PER_USER).trim() === "")
   ) {
