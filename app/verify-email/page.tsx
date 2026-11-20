@@ -171,7 +171,7 @@ function VerifyEmailContent() {
       subtitle={`We sent a 6-digit verification code to ${
         email || "your email address"
       }.`}
-      showBackToHome={false}
+      showBackToHome={true}
     >
       {/* Resend Success Banner */}
       {resendFeedback && (
@@ -206,11 +206,11 @@ function VerifyEmailContent() {
               onChange={(e) => handleDigitChange(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(idx, e)}
               onPaste={handlePaste}
-              className={`w-11 sm:w-12 h-13 sm:h-14 text-center text-[20px] font-extrabold rounded-2xl border transition-all focus:outline-none ${
+              className={`radius-native w-11 sm:w-12 h-12 sm:h-13 text-center text-[18px] font-extrabold rounded-xl border transition-all focus:outline-none ${
                 digit
                   ? "border-[#171717] dark:border-[#FFC928] bg-white dark:bg-[#181B24] text-[#171717] dark:text-white"
-                  : "border-[#DCE0E6] dark:border-white/15 bg-[#F7F8FA] dark:bg-[#181B24] text-[#171717] dark:text-white"
-              } focus:border-[#171717] dark:focus:border-[#FFC928] focus:ring-1 focus:ring-[#171717] dark:focus:ring-[#FFC928]`}
+                  : "border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[#171717] dark:text-white"
+              } focus:border-[#171717] dark:focus:border-[#FFC928]`}
               autoFocus={idx === 0}
             />
           ))}
