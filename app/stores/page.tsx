@@ -163,8 +163,9 @@ function StoresContent() {
         const data = await res.json();
         if (!isCancelled) {
           if (res.ok && data.success) {
-            setHasOpenedStore(Boolean(data.data.hasStore));
-            setMyStore(data.data.store || null);
+            const list = Array.isArray(data.data?.stores) ? data.data.stores : [];
+            setHasOpenedStore(Boolean(data.data?.hasStore || list.length > 0));
+            setMyStore(data.data?.store || list[0] || null);
           } else {
             setHasOpenedStore(false);
             setMyStore(null);

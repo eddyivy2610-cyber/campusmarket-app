@@ -69,6 +69,7 @@ export function StorefrontManager({
   const [liveStats, setLiveStats] = useState<SellerStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const [hasPendingApplication, setHasPendingApplication] = useState(false);
 
   // Store Settings Form state
   const [storeName, setStoreName] = useState(initialStore?.name || "");
@@ -131,8 +132,37 @@ export function StorefrontManager({
             setStoresList(list);
             setMaxStores(data.data.maxStores ?? 3);
             setCanCreateMore(Boolean(data.data.canCreateMore ?? list.length < 3));
-            setHasStore(Boolean(data.data.hasStore || list.length > 0));
-            const st = data.data.store || list[0];
+            const activeOrOwned = list.filter(
+              (s: any) => s && s.status !== "pending_review" && s.status !== "pending" && s.status !== "deleted"
+            );
+            const pendingStore = list.find(
+              (s: any) => s && (s.status === "pending_review" || s.status === "pending")
+            );
+            setHasStore(Boolean(activeOrOwned.length > 0 || (data.data.hasStore && !pendingStore)));
+            if (pendingStore) {
+              setHasPendingApplication(true);
+            } else if (activeOrOwned.length === 0) {
+              try {
+                const appRes = await fetch("/api/stores/business-application", { credentials: "include" });
+                if (appRes.ok) {
+                  const appData = await appRes.json();
+                  const apps = Array.isArray(appData?.data)
+                    ? appData.data
+                    : appData?.data?.application
+                    ? [appData.data.application]
+                    : appData?.application
+                    ? [appData.application]
+                    : [];
+                  const isPending = apps.some(
+                    (a: any) => a && ["pending", "pending_review", "under_review"].includes(String(a.status || "").toLowerCase())
+                  );
+                  if (!isCancelled) setHasPendingApplication(isPending);
+                }
+              } catch {
+                // Ignore if business-application endpoint is unavailable
+              }
+            }
+            const st = activeOrOwned[0] || data.data.store || list[0];
             if (st) {
               applySelectedStore(st);
             }
@@ -236,33 +266,43 @@ export function StorefrontManager({
         aria-label="Loading storefront..."
         aria-busy="true"
         role="status"
-        className="space-y-6 animate-in fade-in duration-200"
+        className="space-y-6 animate-in fade-in duration-150"
       >
-        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4 w-full">
-            <div className="hive-skeleton w-14 h-14 rounded-2xl shrink-0" />
-            <div className="space-y-2 flex-1 max-w-md">
-              <div className="hive-skeleton h-5 w-48 rounded-lg" />
-              <div className="hive-skeleton h-3.5 w-72 rounded-md" />
-              <div className="hive-skeleton h-3 w-40 rounded-md" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
-            <div className="hive-skeleton h-9 w-28 rounded-xl" />
-            <div className="hive-skeleton h-9 w-28 rounded-xl" />
-          </div>
+        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-10 text-center max-w-xl mx-auto shadow-sm space-y-3">
+          <div className="hive-skeleton w-14 h-14 mx-auto rounded-2xl" />
+          <div className="hive-skeleton h-5 w-52 mx-auto rounded-lg" />
+          <div className="hive-skeleton h-3.5 w-72 mx-auto rounded" />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-4 sm:p-5 space-y-2.5"
+      </div>
+    );
+  }
+
+  if (hasStore === false && hasPendingApplication) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        <div className="radius-native bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <Clock className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-1.5">
+            <h2 className="text-[20px] sm:text-[22px] font-extrabold text-[#171717] dark:text-white tracking-[-0.02em]">
+              Your storefront request is pending
+            </h2>
+            <p className="text-[13px] text-[#68707A] dark:text-neutral-400 leading-relaxed max-w-md mx-auto">
+              We have received your storefront application and it is currently under review. You will be notified as soon as your store is approved.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/stores"
+              className="radius-native inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#ECEEF2] dark:border-white/15 bg-[#F8F9FB] dark:bg-white/5 hover:bg-[#F1F3F6] dark:hover:bg-white/10 text-[#171717] dark:text-white font-bold text-[13px] transition-colors"
             >
-              <div className="hive-skeleton h-3.5 w-28 rounded" />
-              <div className="hive-skeleton h-7 w-20 rounded-lg" />
-              <div className="hive-skeleton h-3 w-32 rounded" />
-            </div>
-          ))}
+              <span>Browse Marketplace</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
     );
