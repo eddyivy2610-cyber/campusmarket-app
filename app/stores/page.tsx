@@ -164,8 +164,11 @@ function StoresContent() {
         if (!isCancelled) {
           if (res.ok && data.success) {
             const list = Array.isArray(data.data?.stores) ? data.data.stores : [];
-            setHasOpenedStore(Boolean(data.data?.hasStore || list.length > 0));
-            setMyStore(data.data?.store || list[0] || null);
+            const activeStores = list.filter(
+              (s: any) => s && s.status !== "pending_review" && s.status !== "pending" && s.status !== "deleted"
+            );
+            setHasOpenedStore(activeStores.length > 0);
+            setMyStore(activeStores[0] || null);
           } else {
             setHasOpenedStore(false);
             setMyStore(null);

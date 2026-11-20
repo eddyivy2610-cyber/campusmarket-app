@@ -138,10 +138,11 @@ export function StorefrontManager({
             const pendingStore = list.find(
               (s: any) => s && (s.status === "pending_review" || s.status === "pending")
             );
-            setHasStore(Boolean(activeOrOwned.length > 0 || (data.data.hasStore && !pendingStore)));
+            const hasActiveStore = activeOrOwned.length > 0;
+            setHasStore(hasActiveStore);
             if (pendingStore) {
               setHasPendingApplication(true);
-            } else if (activeOrOwned.length === 0) {
+            } else if (!hasActiveStore) {
               try {
                 const appRes = await fetch("/api/stores/business-application", { credentials: "include" });
                 if (appRes.ok) {
@@ -162,7 +163,7 @@ export function StorefrontManager({
                 // Ignore if business-application endpoint is unavailable
               }
             }
-            const st = activeOrOwned[0] || data.data.store || list[0];
+            const st = activeOrOwned[0] || null;
             if (st) {
               applySelectedStore(st);
             }
