@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { SellListingLink } from "@/components/common/SellListingLink";
 import { motion } from "framer-motion";
 import { cardInViewProps } from "@/lib/motion";
 import {
@@ -264,12 +265,11 @@ export function RebrandHomeFeed() {
             <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 max-w-sm mx-auto">
               Be the first student to post an item or service to your university feed!
             </p>
-            <Link
-              href="/listings/create"
+            <SellListingLink
               className="radius-native inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#171717] dark:bg-white text-white dark:text-[#171717] text-[12.5px] font-bold shadow-xs hover:opacity-90 transition-opacity"
             >
               <span>Post a Listing</span>
-            </Link>
+            </SellListingLink>
           </div>
         ) : (
           <div className="space-y-6 sm:space-y-8">

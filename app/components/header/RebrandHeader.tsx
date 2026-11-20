@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { SellListingLink } from "@/components/common/SellListingLink";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { SPRING_DRAWER } from "@/lib/motion";
@@ -434,13 +435,8 @@ export function RebrandHeader() {
               <div className="divide-y divide-[#F1F3F6] dark:divide-white/5 px-4">
                 {MOBILE_FEATURES.map((item) => {
                   const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-between py-2.5 transition-colors"
-                    >
+                  const inner = (
+                    <>
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-8 h-8 rounded-full bg-[#F5F6F8] dark:bg-white/5 flex items-center justify-center text-[#22252A] dark:text-neutral-200 shrink-0">
                           <Icon className="w-[15px] h-[15px]" strokeWidth={1.8} />
@@ -472,6 +468,27 @@ export function RebrandHeader() {
                           <span>Soon</span>
                         </span>
                       )}
+                    </>
+                  );
+                  if (item.id === "sell") {
+                    return (
+                      <SellListingLink
+                        key={item.id}
+                        onBeforeNavigate={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between py-2.5 transition-colors"
+                      >
+                        {inner}
+                      </SellListingLink>
+                    );
+                  }
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between py-2.5 transition-colors"
+                    >
+                      {inner}
                     </Link>
                   );
                 })}

@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { SellListingLink } from "@/components/common/SellListingLink";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export function WelcomeBanner() {
@@ -56,12 +57,11 @@ export function WelcomeBanner() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
-            <Link
-              href="/listings/create"
+            <SellListingLink
               className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#E4E7EC] dark:border-white/15 bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-[#171717] dark:text-white px-3.5 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer"
             >
               <span>Post a Listing</span>
-            </Link>
+            </SellListingLink>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { SellListingLink } from "@/components/common/SellListingLink";
 import Image from "next/image";
 import {
   ChevronRight,
@@ -496,12 +497,8 @@ export function RebrandHero() {
             <div className="divide-y divide-[#F1F3F6] dark:divide-white/5 flex-1 flex flex-col justify-center">
               {FEATURE_ITEMS.map((item) => {
                 const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className="group flex items-center justify-between py-2.5 first:pt-1.5 last:pb-0.5 transition-colors"
-                  >
+                const inner = (
+                  <>
                     <div className="flex items-center gap-3">
                       <div className="radius-native w-8 h-8 rounded-full bg-[#F5F6F8] dark:bg-white/5 flex items-center justify-center text-[#22252A] dark:text-neutral-200 group-hover:bg-[#FFE182]/40 transition-colors shrink-0">
                         <Icon className="w-[15px] h-[15px]" strokeWidth={1.8} />
@@ -532,6 +529,25 @@ export function RebrandHero() {
                         <span>Soon</span>
                       </span>
                     )}
+                  </>
+                );
+                if (item.id === "sell") {
+                  return (
+                    <SellListingLink
+                      key={item.id}
+                      className="group flex items-center justify-between py-2.5 first:pt-1.5 last:pb-0.5 transition-colors"
+                    >
+                      {inner}
+                    </SellListingLink>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className="group flex items-center justify-between py-2.5 first:pt-1.5 last:pb-0.5 transition-colors"
+                  >
+                    {inner}
                   </Link>
                 );
               })}
