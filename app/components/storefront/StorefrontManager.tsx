@@ -501,11 +501,11 @@ export function StorefrontManager({
                 <DollarSign className="w-4 h-4 text-[#22C55E]" />
               </div>
               <div className="text-[20px] sm:text-[24px] font-black text-[#171717] dark:text-white mt-1">
-                {liveStats ? liveStats.orderValue.completedOrderValueFormatted : "₦0"}
+                {liveStats?.orderValue?.completedOrderValueFormatted ?? "₦0"}
               </div>
               <div className="text-[11.5px] font-semibold text-[#22C55E] mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                <span>{liveStats ? `${liveStats.orders.completedOrdersCount} delivered exchanges` : "0 delivered exchanges"}</span>
+                <span>{liveStats?.orders ? `${liveStats.orders.completedOrdersCount ?? 0} delivered exchanges` : "0 delivered exchanges"}</span>
               </div>
             </div>
 
@@ -515,10 +515,10 @@ export function StorefrontManager({
                 <Package className="w-4 h-4 text-[#D97706]" />
               </div>
               <div className="text-[20px] sm:text-[24px] font-black text-[#171717] dark:text-white mt-1">
-                {liveStats ? liveStats.listings.active : catalog.filter((c) => c.status === "Available").length}
+                {liveStats?.listings?.active ?? catalog.filter((c) => c.status === "Available").length}
               </div>
               <div className="text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400 mt-1">
-                {liveStats ? `${liveStats.listings.total} total items in catalog` : `${catalog.length} total items in catalog`}
+                {liveStats?.listings ? `${liveStats.listings.total ?? 0} total items in catalog` : `${catalog.length} total items in catalog`}
               </div>
             </div>
 
@@ -528,10 +528,10 @@ export function StorefrontManager({
                 <Eye className="w-4 h-4 text-[#3B82F6]" />
               </div>
               <div className="text-[20px] sm:text-[24px] font-black text-[#171717] dark:text-white mt-1">
-                {liveStats ? liveStats.audience.impressions : totalViews}
+                {liveStats?.audience?.impressions ?? totalViews}
               </div>
               <div className="text-[11.5px] font-medium text-[#68707A] dark:text-neutral-400 mt-1">
-                {liveStats ? `${liveStats.audience.followersCount} campus followers` : "0 campus followers"}
+                {liveStats?.audience ? `${liveStats.audience.followersCount ?? 0} campus followers` : "0 campus followers"}
               </div>
             </div>
 
@@ -541,7 +541,7 @@ export function StorefrontManager({
                 <MessageSquare className="w-4 h-4 text-[#A855F7]" />
               </div>
               <div className="text-[20px] sm:text-[24px] font-black text-[#171717] dark:text-white mt-1">
-                {liveStats ? liveStats.orders.totalOrders : totalInquiries}
+                {liveStats?.orders?.totalOrders ?? totalInquiries}
               </div>
               <div className="text-[11.5px] font-semibold text-[#A855F7] mt-1">
                 {liveStats ? `${liveStats.orders.activeOrdersCount} in progress` : "0 in progress"}
