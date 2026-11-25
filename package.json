@@ -44,6 +44,7 @@
     "dev:all": "concurrently -n web,api -c cyan,green \"npm run dev\" \"npm run backend:dev\""
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "argon2": "^0.45.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
