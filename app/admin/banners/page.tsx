@@ -1,83 +1,57 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import {
-  Megaphone,
   Plus,
-  Search,
-  Filter,
-  Calendar,
-  Clock,
-  Sparkles,
-  Eye,
-  Edit2,
-  Copy,
   Upload,
-  CheckCircle2,
-  AlertTriangle,
+  Calendar,
+  Link as LinkIcon,
+  Edit2,
+  Trash2,
+  Eye,
   Archive,
   RefreshCw,
-  ExternalLink,
-  ChevronRight,
   X,
-  Smartphone,
-  Monitor,
-  Image as ImageIcon,
-  Check,
-  AlertCircle,
-  HelpCircle,
-  TrendingUp,
-  Tag,
   Loader2,
-  User,
-  Store,
-  ArrowUpRight,
-  Link as LinkIcon,
+  Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react";
-import { apiGet, apiPost, apiPatch } from "@/lib/apiClient";
-import type { BannerPlacement, BannerStatus } from "@/models/Banner";
+import { toast } from "sonner";
+import { apiGet, apiPost, apiPatch, apiDelete } from "@/lib/apiClient";
+import { uploadFileClient } from "@/lib/clientUpload";
 
 interface BannerItem {
   id: string;
   _id?: string;
-  name: string;
-  headline: string;
-  description?: string;
   imageUrl: string;
-  mobileImageUrl?: string;
-  imageAlt: string;
-  ctaLabel: string;
-  ctaUrl: string;
-  placement: BannerPlacement;
-  targetCategory?: string;
-  status: BannerStatus;
-  startAt: string;
+  ctaUrl?: string | null;
+  placement: string;
+  status: string;
+  startAt?: string | null;
   endAt?: string | null;
-  priority: number;
-  createdBy: string;
-  updatedBy: string;
   createdAt: string;
-  updatedAt: string;
-  isCurrentActiveHero?: boolean;
 }
 
-const CATEGORY_OPTIONS = [
-  "Electronics",
-  "Fashion",
-  "Books & Academic Supplies",
-  "Hostel Essentials",
-  "Services",
-  "Food & Groceries",
-  "Sports & Fitness",
-  "General",
-];
+const RECOMMENDED_DIMENSIONS: Record<string, string> = {
+  homepage_hero: "1200 × 360 px (WebP, landscape ~3.3:1)",
+  category_banner: "1200 × 240 px (WebP, wide ~5:1)",
+};
+
+function toDatetimeLocalValue(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
+}
 
 export default function AdminBannersPageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center min-h-[450px]">
+        <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="w-8 h-8 text-[#FFC928] animate-spin" />
         </div>
       }
@@ -89,137 +63,30 @@ export default function AdminBannersPageWrapper() {
 
 function AdminBannersPage() {
   const [banners, setBanners] = useState<BannerItem[]>([]);
-  const [activeHomepageHeroId, setActiveHomepageHeroId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // Filters & Search
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [placementFilter, setPlacementFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // Editor Modal State
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<BannerItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Form Fields
-  const [formName, setFormName] = useState("");
-  const [formHeadline, setFormHeadline] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [formImageUrl, setFormImageUrl] = useState("");
-  const [formMobileImageUrl, setFormMobileImageUrl] = useState("");
-  const [formImageAlt, setFormImageAlt] = useState("");
-  const [formCtaLabel, setFormCtaLabel] = useState("Explore now");
-  const [formCtaUrl, setFormCtaUrl] = useState("/explore");
-  const [formPlacement, setFormPlacement] = useState<BannerPlacement>("homepage_hero");
-  const [formCategory, setFormCategory] = useState("Electronics");
-  const [formStatus, setFormStatus] = useState<BannerStatus>("draft");
-  const [formStartAt, setFormStartAt] = useState("");
-  const [formEndAt, setFormEndAt] = useState("");
-  const [isIndefinite, setIsIndefinite] = useState(true);
-  const [formPriority, setFormPriority] = useState<number>(10);
+  // Simplified Banner Form Fields
+  const [imageUrl, setImageUrl] = useState("");
+  const [ctaUrl, setCtaUrl] = useState("");
+  const [placement, setPlacement] = useState<"homepage_hero" | "category_banner">("homepage_hero");
+  const [status, setStatus] = useState<"published" | "archived">("published");
+  const [startAt, setStartAt] = useState("");
+  const [endAt, setEndAt] = useState("");
 
-  // Link Destination Type & Profile Selector
-  type DestinationType = "custom" | "profile" | "store";
-  const [destinationType, setDestinationType] = useState<DestinationType>("custom");
-  const [selectedProfileHandle, setSelectedProfileHandle] = useState("");
-  const [selectedStoreSlug, setSelectedStoreSlug] = useState("");
-  const [userList, setUserList] = useState<any[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Fetch users for profile linking
-  useEffect(() => {
-    let isMounted = true;
-    async function loadUsers() {
-      try {
-        setIsLoadingUsers(true);
-        const res: any = await apiGet("admin/users?limit=100");
-        if (isMounted && res?.data && Array.isArray(res.data)) {
-          setUserList(res.data);
-        }
-      } catch {
-        // Non-fatal
-      } finally {
-        if (isMounted) setIsLoadingUsers(false);
-      }
-    }
-    loadUsers();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const getUserHandle = (u: any): string => {
-    return (
-      u.profile?.handle ||
-      u.handle ||
-      u.username ||
-      u.email?.split("@")[0] ||
-      u._id
-    );
-  };
-
-  const getUserDisplayName = (u: any): string => {
-    return (
-      u.profile?.displayName ||
-      u.fullName ||
-      u.name ||
-      getUserHandle(u) ||
-      "Campus User"
-    );
-  };
-
-  // Preview Mode in Editor
-  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
-  const [previewImageError, setPreviewImageError] = useState(false);
-
-  // Confirmation Modals
-  const [confirmAction, setConfirmAction] = useState<{
-    type: "publish" | "unpublish" | "archive";
-    banner: BannerItem;
-  } | null>(null);
-  const [isProcessingAction, setIsProcessingAction] = useState(false);
-
-  // Upload States
-  const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
-  const [isUploadingMobile, setIsUploadingMobile] = useState(false);
-  const desktopFileInputRef = useRef<HTMLInputElement | null>(null);
-  const mobileFileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Fetch Banners
   const fetchBanners = async () => {
     try {
       setIsLoading(true);
-      setError(null);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "20",
-        status: statusFilter,
-        placement: placementFilter,
-        search: searchQuery,
-      });
-      if (categoryFilter) params.set("category", categoryFilter);
-
-      const res: any = await apiGet(`admin/banners?${params.toString()}`);
-      if (res?.success) {
-        setBanners(res.data || []);
-        setActiveHomepageHeroId(res.activeHomepageHeroId || null);
-        setTotalPages(res.pagination?.pages || 1);
-        setTotalCount(res.pagination?.total || 0);
-      } else {
-        setError(res?.error || "Failed to load banners.");
-      }
+      const res: any = await apiGet("admin/banners");
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setBanners(list);
     } catch (err: any) {
-      console.error("Failed to load banners:", err);
-      setError(err?.message || "Failed to connect to banner service.");
+      toast.error(err?.message || "Failed to load banners.");
     } finally {
       setIsLoading(false);
     }
@@ -227,1613 +94,442 @@ function AdminBannersPage() {
 
   useEffect(() => {
     fetchBanners();
-  }, [currentPage, statusFilter, placementFilter, categoryFilter]);
+  }, []);
 
-  // Handle Search Debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchBanners();
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Open Editor for Creating New Banner
-  const handleOpenCreate = () => {
-    const now = new Date();
-    // Default start time formatted for datetime-local
-    const nowStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-
+  const openCreateModal = () => {
     setEditingBanner(null);
-    setFormName("");
-    setFormHeadline("");
-    setFormDescription("");
-    setFormImageUrl("");
-    setFormMobileImageUrl("");
-    setFormImageAlt("");
-    setFormCtaLabel("Explore now");
-    setFormCtaUrl("/explore");
-    setDestinationType("custom");
-    setSelectedProfileHandle("");
-    setSelectedStoreSlug("");
-    setFormPlacement("homepage_hero");
-    setFormCategory("Electronics");
-    setFormStatus("draft");
-    setFormStartAt(nowStr);
-    setFormEndAt("");
-    setIsIndefinite(true);
-    setFormPriority(10);
-    setFormError(null);
-    setConflictWarning(null);
-    setPreviewImageError(false);
-    setIsEditorOpen(true);
+    setImageUrl("");
+    setCtaUrl("");
+    setPlacement("homepage_hero");
+    setStatus("published");
+    setStartAt("");
+    setEndAt("");
+    setIsModalOpen(true);
   };
 
-  // Open Editor for Editing Existing Banner
-  const handleOpenEdit = (b: BannerItem) => {
-    setEditingBanner(b);
-    setFormName(b.name);
-    setFormHeadline(b.headline);
-    setFormDescription(b.description || "");
-    setFormImageUrl(b.imageUrl);
-    setFormMobileImageUrl(b.mobileImageUrl || "");
-    setFormImageAlt(b.imageAlt);
-    setFormCtaLabel(b.ctaLabel);
-    setFormCtaUrl(b.ctaUrl);
-
-    if (b.ctaUrl.startsWith("/profile/")) {
-      const handle = b.ctaUrl.replace(/^\/profile\//, "").replace(/^\//, "").split("?")[0].split("#")[0];
-      setDestinationType("profile");
-      setSelectedProfileHandle(handle);
-      setSelectedStoreSlug("");
-    } else if (b.ctaUrl.startsWith("/stores/")) {
-      const slug = b.ctaUrl.replace(/^\/stores\//, "").replace(/^\//, "").split("?")[0].split("#")[0];
-      setDestinationType("store");
-      setSelectedStoreSlug(slug);
-      setSelectedProfileHandle("");
-    } else {
-      setDestinationType("custom");
-      setSelectedProfileHandle("");
-      setSelectedStoreSlug("");
-    }
-
-    setFormPlacement(b.placement);
-    setFormCategory(b.targetCategory || "Electronics");
-    setFormStatus(b.status);
-
-    const start = new Date(b.startAt);
-    const startStr = new Date(start.getTime() - start.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-    setFormStartAt(startStr);
-
-    if (b.endAt) {
-      const end = new Date(b.endAt);
-      const endStr = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-      setFormEndAt(endStr);
-      setIsIndefinite(false);
-    } else {
-      setFormEndAt("");
-      setIsIndefinite(true);
-    }
-
-    setFormPriority(b.priority);
-    setFormError(null);
-    setConflictWarning(null);
-    setPreviewImageError(false);
-    setIsEditorOpen(true);
+  const openEditModal = (banner: BannerItem) => {
+    setEditingBanner(banner);
+    setImageUrl(banner.imageUrl || "");
+    setCtaUrl(banner.ctaUrl || "");
+    setPlacement(
+      banner.placement === "category_banner" ? "category_banner" : "homepage_hero"
+    );
+    setStatus(banner.status === "archived" ? "archived" : "published");
+    setStartAt(toDatetimeLocalValue(banner.startAt));
+    setEndAt(toDatetimeLocalValue(banner.endAt));
+    setIsModalOpen(true);
   };
 
-  // Upload handler for Cloudinary
-  const handleFileUpload = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "desktop" | "mobile"
-  ) => {
+  const handleWebpUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
 
-    if (type === "desktop") setIsUploadingDesktop(true);
-    else setIsUploadingMobile(true);
+    const isWebp =
+      file.type === "image/webp" || file.name.toLowerCase().endsWith(".webp");
+    if (!isWebp) {
+      toast.error("Please upload a .webp image for banners.");
+      return;
+    }
 
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Banner image must be under 5MB.");
+      return;
+    }
+
+    setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("purpose", "banner_image");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to upload image.");
-      }
-
-      const uploadedUrl = json.urls?.[0] || json.url;
-      if (!uploadedUrl) throw new Error("No URL returned from upload.");
-
-      if (type === "desktop") {
-        setFormImageUrl(uploadedUrl);
-        setPreviewImageError(false);
+      const res = await uploadFileClient(file, "banner_image");
+      if (res.success && res.url) {
+        setImageUrl(res.url);
+        toast.success("Banner image uploaded.");
       } else {
-        setFormMobileImageUrl(uploadedUrl);
+        throw new Error(res.error || "Upload failed");
       }
-    } catch (err: any) {
-      setFormError(err.message || "Failed to upload image.");
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setImageUrl(reader.result);
+          toast.success("Banner image ready.");
+        }
+      };
+      reader.readAsDataURL(file);
     } finally {
-      if (type === "desktop") setIsUploadingDesktop(false);
-      else setIsUploadingMobile(false);
-      e.target.value = "";
+      setIsUploading(false);
     }
   };
 
-  // Save Banner (Create or Update)
-  const handleSaveBanner = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setFormError(null);
-    setConflictWarning(null);
-
-    // Validation
-    if (!formName.trim()) {
-      setFormError("Internal banner name is required.");
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!imageUrl.trim()) {
+      toast.error("Please upload a WebP banner image.");
       return;
     }
-    if (!formHeadline.trim()) {
-      setFormError("Banner headline is required.");
+    if (startAt && endAt && new Date(endAt) <= new Date(startAt)) {
+      toast.error("End time must be after start time.");
       return;
     }
-    if (!formImageUrl.trim()) {
-      setFormError("Desktop image URL is required.");
-      return;
-    }
-    if (!formImageAlt.trim()) {
-      setFormError("Image alt text is required for accessibility.");
-      return;
-    }
-    if (!formCtaLabel.trim()) {
-      setFormError("CTA button label is required.");
-      return;
-    }
-    if (!formCtaUrl.trim()) {
-      setFormError("CTA destination URL is required.");
-      return;
-    }
-    if (formPlacement === "category_promo" && !formCategory.trim()) {
-      setFormError("Target category is required for category promotions.");
-      return;
-    }
-
-    const start = new Date(formStartAt);
-    if (isNaN(start.getTime())) {
-      setFormError("Invalid start date and time.");
-      return;
-    }
-
-    let end: Date | null = null;
-    if (!isIndefinite && formEndAt) {
-      end = new Date(formEndAt);
-      if (isNaN(end.getTime())) {
-        setFormError("Invalid end date and time.");
-        return;
-      }
-      if (end.getTime() <= start.getTime()) {
-        setFormError("End date must be strictly after start date.");
-        return;
-      }
-    }
-
-    const payload = {
-      name: formName.trim(),
-      headline: formHeadline.trim(),
-      description: formDescription.trim(),
-      imageUrl: formImageUrl.trim(),
-      mobileImageUrl: formMobileImageUrl.trim() || undefined,
-      imageAlt: formImageAlt.trim(),
-      ctaLabel: formCtaLabel.trim(),
-      ctaUrl: formCtaUrl.trim(),
-      placement: formPlacement,
-      targetCategory:
-        formPlacement === "category_promo" ? formCategory : undefined,
-      status: formStatus,
-      startAt: start.toISOString(),
-      endAt: end ? end.toISOString() : null,
-      priority: Number(formPriority) || 0,
-    };
 
     setIsSubmitting(true);
     try {
-      let res: any;
+      const payload = {
+        imageUrl: imageUrl.trim(),
+        ctaUrl: ctaUrl.trim() || null,
+        placement,
+        status,
+        headline: "Promotional Banner",
+        description: null,
+        ctaLabel: null,
+        startAt: startAt ? new Date(startAt).toISOString() : null,
+        endAt: endAt ? new Date(endAt).toISOString() : null,
+      };
+
       if (editingBanner) {
-        res = await apiPatch(`admin/banners/${editingBanner.id}`, payload);
+        await apiPatch(`admin/banners/${editingBanner.id || editingBanner._id}`, payload);
+        toast.success("Banner updated.");
       } else {
-        res = await apiPost("admin/banners", payload);
+        await apiPost("admin/banners", payload);
+        toast.success("Banner created.");
       }
-
-      if (res?.success) {
-        setSuccessMessage(
-          editingBanner
-            ? "Banner successfully updated."
-            : "Banner successfully created."
-        );
-        setTimeout(() => setSuccessMessage(null), 4000);
-
-        if (res.conflictWarning) {
-          setConflictWarning(res.conflictWarning);
-        } else {
-          setIsEditorOpen(false);
-        }
-        await fetchBanners();
-      } else {
-        setFormError(res?.error || "Failed to save banner.");
-      }
+      setIsModalOpen(false);
+      fetchBanners();
     } catch (err: any) {
-      setFormError(err?.message || "Failed to save banner.");
+      toast.error(err?.message || "Failed to save banner.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Duplicate Banner
-  const handleDuplicate = async (bannerId: string) => {
+  const handleToggleStatus = async (banner: BannerItem) => {
+    const id = banner.id || banner._id;
+    const nextStatus = banner.status === "published" ? "archived" : "published";
     try {
-      const res: any = await apiPost(`admin/banners/${bannerId}/duplicate`, {});
-      if (res?.success) {
-        setSuccessMessage("Banner duplicated as a new draft.");
-        setTimeout(() => setSuccessMessage(null), 4000);
-        await fetchBanners();
-      } else {
-        setError(res?.error || "Failed to duplicate banner.");
-      }
+      await apiPatch(`admin/banners/${id}`, { status: nextStatus });
+      toast.success(nextStatus === "published" ? "Banner published." : "Banner archived.");
+      fetchBanners();
     } catch (err: any) {
-      setError(err?.message || "Failed to duplicate banner.");
+      toast.error(err?.message || "Failed to update banner status.");
     }
   };
 
-  // Execute Confirmed Transition Action (Publish / Unpublish / Archive)
-  const handleExecuteConfirmedAction = async () => {
-    if (!confirmAction) return;
-    const { type, banner } = confirmAction;
-
-    setIsProcessingAction(true);
+  const handleDelete = async (banner: BannerItem) => {
+    const id = banner.id || banner._id;
     try {
-      const endpoint = `admin/banners/${banner.id}/${type}`;
-      const res: any = await apiPost(endpoint, {});
-
-      if (res?.success) {
-        setSuccessMessage(res.message || `Banner successfully ${type}ed.`);
-        setTimeout(() => setSuccessMessage(null), 4000);
-        setConfirmAction(null);
-        await fetchBanners();
-      } else {
-        setError(res?.error || `Failed to ${type} banner.`);
-      }
+      await apiDelete(`admin/banners/${id}`);
+      toast.success("Banner deleted.");
+      setBanners((prev) => prev.filter((b) => (b.id || b._id) !== id));
     } catch (err: any) {
-      setError(err?.message || `Failed to ${type} banner.`);
-    } finally {
-      setIsProcessingAction(false);
+      toast.error(err?.message || "Failed to delete banner.");
     }
   };
-
-  // Currently Active Hero Finder
-  const currentActiveHero = useMemo(() => {
-    return banners.find((b) => b.id === activeHomepageHeroId) || null;
-  }, [banners, activeHomepageHeroId]);
 
   return (
-    <div className="space-y-6 pb-12 max-w-7xl mx-auto">
-      {/* 1. Header & Active Homepage Hero Status Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#14161D] p-6 rounded-3xl border border-[#ECEEF2] dark:border-white/10 shadow-sm">
+    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#14161D] p-6 rounded-3xl border border-border/60 dark:border-white/10 shadow-sm">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFC928]/20 flex items-center justify-center text-[#171717] dark:text-[#FFC928]">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black text-[#171717] dark:text-white tracking-tight">
-                Banner Management
-              </h1>
-              <p className="text-xs sm:text-sm text-[#5B636E] dark:text-neutral-400 mt-0.5">
-                Dynamic advertisement, homepage hero, and promotional campaign engine.
-              </p>
-            </div>
-          </div>
+          <h1 className="text-2xl font-black text-[#171717] dark:text-white tracking-tight">
+            Banners
+          </h1>
+          <p className="text-xs text-muted-foreground dark:text-neutral-400 mt-1">
+            Upload WebP banner images, set an active timeframe, and link to a store profile or listing.
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
-            type="button"
             onClick={fetchBanners}
             disabled={isLoading}
-            className="radius-native inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#DCE1E7] dark:border-white/10 bg-white dark:bg-white/5 text-[13px] font-semibold text-[#171717] dark:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-[#F2F4F7] dark:bg-white/10 hover:bg-[#E5E7EB] dark:hover:bg-white/15 text-xs font-bold text-[#171717] dark:text-white transition-colors cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            Refresh
           </button>
-
           <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="radius-native inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] shadow-xs transition-colors"
+            onClick={openCreateModal}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] text-xs font-black transition-colors cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Create Banner</span>
+            <Plus className="w-4 h-4" />
+            New Banner
           </button>
         </div>
       </div>
 
-      {/* 2. Active Hero Indicator Card */}
-      <div className="bg-[#FFF8E6] dark:bg-[#2B230B] border border-[#FFE182] dark:border-[#52410D] rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#FFC928] flex items-center justify-center text-[#171717] shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#B45309] dark:text-[#FFC928]">
-                Homepage Hero Status
-              </span>
-              <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-            </div>
-
-            {currentActiveHero ? (
-              <div className="mt-1">
-                <p className="text-[14px] font-bold text-[#171717] dark:text-white">
-                  &ldquo;{currentActiveHero.headline}&rdquo;
-                  <span className="text-[12px] font-normal text-[#5B636E] dark:text-neutral-400 ml-2">
-                    (Campaign: {currentActiveHero.name})
-                  </span>
-                </p>
-                <div className="flex flex-wrap items-center gap-3 text-[11.5px] text-[#5B636E] dark:text-neutral-300 mt-0.5">
-                  <span>Priority: {currentActiveHero.priority}</span>
-                  <span>·</span>
-                  <span>CTA: &ldquo;{currentActiveHero.ctaLabel}&rdquo; → {currentActiveHero.ctaUrl}</span>
-                  <span>·</span>
-                  <span>
-                    Ends: {currentActiveHero.endAt ? new Date(currentActiveHero.endAt).toLocaleDateString() : "Indefinite"}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-1">
-                <p className="text-[14px] font-bold text-[#171717] dark:text-white">
-                  Default Fallback Hero Active
-                </p>
-                <p className="text-[12px] text-[#5B636E] dark:text-neutral-300">
-                  Rendering native &ldquo;Aspire Elevation&rdquo; fallback card. Publish an eligible hero banner to override.
-                </p>
-              </div>
-            )}
-          </div>
+      {/* Banner List */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-56 rounded-3xl bg-white dark:bg-[#14161D] border border-border/50 dark:border-white/10 animate-pulse" />
+          ))}
         </div>
-
-        <Link
-          href="/"
-          target="_blank"
-          className="radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-[#E2B734]/40 text-[12px] font-bold text-[#171717] dark:text-white hover:bg-white/80 transition-colors self-start md:self-center shrink-0"
-        >
-          <span>View Live Site</span>
-          <ExternalLink className="w-3 h-3" />
-        </Link>
-      </div>
-
-      {/* Success Alert */}
-      {successMessage && (
-        <div className="p-4 rounded-xl bg-[#DCFCE7] dark:bg-green-950/40 border border-[#86EFAC] dark:border-green-800 text-[#15803D] dark:text-green-300 text-[13px] font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{successMessage}</span>
-        </div>
-      )}
-
-      {/* Global Error Alert */}
-      {error && (
-        <div className="p-4 rounded-xl bg-[#FEE2E2] dark:bg-red-950/40 border border-[#FCA5A5] dark:border-red-800 text-[#B91C1C] dark:text-red-300 text-[13px] font-semibold flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
+      ) : banners.length === 0 ? (
+        <div className="bg-white dark:bg-[#14161D] rounded-3xl border border-border/60 dark:border-white/10 p-12 text-center">
+          <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-bold text-foreground dark:text-white">No banners yet</p>
+          <p className="text-xs text-muted-foreground dark:text-neutral-400 mt-1">
+            Upload a WebP banner image to feature a store or listing on the marketplace.
+          </p>
           <button
-            type="button"
-            onClick={() => setError(null)}
-            className="text-red-500 hover:text-red-700"
+            onClick={openCreateModal}
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] text-[#171717] text-xs font-black cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
+            Upload Banner
           </button>
         </div>
-      )}
-
-      {/* 3. Search and Filtering Bar */}
-      <div className="bg-white dark:bg-[#14161D] p-4 rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#8C929C] absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search banners by name or headline..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 text-[13px] text-[#171717] dark:text-white placeholder:text-[#8C929C] focus:outline-none focus:border-[#FFC928]"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 text-[12.5px] font-semibold text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-          >
-            <option value="all">All Statuses</option>
-            <option value="published">Published</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="draft">Draft</option>
-            <option value="archived">Archived</option>
-          </select>
-
-          {/* Placement Filter */}
-          <select
-            value={placementFilter}
-            onChange={(e) => {
-              setPlacementFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#E2E6EC] dark:border-white/10 text-[12.5px] font-semibold text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-          >
-            <option value="all">All Placements</option>
-            <option value="homepage_hero">Homepage Hero</option>
-            <option value="promo_strip">Promotional Strip</option>
-            <option value="category_promo">Category Promo</option>
-          </select>
-        </div>
-      </div>
-
-      {/* 4. Banner List / Table */}
-      <div className="bg-white dark:bg-[#14161D] rounded-2xl border border-[#ECEEF2] dark:border-white/10 shadow-xs overflow-hidden">
-        {isLoading && banners.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <Loader2 className="w-8 h-8 text-[#FFC928] animate-spin mb-3" />
-            <p className="text-[13px] text-[#5B636E] dark:text-neutral-400">
-              Loading promotional banners...
-            </p>
-          </div>
-        ) : banners.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center">
-            <div className="w-14 h-14 rounded-full bg-[#F5F6F8] dark:bg-white/5 flex items-center justify-center text-[#8C929C] mb-3">
-              <Megaphone className="w-7 h-7" />
-            </div>
-            <h3 className="text-[15px] font-bold text-[#171717] dark:text-white">
-              No banners found
-            </h3>
-            <p className="text-[13px] text-[#5B636E] dark:text-neutral-400 max-w-sm mt-1">
-              {searchQuery || statusFilter !== "all" || placementFilter !== "all"
-                ? "No promotional banners match your search or filter criteria."
-                : "No banners created yet. Create your first promotional banner to showcase on the homepage."}
-            </p>
-            <button
-              type="button"
-              onClick={handleOpenCreate}
-              className="mt-4 radius-native inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[12.5px] shadow-xs transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create First Banner</span>
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#ECEEF2] dark:border-white/10 bg-[#FAFAFA] dark:bg-white/[0.02] text-[11.5px] font-bold uppercase tracking-wider text-[#68707A] dark:text-neutral-400">
-                  <th className="py-3 px-4">Banner & Headline</th>
-                  <th className="py-3 px-4">Placement</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Schedule</th>
-                  <th className="py-3 px-4">Updated</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#ECEEF2] dark:divide-white/5 text-[13px]">
-                {banners.map((b) => {
-                  const isHeroWinner = b.id === activeHomepageHeroId;
-                  const nowMs = Date.now();
-                  const startMs = new Date(b.startAt).getTime();
-                  const isScheduledFuture =
-                    b.status === "published" && startMs > nowMs;
-
-                  return (
-                    <tr
-                      key={b.id}
-                      className="hover:bg-[#F9FAFB] dark:hover:bg-white/[0.02] transition-colors"
-                    >
-                      {/* Thumbnail & Title */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-14 h-9 rounded-lg bg-[#F1F3F6] dark:bg-white/5 overflow-hidden shrink-0 border border-[#E2E6EC] dark:border-white/10 relative">
-                            {b.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={b.imageUrl}
-                                alt={b.imageAlt || b.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[#8C929C]">
-                                <ImageIcon className="w-4 h-4" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0 max-w-xs">
-                            <p className="font-bold text-[#171717] dark:text-white truncate">
-                              {b.name}
-                            </p>
-                            <p className="text-[12px] text-[#5B636E] dark:text-neutral-400 truncate">
-                              &ldquo;{b.headline}&rdquo;
-                            </p>
-                            {b.ctaUrl.startsWith("/profile/") && (
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <Link
-                                  href={b.ctaUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                                >
-                                  <User className="w-3 h-3" />
-                                  <span>Profile: @{b.ctaUrl.replace(/^\/profile\//, "").replace(/^\//, "")}</span>
-                                  <ArrowUpRight className="w-2.5 h-2.5" />
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Placement */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#F1F3F6] dark:bg-white/10 text-[#3B4148] dark:text-neutral-300 capitalize">
-                            {b.placement.replace("_", " ")}
-                          </span>
-                          {b.placement === "category_promo" && b.targetCategory && (
-                            <span className="text-[11px] text-[#B45309] dark:text-[#FFC928] font-semibold">
-                              {b.targetCategory}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Priority */}
-                      <td className="py-3.5 px-4">
-                        <span className="font-mono text-[12px] font-bold text-[#171717] dark:text-white">
-                          P: {b.priority}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col items-start gap-1">
-                          {isHeroWinner ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]">
-                              <Sparkles className="w-2.5 h-2.5" />
-                              <span>Active Hero</span>
-                            </span>
-                          ) : isScheduledFuture ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
-                              Scheduled
-                            </span>
-                          ) : b.status === "published" ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#DCFCE7] text-[#15803D]">
-                              Published
-                            </span>
-                          ) : b.status === "draft" ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#F1F3F6] text-[#5B636E]">
-                              Draft
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
-                              Archived
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Schedule */}
-                      <td className="py-3.5 px-4 text-[12px] text-[#5B636E] dark:text-neutral-400">
-                        <div>
-                          <span>Start: {new Date(b.startAt).toLocaleDateString()}</span>
-                        </div>
-                        <div>
-                          <span>
-                            End: {b.endAt ? new Date(b.endAt).toLocaleDateString() : "Indefinite"}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Updated */}
-                      <td className="py-3.5 px-4 text-[12px] text-[#8C929C]">
-                        {new Date(b.updatedAt || b.createdAt).toLocaleDateString()}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            title="Edit banner"
-                            onClick={() => handleOpenEdit(b)}
-                            className="p-1.5 rounded-lg text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/10 transition-colors"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            title="Duplicate as draft"
-                            onClick={() => handleDuplicate(b.id)}
-                            className="p-1.5 rounded-lg text-[#5B636E] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/10 transition-colors"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-
-                          {b.status !== "published" && b.status !== "archived" && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setConfirmAction({ type: "publish", banner: b })
-                              }
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#DCFCE7] text-[#15803D] hover:bg-[#BBF7D0] transition-colors"
-                            >
-                              Publish
-                            </button>
-                          )}
-
-                          {b.status === "published" && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setConfirmAction({ type: "unpublish", banner: b })
-                              }
-                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#FFF3C4] text-[#92400E] hover:bg-[#FDE68A] transition-colors"
-                            >
-                              Unpublish
-                            </button>
-                          )}
-
-                          {b.status !== "archived" && (
-                            <button
-                              type="button"
-                              title="Archive banner"
-                              onClick={() =>
-                                setConfirmAction({ type: "archive", banner: b })
-                              }
-                              className="p-1.5 rounded-lg text-[#8C929C] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                            >
-                              <Archive className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Pagination Bar */}
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-[#ECEEF2] dark:border-white/10 flex items-center justify-between text-[12.5px] text-[#5B636E] dark:text-neutral-400">
-            <span>
-              Showing page {currentPage} of {totalPages} ({totalCount} total banners)
-            </span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                disabled={currentPage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1 rounded-lg border border-[#DCE1E7] dark:border-white/10 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/[0.03] transition-colors"
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {banners.map((banner) => {
+            const id = banner.id || banner._id || "";
+            const isPublished = banner.status === "published";
+            return (
+              <div
+                key={id}
+                className="bg-white dark:bg-[#14161D] rounded-3xl border border-border/60 dark:border-white/10 overflow-hidden shadow-sm flex flex-col"
               >
-                Previous
-              </button>
-              <button
-                type="button"
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1 rounded-lg border border-[#DCE1E7] dark:border-white/10 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/[0.03] transition-colors"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 5. Banner Editor Modal with Interactive Live Preview */}
-      {isEditorOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white dark:bg-[#14161D] w-full max-w-5xl rounded-3xl border border-[#ECEEF2] dark:border-white/15 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#ECEEF2] dark:border-white/10 flex items-center justify-between bg-[#FAFAFA] dark:bg-white/[0.02]">
-              <div>
-                <h2 className="text-[17px] font-black text-[#171717] dark:text-white">
-                  {editingBanner ? "Edit Promotional Banner" : "Create New Promotional Banner"}
-                </h2>
-                <p className="text-[12px] text-[#68707A] dark:text-neutral-400">
-                  Configure campaign copy, media assets, schedule intervals, and priority weighting.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsEditorOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[#68707A] hover:text-[#171717] dark:hover:text-white hover:bg-black/[0.05] dark:hover:bg-white/10 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body: Split Editor & Live Preview */}
-            <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column: Form Inputs (7 cols) */}
-              <div className="lg:col-span-7 space-y-4">
-                {formError && (
-                  <div className="p-3.5 rounded-xl bg-[#FEE2E2] dark:bg-red-950/40 border border-[#FCA5A5] text-[#B91C1C] dark:text-red-300 text-[12.5px] font-semibold flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{formError}</span>
-                  </div>
-                )}
-
-                {conflictWarning && (
-                  <div className="p-3.5 rounded-xl bg-[#FFF3C4] dark:bg-amber-950/40 border border-[#FDE68A] text-[#92400E] dark:text-amber-300 text-[12px] font-medium flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{conflictWarning}</span>
-                  </div>
-                )}
-
-                {/* Banner Name & Placement */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      Internal Campaign Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formName}
-                      onChange={(e) => setFormName(e.target.value)}
-                      placeholder="e.g. Back to School Tech Promo"
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      Placement *
-                    </label>
-                    <select
-                      value={formPlacement}
-                      onChange={(e) =>
-                        setFormPlacement(e.target.value as BannerPlacement)
-                      }
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
+                <div className="relative aspect-[16/5] bg-[#F7F8FA] dark:bg-black/30 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={banner.imageUrl}
+                    alt="Banner"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 flex items-center gap-2">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        isPublished
+                          ? "bg-emerald-500 text-white"
+                          : "bg-neutral-800/80 text-neutral-200"
+                      }`}
                     >
-                      <option value="homepage_hero">Homepage Hero (Single Active)</option>
-                      <option value="promo_strip">Promotional Strip (Multi-card)</option>
-                      <option value="category_promo">Category Promotion</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Target Category if Category Promo */}
-                {formPlacement === "category_promo" && (
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      Target Category *
-                    </label>
-                    <select
-                      value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    >
-                      {CATEGORY_OPTIONS.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Headline & Description */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[12px] font-bold text-[#171717] dark:text-white">
-                      Headline *
-                    </label>
-                    <span className="text-[11px] text-[#8C929C]">
-                      {formHeadline.length}/150
+                      {banner.status}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold">
+                      {banner.placement === "category_banner" ? "Category" : "Homepage Hero"}
                     </span>
                   </div>
+                </div>
+
+                <div className="p-4 flex-1 flex flex-col justify-between gap-3 text-xs">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-muted-foreground dark:text-neutral-400 truncate">
+                      <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                      {banner.ctaUrl ? (
+                        <span className="font-semibold text-foreground dark:text-white truncate">
+                          {banner.ctaUrl}
+                        </span>
+                      ) : (
+                        <span className="italic">No destination link</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground dark:text-neutral-400">
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        {banner.startAt || banner.endAt
+                          ? `${banner.startAt ? new Date(banner.startAt).toLocaleDateString() : "Now"} → ${
+                              banner.endAt ? new Date(banner.endAt).toLocaleDateString() : "No end date"
+                            }`
+                          : "Always active"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-border/40 dark:border-white/10 flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleToggleStatus(banner)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#F2F4F7] dark:bg-white/10 hover:bg-[#E5E7EB] dark:hover:bg-white/15 font-bold text-foreground dark:text-white cursor-pointer"
+                    >
+                      {isPublished ? <Archive className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span>{isPublished ? "Archive" : "Publish"}</span>
+                    </button>
+                    <button
+                      onClick={() => openEditModal(banner)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#F2F4F7] dark:bg-white/10 hover:bg-[#E5E7EB] dark:hover:bg-white/15 font-bold text-foreground dark:text-white cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(banner)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 font-bold text-rose-600 dark:text-rose-400 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Simple Create / Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#14161D] w-full max-w-lg rounded-3xl border border-border dark:border-white/10 shadow-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/50 dark:border-white/10 flex items-center justify-between">
+              <h2 className="text-base font-black text-foreground dark:text-white">
+                {editingBanner ? "Edit Banner" : "Upload Banner"}
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#F2F4F7] dark:bg-white/10 flex items-center justify-center text-foreground dark:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="p-5 space-y-4 text-xs">
+              {/* Placement */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-foreground dark:text-white">Placement</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["homepage_hero", "category_banner"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPlacement(p)}
+                      className={`py-2 px-3 rounded-xl border font-bold text-center transition-colors cursor-pointer ${
+                        placement === p
+                          ? "border-[#171717] bg-[#171717] text-white dark:border-[#FFC928] dark:bg-[#FFC928] dark:text-[#171717]"
+                          : "border-border dark:border-white/10 text-muted-foreground dark:text-neutral-300"
+                      }`}
+                    >
+                      {p === "homepage_hero" ? "Homepage Hero" : "Category Banner"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* WebP Image Upload */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-foreground dark:text-white">
+                    Banner Image (WebP)
+                  </label>
+                  <span className="text-[11px] text-muted-foreground dark:text-neutral-400">
+                    Recommended: {RECOMMENDED_DIMENSIONS[placement]}
+                  </span>
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/webp"
+                  onChange={handleWebpUpload}
+                  className="hidden"
+                />
+
+                {imageUrl ? (
+                  <div className="relative rounded-2xl overflow-hidden border border-border dark:border-white/10 aspect-[16/5] bg-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={imageUrl} alt="Banner preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-xl bg-black/75 text-white font-bold text-[11px] hover:bg-black cursor-pointer"
+                    >
+                      Replace WebP
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full py-8 rounded-2xl border-2 border-dashed border-border dark:border-white/15 hover:border-[#FFC928] flex flex-col items-center justify-center gap-2 text-muted-foreground dark:text-neutral-400 transition-colors cursor-pointer"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-[#FFC928]" />
+                    ) : (
+                      <Upload className="w-6 h-6" />
+                    )}
+                    <span className="font-bold text-foreground dark:text-white">
+                      {isUploading ? "Uploading..." : "Click to upload .webp image"}
+                    </span>
+                    <span className="text-[11px]">{RECOMMENDED_DIMENSIONS[placement]}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Destination Link */}
+              <div className="space-y-1.5">
+                <label className="block font-bold text-foreground dark:text-white">
+                  Link to Profile or Listing
+                </label>
+                <div className="relative">
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    value={formHeadline}
-                    maxLength={150}
-                    onChange={(e) => setFormHeadline(e.target.value)}
-                    placeholder="e.g. Elevate Your Semester with Tech Deals."
-                    className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
+                    value={ctaUrl}
+                    onChange={(e) => setCtaUrl(e.target.value)}
+                    placeholder="/stores/store-slug or /listing/listing-id"
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-border dark:border-white/15 bg-white dark:bg-[#181B24] text-foreground dark:text-white placeholder:text-muted-foreground focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928]"
                   />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[12px] font-bold text-[#171717] dark:text-white">
-                      Description (Optional)
-                    </label>
-                    <span className="text-[11px] text-[#8C929C]">
-                      {formDescription.length}/300
-                    </span>
-                  </div>
-                  <textarea
-                    rows={2}
-                    value={formDescription}
-                    maxLength={300}
-                    onChange={(e) => setFormDescription(e.target.value)}
-                    placeholder="e.g. Verified laptops, power banks, and accessories from campus stores."
-                    className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                  />
-                </div>
-
-                {/* Desktop Image Upload & URL */}
-                <div>
-                  <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                    Desktop Image URL *
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={formImageUrl}
-                      onChange={(e) => {
-                        setFormImageUrl(e.target.value);
-                        setPreviewImageError(false);
-                      }}
-                      placeholder="https://... or upload below"
-                      className="flex-1 px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    />
-                    <input
-                      type="file"
-                      ref={desktopFileInputRef}
-                      onChange={(e) => handleFileUpload(e, "desktop")}
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      disabled={isUploadingDesktop}
-                      onClick={() => desktopFileInputRef.current?.click()}
-                      className="px-3 py-2 rounded-xl bg-[#171717] hover:bg-[#2B2B2B] text-white text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
-                    >
-                      {isUploadingDesktop ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Upload className="w-3.5 h-3.5" />
-                      )}
-                      <span>Upload</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mobile Image (Optional) & Image Alt */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      Mobile Image URL (Optional)
-                    </label>
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={formMobileImageUrl}
-                        onChange={(e) => setFormMobileImageUrl(e.target.value)}
-                        placeholder="Optional portrait asset"
-                        className="flex-1 px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[12.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                      />
-                      <input
-                        type="file"
-                        ref={mobileFileInputRef}
-                        onChange={(e) => handleFileUpload(e, "mobile")}
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        disabled={isUploadingMobile}
-                        onClick={() => mobileFileInputRef.current?.click()}
-                        className="px-2.5 py-2 rounded-xl bg-gray-200 dark:bg-white/10 text-[#171717] dark:text-white text-[12px] font-semibold"
-                      >
-                        {isUploadingMobile ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                      Image Alt Text * (Accessibility)
-                    </label>
-                    <input
-                      type="text"
-                      value={formImageAlt}
-                      onChange={(e) => setFormImageAlt(e.target.value)}
-                      placeholder="e.g. Student studying with laptop"
-                      className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                    />
-                  </div>
-                </div>
-
-                {/* CTA Button Label & Destination URL */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1.5">
-                      Link Destination Type
-                    </label>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDestinationType("custom");
-                          if (formCtaUrl.startsWith("/profile/") || formCtaUrl.startsWith("/stores/")) {
-                            setFormCtaUrl("/explore");
-                          }
-                        }}
-                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
-                          destinationType === "custom"
-                            ? "bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent shadow-xs"
-                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
-                        }`}
-                      >
-                        <LinkIcon className="w-3.5 h-3.5" />
-                        <span>General Page / URL</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDestinationType("profile");
-                          let targetHandle = selectedProfileHandle;
-                          if (!targetHandle && userList.length > 0) {
-                            targetHandle = getUserHandle(userList[0]);
-                            setSelectedProfileHandle(targetHandle);
-                          }
-                          setFormCtaUrl(targetHandle ? `/profile/${targetHandle}` : "/profile/");
-                          if (formCtaLabel === "Explore now" || !formCtaLabel) {
-                            setFormCtaLabel("View Profile");
-                          }
-                        }}
-                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
-                          destinationType === "profile"
-                            ? "bg-blue-600 text-white border-transparent shadow-xs"
-                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
-                        }`}
-                      >
-                        <User className="w-3.5 h-3.5" />
-                        <span>Link to Profile</span>
-                        <span className={`px-1.5 py-0.2 rounded-full text-[9.5px] font-bold ${destinationType === "profile" ? "bg-white text-blue-700" : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"}`}>
-                          Feature
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDestinationType("store");
-                          if (!formCtaUrl.startsWith("/stores/")) {
-                            setFormCtaUrl("/stores");
-                          }
-                          if (formCtaLabel === "Explore now" || !formCtaLabel) {
-                            setFormCtaLabel("Visit Store");
-                          }
-                        }}
-                        className={`radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer ${
-                          destinationType === "store"
-                            ? "bg-[#171717] dark:bg-white text-white dark:text-[#171717] border-transparent shadow-xs"
-                            : "bg-white dark:bg-white/5 border-[#DCE1E7] dark:border-white/10 text-[#5B636E] dark:text-neutral-300 hover:text-[#171717] dark:hover:text-white"
-                        }`}
-                      >
-                        <Store className="w-3.5 h-3.5" />
-                        <span>Storefront</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Profile Link Setup Panel */}
-                  {destinationType === "profile" && (
-                    <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-bold text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
-                          <User className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                          <span>Select Profile to Link Banner</span>
-                        </span>
-                        {selectedProfileHandle && (
-                          <Link
-                            href={`/profile/${selectedProfileHandle}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-                          >
-                            <span>Open Profile in Tab</span>
-                            <ArrowUpRight className="w-3 h-3" />
-                          </Link>
-                        )}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400">
-                          Choose Registered User or Seller ({userList.length} available)
-                        </label>
-                        <select
-                          value={selectedProfileHandle}
-                          onChange={(e) => {
-                            const handle = e.target.value;
-                            setSelectedProfileHandle(handle);
-                            if (handle) {
-                              setFormCtaUrl(`/profile/${handle}`);
-                              if (formCtaLabel === "Explore now" || !formCtaLabel) {
-                                setFormCtaLabel("View Profile");
-                              }
-                            }
-                          }}
-                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12.5px] text-[#171717] dark:text-white focus:outline-none focus:border-blue-500"
-                        >
-                          <option value="">-- Choose registered profile or enter handle below --</option>
-                          {userList.map((u) => {
-                            const handle = getUserHandle(u);
-                            const name = getUserDisplayName(u);
-                            return (
-                              <option key={u._id} value={handle}>
-                                {name} (@{handle}) {u.studentVerified ? "· [Verified Student]" : ""} {u.role === "admin" ? "· [Admin]" : ""}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                            Or Enter Handle Directly
-                          </label>
-                          <div className="relative flex items-center">
-                            <span className="absolute left-3 text-[#8C929C] text-[12px] font-bold">@</span>
-                            <input
-                              type="text"
-                              value={selectedProfileHandle}
-                              onChange={(e) => {
-                                const clean = e.target.value.replace(/^@/, "").trim().toLowerCase();
-                                setSelectedProfileHandle(clean);
-                                setFormCtaUrl(clean ? `/profile/${clean}` : "/profile/");
-                              }}
-                              placeholder="e.g. tunde_bello"
-                              className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white focus:outline-none focus:border-blue-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                            Target Profile URL
-                          </label>
-                          <div className="px-3 py-1.5 rounded-lg bg-white/80 dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] font-mono font-semibold text-blue-700 dark:text-blue-300 truncate">
-                            {formCtaUrl || "/profile/"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {selectedProfileHandle && (
-                        <div className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-blue-200/60 dark:border-white/10 flex items-center justify-between">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-[12px] shrink-0">
-                              {selectedProfileHandle.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[12px] font-bold text-[#171717] dark:text-white truncate">
-                                @{selectedProfileHandle}
-                              </p>
-                              <p className="text-[10.5px] text-[#5B636E] dark:text-neutral-400">
-                                Banner clicks will route directly to this student profile
-                              </p>
-                            </div>
-                          </div>
-                          <Link
-                            href={`/profile/${selectedProfileHandle}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="radius-native px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold inline-flex items-center gap-1 shrink-0 transition-colors"
-                          >
-                            <span>Visit Profile</span>
-                            <ArrowUpRight className="w-3 h-3" />
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Storefront Link Setup Panel */}
-                  {destinationType === "store" && (
-                    <div className="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-                          <Store className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                          <span>Link Banner to Campus Storefront</span>
-                        </span>
-                        {selectedStoreSlug && (
-                          <Link
-                            href={`/stores/${selectedStoreSlug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[11.5px] font-bold text-amber-700 dark:text-amber-400 hover:underline inline-flex items-center gap-1"
-                          >
-                            <span>Open Storefront in Tab</span>
-                            <ArrowUpRight className="w-3 h-3" />
-                          </Link>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                            Store Slug
-                          </label>
-                          <input
-                            type="text"
-                            value={selectedStoreSlug}
-                            onChange={(e) => {
-                              const clean = e.target.value.trim().toLowerCase();
-                              setSelectedStoreSlug(clean);
-                              setFormCtaUrl(clean ? `/stores/${clean}` : "/stores");
-                            }}
-                            placeholder="e.g. campus-closet"
-                            className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-[#14161D] border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                            Target Storefront URL
-                          </label>
-                          <div className="px-3 py-1.5 rounded-lg bg-white/80 dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] font-mono font-semibold text-amber-700 dark:text-amber-300 truncate">
-                            {formCtaUrl || "/stores"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Button Label & Final Destination URL */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[12px] font-bold text-[#171717] dark:text-white">
-                          CTA Button Label *
-                        </label>
-                        {destinationType === "profile" && (
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => setFormCtaLabel("View Profile")}
-                              className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                              &ldquo;View Profile&rdquo;
-                            </button>
-                            <span className="text-[#8C929C] text-[10px]">·</span>
-                            <button
-                              type="button"
-                              onClick={() => setFormCtaLabel("Visit Seller")}
-                              className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                              &ldquo;Visit Seller&rdquo;
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        type="text"
-                        value={formCtaLabel}
-                        onChange={(e) => setFormCtaLabel(e.target.value)}
-                        placeholder="e.g. Explore now or View Profile"
-                        className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[12px] font-bold text-[#171717] dark:text-white mb-1">
-                        CTA Destination URL *
-                      </label>
-                      <input
-                        type="text"
-                        value={formCtaUrl}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setFormCtaUrl(val);
-                          if (val.startsWith("/profile/")) {
-                            setDestinationType("profile");
-                            setSelectedProfileHandle(val.replace("/profile/", "").replace(/^@/, ""));
-                          } else if (val.startsWith("/stores/")) {
-                            setDestinationType("store");
-                            setSelectedStoreSlug(val.replace("/stores/", ""));
-                          }
-                        }}
-                        placeholder="/explore, /profile/handle, or https://..."
-                        className="w-full px-3 py-2 rounded-xl bg-[#F7F8FA] dark:bg-white/5 border border-[#DCE1E7] dark:border-white/10 text-[13px] text-[#171717] dark:text-white focus:outline-none focus:border-[#FFC928]"
-                      />
-                    </div>
-                  </div>
-
-                  {destinationType === "custom" && (
-                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                      <span className="text-[11px] font-semibold text-[#8C929C]">Quick presets:</span>
-                      {[
-                        { label: "Marketplace", url: "/explore" },
-                        { label: "Wanted Radar", url: "/wanted" },
-                        { label: "All Stores", url: "/stores" },
-                      ].map((preset) => (
-                        <button
-                          key={preset.url}
-                          type="button"
-                          onClick={() => setFormCtaUrl(preset.url)}
-                          className="px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-[#F1F3F6] dark:bg-white/5 hover:bg-[#E4E7EC] dark:hover:bg-white/10 text-[#3B4148] dark:text-neutral-300 transition-colors cursor-pointer"
-                        >
-                          {preset.label} ({preset.url})
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Schedule: Start, Indefinite, End, Priority */}
-                <div className="p-4 rounded-2xl bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/10 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-[#B45309]" />
-                      <span>Campaign Schedule & Priority</span>
-                    </span>
-
-                    <label className="inline-flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={isIndefinite}
-                        onChange={(e) => setIsIndefinite(e.target.checked)}
-                        className="w-4 h-4 rounded text-[#FFC928] focus:ring-[#FFC928]"
-                      />
-                      <span className="text-[12px] font-medium text-[#171717] dark:text-white">
-                        Run Indefinitely
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                        Start Date & Time (Server UTC)
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={formStartAt}
-                        onChange={(e) => setFormStartAt(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                        End Date & Time
-                      </label>
-                      <input
-                        type="datetime-local"
-                        disabled={isIndefinite}
-                        value={formEndAt}
-                        onChange={(e) => setFormEndAt(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                        Display Priority (0 - 1000)
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={1000}
-                        value={formPriority}
-                        onChange={(e) => setFormPriority(parseInt(e.target.value, 10) || 0)}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white"
-                      />
-                      <p className="text-[10.5px] text-[#8C929C] mt-0.5">
-                        Higher priority wins homepage hero position.
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#68707A] dark:text-neutral-400 mb-1">
-                        Publication Status
-                      </label>
-                      <select
-                        value={formStatus}
-                        onChange={(e) => setFormStatus(e.target.value as BannerStatus)}
-                        className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-[#DCE1E7] dark:border-white/10 text-[12px] text-[#171717] dark:text-white"
-                      >
-                        <option value="draft">Draft (Private)</option>
-                        <option value="scheduled">Scheduled (Starts at start time)</option>
-                        <option value="published">Published (Live if schedule permits)</option>
-                        <option value="archived">Archived</option>
-                      </select>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* Right Column: Interactive Live Preview (5 cols) */}
-              <div className="lg:col-span-5 flex flex-col space-y-3">
-                <div className="flex items-center justify-between pb-1">
-                  <span className="text-[12px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
-                    <Eye className="w-3.5 h-3.5 text-[#B45309]" />
-                    <span>Live Frontend Preview</span>
-                  </span>
-
-                  <div className="flex items-center gap-1 bg-[#F1F3F6] dark:bg-white/10 p-0.5 rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => setPreviewDevice("desktop")}
-                      className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                        previewDevice === "desktop"
-                          ? "bg-white dark:bg-black text-[#171717] dark:text-white shadow-xs"
-                          : "text-[#68707A] hover:text-[#171717]"
-                      }`}
-                    >
-                      <Monitor className="w-3 h-3" />
-                      <span>Desktop</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewDevice("mobile")}
-                      className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-colors ${
-                        previewDevice === "mobile"
-                          ? "bg-white dark:bg-black text-[#171717] dark:text-white shadow-xs"
-                          : "text-[#68707A] hover:text-[#171717]"
-                      }`}
-                    >
-                      <Smartphone className="w-3 h-3" />
-                      <span>Mobile</span>
-                    </button>
-                  </div>
+              {/* Timeframe */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-foreground dark:text-white">
+                    Start Time (Optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={startAt}
+                    onChange={(e) => setStartAt(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border dark:border-white/15 bg-white dark:bg-[#181B24] text-foreground dark:text-white focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928]"
+                  />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="block font-bold text-foreground dark:text-white">
+                    End Time (Optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={endAt}
+                    onChange={(e) => setEndAt(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-border dark:border-white/15 bg-white dark:bg-[#181B24] text-foreground dark:text-white focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928]"
+                  />
+                </div>
+              </div>
 
-                {/* Preview Box Frame */}
-                <div
-                  className={`border border-[#DCE1E7] dark:border-white/10 rounded-2xl p-4 bg-[#F7F8FA] dark:bg-black/20 flex items-center justify-center min-h-[300px] transition-all ${
-                    previewDevice === "mobile" ? "max-w-[340px] mx-auto w-full" : "w-full"
+              {/* Status */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="font-bold text-foreground dark:text-white">Publish immediately</label>
+                <button
+                  type="button"
+                  onClick={() => setStatus((s) => (s === "published" ? "archived" : "published"))}
+                  className={`px-3 py-1 rounded-full font-bold text-[11px] cursor-pointer ${
+                    status === "published"
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {formPlacement === "homepage_hero" ? (
-                    /* Hero Banner Preview (matching RebrandHero center column) */
-                    <div className="radius-native relative overflow-hidden w-full rounded-2xl bg-gradient-to-br from-[#FFE182] via-[#FFD54F] to-[#FFC928] dark:from-[#F5C84C] dark:via-[#E5B537] dark:to-[#D4A325] text-[#171717] p-5 sm:p-6 flex flex-col justify-center min-h-[190px] shadow-sm">
-                      {/* Image background layer */}
-                      {formImageUrl && !previewImageError && (
-                        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={
-                              previewDevice === "mobile" && formMobileImageUrl
-                                ? formMobileImageUrl
-                                : formImageUrl
-                            }
-                            alt={formImageAlt || formHeadline || "Preview"}
-                            onError={() => setPreviewImageError(true)}
-                            className="w-full h-full object-cover object-right opacity-35 mix-blend-multiply"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#FFE182] via-[#FFE182]/85 to-transparent" />
-                        </div>
-                      )}
-
-                      <div className="relative z-10 max-w-[380px]">
-                        <h3 className="text-[18px] sm:text-[22px] font-bold tracking-tight text-[#171717] leading-tight">
-                          {formHeadline || "Headline will appear here."}
-                        </h3>
-
-                        {formDescription && (
-                          <p className="mt-1.5 text-[12px] sm:text-[13px] text-[#262626] line-clamp-3">
-                            {formDescription}
-                          </p>
-                        )}
-
-                        <div className="mt-4">
-                          <span className="radius-native inline-flex items-center gap-1 rounded-xl bg-[#1A1A1A] text-white px-3.5 py-1.5 text-[11.5px] font-semibold shadow-xs">
-                            <span>{formCtaLabel || "Explore now"}</span>
-                            <span>→</span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Promo Strip / Category Promo Card Preview */
-                    <div className="radius-native relative overflow-hidden w-full rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-5 flex flex-col justify-between shadow-xs">
-                      {formImageUrl && !previewImageError && (
-                        <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={formImageUrl}
-                            alt={formImageAlt || formHeadline}
-                            onError={() => setPreviewImageError(true)}
-                            className="w-full h-full object-cover object-center"
-                          />
-                        </div>
-                      )}
-
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-[#B45309] dark:text-[#FFC928] uppercase tracking-wider mb-1">
-                          <Sparkles className="w-3 h-3" />
-                          <span>
-                            {formPlacement === "category_promo"
-                              ? `${formCategory} Promotion`
-                              : "Campus Highlight"}
-                          </span>
-                        </div>
-                        <h4 className="text-[15px] font-bold text-[#171717] dark:text-white leading-snug">
-                          {formHeadline || "Promotion headline preview"}
-                        </h4>
-                        {formDescription && (
-                          <p className="mt-1 text-[12px] text-[#5B636E] dark:text-neutral-300 line-clamp-2">
-                            {formDescription}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="relative z-10 mt-3 pt-2.5 border-t border-[#F1F3F6] dark:border-white/5 flex items-center justify-between">
-                        <span className="text-[11.5px] font-bold text-[#171717] dark:text-white">
-                          {formCtaLabel || "Learn more"}
-                        </span>
-                        <div className="w-6 h-6 rounded-full bg-[#FFC928] text-[#171717] flex items-center justify-center text-[10px] font-black">
-                          →
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3 rounded-xl bg-[#F7F8FA] dark:bg-white/[0.03] text-[11.5px] text-[#5B636E] dark:text-neutral-400 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Placement:</span>
-                    <strong className="text-[#171717] dark:text-white capitalize">
-                      {formPlacement.replace("_", " ")}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status on Save:</span>
-                    <strong className="text-[#171717] dark:text-white capitalize">
-                      {formStatus}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Destination:</span>
-                    <div className="flex items-center gap-1.5 truncate max-w-[200px]">
-                      {formCtaUrl.startsWith("/profile/") && (
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 shrink-0">
-                          Profile
-                        </span>
-                      )}
-                      <strong className="text-[#171717] dark:text-white truncate">
-                        {formCtaUrl}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
+                  {status === "published" ? "Published" : "Archived"}
+                </button>
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-[#ECEEF2] dark:border-white/10 flex items-center justify-between bg-[#FAFAFA] dark:bg-white/[0.02]">
-              <button
-                type="button"
-                onClick={() => setIsEditorOpen(false)}
-                className="px-4 py-2 rounded-xl border border-[#DCE1E7] dark:border-white/10 text-[13px] font-semibold text-[#171717] dark:text-white hover:bg-black/[0.03] transition-colors"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleSaveBanner}
-                className="radius-native inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[13px] shadow-xs transition-colors disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 stroke-[2.5]" />
-                    <span>{editingBanner ? "Update Banner" : "Create & Save"}</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Confirmation Modals */}
-      {confirmAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-[#14161D] w-full max-w-md rounded-3xl border border-[#ECEEF2] dark:border-white/15 p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                  confirmAction.type === "publish"
-                    ? "bg-[#DCFCE7] text-[#15803D]"
-                    : confirmAction.type === "unpublish"
-                    ? "bg-[#FFF3C4] text-[#92400E]"
-                    : "bg-red-100 text-red-600"
-                }`}
-              >
-                {confirmAction.type === "publish" ? (
-                  <CheckCircle2 className="w-5 h-5" />
-                ) : confirmAction.type === "unpublish" ? (
-                  <AlertTriangle className="w-5 h-5" />
-                ) : (
-                  <Archive className="w-5 h-5" />
-                )}
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-[#F2F4F7] dark:bg-white/10 font-bold text-foreground dark:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || isUploading}
+                  className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#262626] dark:bg-[#FFC928] dark:hover:bg-[#F2BD24] text-white dark:text-[#171717] font-black inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{editingBanner ? "Save Changes" : "Publish Banner"}</span>
+                </button>
               </div>
-              <div>
-                <h3 className="text-[16px] font-black text-[#171717] dark:text-white capitalize">
-                  {confirmAction.type} Banner
-                </h3>
-                <p className="text-[12px] text-[#68707A] dark:text-neutral-400">
-                  {confirmAction.banner.name}
-                </p>
-              </div>
-            </div>
-
-            <p className="text-[13px] text-[#3B4148] dark:text-neutral-200 leading-relaxed">
-              {confirmAction.type === "publish" &&
-                "Publishing this banner will make it eligible for public rendering according to its start/end schedule and priority ranking. Are you sure you want to proceed?"}
-              {confirmAction.type === "unpublish" &&
-                "Unpublishing this banner will immediately remove it from public display and revert it to Draft status. Are you sure you want to proceed?"}
-              {confirmAction.type === "archive" &&
-                "Archiving will remove this banner from active rotation while permanently retaining its configuration and audit history. This action cannot be undone directly."}
-            </p>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setConfirmAction(null)}
-                className="px-4 py-2 rounded-xl border border-[#DCE1E7] dark:border-white/10 text-[12.5px] font-semibold text-[#171717] dark:text-white hover:bg-black/[0.03] transition-colors"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                disabled={isProcessingAction}
-                onClick={handleExecuteConfirmedAction}
-                className={`radius-native inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12.5px] font-bold text-white shadow-xs transition-colors disabled:opacity-50 ${
-                  confirmAction.type === "publish"
-                    ? "bg-[#15803D] hover:bg-[#166534]"
-                    : confirmAction.type === "unpublish"
-                    ? "bg-[#D97706] hover:bg-[#B45309]"
-                    : "bg-[#DC2626] hover:bg-[#B91C1C]"
-                }`}
-              >
-                {isProcessingAction && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span className="capitalize">{confirmAction.type} Banner</span>
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}

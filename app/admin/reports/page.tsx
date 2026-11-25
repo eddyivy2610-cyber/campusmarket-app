@@ -121,6 +121,7 @@ export default function AdminReportsPage() {
                             <option value="user">Users</option>
                             <option value="review">Reviews</option>
                             <option value="radar">Campus Radar</option>
+                            <option value="support">Help &amp; Support</option>
                         </select>
 
                         <button

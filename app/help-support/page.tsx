@@ -9,6 +9,8 @@ import {
   ArrowRight,
   MessageSquare,
 } from "lucide-react";
+import { toast } from "sonner";
+import { apiPost } from "@/lib/apiClient";
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 
@@ -46,22 +48,32 @@ export default function HelpSupportPage() {
   const [category, setCategory] = useState("verification");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedToast, setSubmittedToast] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !message) return;
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      toast.error("Please fill in your name, email, and message.");
+      return;
+    }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmittedToast(true);
+    try {
+      await apiPost("support", {
+        name: name.trim(),
+        email: email.trim(),
+        category,
+        message: message.trim(),
+      });
+      toast.success("Support request sent! A moderator will reply via email.");
       setName("");
       setEmail("");
       setMessage("");
-      setTimeout(() => setSubmittedToast(false), 4500);
-    }, 600);
+    } catch (err: any) {
+      toast.error(err?.message || "Could not send support request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,15 +111,6 @@ export default function HelpSupportPage() {
 
         {/* Content Container: Centered, structured hierarchy */}
         <div className="space-y-6 max-w-[920px] mx-auto">
-          {submittedToast && (
-            <div className="radius-native p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[13px] font-semibold flex items-center gap-2.5 shadow-xs">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>
-                Thank you! Your support request has been logged. A student moderator will reply via your campus email within 2 hours.
-              </span>
-            </div>
-          )}
-
           {/* 1. Send Support Request Form (First on mobile & desktop) */}
           <form
             onSubmit={handleSubmit}
