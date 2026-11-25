@@ -10,6 +10,7 @@ import { FloatingActions } from "./components/locations/FloatingActions";
 import { SmoothScroll } from "./components/common/SmoothScroll";
 import { LayoutWrapper } from "./components/common/LayoutWrapper";
 import { AppToaster } from "./components/common/AppToaster";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Campus Hive - Aspire Elevation",
@@ -58,6 +59,7 @@ export default function RootLayout({
                     </LayoutWrapper>
                     <FloatingActions />
                     <AppToaster />
+                    <Analytics />
                   </SmoothScroll>
                 </SavedProvider>
               </SocketProvider>
