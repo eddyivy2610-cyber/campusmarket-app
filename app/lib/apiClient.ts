@@ -82,6 +82,75 @@ async function performSilentRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
+export function toFriendlyErrorMessage(raw?: string | null, status?: number): string {
+  const msg = (raw || "").trim();
+  const lower = msg.toLowerCase();
+
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("load failed") ||
+    lower.includes("err_network") ||
+    lower.includes("econnrefused") ||
+    lower.includes("etimedout")
+  ) {
+    return "Unable to connect right now. Please check your internet connection and try again.";
+  }
+
+  if (
+    lower.includes("csrf") ||
+    lower.includes("untrusted origin") ||
+    lower.includes("origin_rejected")
+  ) {
+    return "Your request couldn't be verified. Please refresh the page and try again.";
+  }
+
+  if (
+    lower.includes("<!doctype") ||
+    lower.includes("<html") ||
+    lower.includes("prisma") ||
+    lower.includes("syntaxerror") ||
+    lower.includes("typeerror:") ||
+    lower.includes("internal server error") ||
+    lower.includes("request failed (5") ||
+    (status !== undefined && status >= 500)
+  ) {
+    if (status === 503 || lower.includes("503")) {
+      return "This service is temporarily unavailable. Please try again in a moment.";
+    }
+    return "Something went wrong on our end. Please try again shortly.";
+  }
+
+  if (status === 429 || lower.includes("too many requests") || lower.includes("rate limit")) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+
+  if (
+    lower.includes("jwt") ||
+    lower.includes("token expired") ||
+    lower === "unauthorized" ||
+    lower.includes("invalid token")
+  ) {
+    return "Your session has expired. Please sign in again.";
+  }
+
+  if (lower === "forbidden" || lower.includes("forbidden:")) {
+    return "You don't have permission to perform this action.";
+  }
+
+  if (!msg || /^request failed \(\d+\)$/i.test(msg) || /^[a-z0-9_]+$/.test(msg)) {
+    if (status === 401) return "Your session has expired. Please sign in again.";
+    if (status === 403) return "You don't have permission to perform this action.";
+    if (status === 404) return "We couldn't find what you were looking for.";
+    if (status !== undefined && status >= 400 && status < 500) {
+      return "Please check your details and try again.";
+    }
+    return "Something went wrong. Please try again.";
+  }
+
+  return msg;
+}
+
 const apiRequest = async <T>(
   path: string,
   options: RequestInit = {},
@@ -97,15 +166,22 @@ const apiRequest = async <T>(
 
   const isAdminUrl = url.includes("/admin/");
   const storedToken = getStoredAccessToken(isAdminUrl);
-  const response = await fetch(url, {
-    credentials: "include",
-    ...options,
-    headers: {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      credentials: "include",
+      ...options,
+      headers: {
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch (err: any) {
+    const friendly = toFriendlyErrorMessage(err?.message);
+    const error: ApiError = new Error(friendly);
+    throw error;
+  }
 
   const contentType = response.headers.get("content-type") || "";
   const rawBody = await response.text();
@@ -161,12 +237,14 @@ const apiRequest = async <T>(
       ? (payload as { errors: string[] }).errors.join(", ")
       : "";
 
-    const message =
+    const rawMessage =
       payloadMessage ||
       payloadErrors ||
       `Request failed (${response.status})`;
 
-    const error: ApiError = new Error(message);
+    const error: ApiError = new Error(
+      toFriendlyErrorMessage(rawMessage, response.status)
+    );
     error.status = response.status;
     error.data = payload;
     throw error;

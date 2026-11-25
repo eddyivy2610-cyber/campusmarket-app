@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
+import { toFriendlyErrorMessage } from "@/lib/apiClient";
 
 export default function ForgotPasswordPage() {
   const [resetToken, setResetToken] = useState("");
@@ -37,10 +38,13 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       const response = await fetch("/api/auth/password-reset/request", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email }) });
-      if (!response.ok) throw new Error("Unable to process request.");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(toFriendlyErrorMessage(errData?.message || errData?.error, response.status));
+      }
       toast.success("Password reset link sent! Check your inbox.");
       setStep("verify");
-    } catch (error: any) { toast.error(error?.message || "Unable to process request."); }
+    } catch (error: any) { toast.error(toFriendlyErrorMessage(error?.message)); }
     finally { setIsLoading(false); }
   };
 
@@ -62,10 +66,12 @@ export default function ForgotPasswordPage() {
     try {
       const response = await fetch("/api/auth/password-reset/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: resetToken, password: newPassword }) });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || "Invalid or expired reset link.");
+      if (!response.ok) {
+        throw new Error(toFriendlyErrorMessage(data?.message || data?.error || "Invalid or expired reset link.", response.status));
+      }
       toast.success("Password updated! You can now sign in.");
       setStep("success");
-    } catch (error: any) { toast.error(error?.message || "Unable to reset password."); }
+    } catch (error: any) { toast.error(toFriendlyErrorMessage(error?.message)); }
     finally { setIsLoading(false); }
   };
 
