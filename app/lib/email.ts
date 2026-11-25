@@ -269,16 +269,27 @@ export async function sendOtpVerificationEmail(
   toEmail: string,
   otpCode: string
 ): Promise<EmailSendResult> {
-  const appBaseUrl = (
+  const configuredBase = (
     process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "")
-  ).replace(/\/$/, "");
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "")
+  )
+    .trim()
+    .replace(/\/$/, "");
+  const isPublicHttp =
+    /^https?:\/\//i.test(configuredBase) &&
+    !configuredBase.includes("localhost") &&
+    !configuredBase.includes("127.0.0.1");
+  const logoBaseUrl = isPublicHttp
+    ? configuredBase
+    : "https://campushiveng.vercel.app";
 
-  const logoMarkup = appBaseUrl
-    ? `<img src="${appBaseUrl}/logo-light.png?v=3" width="140" alt="CampusHive" style="display:block;width:140px;height:auto;margin:0 auto;border:0;" />`
-    : `<span style="font-size:24px;font-weight:800;color:#171717;">Campus<span style="color:#ffc928;">Hive</span></span>`;
+  const otpBoxesHtml = otpCode
+    .split("")
+    .map(
+      (digit) =>
+        `<td style="padding:0 4px;"><div style="width:42px;height:48px;line-height:48px;border-radius:12px;border:1px solid #dce0e6;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:800;color:#171717;text-align:center;">${digit}</div></td>`
+    )
+    .join("");
 
   const html = `
 <!DOCTYPE html>
@@ -286,51 +297,48 @@ export async function sendOtpVerificationEmail(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CampusHive Verification Code</title>
+  <title>Verification Code</title>
 </head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f7f8fa;margin:0;padding:24px;color:#171717;">
-  <div style="max-width:520px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">
-    <div style="margin-bottom:24px;text-align:center;">
-      ${logoMarkup}
-      <p style="color:#6b7280;font-size:14px;margin-top:4px;">Student Marketplace &amp; Community</p>
-    </div>
+<body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background-color:#f7f8fa;margin:0;padding:40px 16px;color:#171717;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:440px;margin:0 auto;">
+    <tr>
+      <td style="text-align:center;padding-bottom:24px;">
+        <img src="${logoBaseUrl}/logo-light.png?v=3" width="132" alt="Campus Hive" style="display:block;width:132px;height:auto;margin:0 auto;border:0;" />
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:#ffffff;border-radius:24px;border:1px solid #eceef2;padding:36px 28px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,0.03);">
+        <h1 style="font-size:20px;font-weight:700;margin:0 0 24px;color:#171717;letter-spacing:-0.01em;">
+          Here is your verification code
+        </h1>
 
-    <div style="border-top:1px solid #f3f4f6;padding-top:24px;margin-bottom:24px;">
-      <h3 style="font-size:18px;font-weight:700;margin:0 0 12px;color:#111827;">Confirm your email address</h3>
-      <p style="font-size:14px;color:#4b5563;line-height:1.6;margin:0 0 20px;">
-        Use the 6-digit code below to verify your email address and activate your CampusHive account.
-      </p>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 24px;">
+          <tr>
+            ${otpBoxesHtml}
+          </tr>
+        </table>
 
-      <div style="background-color:#f9fafb;border:2px dashed #d1d5db;border-radius:12px;padding:18px;text-align:center;margin-bottom:20px;">
-        <span style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:8px;color:#111827;">${otpCode}</span>
-      </div>
-
-      <p style="font-size:13px;color:#6b7280;line-height:1.5;margin:0 0 8px;">
-        This code will expire in <strong>10 minutes</strong>.
-      </p>
-      <p style="font-size:13px;color:#9ca3af;line-height:1.5;margin:0;">
-        If you did not request this verification code, you can safely ignore this email.
-      </p>
-    </div>
-
-    <div style="border-top:1px solid #f3f4f6;padding-top:16px;text-align:center;">
-      <p style="font-size:12px;color:#9ca3af;margin:0;">
-        CampusHive &bull; Connecting university students across campuses
-      </p>
-    </div>
-  </div>
+        <p style="font-size:13px;color:#6b7280;line-height:1.5;margin:0 0 8px;">
+          This code expires in <strong style="color:#171717;">10 minutes</strong>.
+        </p>
+        <p style="font-size:13px;color:#9ca3af;line-height:1.5;margin:0;">
+          Do not share this code with anyone. If you didn&rsquo;t request this, you can safely ignore this email.
+        </p>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `.trim();
 
   const text =
-    `Your CampusHive verification code is: ${otpCode}\n\n` +
-    "This code will expire in 10 minutes. " +
-    "If you did not request this, please ignore this email.";
+    `Here is your verification code: ${otpCode}\n\n` +
+    "This code expires in 10 minutes.\n" +
+    "Do not share this code with anyone. If you didn't request this, you can safely ignore this email.";
 
   return sendEmail({
     to: toEmail,
-    subject: "Your CampusHive verification code",
+    subject: "Here is your verification code",
     html,
     text,
   });
