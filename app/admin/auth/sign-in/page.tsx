@@ -3,7 +3,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { getAdminSession, signInAdmin } from "@/lib/adminAuth";
 
@@ -29,7 +30,6 @@ function AdminSignInContent() {
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -42,21 +42,21 @@ function AdminSignInContent() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identity.trim() || !password) {
-      setError("Please enter your admin username or email and password.");
+      toast.error("Please enter your admin username or email and password.");
       return;
     }
 
-    setError("");
     setIsSubmitting(true);
 
     const result = await signInAdmin(identity.trim(), password);
     setIsSubmitting(false);
 
     if (!result.ok) {
-      setError(result.error || "Invalid admin credentials.");
+      toast.error(result.error || "Invalid admin credentials.");
       return;
     }
 
+    toast.success("Signed in as Administrator.");
     router.push(nextPath);
   };
 
@@ -66,14 +66,6 @@ function AdminSignInContent() {
       subtitle="Sign in with your administrative credentials to continue."
       showBackToHome={true}
     >
-      {/* Error Banner */}
-      {error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{error}</span>
-        </div>
-      )}
-
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Identity Field */}
         <div className="space-y-1.5">
@@ -83,10 +75,7 @@ function AdminSignInContent() {
           <input
             type="text"
             value={identity}
-            onChange={(e) => {
-              setIdentity(e.target.value);
-              setError("");
-            }}
+            onChange={(e) => setIdentity(e.target.value)}
             placeholder="admin or admin@campushive.edu.ng"
             required
             autoComplete="username"
@@ -103,10 +92,7 @@ function AdminSignInContent() {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError("");
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               autoComplete="current-password"

@@ -9,6 +9,7 @@ import { CampusProvider } from "./context/CampusContext";
 import { FloatingActions } from "./components/locations/FloatingActions";
 import { SmoothScroll } from "./components/common/SmoothScroll";
 import { LayoutWrapper } from "./components/common/LayoutWrapper";
+import { AppToaster } from "./components/common/AppToaster";
 
 export const metadata: Metadata = {
   title: "Campus Hive - Aspire Elevation",
@@ -56,6 +57,7 @@ export default function RootLayout({
                       {children}
                     </LayoutWrapper>
                     <FloatingActions />
+                    <AppToaster />
                   </SmoothScroll>
                 </SavedProvider>
               </SocketProvider>

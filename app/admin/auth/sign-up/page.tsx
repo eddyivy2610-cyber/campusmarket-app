@@ -3,7 +3,8 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { registerAdmin } from "@/lib/adminAuth";
 
@@ -31,17 +32,15 @@ function AdminSignUpContent() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showKey, setShowKey] = useState(false);
-  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.email.trim() || !form.username.trim() || !form.password || !form.key.trim()) {
-      setError("All fields including administrator registration key are required.");
+      toast.error("All fields including administrator registration key are required.");
       return;
     }
 
-    setError("");
     setIsSubmitting(true);
 
     const result = await registerAdmin({
@@ -54,10 +53,11 @@ function AdminSignUpContent() {
     setIsSubmitting(false);
 
     if (!result.ok) {
-      setError(result.error || "Failed to register administrator account.");
+      toast.error(result.error || "Failed to register administrator account.");
       return;
     }
 
+    toast.success("Admin account created! You can now sign in.");
     router.push("/admin/auth/sign-in");
   };
 
@@ -67,14 +67,6 @@ function AdminSignUpContent() {
       subtitle="Register a new administrator using your secret platform key."
       showBackToHome={true}
     >
-      {/* Error Banner */}
-      {error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{error}</span>
-        </div>
-      )}
-
       <form onSubmit={onSubmit} className="space-y-3.5">
         {/* Email Field */}
         <div className="space-y-1.5">
@@ -86,7 +78,6 @@ function AdminSignUpContent() {
             value={form.email}
             onChange={(e) => {
               setForm((f) => ({ ...f, email: e.target.value }));
-              setError("");
             }}
             placeholder="admin@campushive.edu.ng"
             required
@@ -105,7 +96,6 @@ function AdminSignUpContent() {
             value={form.username}
             onChange={(e) => {
               setForm((f) => ({ ...f, username: e.target.value }));
-              setError("");
             }}
             placeholder="admin_lead"
             required
@@ -125,8 +115,7 @@ function AdminSignUpContent() {
               value={form.password}
               onChange={(e) => {
                 setForm((f) => ({ ...f, password: e.target.value }));
-                setError("");
-              }}
+                }}
               placeholder="••••••••"
               required
               minLength={8}
@@ -155,8 +144,7 @@ function AdminSignUpContent() {
               value={form.key}
               onChange={(e) => {
                 setForm((f) => ({ ...f, key: e.target.value }));
-                setError("");
-              }}
+                }}
               placeholder="Enter registration key"
               required
               className="radius-native w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors font-mono text-xs"

@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Loader2, ArrowRight, CheckCircle2, RotateCw, AlertCircle } from "lucide-react";
+import { ArrowRight, RotateCw } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { apiPost } from "@/lib/apiClient";
 import { useAuth } from "@/context/AuthContext";
@@ -31,10 +32,8 @@ function VerifyEmailContent() {
   const [email, setEmail] = useState("");
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [resendTimer, setResendTimer] = useState(45);
   const [canResend, setCanResend] = useState(false);
-  const [resendFeedback, setResendFeedback] = useState("");
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -65,7 +64,6 @@ function VerifyEmailContent() {
     const newDigits = [...digits];
     newDigits[index] = char;
     setDigits(newDigits);
-    setErrorMessage("");
 
     if (char && index < 5) {
       inputRefs.current[index + 1]?.focus();
@@ -97,12 +95,11 @@ function VerifyEmailContent() {
     e.preventDefault();
     const code = digits.join("");
     if (code.length < 6) {
-      setErrorMessage("Please enter the complete 6-digit confirmation code.");
+      toast.error("Please enter the complete 6-digit confirmation code.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage("");
 
     try {
       if (email) {
@@ -135,10 +132,11 @@ function VerifyEmailContent() {
         localStorage.removeItem("campus_pending_verification_email");
       } catch {}
 
+      toast.success("Email verified!");
       // Move forward to Campus Profile Setup
       router.push("/onboarding");
     } catch (err: any) {
-      setErrorMessage(err?.message || "Invalid or expired code. Please check your inbox or resend.");
+      toast.error(err?.message || "Invalid or expired code. Please check your inbox or resend.");
     } finally {
       setIsLoading(false);
     }
@@ -153,16 +151,15 @@ function VerifyEmailContent() {
         const res: any = await apiPost("auth/send-otp-to-email", {
           email: email.toLowerCase().trim(),
         });
-        setResendFeedback(
+        toast.success(
           res?.message || "A fresh verification code has been dispatched to your email."
         );
       }
     } catch (err: any) {
-      setErrorMessage(
+      toast.error(
         err?.message || "Failed to dispatch verification code. Please wait before retrying."
       );
     }
-    setTimeout(() => setResendFeedback(""), 4000);
   };
 
   return (
@@ -173,22 +170,6 @@ function VerifyEmailContent() {
       }.`}
       showBackToHome={true}
     >
-      {/* Resend Success Banner */}
-      {resendFeedback && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[12.5px] font-semibold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-          <span>{resendFeedback}</span>
-        </div>
-      )}
-
-      {/* Error Banner */}
-      {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
       <form onSubmit={handleVerify} className="space-y-5">
         {/* 6 Digit Inputs */}
         <div className="flex items-center justify-between gap-2 sm:gap-2.5">

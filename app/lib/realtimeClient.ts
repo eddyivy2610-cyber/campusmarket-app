@@ -67,9 +67,16 @@ export function getRealtimeClient(): Pusher | null {
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
+        try {
+          const token = localStorage.getItem("campus_access_token");
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+        } catch {}
 
         fetch(config.authEndpoint, {
           method: "POST",
+          credentials: "include",
           headers,
           body: JSON.stringify({
             socket_id: socketId,

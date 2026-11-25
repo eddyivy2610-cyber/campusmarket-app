@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 
 export default function ForgotPasswordPage() {
@@ -13,7 +14,6 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -31,41 +31,41 @@ export default function ForgotPasswordPage() {
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !email.includes("@")) {
-      setErrorMessage("Please enter a valid email address.");
+      toast.error("Please enter a valid email address.");
       return;
     }
     setIsLoading(true);
-    setErrorMessage("");
     try {
       const response = await fetch("/api/auth/password-reset/request", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email }) });
       if (!response.ok) throw new Error("Unable to process request.");
+      toast.success("Password reset link sent! Check your inbox.");
       setStep("verify");
-    } catch (error: any) { setErrorMessage(error?.message || "Unable to process request."); }
+    } catch (error: any) { toast.error(error?.message || "Unable to process request."); }
     finally { setIsLoading(false); }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetToken) {
-      setErrorMessage("Please open the password reset link from your email again.");
+      toast.error("Please open the password reset link from your email again.");
       return;
     }
     if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      setErrorMessage("Password must be at least 8 characters and contain letters and numbers.");
+      toast.error("Password must be at least 8 characters and contain letters and numbers.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
     setIsLoading(true);
-    setErrorMessage("");
     try {
       const response = await fetch("/api/auth/password-reset/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token: resetToken, password: newPassword }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "Invalid or expired reset link.");
+      toast.success("Password updated! You can now sign in.");
       setStep("success");
-    } catch (error: any) { setErrorMessage(error?.message || "Unable to reset password."); }
+    } catch (error: any) { toast.error(error?.message || "Unable to reset password."); }
     finally { setIsLoading(false); }
   };
 
@@ -87,13 +87,6 @@ export default function ForgotPasswordPage() {
       }
       showBackToHome={true}
     >
-      {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
       {step === "email" && (
         <form onSubmit={handleSendCode} className="space-y-4">
           <div className="space-y-1.5">
@@ -103,10 +96,7 @@ export default function ForgotPasswordPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErrorMessage("");
-              }}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@university.edu.ng"
               required
               className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors"

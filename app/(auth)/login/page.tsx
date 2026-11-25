@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { useAuth } from "@/context/AuthContext";
 import { apiPost } from "@/lib/apiClient";
@@ -36,18 +37,22 @@ function LoginFormContent() {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [canResendVerification, setCanResendVerification] = useState(false);
+
+  useEffect(() => {
+    if (registered) {
+      toast.success("Account created! Please sign in with your credentials.");
+    }
+  }, [registered]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      setErrorMessage("Please enter both email and password.");
+      toast.error("Please enter both email and password.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage("");
     setCanResendVerification(false);
 
     try {
@@ -76,7 +81,7 @@ function LoginFormContent() {
       // If user came with a specific redirect, route there; otherwise to explore or home
       router.push(redirectUrl);
     } catch (err: any) {
-      setErrorMessage(err?.message || "Unable to sign in. Please try again.");
+      toast.error(err?.message || "Unable to sign in. Please try again.");
       setCanResendVerification(Boolean(err?.data?.canResendVerification));
     } finally {
       setIsLoading(false);
@@ -87,9 +92,10 @@ function LoginFormContent() {
     setIsLoading(true);
     try {
       await apiPost("auth/resend-verification", { email: email.trim(), password });
+      toast.success("Verification code resent! Check your inbox.");
       router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
     } catch (err: any) {
-      setErrorMessage(err?.message || "Unable to resend verification code.");
+      toast.error(err?.message || "Unable to resend verification code.");
     } finally {
       setIsLoading(false);
     }
@@ -103,22 +109,6 @@ function LoginFormContent() {
       subtitle="Please enter your details."
       showBackToHome={true}
     >
-      {/* Registration Success Banner */}
-      {registered && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-          <span>Account created! Please sign in with your credentials.</span>
-        </div>
-      )}
-
-      {/* Error Banner */}
-      {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
       {canResendVerification && (
         <button type="button" onClick={resendVerification} disabled={isLoading} className="w-full text-left text-[12px] font-bold text-primary hover:underline disabled:opacity-50">
           Verify your email or resend the code
@@ -135,10 +125,7 @@ function LoginFormContent() {
             id="login-email"
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setErrorMessage("");
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             required
             autoComplete="email"
@@ -156,10 +143,7 @@ function LoginFormContent() {
               id="login-password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrorMessage("");
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
               autoComplete="current-password"

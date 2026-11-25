@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Check, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { apiPost } from "@/lib/apiClient";
 
@@ -16,7 +17,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   // Live password validation
   const hasLength = password.length >= 8;
@@ -27,24 +27,23 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      setErrorMessage("Please enter your name or preferred display name.");
+      toast.error("Please enter your name or preferred display name.");
       return;
     }
     if (!email.trim() || !email.includes("@")) {
-      setErrorMessage("Please enter a valid university or personal email address.");
+      toast.error("Please enter a valid university or personal email address.");
       return;
     }
     if (!isPasswordValid) {
-      setErrorMessage("Please ensure your password meets all requirements.");
+      toast.error("Please ensure your password meets all requirements.");
       return;
     }
     if (!agreedTerms) {
-      setErrorMessage("Please agree to the Campus Hive terms and community rules.");
+      toast.error("Please agree to the Campus Hive terms and community rules.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage("");
 
     try {
       await apiPost("auth/register", {
@@ -62,11 +61,12 @@ export default function RegisterPage() {
         localStorage.setItem("campus_pending_fullname", fullName.trim());
       } catch {}
 
+      toast.success("Account created! Check your email for the verification code.");
       // Route to email verification step
       router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
     } catch (err: any) {
       console.error("Registration error:", err);
-      setErrorMessage(
+      toast.error(
         err?.message || "Failed to create account. Please check your information and try again."
       );
     } finally {
@@ -82,14 +82,6 @@ export default function RegisterPage() {
       subtitle="Start buying, selling, and connecting on your campus."
       showBackToHome={true}
     >
-      {/* Error Banner */}
-      {errorMessage && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-[12.5px] font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
       <form onSubmit={handleRegister} className="space-y-4">
         {/* Full Name */}
         <div className="space-y-1.5">
@@ -100,10 +92,7 @@ export default function RegisterPage() {
             id="register-fullName"
             type="text"
             value={fullName}
-            onChange={(e) => {
-              setFullName(e.target.value);
-              setErrorMessage("");
-            }}
+            onChange={(e) => setFullName(e.target.value)}
             placeholder="e.g. Tunde Bello"
             required
             autoComplete="name"
@@ -120,10 +109,7 @@ export default function RegisterPage() {
             id="register-email"
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setErrorMessage("");
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="your.email@university.edu.ng"
             required
             autoComplete="email"
@@ -141,10 +127,7 @@ export default function RegisterPage() {
               id="register-password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrorMessage("");
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Create a strong password"
               required
               autoComplete="new-password"
