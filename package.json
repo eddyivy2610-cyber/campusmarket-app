@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.1.0",
     "argon2": "^0.45.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

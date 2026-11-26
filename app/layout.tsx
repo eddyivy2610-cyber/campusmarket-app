@@ -11,6 +11,7 @@ import { SmoothScroll } from "./components/common/SmoothScroll";
 import { LayoutWrapper } from "./components/common/LayoutWrapper";
 import { AppToaster } from "./components/common/AppToaster";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Campus Hive - Aspire Elevation",
@@ -60,6 +61,7 @@ export default function RootLayout({
                     <FloatingActions />
                     <AppToaster />
                     <Analytics />
+                    <SpeedInsights />
                   </SmoothScroll>
                 </SavedProvider>
               </SocketProvider>

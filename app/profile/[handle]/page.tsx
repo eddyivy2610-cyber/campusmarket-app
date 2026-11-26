@@ -34,8 +34,9 @@ import {
 } from "lucide-react";
 import { RebrandHeader } from "../../components/header/RebrandHeader";
 import { useAuth } from "../../context/AuthContext";
+import { useCampus } from "../../context/CampusContext";
 import { followService } from "@/lib/followService";
-import { apiGet } from "@/lib/apiClient";
+import { apiGet, apiPatch } from "@/lib/apiClient";
 import { ProfileShareModal } from "@/components/profile/ProfileShareModal";
 
 export function formatSalesMilestone(sales: number): string {
@@ -517,7 +518,9 @@ export default function ProfilePage() {
     .replace(/^@/, "")
     .toLowerCase();
 
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, login, isLoading: authLoading } = useAuth();
+  const { detectedLocation, selectedCampus, detectBrowserLocation } = useCampus();
+  const autoLocationSavedRef = useRef(false);
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isFollowing, setIsFollowing] = useState(false);
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
@@ -543,6 +546,45 @@ export default function ProfilePage() {
   const [liveUserProfile, setLiveUserProfile] = useState<any>(null);
   const [liveProfileError, setLiveProfileError] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    if (
+      authLoading ||
+      isProfileLoading ||
+      !user?.id ||
+      rawHandle !== "me" && rawHandle !== (user.handle || "").toLowerCase()
+    ) {
+      return;
+    }
+    const hasCampus = Boolean(liveUserProfile?.campus || user?.campus);
+    if (hasCampus || autoLocationSavedRef.current) return;
+
+    if (!detectedLocation) {
+      void detectBrowserLocation(false);
+      return;
+    }
+
+    autoLocationSavedRef.current = true;
+    apiPatch("/api/users/profile", { campus: detectedLocation })
+      .then(() => {
+        login({ ...user, campus: detectedLocation });
+        setLiveUserProfile((prev: any) =>
+          prev ? { ...prev, campus: detectedLocation } : prev
+        );
+      })
+      .catch(() => {
+        autoLocationSavedRef.current = false;
+      });
+  }, [
+    authLoading,
+    isProfileLoading,
+    user,
+    rawHandle,
+    liveUserProfile?.campus,
+    detectedLocation,
+    detectBrowserLocation,
+    login,
+  ]);
 
   // Profile context switch: default to "personal" user details, with switcher for "store"
   const [activeProfileMode, setActiveProfileMode] = useState<"personal" | "store">("personal");
@@ -963,6 +1005,7 @@ export default function ProfilePage() {
     location:
       liveUserProfile?.campus ||
       user?.campus ||
+      (isOwnProfile ? detectedLocation || selectedCampus.shortName : "") ||
       "Campus",
     bio: personalBio || "Campus student on Campus Hive.",
     avatar: personalAvatar,
