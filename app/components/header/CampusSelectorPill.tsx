@@ -1,12 +1,19 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { MapPin, ChevronDown, Check } from "lucide-react";
+import { MapPin, ChevronDown, Check, Navigation, Loader2 } from "lucide-react";
 import { useCampus } from "../../context/CampusContext";
 import { useClickOutside } from "../../hooks/useClickOutside";
 
 export function CampusSelectorPill() {
-  const { selectedCampus, campuses, selectCampus } = useCampus();
+  const {
+    selectedCampus,
+    campuses,
+    selectCampus,
+    detectedLocation,
+    isDetectingLocation,
+    detectBrowserLocation,
+  } = useCampus();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -33,10 +40,34 @@ export function CampusSelectorPill() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-border/60 bg-card text-foreground shadow-2xl p-2.5 z-50 font-heading">
-          <div className="px-2.5 py-1.5 border-b border-border/50 mb-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Select University Campus
-            </p>
+          <div className="px-2.5 py-1.5 border-b border-border/50 mb-1.5 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Select University Campus
+              </p>
+              {detectedLocation && (
+                <p className="text-[10px] text-muted-foreground truncate">
+                  Detected: {detectedLocation}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              disabled={isDetectingLocation}
+              onClick={async () => {
+                await detectBrowserLocation(true);
+                setOpen(false);
+              }}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/15 hover:bg-primary/25 text-[10px] font-bold text-foreground transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+              title="Use browser location"
+            >
+              {isDetectingLocation ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Navigation className="w-3 h-3" />
+              )}
+              <span>Auto</span>
+            </button>
           </div>
 
           <div className="space-y-1">

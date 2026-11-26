@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SellListingLink } from "@/components/common/SellListingLink";
 import { motion } from "framer-motion";
 import { cardInViewProps } from "@/lib/motion";
+import { useCampus } from "@/context/CampusContext";
 import {
   ArrowRight,
   Heart,
@@ -58,6 +59,7 @@ export function RebrandHomeFeed() {
   // Mobile initial: 12 items. Desktop initial: 16 items.
   const [pageSize, setPageSize] = useState(12);
   const [visibleCount, setVisibleCount] = useState(12);
+  const { selectedCampus, detectedLocation } = useCampus();
 
   // Load user feed preference from localStorage and listen to updates from Marketplace Settings
   useEffect(() => {
@@ -160,6 +162,32 @@ export function RebrandHomeFeed() {
               });
             }
 
+            // Prioritize listings matching user's detected location / selected campus
+            const campusTokens = [
+              selectedCampus.shortName,
+              selectedCampus.name,
+              selectedCampus.universityShortName,
+              detectedLocation || "",
+            ]
+              .map((t) => t.trim().toLowerCase())
+              .filter((t) => t.length >= 3);
+
+            if (campusTokens.length > 0) {
+              mapped.sort((a, b) => {
+                const aLocal = campusTokens.some((t) =>
+                  a.landmark.toLowerCase().includes(t)
+                )
+                  ? 1
+                  : 0;
+                const bLocal = campusTokens.some((t) =>
+                  b.landmark.toLowerCase().includes(t)
+                )
+                  ? 1
+                  : 0;
+                return bLocal - aLocal;
+              });
+            }
+
             setAllListings(mapped);
           }
         }
@@ -175,7 +203,7 @@ export function RebrandHomeFeed() {
     return () => {
       isCancelled = true;
     };
-  }, [feedPreference]);
+  }, [feedPreference, selectedCampus.slug, detectedLocation]);
 
   // Load saved item state
   useEffect(() => {
@@ -215,7 +243,7 @@ export function RebrandHomeFeed() {
     if (feedPreference === "recent") return "Recently listed on campus";
     if (feedPreference === "both") return "Campus Discovery Feed";
     return "Popular on campus";
-  }, [feedPreference]);
+  }, [feedPreference, selectedCampus.slug, detectedLocation]);
 
   return (
     <div

@@ -35,6 +35,8 @@ export interface CampusConfig {
   shortName: string;
   universityName: string;
   universityShortName: string;
+  lat: number;
+  lng: number;
   isDefault?: boolean;
   landmarks: CampusLandmark[];
 }
@@ -47,6 +49,8 @@ export const SUPPORTED_CAMPUSES: CampusConfig[] = [
     shortName: "ABU Samaru",
     universityName: "Ahmadu Bello University, Zaria",
     universityShortName: "ABU Zaria",
+    lat: 11.1511,
+    lng: 7.6546,
     isDefault: true,
     landmarks: [
       {
@@ -88,6 +92,8 @@ export const SUPPORTED_CAMPUSES: CampusConfig[] = [
     shortName: "ABU Kongo",
     universityName: "Ahmadu Bello University, Zaria",
     universityShortName: "ABU Zaria",
+    lat: 11.1136,
+    lng: 7.7058,
     landmarks: [
       {
         id: "lm-kongo-gate",
@@ -113,6 +119,8 @@ export const SUPPORTED_CAMPUSES: CampusConfig[] = [
     shortName: "BUK Kano",
     universityName: "Bayero University, Kano",
     universityShortName: "BUK",
+    lat: 11.9765,
+    lng: 8.4237,
     landmarks: [
       {
         id: "lm-buk-gate",
@@ -132,4 +140,27 @@ export function getCampusBySlug(slug: string): CampusConfig {
   return (
     SUPPORTED_CAMPUSES.find((c) => c.slug === slug) ?? SUPPORTED_CAMPUSES[0]
   );
+}
+
+export function findNearestCampus(lat: number, lng: number): CampusConfig {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  let nearest = SUPPORTED_CAMPUSES[0];
+  let bestDist = Number.POSITIVE_INFINITY;
+
+  for (const campus of SUPPORTED_CAMPUSES) {
+    const dLat = toRad(campus.lat - lat);
+    const dLng = toRad(campus.lng - lng);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat)) *
+        Math.cos(toRad(campus.lat)) *
+        Math.sin(dLng / 2) ** 2;
+    const dist = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    if (dist < bestDist) {
+      bestDist = dist;
+      nearest = campus;
+    }
+  }
+
+  return nearest;
 }

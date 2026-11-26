@@ -23,6 +23,7 @@ import {
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
 import { useAuth } from "../../context/AuthContext";
+import { useCampus } from "../../context/CampusContext";
 import { listingService } from "../../lib/listingService";
 import { apiGet, apiPost } from "../../lib/apiClient";
 import { SPRING_SMOOTH } from "@/lib/motion";
@@ -59,6 +60,7 @@ export function CreateListingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { selectedCampus, detectedLocation } = useCampus();
 
   const storeIdParam = searchParams?.get("storeId") || null;
   const initialType = searchParams?.get("type") === "service" ? "service" : "product";
@@ -233,9 +235,15 @@ export function CreateListingForm() {
     user?.avatar ||
     (user as any)?.profile?.avatar ||
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
-  const defaultCampus = userStore?.campus || user?.campus || "Main University Campus";
+  const defaultCampus =
+    userStore?.campus || user?.campus || selectedCampus.name || "Main University Campus";
   const defaultLandmark =
-    userStore?.operatingLocation || userStore?.campus || user?.campus || "Main Campus";
+    detectedLocation ||
+    userStore?.operatingLocation ||
+    userStore?.campus ||
+    user?.campus ||
+    selectedCampus.shortName ||
+    "Main Campus";
   const storeSlugOrId = userStore?.slug || resolvedStoreId || user?.handle || "me";
   const storeIsVerified = Boolean(userStore?.isVerified);
 
