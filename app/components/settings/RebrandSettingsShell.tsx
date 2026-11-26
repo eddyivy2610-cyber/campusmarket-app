@@ -678,7 +678,7 @@ export function RebrandSettingsShell({
                   Marketplace
                 </h2>
                 <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-1">
-                  Manage your campus inventory, wanted requests, and public seller links.
+                  Manage listings, requests, and storefront.
                 </p>
                 <div className="h-[1px] bg-[#ECEEF2] dark:bg-white/10 mt-3.5" />
               </div>
@@ -690,9 +690,6 @@ export function RebrandSettingsShell({
                 <h3 className="text-[15px] font-extrabold text-[#171717] dark:text-white">
                   Home Feed Content
                 </h3>
-                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                  Choose what listings are prioritized and displayed in your campus home feed.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -785,9 +782,6 @@ export function RebrandSettingsShell({
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
                   Feed Location Scope
                 </h3>
-                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                  Choose whether your marketplace feed shows listings around your campus or from everywhere.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -845,7 +839,7 @@ export function RebrandSettingsShell({
 
             <div className="space-y-3">
               <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
-                Quick shortcuts to your active campus commerce tools:
+                Quick shortcuts
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
@@ -1151,9 +1145,6 @@ export function RebrandSettingsShell({
                 <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
                   Feed Location Scope
                 </h3>
-                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
-                  Choose whether your marketplace feed shows listings around your campus or from everywhere.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
