@@ -281,6 +281,11 @@ function MessagesWorkspace() {
 
   const effectiveActorId = currentUser.id;
 
+  const currentUserIdRef = useRef(currentUser.id);
+  useEffect(() => {
+    currentUserIdRef.current = currentUser.id;
+  }, [currentUser.id]);
+
   // Fetch Conversation List
   const fetchConversations = useCallback(async () => {
     try {
@@ -295,7 +300,7 @@ function MessagesWorkspace() {
         `/api/messages/conversations?${params.toString()}`,
         {
           headers: {
-            "x-campus-user-id": currentUser.id,
+            "x-campus-user-id": currentUserIdRef.current,
           },
         }
       );
@@ -315,7 +320,7 @@ function MessagesWorkspace() {
           rawList.filter(
             (c) =>
               c.lastMessage &&
-              c.lastMessage.senderId !== (data.currentUser?.id || currentUser.id) &&
+              c.lastMessage.senderId !== (data.currentUser?.id || currentUserIdRef.current) &&
               c.unreadCount > 0
           )
         );
@@ -332,7 +337,7 @@ function MessagesWorkspace() {
     } finally {
       setIsLoadingList(false);
     }
-  }, [searchQuery, activeFilter, currentUser.id, fetchWithAuth]);
+  }, [searchQuery, activeFilter, fetchWithAuth, router]);
 
   // Fetch Single Conversation + Messages
   const fetchConversationDetails = useCallback(
@@ -673,11 +678,19 @@ function MessagesWorkspace() {
           return [...prev, message];
         });
 
-        if (conversation) {
-          setActiveConv(conversation);
+        if (conversation && message?.senderId !== currentUserIdRef.current) {
+          setActiveConv((prev) =>
+            prev && prev.id === conversation.id
+              ? { ...conversation, otherParticipant: prev.otherParticipant }
+              : conversation
+          );
           setConversations((prev) => {
+            const existing = prev.find((c) => c.id === conversation.id);
+            const merged = existing
+              ? { ...conversation, otherParticipant: existing.otherParticipant }
+              : conversation;
             const others = prev.filter((c) => c.id !== conversation.id);
-            return [conversation, ...others];
+            return [merged, ...others];
           });
         }
       },
@@ -1088,6 +1101,15 @@ function MessagesWorkspace() {
         (item) => item.conversationId === activeConv?.id
       ),
     [outgoingQueue, activeConv?.id]
+  );
+
+  const hasDealContext = Boolean(
+    activeConv &&
+      ((activeConv.context &&
+        (activeConv.context.contextType === "product" ||
+          activeConv.context.contextType === "service" ||
+          activeConv.context.contextType === "wanted")) ||
+        activeConv.trackedDeal)
   );
 
   // Render Minimal Right Sidebar Content: Section Title + Collapse Button + Single Compact Card (Product Preview + Visit Icon + 2-Icon Deal Tracking)
@@ -1596,45 +1618,47 @@ function MessagesWorkspace() {
                 </div>
 
                 {/* Right Header Controls: Context Drawer Toggle */}
-                <div className="flex items-center gap-2 shrink-0">
-                  {/* Toggle Right Context Sidebar on Desktop (lg+) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsRightSidebarCollapsed((prev) => !prev)}
-                    title={
-                      isRightSidebarCollapsed
-                        ? "Expand context sidebar"
-                        : "Collapse context sidebar"
-                    }
-                    aria-label={
-                      isRightSidebarCollapsed
-                        ? "Expand context sidebar"
-                        : "Collapse context sidebar"
-                    }
-                    className="hidden lg:flex radius-native w-8 h-8 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-white dark:bg-white/5 hover:border-[#171717] text-[#171717] dark:text-white items-center justify-center transition-colors cursor-pointer"
-                  >
-                    {isRightSidebarCollapsed ? (
-                      <PanelRightOpen className="w-4 h-4" />
-                    ) : (
-                      <PanelRightClose className="w-4 h-4" />
-                    )}
-                  </button>
+                {hasDealContext && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Toggle Right Context Sidebar on Desktop (lg+) */}
+                    <button
+                      type="button"
+                      onClick={() => setIsRightSidebarCollapsed((prev) => !prev)}
+                      title={
+                        isRightSidebarCollapsed
+                          ? "Expand context sidebar"
+                          : "Collapse context sidebar"
+                      }
+                      aria-label={
+                        isRightSidebarCollapsed
+                          ? "Expand context sidebar"
+                          : "Collapse context sidebar"
+                      }
+                      className="hidden lg:flex radius-native w-8 h-8 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-white dark:bg-white/5 hover:border-[#171717] text-[#171717] dark:text-white items-center justify-center transition-colors cursor-pointer"
+                    >
+                      {isRightSidebarCollapsed ? (
+                        <PanelRightOpen className="w-4 h-4" />
+                      ) : (
+                        <PanelRightClose className="w-4 h-4" />
+                      )}
+                    </button>
 
-                  {/* Toggle Context Details Drawer on Mobile / Tablet (<lg) */}
-                  <button
-                    type="button"
-                    onClick={() => setIsDetailsDrawerOpen((prev) => !prev)}
-                    aria-label="Toggle context details panel"
-                    className="lg:hidden radius-native px-2.5 py-1.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-white dark:bg-white/5 text-[11.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {isDetailsDrawerOpen ? (
-                      <PanelRightClose className="w-4 h-4" />
-                    ) : (
-                      <PanelRightOpen className="w-4 h-4" />
-                    )}
-                    <span>Details</span>
-                  </button>
-                </div>
+                    {/* Toggle Context Details Drawer on Mobile / Tablet (<lg) */}
+                    <button
+                      type="button"
+                      onClick={() => setIsDetailsDrawerOpen((prev) => !prev)}
+                      aria-label="Toggle context details panel"
+                      className="lg:hidden radius-native px-2.5 py-1.5 rounded-xl border border-[#E8E8E8] dark:border-white/10 bg-white dark:bg-white/5 text-[11.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {isDetailsDrawerOpen ? (
+                        <PanelRightClose className="w-4 h-4" />
+                      ) : (
+                        <PanelRightOpen className="w-4 h-4" />
+                      )}
+                      <span>Details</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* 2. Compact Contextual Reference Banner (Hidden for Radar/Wanted to maintain WhatsApp Status style minimal reply) */}
@@ -2007,7 +2031,7 @@ function MessagesWorkspace() {
         {/* COLUMN 3 (RIGHT): STATIONARY CONTEXT & DEAL TRACKING SIDEBAR      */}
         {/* Visible stationary on lg+; opens as Sheet/Drawer on smaller widths*/}
         {/* ----------------------------------------------------------------- */}
-        {activeConv && !isRightSidebarCollapsed && (
+        {hasDealContext && !isRightSidebarCollapsed && (
           <aside
             aria-label="Conversation context and deal tracking"
             className="hidden lg:flex lg:w-[250px] xl:w-[275px] shrink-0 flex-col border-l border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] h-full overflow-y-auto"
@@ -2017,7 +2041,7 @@ function MessagesWorkspace() {
         )}
 
         {/* Responsive Slide-Over Context Details Sheet / Drawer (<lg & Mobile) */}
-        {activeConv && isDetailsDrawerOpen && (
+        {hasDealContext && isDetailsDrawerOpen && (
           <div className="lg:hidden fixed inset-0 z-50 flex justify-end bg-black/45 backdrop-blur-xs">
             <div className="w-full max-w-[360px] bg-white dark:bg-[#14161D] h-full overflow-y-auto shadow-2xl flex flex-col">
               <div className="px-4 py-3.5 border-b border-[#ECEEF2] dark:border-white/10 flex items-center justify-between sticky top-0 bg-white dark:bg-[#14161D] z-10">
