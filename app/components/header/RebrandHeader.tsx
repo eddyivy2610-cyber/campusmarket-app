@@ -257,7 +257,10 @@ export function RebrandHeader() {
                 : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
                 }`}
             >
-              <User className="w-[19px] h-[19px]" strokeWidth={1.8} />
+              <User
+                className={`w-[19px] h-[19px] ${!user ? "text-[#FFC928]" : ""}`}
+                strokeWidth={1.8}
+              />
             </Link>
           </div>
         </div>
