@@ -28,6 +28,7 @@ interface OfferReplyItem {
   authorHandle: string;
   authorDept: string;
   authorAvatar?: string;
+  authorStoreSlug?: string | null;
   authorTime: string;
   isVerified: boolean;
   message: string;
@@ -40,6 +41,7 @@ interface RadarPost {
   requesterHandle: string;
   requesterLocation: string;
   requesterAvatar: string;
+  requesterStoreSlug?: string | null;
   timeAgo: string;
   isVerified: boolean;
   requestText: string;
@@ -727,7 +729,21 @@ function RadarContent() {
               const resolvedRequesterAvatar =
                 post.requesterAvatar ||
                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanHandle || post.requesterName || "student")}`;
-              const userProfileHref = `/profile/${cleanHandle}`;
+              const userProfileHref = post.requesterStoreSlug
+                ? `/profile/${post.requesterStoreSlug}`
+                : null;
+
+              const postAvatarImg = (
+                <img
+                  src={resolvedRequesterAvatar}
+                  alt={post.requesterName}
+                  className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-[#FFF8E1] dark:bg-white/5 ${
+                    post.isVerified
+                      ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                      : ""
+                  }`}
+                />
+              );
 
               return (
                 <article
@@ -736,29 +752,31 @@ function RadarContent() {
                 >
                   <div className="flex items-start gap-3">
                     {/* 1. Avatar */}
-                    <Link href={userProfileHref} className="shrink-0 mt-0.5">
-                      <img
-                        src={resolvedRequesterAvatar}
-                        alt={post.requesterName}
-                        className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-[#FFF8E1] dark:bg-white/5 ${
-                          post.isVerified
-                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                            : ""
-                        }`}
-                      />
-                    </Link>
+                    {userProfileHref ? (
+                      <Link href={userProfileHref} className="shrink-0 mt-0.5">
+                        {postAvatarImg}
+                      </Link>
+                    ) : (
+                      <div className="shrink-0 mt-0.5">{postAvatarImg}</div>
+                    )}
 
                     {/* Main Compact Body */}
                     <div className="flex-1 min-w-0">
                       {/* Top Row: Name + Timestamp + Three Dots (...) */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <Link
-                            href={userProfileHref}
-                            className="text-[13.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
-                          >
-                            {post.requesterName}
-                          </Link>
+                          {userProfileHref ? (
+                            <Link
+                              href={userProfileHref}
+                              className="text-[13.5px] font-bold text-[#171717] dark:text-white hover:underline truncate"
+                            >
+                              {post.requesterName}
+                            </Link>
+                          ) : (
+                            <span className="text-[13.5px] font-bold text-[#171717] dark:text-white truncate">
+                              {post.requesterName}
+                            </span>
+                          )}
                           <span className="text-[12px] text-[#8C929C] shrink-0">
                             · {post.timeAgo}
                           </span>
@@ -928,12 +946,18 @@ function RadarContent() {
                                   />
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
-                                      <Link
-                                        href={`/profile/${reply.authorHandle}`}
-                                        className="font-bold text-[#171717] dark:text-white hover:underline"
-                                      >
-                                        {reply.authorName}
-                                      </Link>
+                                      {reply.authorStoreSlug ? (
+                                        <Link
+                                          href={`/profile/${reply.authorStoreSlug}`}
+                                          className="font-bold text-[#171717] dark:text-white hover:underline"
+                                        >
+                                          {reply.authorName}
+                                        </Link>
+                                      ) : (
+                                        <span className="font-bold text-[#171717] dark:text-white">
+                                          {reply.authorName}
+                                        </span>
+                                      )}
                                       <span className="text-[11px] text-[#8C929C]">
                                         · {reply.authorTime}
                                       </span>

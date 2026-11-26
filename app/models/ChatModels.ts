@@ -39,6 +39,8 @@ export interface ChatParticipantProfile {
   avatar?: string;
   isVerified: boolean;
   accountType: "student" | "student_store" | "approved_business";
+  storeSlug?: string;
+  hasStore?: boolean;
   // Distinct Trust Signals (Section 8: never conflate with payment verification)
   campusIdentityVerified?: boolean;
   businessApproved?: boolean;

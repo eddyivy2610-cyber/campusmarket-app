@@ -56,9 +56,15 @@ import type {
   DealStatus,
 } from "../models/ChatModels";
 
-function getParticipantProfileHref(participant?: ChatParticipantProfile): string {
-  if (!participant || !participant.name) return "/profile";
-  return `/profile/${participant.id || "me"}`;
+function getParticipantProfileHref(participant?: ChatParticipantProfile): string | null {
+  if (!participant || !participant.name) return null;
+  const isStore =
+    Boolean(participant.hasStore) ||
+    Boolean(participant.storeSlug) ||
+    participant.accountType === "student_store" ||
+    participant.accountType === "approved_business";
+  if (!isStore) return null;
+  return `/profile/${participant.storeSlug || participant.id}`;
 }
 
 function formatMessageTime(iso: string): string {
@@ -1580,36 +1586,53 @@ function MessagesWorkspace() {
                     <ArrowLeft className="w-5 h-5" />
                   </button>
 
-                  <Link
-                    href={getParticipantProfileHref(activeConv.otherParticipant)}
-                    className="shrink-0"
-                  >
-                    <img
-                      src={
-                        activeConv.otherParticipant?.avatar ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                          activeConv.otherParticipant?.id ||
-                            activeConv.otherParticipant?.name ||
-                            "campus"
-                        )}`
-                      }
-                      alt={activeConv.otherParticipant?.name || "Campus Member"}
-                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] bg-[#F7F8FA] ${
-                        activeConv.otherParticipant?.isVerified
-                          ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                          : ""
-                      }`}
-                    />
-                  </Link>
+                  {(() => {
+                    const participantHref = getParticipantProfileHref(activeConv.otherParticipant);
+                    const avatarImg = (
+                      <img
+                        src={
+                          activeConv.otherParticipant?.avatar ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                            activeConv.otherParticipant?.id ||
+                              activeConv.otherParticipant?.name ||
+                              "campus"
+                          )}`
+                        }
+                        alt={activeConv.otherParticipant?.name || "Campus Member"}
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] bg-[#F7F8FA] ${
+                          activeConv.otherParticipant?.isVerified
+                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
+                      />
+                    );
+                    return participantHref ? (
+                      <Link href={participantHref} className="shrink-0">
+                        {avatarImg}
+                      </Link>
+                    ) : (
+                      <div className="shrink-0">{avatarImg}</div>
+                    );
+                  })()}
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <Link
-                        href={getParticipantProfileHref(activeConv.otherParticipant)}
-                        className="text-[14.5px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white hover:underline truncate"
-                      >
-                        {activeConv.otherParticipant?.name || "Campus Member"}
-                      </Link>
+                      {(() => {
+                        const participantHref = getParticipantProfileHref(activeConv.otherParticipant);
+                        const participantName = activeConv.otherParticipant?.name || "Campus Member";
+                        return participantHref ? (
+                          <Link
+                            href={participantHref}
+                            className="text-[14.5px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white hover:underline truncate"
+                          >
+                            {participantName}
+                          </Link>
+                        ) : (
+                          <span className="text-[14.5px] sm:text-[15px] font-extrabold text-[#171717] dark:text-white truncate">
+                            {participantName}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 truncate">
                       {activeConv.otherParticipant?.subtitle || "Campus Member"}
