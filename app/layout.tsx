@@ -66,6 +66,7 @@ export default function RootLayout({
             </AuthProvider>
           </CampusProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
