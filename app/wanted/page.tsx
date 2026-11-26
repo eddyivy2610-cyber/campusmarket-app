@@ -784,11 +784,11 @@ function RadarContent() {
                           </button>
 
                           {isMenuOpen && (
-                            <div className="radius-native absolute right-0 top-7 z-20 w-fit min-w-[110px] rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg p-1 text-[12px] whitespace-nowrap">
+                            <div className="radius-native absolute right-0 top-7 z-20 flex flex-col w-max min-w-[140px] overflow-hidden rounded-xl bg-white dark:bg-[#181B24] border border-[#E8E8E8] dark:border-white/10 shadow-lg p-1 text-[12px] whitespace-nowrap">
                               {!isOwnPost && (
                                 <Link
                                   href={postChatHref}
-                                  className="block px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
+                                  className="block w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 font-semibold text-[#171717] dark:text-white"
                                 >
                                   Chat with {post.requesterName.split(" ")[0]}
                                 </Link>
@@ -802,7 +802,7 @@ function RadarContent() {
                                   }
                                   showToast("Link copied to clipboard");
                                 }}
-                                className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#5B636E] dark:text-neutral-300 font-medium cursor-pointer"
+                                className="block w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-[#5B636E] dark:text-neutral-300 font-medium cursor-pointer"
                               >
                                 Copy link
                               </button>
@@ -810,7 +810,7 @@ function RadarContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePost(post.id)}
-                                  className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 font-semibold cursor-pointer"
+                                  className="block w-full text-left px-3 py-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 font-semibold cursor-pointer"
                                 >
                                   Delete
                                 </button>
@@ -821,7 +821,7 @@ function RadarContent() {
                                     setOpenMenuPostId(null);
                                     showToast("Reported to Campus Hive team");
                                   }}
-                                  className="w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-rose-600 font-medium cursor-pointer"
+                                  className="block w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-rose-600 font-medium cursor-pointer"
                                 >
                                   Report post
                                 </button>

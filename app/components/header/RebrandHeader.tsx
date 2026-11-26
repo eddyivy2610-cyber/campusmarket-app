@@ -124,8 +124,17 @@ export function RebrandHeader() {
         if (isMounted) setUnreadMessagesCount(0);
       });
 
+    const handleUnreadUpdated = (event: Event) => {
+      const nextCount = (event as CustomEvent<{ unreadCount?: number }>)?.detail?.unreadCount;
+      if (isMounted && typeof nextCount === "number") {
+        setNotificationCount(nextCount);
+      }
+    };
+    window.addEventListener("notifications:unread-updated", handleUnreadUpdated);
+
     return () => {
       isMounted = false;
+      window.removeEventListener("notifications:unread-updated", handleUnreadUpdated);
     };
   }, [user?.id, pathname]);
 

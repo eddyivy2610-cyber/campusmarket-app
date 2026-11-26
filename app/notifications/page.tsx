@@ -171,9 +171,46 @@ export default function NotificationsPage() {
         createdAt: item.createdAt || new Date().toISOString(),
       }));
 
-      setItems((prev) => (nextCursor ? [...prev, ...normalized] : normalized));
+      const windowUnreadIds = normalized.filter((item) => !item.read).map((item) => item._id);
+      const markedWindowItems =
+        windowUnreadIds.length > 0
+          ? normalized.map((item) => (item.read ? item : { ...item, read: true }))
+          : normalized;
+
+      setItems((prev) => (nextCursor ? [...prev, ...markedWindowItems] : markedWindowItems));
       setCursor(response.nextCursor || null);
-      if (typeof response.unreadCount === "number") {
+
+      const serverUnread = typeof response.unreadCount === "number" ? response.unreadCount : unreadCount;
+      if (windowUnreadIds.length > 0) {
+        const optimisticUnread = Math.max(0, serverUnread - windowUnreadIds.length);
+        setUnreadCount(optimisticUnread);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("notifications:unread-updated", { detail: { unreadCount: optimisticUnread } })
+          );
+        }
+
+        try {
+          const patchRes: any = await apiPatch("/api/notifications/read-all", { ids: windowUnreadIds });
+          if (typeof patchRes?.unreadCount === "number") {
+            setUnreadCount(patchRes.unreadCount);
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(
+                new CustomEvent("notifications:unread-updated", { detail: { unreadCount: patchRes.unreadCount } })
+              );
+            }
+          }
+        } catch {
+          // Revert read state if marking in-window items failed
+          const unreadSet = new Set(windowUnreadIds);
+          setItems((current) =>
+            current.map((item) => (unreadSet.has(item._id) ? { ...item, read: false } : item))
+          );
+          if (typeof response.unreadCount === "number") {
+            setUnreadCount(response.unreadCount);
+          }
+        }
+      } else if (typeof response.unreadCount === "number") {
         setUnreadCount(response.unreadCount);
       }
     } catch {
@@ -229,6 +266,11 @@ export default function NotificationsPage() {
       await apiPatch("/api/notifications/read-all", {});
       setItems((current) => current.map((item) => ({ ...item, read: true })));
       setUnreadCount(0);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("notifications:unread-updated", { detail: { unreadCount: 0 } })
+        );
+      }
     } catch {
       // Ignored
     } finally {
