@@ -717,11 +717,17 @@ function RadarContent() {
                 participantId: targetParticipantId,
                 participantName: post.requesterName,
                 participantSubtitle: `${post.isVerified ? "Student" : "Campus Member"} · ${post.requesterLocation}`,
-                participantAvatar: post.requesterAvatar,
+                participantAvatar:
+                  post.requesterAvatar ||
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent((post.requesterHandle || "").replace(/^@/, "") || post.requesterName || "student")}`,
                 participantVerified: post.isVerified ? "true" : "false",
               }).toString()}`;
 
-              const userProfileHref = `/profile/${post.requesterHandle.replace(/^@/, "")}`;
+              const cleanHandle = (post.requesterHandle || "").replace(/^@/, "");
+              const resolvedRequesterAvatar =
+                post.requesterAvatar ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanHandle || post.requesterName || "student")}`;
+              const userProfileHref = `/profile/${cleanHandle}`;
 
               return (
                 <article
@@ -731,27 +737,15 @@ function RadarContent() {
                   <div className="flex items-start gap-3">
                     {/* 1. Avatar */}
                     <Link href={userProfileHref} className="shrink-0 mt-0.5">
-                      {post.requesterAvatar ? (
-                        <img
-                          src={post.requesterAvatar}
-                          alt={post.requesterName}
-                          className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 ${
-                            post.isVerified
-                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                              : ""
-                          }`}
-                        />
-                      ) : (
-                        <div
-                          className={`w-9 h-9 rounded-full bg-[#FFE182] text-[#171717] font-extrabold text-[13px] flex items-center justify-center border border-[#E8E8E8] dark:border-white/10 ${
-                            post.isVerified
-                              ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
-                              : ""
-                          }`}
-                        >
-                          {post.requesterName ? post.requesterName.charAt(0).toUpperCase() : "U"}
-                        </div>
-                      )}
+                      <img
+                        src={resolvedRequesterAvatar}
+                        alt={post.requesterName}
+                        className={`w-9 h-9 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-[#FFF8E1] dark:bg-white/5 ${
+                          post.isVerified
+                            ? "ring-2 ring-[#FFC928] ring-offset-1 ring-offset-white dark:ring-offset-[#14161D]"
+                            : ""
+                        }`}
+                      />
                     </Link>
 
                     {/* Main Compact Body */}
@@ -922,17 +916,16 @@ function RadarContent() {
                                 className="radius-native px-3 py-2.5 rounded-lg bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/5 flex items-start justify-between gap-2.5 text-[12.5px]"
                               >
                                 <div className="flex items-start gap-2.5 min-w-0">
-                                  {reply.authorAvatar ? (
-                                    <img
-                                      src={reply.authorAvatar}
-                                      alt={reply.authorName}
-                                      className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5"
-                                    />
-                                  ) : (
-                                    <div className="w-6 h-6 rounded-full bg-[#FFE182] text-[#171717] font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                                      {reply.authorName ? reply.authorName.charAt(0).toUpperCase() : "U"}
-                                    </div>
-                                  )}
+                                  <img
+                                    src={
+                                      reply.authorAvatar ||
+                                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                                        (reply.authorHandle || "").replace(/^@/, "") || reply.authorName || "student"
+                                      )}`
+                                    }
+                                    alt={reply.authorName}
+                                    className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5 bg-[#FFF8E1] dark:bg-white/5"
+                                  />
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
                                       <Link
