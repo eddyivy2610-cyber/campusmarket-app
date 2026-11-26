@@ -39,7 +39,7 @@ export default function RegisterPage() {
       return;
     }
     if (!agreedTerms) {
-      toast.error("Please agree to the Campus Hive terms and community rules.");
+      toast.error("Please agree to the Terms of Service and Hive Rules.");
       return;
     }
 
@@ -190,8 +190,9 @@ export default function RegisterPage() {
             <span className="text-[#68707A] dark:text-neutral-400">
               I agree to the{" "}
               <Link
-                href="/terms"
+                href="/terms-of-service"
                 target="_blank"
+                onClick={(e) => e.stopPropagation()}
                 className="font-bold text-[#171717] dark:text-white underline"
               >
                 Terms of Service
@@ -200,9 +201,10 @@ export default function RegisterPage() {
               <Link
                 href="/community-rules"
                 target="_blank"
+                onClick={(e) => e.stopPropagation()}
                 className="font-bold text-[#171717] dark:text-white underline"
               >
-                Campus Rules
+                Hive Rules
               </Link>
               .
             </span>
