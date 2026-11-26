@@ -18,6 +18,8 @@ import {
   Flame,
   Sparkles,
   Clock,
+  MapPin,
+  Globe,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
@@ -155,6 +157,7 @@ export function RebrandSettingsShell({
 
   // Marketplace Home Feed content preference: "popular" (default), "recent", or "both"
   const [homeFeedPreference, setHomeFeedPreference] = useState<"popular" | "recent" | "both">("popular");
+  const [feedLocationScope, setFeedLocationScope] = useState<"campus" | "everywhere">("everywhere");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -181,8 +184,28 @@ export function RebrandSettingsShell({
       if (savedFeedPref === "popular" || savedFeedPref === "recent" || savedFeedPref === "both") {
         setHomeFeedPreference(savedFeedPref);
       }
+      const savedScope = localStorage.getItem("ch_feed_location_scope");
+      if (savedScope === "campus" || savedScope === "everywhere") {
+        setFeedLocationScope(savedScope);
+      }
     } catch {}
   }, []);
+
+  const handleFeedLocationScopeChange = (scope: "campus" | "everywhere") => {
+    setFeedLocationScope(scope);
+    try {
+      localStorage.setItem("ch_feed_location_scope", scope);
+      window.dispatchEvent(
+        new CustomEvent("ch_feed_location_scope_update", { detail: { scope } })
+      );
+    } catch {}
+    setSaveSuccessMsg(
+      scope === "campus"
+        ? "Feed set to show items around your campus!"
+        : "Feed set to show items from everywhere!"
+    );
+    setTimeout(() => setSaveSuccessMsg(null), 3000);
+  };
 
   const handleHomeFeedPreferenceChange = (pref: "popular" | "recent" | "both") => {
     setHomeFeedPreference(pref);
@@ -756,6 +779,70 @@ export function RebrandSettingsShell({
               </div>
             </div>
 
+            {/* Feed Location Scope */}
+            <div className="p-4 sm:p-5 rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F7F8FA]/50 dark:bg-white/[0.02] space-y-4">
+              <div>
+                <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
+                  Feed Location Scope
+                </h3>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                  Choose whether your marketplace feed shows listings around your campus or from everywhere.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleFeedLocationScopeChange("campus")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    feedLocationScope === "campus"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D97706]" />
+                        <span>Around My Campus</span>
+                      </span>
+                      {feedLocationScope === "campus" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug">
+                      Only show listings from your detected or selected campus area.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleFeedLocationScopeChange("everywhere")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    feedLocationScope === "everywhere"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+                        <span>Everywhere</span>
+                      </span>
+                      {feedLocationScope === "everywhere" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug">
+                      Prioritize nearby listings first while keeping items from all campuses visible.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-3">
               <p className="text-[13px] text-[#68707A] dark:text-neutral-400">
                 Quick shortcuts to your active campus commerce tools:
@@ -1053,6 +1140,70 @@ export function RebrandSettingsShell({
                         Sign out of your CampusHive account
                       </div>
                     </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Feed Location Scope */}
+            <div className="p-4 sm:p-5 rounded-2xl border border-[#ECEEF2] dark:border-white/10 bg-[#F7F8FA]/50 dark:bg-white/[0.02] space-y-4">
+              <div>
+                <h3 className="text-[14.5px] font-bold text-[#171717] dark:text-white">
+                  Feed Location Scope
+                </h3>
+                <p className="text-[12.5px] text-[#68707A] dark:text-neutral-400 mt-0.5">
+                  Choose whether your marketplace feed shows listings around your campus or from everywhere.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleFeedLocationScopeChange("campus")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    feedLocationScope === "campus"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#D97706]" />
+                        <span>Around My Campus</span>
+                      </span>
+                      {feedLocationScope === "campus" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug">
+                      Only show listings from your detected or selected campus area.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleFeedLocationScopeChange("everywhere")}
+                  className={`radius-native p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    feedLocationScope === "everywhere"
+                      ? "border-[#FFC928] bg-[#FFFBF0] dark:bg-[#FFC928]/10 ring-1 ring-[#FFC928]"
+                      : "border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-white/[0.02] hover:border-[#DCE0E6]"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[13.5px] font-bold text-[#171717] dark:text-white flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-[#0284C7]" />
+                        <span>Everywhere</span>
+                      </span>
+                      {feedLocationScope === "everywhere" && (
+                        <Check className="w-4 h-4 text-[#B45309] dark:text-[#FFC928]" />
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#68707A] dark:text-neutral-400 leading-snug">
+                      Prioritize nearby listings first while keeping items from all campuses visible.
+                    </p>
                   </div>
                 </button>
               </div>

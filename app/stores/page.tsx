@@ -63,6 +63,7 @@ function StoresContent() {
   const [storefrontTab, setStorefrontTab] = useState<StorefrontTab>("dashboard");
   const [hasOpenedStore, setHasOpenedStore] = useState<boolean | null>(null);
   const [myStore, setMyStore] = useState<any>(null);
+  const [rejectedApp, setRejectedApp] = useState<{ reviewNote?: string | null } | null>(null);
 
   const [activeFilterTab, setActiveFilterTab] = useState<
     "all" | "student_owned" | "approved_business" | "services"
@@ -165,10 +166,16 @@ function StoresContent() {
           if (res.ok && data.success) {
             const list = Array.isArray(data.data?.stores) ? data.data.stores : [];
             const activeStores = list.filter(
-              (s: any) => s && s.status !== "pending_review" && s.status !== "pending" && s.status !== "deleted"
+              (s: any) => s && s.status !== "pending_review" && s.status !== "pending" && s.status !== "deleted" && s.status !== "rejected"
             );
             setHasOpenedStore(activeStores.length > 0);
             setMyStore(activeStores[0] || null);
+            const app = data.data?.businessApplication;
+            if (activeStores.length === 0 && app?.status === "rejected") {
+              setRejectedApp({ reviewNote: app.reviewNote || null });
+            } else {
+              setRejectedApp(null);
+            }
           } else {
             setHasOpenedStore(false);
             setMyStore(null);
@@ -420,12 +427,34 @@ function StoresContent() {
           {/* =============================================================== */}
           {isStorefrontView ? (
             /* STOREFRONT WORKSPACE COMPONENT */
-            <StorefrontManager
-              activeTab={storefrontTab}
-              onTabChange={setStorefrontTab}
-              initialStore={myStore}
-              initialHasStore={hasOpenedStore}
-            />
+            <div className="space-y-4">
+              {rejectedApp && !hasOpenedStore && (
+                <div className="radius-native rounded-2xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <p className="text-[13.5px] font-extrabold text-rose-800 dark:text-rose-300">
+                      Storefront verification was not approved
+                    </p>
+                    <p className="text-[12.5px] text-rose-700/90 dark:text-rose-300/80">
+                      {rejectedApp.reviewNote
+                        ? `Reason: ${rejectedApp.reviewNote}`
+                        : "Your previous pending application was removed. You can update your details and re-apply."}
+                    </p>
+                  </div>
+                  <Link
+                    href="/onboarding/seller?retry=true"
+                    className="radius-native shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-bold transition-colors"
+                  >
+                    Re-apply Now
+                  </Link>
+                </div>
+              )}
+              <StorefrontManager
+                activeTab={storefrontTab}
+                onTabChange={setStorefrontTab}
+                initialStore={myStore}
+                initialHasStore={hasOpenedStore}
+              />
+            </div>
           ) : (
             /* STORES DIRECTORY VIEW */
             <>

@@ -59,6 +59,7 @@ export function RebrandHomeFeed() {
   // Mobile initial: 12 items. Desktop initial: 16 items.
   const [pageSize, setPageSize] = useState(12);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [locationScope, setLocationScope] = useState<"campus" | "everywhere">("everywhere");
   const { selectedCampus, detectedLocation } = useCampus();
 
   // Load user feed preference from localStorage and listen to updates from Marketplace Settings
@@ -67,6 +68,10 @@ export function RebrandHomeFeed() {
       const stored = localStorage.getItem("ch_home_feed_preference");
       if (stored === "popular" || stored === "recent" || stored === "both") {
         setFeedPreference(stored as HomeFeedPreference);
+      }
+      const storedScope = localStorage.getItem("ch_feed_location_scope");
+      if (storedScope === "campus" || storedScope === "everywhere") {
+        setLocationScope(storedScope);
       }
     } catch {
       // Ignore storage errors
@@ -79,9 +84,18 @@ export function RebrandHomeFeed() {
       }
     };
 
+    const handleScopeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ scope: "campus" | "everywhere" }>;
+      if (customEvent.detail?.scope) {
+        setLocationScope(customEvent.detail.scope);
+      }
+    };
+
     window.addEventListener("ch_home_feed_preference_update", handlePreferenceUpdate);
+    window.addEventListener("ch_feed_location_scope_update", handleScopeUpdate);
     return () => {
       window.removeEventListener("ch_home_feed_preference_update", handlePreferenceUpdate);
+      window.removeEventListener("ch_feed_location_scope_update", handleScopeUpdate);
     };
   }, []);
 
@@ -172,23 +186,30 @@ export function RebrandHomeFeed() {
               .map((t) => t.trim().toLowerCase())
               .filter((t) => t.length >= 3);
 
+            let finalFeed = mapped;
             if (campusTokens.length > 0) {
-              mapped.sort((a, b) => {
-                const aLocal = campusTokens.some((t) =>
-                  a.landmark.toLowerCase().includes(t)
-                )
-                  ? 1
-                  : 0;
-                const bLocal = campusTokens.some((t) =>
-                  b.landmark.toLowerCase().includes(t)
-                )
-                  ? 1
-                  : 0;
-                return bLocal - aLocal;
-              });
+              if (locationScope === "campus") {
+                finalFeed = mapped.filter((item) =>
+                  campusTokens.some((t) => item.landmark.toLowerCase().includes(t))
+                );
+              } else {
+                finalFeed = [...mapped].sort((a, b) => {
+                  const aLocal = campusTokens.some((t) =>
+                    a.landmark.toLowerCase().includes(t)
+                  )
+                    ? 1
+                    : 0;
+                  const bLocal = campusTokens.some((t) =>
+                    b.landmark.toLowerCase().includes(t)
+                  )
+                    ? 1
+                    : 0;
+                  return bLocal - aLocal;
+                });
+              }
             }
 
-            setAllListings(mapped);
+            setAllListings(finalFeed);
           }
         }
       } catch (err) {
@@ -203,7 +224,7 @@ export function RebrandHomeFeed() {
     return () => {
       isCancelled = true;
     };
-  }, [feedPreference, selectedCampus.slug, detectedLocation]);
+  }, [feedPreference, locationScope, selectedCampus.slug, detectedLocation]);
 
   // Load saved item state
   useEffect(() => {
@@ -243,7 +264,7 @@ export function RebrandHomeFeed() {
     if (feedPreference === "recent") return "Recently listed on campus";
     if (feedPreference === "both") return "Campus Discovery Feed";
     return "Popular on campus";
-  }, [feedPreference, selectedCampus.slug, detectedLocation]);
+  }, [feedPreference, locationScope, selectedCampus.slug, detectedLocation]);
 
   return (
     <div

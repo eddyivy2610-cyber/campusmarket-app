@@ -277,9 +277,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.removeItem("campus_email_verified");
                 localStorage.removeItem("campus_access_token");
                 localStorage.removeItem("ch_profile_identity_v1");
+                localStorage.removeItem("campus_pending_verification_email");
+                localStorage.removeItem("campus_pending_fullname");
             } catch {}
             if (typeof window !== "undefined") {
-                window.location.replace("/home");
+                window.location.replace("/register");
             }
         }
     };
