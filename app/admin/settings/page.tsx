@@ -17,6 +17,7 @@ import {
     SLUG_RENAME_COOLDOWN_MS,
     SLUG_RESERVATION_DURATION_MS,
 } from "@/constants/enums";
+import { AccessControlCard } from "@/components/admin/AccessControlCard";
 
 const STORE_SLUG_COOLDOWN_DAYS = Math.round(SLUG_RENAME_COOLDOWN_MS / (24 * 60 * 60 * 1000));
 const STORE_SLUG_RESERVATION_DAYS = Math.round(SLUG_RESERVATION_DURATION_MS / (24 * 60 * 60 * 1000));
@@ -58,6 +59,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Access Control — live admin-toggled settings */}
+                <AccessControlCard />
+
                 {/* Multi-Store Rules */}
                 <div className="p-6 rounded-3xl bg-card border border-border/60 space-y-4">
                     <div className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-foreground">

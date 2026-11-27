@@ -120,7 +120,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
       })
       .catch(() => {
-        setSession(existing);
+        // Network failure: fail closed — never grant access on error
+        clearAdminSession();
+        setSession(null);
       })
       .finally(() => {
         setIsCheckingAuth(false);
