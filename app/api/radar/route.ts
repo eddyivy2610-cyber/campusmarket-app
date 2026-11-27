@@ -48,6 +48,8 @@ export async function GET(req: NextRequest) {
             authorHandle: r.authorHandle,
             authorDept: r.authorDept,
             authorAvatar: r.authorAvatar,
+            parentReplyId: r.parentReplyId || null,
+            replyToName: r.replyToName || null,
             isVerified: Boolean(r.isVerified),
             message: r.message,
             authorTime: formatTimeAgo(r.createdAt),
@@ -78,8 +80,27 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (requestText.length > 500) {
+      return NextResponse.json(
+        { success: false, error: "Request must be 500 characters or fewer." },
+        { status: 400 }
+      );
+    }
+    const cleanShort = (v: unknown, max = 120) =>
+      typeof v === "string" ? v.trim().slice(0, max) : "";
 
     await dbConnect();
+
+    const recentCount = await RadarPostModel.countDocuments({
+      userId: user.id,
+      createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
+    });
+    if (recentCount >= 5) {
+      return NextResponse.json(
+        { success: false, error: "You're posting too quickly. Please wait a bit before posting another request." },
+        { status: 429 }
+      );
+    }
 
     // Fetch latest user profile details
     const dbUser = await UserModel.findById(user.id).lean();
@@ -96,7 +117,7 @@ export async function POST(req: NextRequest) {
       dbUser?.profile?.avatar ||
       "";
     const location =
-      body.location ||
+      cleanShort(body.location) ||
       dbUser?.campus ||
       user.campus ||
       "Main Campus";
@@ -115,8 +136,8 @@ export async function POST(req: NextRequest) {
       requesterAvatar: avatar,
       isVerified,
       requestText,
-      category: body.category || "all",
-      budget: body.budget || "",
+      category: cleanShort(body.category, 40) || "all",
+      budget: cleanShort(body.budget, 40),
       campus: location,
       status: "active",
       replies: [],

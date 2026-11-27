@@ -34,14 +34,12 @@ function readRecentRefresh(): number | null {
   return null;
 }
 
-function writeRecentRefresh(token: string | undefined): void {
+function writeRecentRefresh(): void {
   if (typeof window === "undefined") return;
   try {
     // Store ONLY the numeric timestamp in campus_auth_last_refresh (never token material)
     window.localStorage.setItem(LAST_REFRESH_KEY, String(Date.now()));
-    if (token) {
-      window.localStorage.setItem("campus_access_token", token);
-    }
+    window.localStorage.removeItem("campus_access_token");
   } catch {
     // ignore storage errors
   }
@@ -83,7 +81,7 @@ export async function coalescedRefresh(
 
     if (res.ok) {
       const data = await res.json();
-      writeRecentRefresh(data?.token);
+      writeRecentRefresh();
       if (typeof window !== "undefined" && data?.user) {
         window.dispatchEvent(
           new CustomEvent("campus_auth_refreshed", { detail: data.user })

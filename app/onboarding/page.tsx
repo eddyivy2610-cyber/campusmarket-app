@@ -23,18 +23,13 @@ import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { ButtonRing } from "@/components/common/LoadingSystem";
 import { useAuth } from "@/context/AuthContext";
 import { apiPatch } from "@/lib/apiClient";
+import { CAMPUS_COLLECTION } from "@/data/campuses";
 
-const CAMPUSES = [
-  { id: "abu-samaru", name: "Ahmadu Bello University (ABU Samaru Main Campus)", city: "Zaria, Kaduna" },
-  { id: "abu-kongo", name: "ABU Zaria (Kongo Campus)", city: "Zaria, Kaduna" },
-  { id: "unilag", name: "University of Lagos (UNILAG)", city: "Akoka, Lagos" },
-  { id: "ui-ibadan", name: "University of Ibadan (UI)", city: "Ibadan, Oyo" },
-  { id: "oau-ife", name: "Obafemi Awolowo University (OAU)", city: "Ile-Ife, Osun" },
-  { id: "buk-kano", name: "Bayero University Kano (BUK)", city: "Kano" },
-  { id: "unn-nsukka", name: "University of Nigeria, Nsukka (UNN)", city: "Nsukka, Enugu" },
-  { id: "futo", name: "Federal University of Technology, Owerri (FUTO)", city: "Owerri, Imo" },
-  { id: "abuth", name: "ABU Teaching Hospital (ABUTH)", city: "Shika, Zaria" },
-];
+const CAMPUSES = CAMPUS_COLLECTION.map((c) => ({
+  id: c.slug,
+  name: c.name,
+  city: `${c.city}, ${c.state}`,
+}));
 
 const DEPARTMENTS: string[] = [];
 const LEVELS: string[] = [];
@@ -47,8 +42,17 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState<"profile" | "completed">("profile");
 
-  // Form states
-  const [selectedCampus, setSelectedCampus] = useState(CAMPUSES[0].name);
+  // Form states (default to campus selected at sign-up if available; never prompt geolocation here)
+  const [selectedCampus, setSelectedCampus] = useState(() => {
+    if (user?.campus) return user.campus;
+    if (typeof window !== "undefined") {
+      try {
+        const pending = localStorage.getItem("campus_pending_campus");
+        if (pending) return pending;
+      } catch {}
+    }
+    return CAMPUSES[0].name;
+  });
   const [campusSearch, setCampusSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [level, setLevel] = useState("");

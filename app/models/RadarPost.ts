@@ -7,6 +7,8 @@ export interface IRadarReply {
   authorHandle: string;
   authorDept: string;
   authorAvatar?: string;
+  parentReplyId?: string | null;
+  replyToName?: string | null;
   isVerified: boolean;
   message: string;
   createdAt: string | Date;
@@ -43,6 +45,8 @@ const RadarReplySchema = new Schema<IRadarReply>(
     authorHandle: { type: String, default: "student" },
     authorDept: { type: String, default: "Main Campus" },
     authorAvatar: { type: String },
+    parentReplyId: { type: String, default: null },
+    replyToName: { type: String, default: null },
     isVerified: { type: Boolean, default: false },
     message: { type: String, required: true, trim: true },
     createdAt: { type: Schema.Types.Mixed, default: () => new Date() },

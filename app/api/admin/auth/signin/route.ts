@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import argon2 from "argon2";
 import {
@@ -5,18 +6,44 @@ import {
   createRefreshToken,
   setRefreshTokenCookie,
   setAccessTokenCookie,
-  ACCESS_TOKEN_EXPIRY_SECONDS,
   ServerAuthUser,
 } from "@/lib/authTokens";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/adminAuthHelpers";
 import UserModel from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
 
+const DUMMY_ADMIN_SEED = "campushive_admin_dummy_timing_seed_v1";
+let dummyAdminHashPromise: Promise<string> | null = null;
+function getDummyAdminHash(): Promise<string> {
+  if (!dummyAdminHashPromise) {
+    dummyAdminHashPromise = argon2.hash(DUMMY_ADMIN_SEED);
+  }
+  return dummyAdminHashPromise;
+}
+
+function safeCompareSecret(a: string, b: string): boolean {
+  const digestA = crypto.createHash("sha256").update(a).digest();
+  const digestB = crypto.createHash("sha256").update(b).digest();
+  return a.length > 0 && b.length > 0 && crypto.timingSafeEqual(digestA, digestB);
+}
+
 export async function POST(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  const clientIp = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip") || "unknown-ip";
+
+  if (!checkRateLimit(clientIp)) {
+    return NextResponse.json(
+      { success: false, error: "Too many sign-in attempts. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { identity, password } = body;
 
-    if (!identity || !password) {
+    if (!identity || !password || typeof password !== "string" || password.length > 128) {
+      recordFailedAttempt(clientIp);
       return NextResponse.json(
         { success: false, error: "Identity (email or username) and password are required." },
         { status: 400 }
@@ -24,18 +51,19 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanIdentity = String(identity).trim().toLowerCase();
-    const cleanPassword = String(password).trim();
+    const cleanPassword = password;
 
-    // 1. Check configured environment admin credentials
-    const envAdminEmail = (process.env.ADMIN_EMAIL || "admin@campushive.edu.ng").toLowerCase();
-    const envAdminPassword = process.env.ADMIN_PASSWORD || "aspireelevation2026";
+    // 1. Optional explicitly configured env master admin (never fall back to hardcoded credentials)
+    const envAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase() || "";
+    const envAdminPassword = process.env.ADMIN_PASSWORD?.trim() || "";
 
     let authenticatedAdmin: ServerAuthUser | null = null;
 
     if (
-      (cleanIdentity === envAdminEmail || cleanIdentity === "admin") &&
-      (cleanPassword === envAdminPassword ||
-        (process.env.NODE_ENV !== "production" && cleanPassword === "admin"))
+      envAdminEmail &&
+      envAdminPassword.length >= 12 &&
+      cleanIdentity === envAdminEmail &&
+      safeCompareSecret(cleanPassword, envAdminPassword)
     ) {
       authenticatedAdmin = {
         id: "admin-master-01",
@@ -48,29 +76,24 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // 2. If not matched env credentials, check DB admin user if connected
+    // 2. Check DB admin user
     if (!authenticatedAdmin) {
       try {
         await dbConnect();
         const user = await UserModel.findOne({
           $or: [{ email: cleanIdentity }, { name: cleanIdentity }],
           role: "admin",
-          accountStatus: "active",
         }).select("+password");
 
-        if (user) {
+        if (user?.password) {
           let passwordValid = false;
-          if (user.password) {
-            try {
-              passwordValid = await argon2.verify(user.password, cleanPassword);
-            } catch {
-              passwordValid = user.password === cleanPassword;
-            }
-          } else if (envAdminPassword && cleanPassword === envAdminPassword) {
-            passwordValid = true;
+          try {
+            passwordValid = await argon2.verify(user.password, cleanPassword);
+          } catch {
+            passwordValid = false;
           }
 
-          if (passwordValid) {
+          if (passwordValid && user.accountStatus === "active") {
             authenticatedAdmin = {
               id: user._id.toString(),
               name: user.name,
@@ -82,6 +105,9 @@ export async function POST(req: NextRequest) {
               tokenVersion: typeof (user as any).tokenVersion === "number" ? (user as any).tokenVersion : 0,
             };
           }
+        } else {
+          const dummy = await getDummyAdminHash();
+          await argon2.verify(dummy, cleanPassword).catch(() => false);
         }
       } catch {
         // Fall through
@@ -89,6 +115,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!authenticatedAdmin) {
+      recordFailedAttempt(clientIp);
       return NextResponse.json(
         { success: false, error: "Invalid admin credentials." },
         { status: 401 }

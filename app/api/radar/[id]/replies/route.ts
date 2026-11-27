@@ -23,12 +23,51 @@ export async function POST(
     if (!message) {
       return NextResponse.json({ success: false, error: "Reply message is required" }, { status: 400 });
     }
+    if (message.length > 500) {
+      return NextResponse.json({ success: false, error: "Reply must be 500 characters or fewer." }, { status: 400 });
+    }
 
     await dbConnect();
 
     const post = await RadarPostModel.findById(id);
-    if (!post) {
+    if (!post || (post as any).status !== "active") {
       return NextResponse.json({ success: false, error: "Radar post not found" }, { status: 404 });
+    }
+
+    const existingReplies: any[] = Array.isArray(post.replies) ? (post.replies as any[]) : [];
+    if (existingReplies.length >= 100) {
+      return NextResponse.json(
+        { success: false, error: "This request has reached the maximum number of replies." },
+        { status: 409 }
+      );
+    }
+    if (existingReplies.filter((r) => String(r?.userId) === user.id).length >= 10) {
+      return NextResponse.json(
+        { success: false, error: "You've replied to this request too many times. Try messaging the poster instead." },
+        { status: 429 }
+      );
+    }
+
+    const rawParentId =
+      typeof body.parentReplyId === "string" ? body.parentReplyId.trim() : "";
+    let resolvedParentReplyId: string | null = null;
+    let resolvedReplyToName: string | null = null;
+    if (rawParentId) {
+      const targetReply = existingReplies.find((r) => String(r?.id) === rawParentId);
+      if (!targetReply) {
+        return NextResponse.json(
+          { success: false, error: "The reply you are responding to was not found." },
+          { status: 404 }
+        );
+      }
+      resolvedParentReplyId =
+        typeof targetReply.parentReplyId === "string" && targetReply.parentReplyId
+          ? targetReply.parentReplyId
+          : String(targetReply.id);
+      resolvedReplyToName =
+        typeof targetReply.authorName === "string" && targetReply.authorName
+          ? targetReply.authorName
+          : null;
     }
 
     const dbUser = await UserModel.findById(user.id).lean();
@@ -57,6 +96,8 @@ export async function POST(
       authorHandle,
       authorDept,
       authorAvatar,
+      parentReplyId: resolvedParentReplyId,
+      replyToName: resolvedReplyToName,
       isVerified,
       message,
       createdAt: new Date(),

@@ -24,6 +24,11 @@ import { RebrandFooter } from "@/components/sections/RebrandFooter";
 import { useAuth } from "@/context/AuthContext";
 import { uploadFileClient } from "@/lib/clientUpload";
 import { apiGet, apiPost } from "@/lib/apiClient";
+import {
+  CAMPUS_COLLECTION,
+  CapturedSafetyLocation,
+  requestNearestCampusAndSafetyCoords,
+} from "@/data/campuses";
 
 const CATEGORIES = [
   "Electronics & Tech",
@@ -38,19 +43,7 @@ const CATEGORIES = [
   "Photography & Creative",
 ];
 
-const CAMPUSES = [
-  "Main University Campus",
-  "Ahmadu Bello University (ABU)",
-  "University of Lagos (UNILAG)",
-  "University of Ibadan (UI)",
-  "Obafemi Awolowo University (OAU)",
-  "University of Nigeria, Nsukka (UNN)",
-  "Bayero University Kano (BUK)",
-  "Covenant University",
-  "University of Ilorin (UNILORIN)",
-  "Federal University of Technology, Akure (FUTA)",
-  "University of Benin (UNIBEN)",
-];
+const CAMPUSES = CAMPUS_COLLECTION.map((c) => c.name);
 
 /**
  * Helper to create a compact data URL fallback when local dev has no Cloudinary credentials configured.
@@ -137,6 +130,35 @@ export default function SellerOnboardingPage() {
   // Non-student business location verification states
   const [operatingLocation, setOperatingLocation] = useState("");
   const [locationProofFile, setLocationProofFile] = useState<File | null>(null);
+
+  // Enforced seller safety location verification (kept confidential for Admin safety review only)
+  const [safetyLocation, setSafetyLocation] = useState<CapturedSafetyLocation | null>(null);
+  const [locationStatus, setLocationStatus] = useState<"checking" | "verified" | "denied">("checking");
+
+  const activateSellerLocationVerification = async () => {
+    setLocationStatus("checking");
+    const loc = await requestNearestCampusAndSafetyCoords({
+      highAccuracy: true,
+      timeoutMs: 10000,
+    });
+    if (loc.granted && loc.safetyLocation) {
+      setSafetyLocation(loc.safetyLocation);
+      setLocationStatus("verified");
+      if (!user?.campus) {
+        setCampus(loc.nearestCampus.name);
+      }
+      return loc.safetyLocation;
+    }
+    setLocationStatus("denied");
+    return null;
+  };
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      void activateSellerLocationVerification();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated]);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const studentIdInputRef = useRef<HTMLInputElement>(null);
@@ -292,6 +314,18 @@ export default function SellerOnboardingPage() {
       }
     }
 
+    // Enforce active location verification before seller registration proceeds
+    let verifiedSafetyLocation = safetyLocation;
+    if (!verifiedSafetyLocation) {
+      verifiedSafetyLocation = await activateSellerLocationVerification();
+    }
+    if (!verifiedSafetyLocation) {
+      setError(
+        "Location access is required to register as a seller so Campus Hive can verify community safety. Please enable location access in your browser and try again."
+      );
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -341,6 +375,7 @@ export default function SellerOnboardingPage() {
             ? operatingLocation.trim()
             : `${campus} (Student Store)`,
         locationProofDocument: uploadedLocationProofUrl,
+        safetyLocation: verifiedSafetyLocation,
       });
 
       if (!data?.success) {
@@ -446,6 +481,43 @@ export default function SellerOnboardingPage() {
             )}
 
             <form onSubmit={handleOpenStore} className="space-y-6">
+              {/* Seller Safety Location Verification Banner */}
+              <div
+                className={`p-3.5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 text-[12.5px] ${
+                  locationStatus === "verified"
+                    ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                    : locationStatus === "checking"
+                    ? "bg-[#F7F8FA] dark:bg-white/[0.02] border-[#ECEEF2] dark:border-white/10 text-[#68707A] dark:text-neutral-300"
+                    : "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  {locationStatus === "checking" ? (
+                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  ) : locationStatus === "verified" ? (
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <MapPin className="w-4 h-4 shrink-0" />
+                  )}
+                  <span>
+                    {locationStatus === "verified"
+                      ? "Seller safety location verified (kept strictly confidential for admin trust & safety)."
+                      : locationStatus === "checking"
+                      ? "Verifying location access for seller safety..."
+                      : "Location access is required to register as a seller. Your exact location stays private."}
+                  </span>
+                </div>
+                {locationStatus === "denied" && (
+                  <button
+                    type="button"
+                    onClick={() => void activateSellerLocationVerification()}
+                    className="radius-native px-3 py-1 rounded-lg bg-[#171717] dark:bg-[#FFC928] text-white dark:text-[#171717] text-[11.5px] font-bold cursor-pointer"
+                  >
+                    Allow Location
+                  </button>
+                )}
+              </div>
+
               {/* 1. AVATAR & FULLNAME */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-5 p-4 rounded-2xl bg-[#F7F8FA] dark:bg-white/[0.02] border border-[#ECEEF2] dark:border-white/10">
                 {/* Avatar Upload */}

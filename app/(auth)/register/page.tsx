@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Check } from "lucide-react";
+import { Eye, EyeOff, Loader2, Check, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
-import { apiPost } from "@/lib/apiClient";
+import { apiGet, apiPost } from "@/lib/apiClient";
+import { validateDisplayName } from "@/lib/nameValidation";
+import {
+  CAMPUS_COLLECTION,
+  CampusDirectoryEntry,
+  CapturedSafetyLocation,
+  requestNearestCampusAndSafetyCoords,
+} from "@/data/campuses";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,7 +25,52 @@ export default function RegisterPage() {
   const [agreedTerms, setAgreedTerms] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Live password validation
+  // Campus directory & sign-up-only nearest-campus detection (precise coords kept confidential)
+  const [campuses, setCampuses] = useState<CampusDirectoryEntry[]>(CAMPUS_COLLECTION);
+  const [selectedCampus, setSelectedCampus] = useState<string>(CAMPUS_COLLECTION[0].name);
+  const [hasUserPickedCampus, setHasUserPickedCampus] = useState(false);
+  const [isMatchingCampus, setIsMatchingCampus] = useState(false);
+  const [matchedNearestLabel, setMatchedNearestLabel] = useState<string | null>(null);
+  const [safetyLocation, setSafetyLocation] = useState<CapturedSafetyLocation | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let list = CAMPUS_COLLECTION;
+      try {
+        const res: any = await apiGet("/api/campuses");
+        if (Array.isArray(res?.data) && res.data.length > 0) {
+          list = res.data;
+          if (!cancelled) setCampuses(list);
+        }
+      } catch {}
+
+      if (cancelled) return;
+      setIsMatchingCampus(true);
+      const loc = await requestNearestCampusAndSafetyCoords({
+        highAccuracy: false,
+        timeoutMs: 8000,
+        campuses: list,
+      });
+      if (cancelled) return;
+      setIsMatchingCampus(false);
+
+      if (loc.granted) {
+        setSafetyLocation(loc.safetyLocation);
+        setMatchedNearestLabel(loc.nearestCampus.shortName);
+        setSelectedCampus((prev) => (hasUserPickedCampus ? prev : loc.nearestCampus.name));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Run once when the user opens the Sign-Up page
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Live name & password validation
+  const nameCheck = validateDisplayName(fullName);
   const hasLength = password.length >= 8;
   const hasLetter = /[a-zA-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
@@ -26,8 +78,8 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) {
-      toast.error("Please enter your name or preferred display name.");
+    if (!nameCheck.valid) {
+      toast.error(nameCheck.error || "Please enter a valid display name.");
       return;
     }
     if (!email.trim() || !email.includes("@")) {
@@ -47,23 +99,26 @@ export default function RegisterPage() {
 
     try {
       await apiPost("auth/register", {
-        fullName: fullName.trim(),
-        email: email.trim(),
+        fullName: nameCheck.normalized,
+        email: email.trim().toLowerCase(),
         password,
+        campus: selectedCampus,
+        ...(safetyLocation ? { safetyLocation } : {}),
       });
 
       // Save pending registration session for verify step
       try {
         localStorage.setItem(
           "campus_pending_verification_email",
-          email.trim()
+          email.trim().toLowerCase()
         );
-        localStorage.setItem("campus_pending_fullname", fullName.trim());
+        localStorage.setItem("campus_pending_fullname", nameCheck.normalized);
+        localStorage.setItem("campus_pending_campus", selectedCampus);
       } catch {}
 
       toast.success("Account created! Check your email for the verification code.");
       // Route to email verification step
-      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     } catch (err: any) {
       console.error("Registration error:", err);
       toast.error(
@@ -94,10 +149,20 @@ export default function RegisterPage() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="e.g. Tunde Bello"
+            maxLength={40}
             required
             autoComplete="name"
             className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors"
           />
+          {fullName.trim().length > 0 && !nameCheck.valid ? (
+            <p className="text-[11.5px] text-rose-600 dark:text-rose-400 font-medium">
+              {nameCheck.error}
+            </p>
+          ) : (
+            <p className="text-[11px] text-[#8C929C] dark:text-neutral-400">
+              2–40 characters using letters, spaces, hyphens, or apostrophes. Official/system names are reserved.
+            </p>
+          )}
         </div>
 
         {/* Email Address */}
@@ -115,6 +180,41 @@ export default function RegisterPage() {
             autoComplete="email"
             className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white placeholder-[#8C929C] focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors"
           />
+        </div>
+
+        {/* Nearest Campus / University Default Selection */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <label htmlFor="register-campus" className="block text-[12px] font-bold text-[#171717] dark:text-neutral-200">
+              Campus / University
+            </label>
+            {isMatchingCampus ? (
+              <span className="inline-flex items-center gap-1 text-[11px] text-[#8C929C] dark:text-neutral-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Matching nearest campus...
+              </span>
+            ) : matchedNearestLabel ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <MapPin className="w-3 h-3" />
+                Nearest: {matchedNearestLabel}
+              </span>
+            ) : null}
+          </div>
+          <select
+            id="register-campus"
+            value={selectedCampus}
+            onChange={(e) => {
+              setHasUserPickedCampus(true);
+              setSelectedCampus(e.target.value);
+            }}
+            className="radius-native w-full px-3.5 py-2.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-[#181B24] text-[13.5px] text-[#171717] dark:text-white focus:outline-none focus:border-[#171717] dark:focus:border-[#FFC928] transition-colors"
+          >
+            {campuses.map((c) => (
+              <option key={c.slug} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Password */}

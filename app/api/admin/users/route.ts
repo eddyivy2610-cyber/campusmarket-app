@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     }
 
     const users = await UserModel.find(filter)
-      .select("-passwordHash -password")
+      .select("+safetyLocation -passwordHash -password")
       .sort({ createdAt: -1 })
       .lean();
 

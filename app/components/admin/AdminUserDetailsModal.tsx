@@ -175,6 +175,41 @@ export default function AdminUserDetailsModal({
                                 value={`${user.campus || "Not specified"}${user.profile?.department ? ` • ${user.profile.department}` : ""}${user.profile?.level ? ` (${user.profile.level}L)` : ""}`}
                                 icon={<GraduationCap className="w-4 h-4" />}
                             />
+                            {user.safetyLocation &&
+                                typeof user.safetyLocation.lat === "number" &&
+                                typeof user.safetyLocation.lng === "number" && (
+                                    <ModalDetailItem
+                                        label="Confidential Safety Location (Admin Only)"
+                                        value={
+                                            <div className="space-y-1 text-xs">
+                                                <div className="font-mono font-bold text-foreground">
+                                                    {user.safetyLocation.lat.toFixed(5)}, {user.safetyLocation.lng.toFixed(5)}
+                                                    {user.safetyLocation.accuracyMeters
+                                                        ? ` (±${user.safetyLocation.accuracyMeters}m)`
+                                                        : ""}
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                                    <span>
+                                                        Captured at:{" "}
+                                                        {user.safetyLocation.source === "seller_registration"
+                                                            ? "Seller Registration"
+                                                            : "Sign-Up"}
+                                                    </span>
+                                                    <a
+                                                        href={`https://www.google.com/maps?q=${user.safetyLocation.lat},${user.safetyLocation.lng}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 font-bold text-primary hover:underline"
+                                                    >
+                                                        <span>View Map</span>
+                                                        <ExternalLink className="w-3 h-3" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                        icon={<ShieldAlert className="w-4 h-4 text-amber-500" />}
+                                    />
+                                )}
                             {user.suspensionReason && (
                                 <ModalDetailItem
                                     label="Suspension / Ban Reason"

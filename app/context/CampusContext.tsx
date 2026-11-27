@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   SUPPORTED_CAMPUSES,
@@ -34,40 +34,9 @@ function getInitialSlug(): string {
   }
 }
 
-function getInitialLocationLabel(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(LOCATION_LABEL_KEY);
-  } catch {
-    return null;
-  }
-}
-
-async function reverseGeocodeLabel(lat: number, lng: number): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(
-        lat
-      )}&lon=${encodeURIComponent(lng)}`,
-      { headers: { Accept: "application/json" } }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const addr = data?.address || {};
-    const area = addr.suburb || addr.neighbourhood || addr.town || addr.village || addr.city_district;
-    const city = addr.city || addr.state;
-    const parts = [area, city].filter(Boolean);
-    return parts.length > 0 ? parts.join(", ") : null;
-  } catch {
-    return null;
-  }
-}
-
 export function CampusProvider({ children }: { children: React.ReactNode }) {
   const [slug, setSlug] = useState<string>(getInitialSlug);
-  const [detectedLocation, setDetectedLocation] = useState<string | null>(
-    getInitialLocationLabel
-  );
+  const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   const selectCampus = useCallback((nextSlug: string) => {
@@ -79,12 +48,13 @@ export function CampusProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Only runs when explicitly triggered by user action (never auto-prompted on general browsing).
+  // Resolves strictly to the nearest campus/university — never exposes precise street/suburb publicly.
   const detectBrowserLocation = useCallback(
     async (manual = false) => {
+      if (!manual) return;
       if (typeof window === "undefined" || !("geolocation" in navigator)) {
-        if (manual) {
-          toast.error("Location is not supported by your browser.");
-        }
+        toast.error("Location is not supported by your browser.");
         return;
       }
 
@@ -101,23 +71,17 @@ export function CampusProvider({ children }: { children: React.ReactNode }) {
         const { latitude, longitude } = position.coords;
         const nearest = findNearestCampus(latitude, longitude);
         selectCampus(nearest.slug);
-
-        const label = (await reverseGeocodeLabel(latitude, longitude)) || nearest.shortName;
-        setDetectedLocation(label);
+        setDetectedLocation(nearest.shortName);
         try {
-          window.localStorage.setItem(LOCATION_LABEL_KEY, label);
+          window.localStorage.removeItem(LOCATION_LABEL_KEY);
         } catch {}
 
-        if (manual) {
-          toast.success(`Location updated to ${label} (${nearest.shortName}).`);
-        }
+        toast.success(`Nearest campus selected: ${nearest.name}.`);
       } catch (err: any) {
-        if (manual) {
-          if (err?.code === 1) {
-            toast.error("Location permission was denied. You can choose your campus manually.");
-          } else {
-            toast.error("Could not detect your location right now.");
-          }
+        if (err?.code === 1) {
+          toast.error("Location permission was denied. You can choose your campus manually.");
+        } else {
+          toast.error("Could not detect your nearest campus right now.");
         }
       } finally {
         setIsDetectingLocation(false);
@@ -125,15 +89,6 @@ export function CampusProvider({ children }: { children: React.ReactNode }) {
     },
     [selectCampus]
   );
-
-  useEffect(() => {
-    try {
-      const hasSaved = Boolean(window.localStorage.getItem(STORAGE_KEY));
-      if (!hasSaved) {
-        void detectBrowserLocation(false);
-      }
-    } catch {}
-  }, [detectBrowserLocation]);
 
   return (
     <CampusContext.Provider

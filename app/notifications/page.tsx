@@ -167,7 +167,7 @@ export default function NotificationsPage() {
         message: item.message || "",
         category: item.category || "activity",
         link: item.link,
-        read: Boolean(item.read),
+        read: Boolean(item.read ?? item.isRead),
         createdAt: item.createdAt || new Date().toISOString(),
       }));
 

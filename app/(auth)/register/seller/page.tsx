@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Upload, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { apiPatch, apiPost, apiGet } from "@/lib/apiClient";
+import { apiPatch, apiPost } from "@/lib/apiClient";
+import { CapturedSafetyLocation, requestNearestCampusAndSafetyCoords } from "@/data/campuses";
 
 const categories = [
     "Electronics",
@@ -26,6 +27,7 @@ export default function SellerRegisterPage() {
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [idFile, setIdFile] = useState<File | null>(null);
     const [idPreview, setIdPreview] = useState<string | null>(null);
+    const [safetyLocation, setSafetyLocation] = useState<CapturedSafetyLocation | null>(null);
     const [formData, setFormData] = useState({
         businessName: "",
         businessCategory: "",
@@ -43,6 +45,9 @@ export default function SellerRegisterPage() {
             businessName: prev.businessName || user.name || "",
         }));
         setIsLoading(false);
+        void requestNearestCampusAndSafetyCoords({ highAccuracy: true }).then((loc) => {
+            if (loc.granted && loc.safetyLocation) setSafetyLocation(loc.safetyLocation);
+        });
     }, [router, user?.id, user?.name]);
 
     useEffect(() => {
@@ -78,6 +83,18 @@ export default function SellerRegisterPage() {
         if (!formData.businessDescription.trim()) return setError("Business Description is required.");
         if (!idFile) return setError("Student ID image is required.");
         if (!agreedToTerms) return setError("You must agree to seller terms.");
+
+        let verifiedLocation = safetyLocation;
+        if (!verifiedLocation) {
+            const loc = await requestNearestCampusAndSafetyCoords({ highAccuracy: true });
+            if (loc.granted && loc.safetyLocation) {
+                verifiedLocation = loc.safetyLocation;
+                setSafetyLocation(loc.safetyLocation);
+            }
+        }
+        if (!verifiedLocation) {
+            return setError("Location access is required to register as a seller for buyer safety.");
+        }
 
         setError("");
         setIsSubmitting(true);

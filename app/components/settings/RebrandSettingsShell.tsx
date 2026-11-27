@@ -20,12 +20,15 @@ import {
   Clock,
   MapPin,
   Globe,
+  ImagePlus,
+  Trash2,
 } from "lucide-react";
 import { RebrandHeader } from "../header/RebrandHeader";
 import { RebrandFooter } from "../sections/RebrandFooter";
 import { AppPreferencesPanel } from "./AppPreferencesPanel";
 import { useAuth } from "@/context/AuthContext";
 import { apiGet, apiPatch, apiPost } from "@/lib/apiClient";
+import { uploadFileClient } from "@/lib/clientUpload";
 
 export type SettingsTabId =
   | "profile"
@@ -90,6 +93,7 @@ const EMPTY_PROFILE_DATA: ProfileIdentityData = {
   username: "",
   bio: "",
   avatar: "",
+  coverImage: "",
   location: "",
 };
 
@@ -133,6 +137,10 @@ export function RebrandSettingsShell({
     useState<ProfileIdentityData>(EMPTY_PROFILE_DATA);
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverCleared, setCoverCleared] = useState(false);
+  const [primaryStoreId, setPrimaryStoreId] = useState<string>("");
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -160,6 +168,7 @@ export function RebrandSettingsShell({
   const [feedLocationScope, setFeedLocationScope] = useState<"campus" | "everywhere">("everywhere");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load saved profile data
   useEffect(() => {
@@ -226,15 +235,16 @@ export function RebrandSettingsShell({
         const data = response?.data || response?.user;
         if (!data) return;
         const storeObj = data.store;
-        const isSellerOrStore = Boolean(
-          storeObj ||
-            data.storeId ||
-            data.role === "seller" ||
-            data.sellerStatus === "approved" ||
-            user.role === "seller" ||
-            user.sellerStatus === "approved"
+        const activeStoreId = String(storeObj?.id || storeObj?._id || data.storeId || "");
+        const isActiveStoreOwner = Boolean(
+          storeObj &&
+            storeObj.status !== "pending_review" &&
+            storeObj.status !== "pending" &&
+            storeObj.status !== "rejected" &&
+            storeObj.status !== "deleted"
         );
-        setHasStorefront(isSellerOrStore);
+        setPrimaryStoreId(isActiveStoreOwner ? activeStoreId : "");
+        setHasStorefront(isActiveStoreOwner);
         const liveData: ProfileIdentityData = {
           ...EMPTY_PROFILE_DATA,
           name:
@@ -247,8 +257,9 @@ export function RebrandSettingsShell({
           )
             .replace(/^@/, "")
             .toLowerCase(),
-          bio: data.profile?.bio || "",
+          bio: data.bio || data.profile?.bio || "",
           avatar: data.profile?.avatar || user.avatar || "",
+          coverImage: isActiveStoreOwner ? storeObj?.coverImage || "" : "",
           location: data.campus || "",
         };
         setProfileData(liveData);
@@ -258,7 +269,7 @@ export function RebrandSettingsShell({
           emailVerified: Boolean(data.emailVerified),
           isStudent: data.isStudent !== false,
           studentVerified: Boolean(data.studentVerified),
-          sellerStatus: data.sellerStatus || (isSellerOrStore ? "approved" : "none"),
+          sellerStatus: data.sellerStatus || (isActiveStoreOwner ? "approved" : "none"),
           accountStatus: data.accountStatus || "active",
           storesCount: Number(data.storesCount || 0),
           primaryStoreSlug: storeObj?.slug,
@@ -279,11 +290,39 @@ export function RebrandSettingsShell({
     reader.readAsDataURL(file);
   };
 
-  const isStoreOwner = Boolean(
-    hasStorefront ||
-      user?.role === "seller" ||
-      user?.sellerStatus === "approved"
-  );
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!hasStorefront) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setSaveErrorMsg("Please choose an image file (JPG, PNG, or WebP) for your cover photo.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setSaveErrorMsg("Cover photo must be 8MB or smaller.");
+      return;
+    }
+    setSaveErrorMsg(null);
+    setCoverFile(file);
+    setCoverCleared(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCoverPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCover = () => {
+    if (!hasStorefront) return;
+    setCoverFile(null);
+    setCoverPreview(null);
+    setCoverCleared(true);
+    if (coverInputRef.current) {
+      coverInputRef.current.value = "";
+    }
+  };
+
+  const isStoreOwner = Boolean(hasStorefront);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -296,22 +335,47 @@ export function RebrandSettingsShell({
     setSaveSuccessMsg(null);
     setSaveErrorMsg(null);
 
-    const finalData: ProfileIdentityData = {
-      ...profileData,
-      avatar: avatarPreview || profileData.avatar,
-    };
-
     try {
+      let resolvedCover = coverCleared
+        ? ""
+        : coverPreview || profileData.coverImage || "";
+
+      if (isStoreOwner && coverFile) {
+        const uploaded = await uploadFileClient(coverFile, "store_cover");
+        if (!uploaded.success || !uploaded.url) {
+          throw new Error(uploaded.error || "Could not upload cover photo.");
+        }
+        resolvedCover = uploaded.url;
+      }
+
+      const finalData: ProfileIdentityData = {
+        ...profileData,
+        avatar: avatarPreview || profileData.avatar,
+        coverImage: isStoreOwner ? resolvedCover : "",
+      };
+
       const response = await apiPatch<any>("/api/users/profile", {
         displayName: finalData.name,
         bio: finalData.bio,
         campus: finalData.location,
         avatar: finalData.avatar,
+        ...(isStoreOwner ? { coverImage: resolvedCover } : {}),
       });
-      localStorage.setItem("ch_profile_identity_v1", JSON.stringify(finalData));
+
+      if (isStoreOwner && primaryStoreId && (coverFile || coverCleared)) {
+        await apiPatch(`/api/stores/${encodeURIComponent(primaryStoreId)}`, {
+          coverImage: resolvedCover || null,
+        }).catch(() => {});
+      }
+
+      const { coverImage: _omitPersonalCover, ...localCacheSafe } = finalData;
+      localStorage.setItem("ch_profile_identity_v1", JSON.stringify(localCacheSafe));
       setProfileData(finalData);
       setInitialData(finalData);
       setAvatarPreview(null);
+      setCoverFile(null);
+      setCoverPreview(null);
+      setCoverCleared(false);
       const saved = response?.data || response?.user;
       if (saved) {
         if (user) {
@@ -342,6 +406,9 @@ export function RebrandSettingsShell({
   const handleCancelProfile = () => {
     setProfileData(initialData);
     setAvatarPreview(null);
+    setCoverFile(null);
+    setCoverPreview(null);
+    setCoverCleared(false);
     setSaveSuccessMsg(null);
     setSaveErrorMsg(null);
   };
@@ -386,6 +453,9 @@ export function RebrandSettingsShell({
   };
 
   const effectiveAvatar = avatarPreview || profileData.avatar;
+  const effectiveCover = coverCleared
+    ? ""
+    : coverPreview || profileData.coverImage || "";
   const backProfileHandle = isStoreOwner
     ? profileData.username || user?.handle || "me"
     : "me";
@@ -454,6 +524,82 @@ export function RebrandSettingsShell({
                     Change photo
                   </button>
                 </div>
+              </div>
+
+              {/* Cover Photo Row — Storefront Owners Only (Empty by Default) */}
+              <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] items-start gap-2 sm:gap-4">
+                <div className="pt-1">
+                  <label className="text-[13px] font-bold text-[#3F454D] dark:text-neutral-300 block">
+                    Cover Photo
+                  </label>
+                  <span className="text-[11px] text-[#8C929C] dark:text-neutral-400">
+                    Storefront banner
+                  </span>
+                </div>
+
+                {isStoreOwner ? (
+                  <div className="space-y-2.5">
+                    <div className="relative h-24 sm:h-28 w-full max-w-lg rounded-xl overflow-hidden border border-[#DCE0E6] dark:border-white/15 bg-[#F3F4F6] dark:bg-white/[0.04] flex items-center justify-center">
+                      {effectiveCover ? (
+                        <img
+                          src={effectiveCover}
+                          alt="Storefront cover preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-1 text-[#8C929C] dark:text-neutral-400 text-[12px]">
+                          <ImagePlus className="w-5 h-5" />
+                          <span>No cover photo set</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleCoverChange}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => coverInputRef.current?.click()}
+                        className="radius-native px-3.5 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12.5px] font-bold text-[#171717] dark:text-white hover:border-[#FFC928] dark:hover:border-[#FFC928] hover:bg-[#FFC928]/10 transition-colors cursor-pointer"
+                      >
+                        {effectiveCover ? "Change cover" : "Upload cover"}
+                      </button>
+
+                      {effectiveCover && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveCover}
+                          className="radius-native inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 text-[12px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
+                        </button>
+                      )}
+
+                      <span className="text-[11px] text-[#8C929C] dark:text-neutral-400">
+                        Recommended 1200×360px (max 8MB)
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="radius-native rounded-xl border border-dashed border-[#DCE0E6] dark:border-white/15 bg-[#F7F8FA] dark:bg-white/[0.02] px-3.5 py-3 flex flex-wrap items-center justify-between gap-2 text-[12px] text-[#68707A] dark:text-neutral-400">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-3.5 h-3.5 text-[#8C929C] shrink-0" />
+                      <span>Cover photos are exclusively available to storefront owners.</span>
+                    </div>
+                    <Link
+                      href="/onboarding/seller"
+                      className="font-bold text-[#171717] dark:text-[#FFC928] hover:underline shrink-0"
+                    >
+                      Open storefront →
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Display Name Row */}

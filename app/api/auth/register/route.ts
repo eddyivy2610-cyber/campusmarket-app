@@ -6,6 +6,8 @@ import { requestOtpCode } from "@/lib/otpService";
 import { sendExistingAccountNotice } from "@/lib/email";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 import { generateDefaultUsername } from "@/lib/usernameUtils";
+import { isReservedIdentityName, validateDisplayName } from "@/lib/nameValidation";
+import { getDefaultAvatarUrl } from "@/lib/avatarUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -21,29 +23,31 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { fullName, email, password } = body;
+    const { fullName, email, password, campus, safetyLocation } = body;
 
     // 1. Validation
-    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+    const nameCheck = validateDisplayName(fullName);
+    if (!nameCheck.valid) {
       return NextResponse.json(
-        { success: false, message: "Full name is required." },
+        { success: false, message: nameCheck.error || "Please enter a valid display name." },
         { status: 400 }
       );
     }
+    const cleanFullName = nameCheck.normalized;
 
     const cleanEmail = email?.toLowerCase()?.trim();
-    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+    if (!cleanEmail || cleanEmail.length > 254 || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
       return NextResponse.json(
         { success: false, message: "A valid email address is required." },
         { status: 400 }
       );
     }
 
-    if (!password || typeof password !== "string" || password.length < 8) {
+    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
       return NextResponse.json(
         {
           success: false,
-          message: "Password must be at least 8 characters long.",
+          message: "Password must be between 8 and 128 characters long.",
         },
         { status: 400 }
       );
@@ -93,7 +97,7 @@ export async function POST(req: NextRequest) {
         req.headers.get("x-real-ip") ||
         "127.0.0.1";
       const otpResult = await requestOtpCode(cleanEmail, clientIp, {
-        name: fullName.trim(),
+        name: cleanFullName,
         passwordHash: hashedPassword,
       });
       return NextResponse.json(
@@ -107,22 +111,44 @@ export async function POST(req: NextRequest) {
     } else {
       // 3. Create fresh user
       const hashedPassword = await argon2.hash(password);
-      const handle = generateDefaultUsername(fullName.trim(), cleanEmail);
+      const rawHandle = generateDefaultUsername(cleanFullName, cleanEmail);
+      const handle = isReservedIdentityName(rawHandle)
+        ? generateDefaultUsername("member", "member")
+        : rawHandle;
+
+      const rawCampus = typeof campus === "string" ? campus.trim().slice(0, 120) : undefined;
+      const parsedSafetyLoc =
+        safetyLocation &&
+        typeof safetyLocation === "object" &&
+        Number.isFinite(Number(safetyLocation.lat)) &&
+        Number.isFinite(Number(safetyLocation.lng))
+          ? {
+              lat: Number(Number(safetyLocation.lat).toFixed(6)),
+              lng: Number(Number(safetyLocation.lng).toFixed(6)),
+              accuracyMeters: Number.isFinite(Number(safetyLocation.accuracyMeters))
+                ? Math.round(Number(safetyLocation.accuracyMeters))
+                : null,
+              source: "signup",
+              capturedAt: new Date().toISOString(),
+            }
+          : undefined;
 
       const newUser = new UserModel({
-        name: fullName.trim(),
+        name: cleanFullName,
         email: cleanEmail,
         password: hashedPassword,
         role: "buyer",
         accountStatus: "pending",
+        ...(rawCampus ? { campus: rawCampus } : {}),
+        ...(parsedSafetyLoc ? { safetyLocation: parsedSafetyLoc } : {}),
         isStudent: true,
         studentVerified: false,
         emailVerified: false,
         onboardingStep: "pending",
         profile: {
-          displayName: fullName.trim(),
+          displayName: cleanFullName,
           handle,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${handle}`,
+          avatar: getDefaultAvatarUrl(handle),
         },
         schemaVersion: 1,
         tokenVersion: 0,

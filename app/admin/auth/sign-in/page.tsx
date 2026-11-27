@@ -7,6 +7,7 @@ import { ArrowRight, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { getAdminSession, signInAdmin } from "@/lib/adminAuth";
+import { sanitizeInternalRedirect } from "@/lib/nameValidation";
 
 export default function AdminSignInPage() {
   return (
@@ -25,7 +26,7 @@ export default function AdminSignInPage() {
 function AdminSignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams?.get("next") || "/admin";
+  const nextPath = sanitizeInternalRedirect(searchParams?.get("next"), "/admin");
 
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");

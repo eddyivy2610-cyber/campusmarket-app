@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { NewAuthCard } from "@/components/auth/NewAuthCard";
 import { useAuth } from "@/context/AuthContext";
 import { apiPost } from "@/lib/apiClient";
+import { sanitizeInternalRedirect } from "@/lib/nameValidation";
 
 export default function LoginPage() {
   return (
@@ -29,7 +30,10 @@ function LoginFormContent() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
-  const redirectUrl = searchParams?.get("redirect") || "/home";
+  const redirectUrl = sanitizeInternalRedirect(
+    searchParams?.get("next") || searchParams?.get("redirect"),
+    "/home"
+  );
   const registered = searchParams?.get("registered") === "true";
 
   const [email, setEmail] = useState("");

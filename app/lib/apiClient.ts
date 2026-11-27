@@ -31,29 +31,14 @@ const normalizeUrl = (path: string) => {
 
 let refreshPromise: Promise<boolean> | null = null;
 
-function getStoredAccessToken(isAdminUrl = false): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    if (isAdminUrl) {
-      const adminToken = localStorage.getItem("hive_admin_token");
-      if (adminToken) return adminToken;
-    }
-    return localStorage.getItem("campus_access_token");
-  } catch {
-    return null;
-  }
-}
-
 import { coalescedRefresh } from "./refreshCoalescer";
 
-function setStoredAccessToken(token: string | null): void {
+// Purge any legacy JWT material from localStorage; auth relies on httpOnly cookies.
+function purgeLegacyStoredTokens(): void {
   if (typeof window === "undefined") return;
   try {
-    if (token) {
-      localStorage.setItem("campus_access_token", token);
-    } else {
-      localStorage.removeItem("campus_access_token");
-    }
+    localStorage.removeItem("campus_access_token");
+    localStorage.removeItem("hive_admin_token");
   } catch {}
 }
 
@@ -65,12 +50,12 @@ async function performSilentRefresh(): Promise<boolean> {
         (u, i) => fetch(u, i),
         normalizeUrl("/api/auth/refresh")
       );
-      if (result.ok && (result.token || result.coalescedFromPeer)) {
-        if (result.token) setStoredAccessToken(result.token);
+      if (result.ok) {
+        purgeLegacyStoredTokens();
         return true;
       }
       if (result.status === 401 || result.status === 403) {
-        setStoredAccessToken(null);
+        purgeLegacyStoredTokens();
       }
       return false;
     } catch {
@@ -164,8 +149,7 @@ const apiRequest = async <T>(
     console.log(`[apiClient] ${options.method || 'GET'} ${url}`);
   }
 
-  const isAdminUrl = url.includes("/admin/");
-  const storedToken = getStoredAccessToken(isAdminUrl);
+  purgeLegacyStoredTokens();
   let response: Response;
   try {
     response = await fetch(url, {
@@ -173,7 +157,6 @@ const apiRequest = async <T>(
       ...options,
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
-        ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
         ...(options.headers ?? {}),
       },
     });
@@ -214,15 +197,6 @@ const apiRequest = async <T>(
     }
   } else if (expectsJson && !rawBody) {
     payload = null;
-  }
-
-  if (
-    response.ok &&
-    payload &&
-    typeof payload === "object" &&
-    typeof (payload as { token?: unknown }).token === "string"
-  ) {
-    setStoredAccessToken((payload as { token: string }).token);
   }
 
   if (!response.ok) {

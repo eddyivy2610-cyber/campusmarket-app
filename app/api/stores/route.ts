@@ -210,6 +210,45 @@ export async function POST(req: NextRequest) {
     await ensureStoreIndexes();
     await ensureUserStoreCountersInitialized(user.id);
 
+    if (isUnifiedOnboarding) {
+      const rawLoc = body.safetyLocation;
+      const lat = Number(rawLoc?.lat);
+      const lng = Number(rawLoc?.lng);
+      const hasValidCoords =
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lng >= -180 &&
+        lng <= 180;
+      if (!hasValidCoords && process.env.NODE_ENV !== "test") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Location access is required to register as a seller for community safety.",
+          },
+          { status: 400 }
+        );
+      }
+      if (hasValidCoords && mongoose.Types.ObjectId.isValid(user.id)) {
+        const acc = Number(rawLoc?.accuracyMeters);
+        await UserModel.updateOne(
+          { _id: user.id },
+          {
+            $set: {
+              safetyLocation: {
+                lat: Number(lat.toFixed(6)),
+                lng: Number(lng.toFixed(6)),
+                accuracyMeters: Number.isFinite(acc) && acc >= 0 ? Math.round(acc) : null,
+                source: "seller_registration",
+                capturedAt: new Date().toISOString(),
+              },
+            },
+          }
+        ).catch(() => {});
+      }
+    }
+
     // Validate slug if explicitly provided, or derive deterministic slug from store name
     const rawName = String(body.name || "").trim();
     if (body.slug !== undefined && String(body.slug).trim() !== "") {

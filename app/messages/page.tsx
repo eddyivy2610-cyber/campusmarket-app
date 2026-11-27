@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
+import { getDefaultAvatarUrl } from "@/lib/avatarUtils";
 import {
   ArrowLeft,
   Send,
@@ -231,15 +232,16 @@ function MessagesWorkspace() {
     messagesRef.current = messages;
   }, [messages]);
 
+  // Auth relies on httpOnly session cookies only; never read or store tokens in localStorage.
   const getAuthHeaders = useCallback((extra: Record<string, string> = {}) => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
-        : null;
-    return {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...extra,
-    };
+    return { ...extra };
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("campus_token");
+    } catch {}
   }, []);
 
   const fetchWithAuth = useCallback(
@@ -261,14 +263,6 @@ function MessagesWorkspace() {
             credentials: "include",
           });
           if (refreshRes.ok) {
-            const refreshData = await refreshRes.json().catch(() => null);
-            const newToken =
-              refreshData?.data?.accessToken ||
-              refreshData?.data?.token ||
-              refreshData?.token;
-            if (newToken && typeof window !== "undefined") {
-              localStorage.setItem("auth_token", newToken);
-            }
             res = await doRequest();
           }
         } catch {
@@ -417,10 +411,6 @@ function MessagesWorkspace() {
       searchParams.get("recipient") ||
       searchParams.get("storeId") ||
       searchParams.get("store");
-    const participantName =
-      searchParams.get("participantName") ||
-      searchParams.get("name") ||
-      "Campus Seller";
     const title =
       searchParams.get("title") || searchParams.get("contextTitle");
     const priceParam =
@@ -515,31 +505,21 @@ function MessagesWorkspace() {
 
       const isStoreParticipant = isStoreOnly || contextType === "store" || fromParam === "store" || fromParam === "store_listing";
 
+      // Never trust identity details (name, avatar, verified badge) from the URL:
+      // show a neutral placeholder, then resolve the real profile from the server.
+      const placeholderParticipant: ChatParticipantProfile = {
+        id: participantId,
+        name: isStoreParticipant ? "Campus Store" : "Campus Member",
+        subtitle: isStoreParticipant ? "Student Store" : "Campus Member",
+        avatar: undefined,
+        isVerified: false,
+        accountType: isStoreParticipant ? "student_store" : "student",
+      };
+
       const draftConv: ConversationDTO = {
         id: draftId,
-        participants: [
-          currentUser,
-          {
-            id: participantId,
-            name: participantName,
-            subtitle:
-              searchParams.get("participantSubtitle") || (isStoreParticipant ? "Student Store · Campus" : "Student · Campus"),
-            avatar: searchParams.get("participantAvatar") || undefined,
-            isVerified: searchParams.get("participantVerified") !== "false",
-            accountType:
-              isStoreParticipant ? "student_store" : "student",
-          },
-        ],
-        otherParticipant: {
-          id: participantId,
-          name: participantName,
-          subtitle:
-            searchParams.get("participantSubtitle") || (isStoreParticipant ? "Student Store · Campus" : "Student · Campus"),
-          avatar: searchParams.get("participantAvatar") || undefined,
-          isVerified: searchParams.get("participantVerified") !== "false",
-          accountType:
-            isStoreParticipant ? "student_store" : "student",
-        },
+        participants: [currentUser, placeholderParticipant],
+        otherParticipant: placeholderParticipant,
         context: newContextRef,
         additionalContexts: [],
         isBannerCollapsed: false,
@@ -557,8 +537,31 @@ function MessagesWorkspace() {
       setMessages([]);
       setComposerText(defaultMsg);
       setMobileShowThread(true);
+
+      void (async () => {
+        try {
+          const res = await fetchWithAuth(
+            `/api/messages/participants/${encodeURIComponent(participantId)}`
+          );
+          if (!res.ok) return;
+          const json = await res.json().catch(() => null);
+          const profile = json?.data as ChatParticipantProfile | undefined;
+          if (!profile?.id) return;
+          setActiveConv((prev) =>
+            prev && prev.id === draftId
+              ? {
+                  ...prev,
+                  participants: [currentUser, profile],
+                  otherParticipant: profile,
+                }
+              : prev
+          );
+        } catch {
+          // Keep neutral placeholder identity on failure
+        }
+      })();
     }
-  }, [searchParams, currentUser, conversations]);
+  }, [searchParams, currentUser, conversations, fetchWithAuth]);
 
   const prevSelectedConvIdRef = useRef<string | null>(null);
 
@@ -1475,9 +1478,7 @@ function MessagesWorkspace() {
                       <img
                         src={
                           other.avatar ||
-                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                            other.id || other.name || "campus"
-                          )}`
+                          getDefaultAvatarUrl(other.id || other.name || "campus")
                         }
                         alt={other.name}
                         className={`w-10 h-10 rounded-full object-cover border border-[#E8E8E8] dark:border-white/10 bg-[#F7F8FA] shrink-0 ${
@@ -1592,11 +1593,11 @@ function MessagesWorkspace() {
                       <img
                         src={
                           activeConv.otherParticipant?.avatar ||
-                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+                          getDefaultAvatarUrl(
                             activeConv.otherParticipant?.id ||
                               activeConv.otherParticipant?.name ||
                               "campus"
-                          )}`
+                          )
                         }
                         alt={activeConv.otherParticipant?.name || "Campus Member"}
                         className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-[#E8E8E8] bg-[#F7F8FA] ${

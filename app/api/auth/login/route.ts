@@ -11,6 +11,30 @@ const GENERIC_LOGIN_ERROR = "Invalid email or password.";
 const DUMMY_PASSWORD_SEED = "campushive_dummy_timing_equalization_v1";
 let dummyHashPromise: Promise<string> | null = null;
 
+const localLoginBuckets = new Map<string, { count: number; expiresAt: number }>();
+function checkLocalLoginFallback(email: string, ip: string): { allowed: boolean; count: number; retryAfterSeconds: number } {
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000;
+  if (localLoginBuckets.size > 5000) {
+    for (const [k, v] of localLoginBuckets) {
+      if (v.expiresAt <= now) localLoginBuckets.delete(k);
+    }
+  }
+  const bump = (key: string, max: number) => {
+    const existing = localLoginBuckets.get(key);
+    if (!existing || existing.expiresAt <= now) {
+      localLoginBuckets.set(key, { count: 1, expiresAt: now + windowMs });
+      return { allowed: true, count: 1, retryAfterSeconds: 900 };
+    }
+    existing.count += 1;
+    const retryAfterSeconds = Math.max(1, Math.ceil((existing.expiresAt - now) / 1000));
+    return { allowed: existing.count <= max, count: existing.count, retryAfterSeconds };
+  };
+  const ipRes = bump(`ip:${ip}`, 30);
+  if (!ipRes.allowed) return ipRes;
+  return bump(`email:${email}`, 15);
+}
+
 function getDummyPasswordHash(): Promise<string> {
   if (!dummyHashPromise) {
     dummyHashPromise = argon2.hash(DUMMY_PASSWORD_SEED);
@@ -31,16 +55,17 @@ export async function POST(req: NextRequest) {
   const email = String(body.email || "").trim().toLowerCase();
   const password = typeof body.password === "string" ? body.password : "";
 
-  if (!email || !password) {
+  if (!email || !password || password.length > 128) {
     return NextResponse.json({ success: false, message: GENERIC_LOGIN_ERROR }, { status: 401 });
   }
 
+  const clientIp = getClientIp(req);
   let rateLimit: Awaited<ReturnType<typeof checkLoginRateLimit>>;
   try {
-    rateLimit = await checkLoginRateLimit(email, getClientIp(req));
+    rateLimit = await checkLoginRateLimit(email, clientIp);
   } catch (error: any) {
-    console.error("[ALERT] [POST /api/auth/login] Rate limiter unavailable; proceeding fail-open:", error?.message);
-    rateLimit = { allowed: true, count: 0, retryAfterSeconds: 900 };
+    console.error("[ALERT] [POST /api/auth/login] Rate limiter unavailable; enforcing local fallback:", error?.message);
+    rateLimit = checkLocalLoginFallback(email, clientIp);
   }
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -56,10 +81,6 @@ export async function POST(req: NextRequest) {
     throw error;
   }
   const user = await UserModel.findOne({ email }).select("+password");
-
-  if (user?.accountStatus === "suspended" || user?.accountStatus === "banned") {
-    return NextResponse.json({ success: false, message: "Your account is suspended." }, { status: 403 });
-  }
 
   let passwordMatches = false;
   if (user?.password) {
@@ -78,6 +99,10 @@ export async function POST(req: NextRequest) {
   }
   if (!user || !passwordMatches) {
     return NextResponse.json({ success: false, message: GENERIC_LOGIN_ERROR }, { status: 401 });
+  }
+
+  if (user.accountStatus === "suspended" || user.accountStatus === "banned") {
+    return NextResponse.json({ success: false, message: "Your account is suspended." }, { status: 403 });
   }
 
   if (!user.emailVerified) {

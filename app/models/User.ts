@@ -45,6 +45,13 @@ export interface IUser {
   };
   tokenVersion?: number;
   schemaVersion?: number;
+  safetyLocation?: {
+    lat: number;
+    lng: number;
+    accuracyMeters?: number | null;
+    source?: string;
+    capturedAt?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +75,17 @@ const UserSchema = new Schema<IUserDocument>(
       index: true,
     },
     campus: { type: String, required: false, index: true },
+    safetyLocation: {
+      type: {
+        lat: { type: Number },
+        lng: { type: Number },
+        accuracyMeters: { type: Number, default: null },
+        source: { type: String },
+        capturedAt: { type: String },
+      },
+      required: false,
+      select: false,
+    },
     isStudent: { type: Boolean, default: true },
     studentVerified: { type: Boolean, default: false, index: true },
     emailVerified: { type: Boolean, default: false, index: true },

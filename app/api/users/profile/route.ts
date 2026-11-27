@@ -150,26 +150,61 @@ export async function PATCH(req: NextRequest) {
       updateFields["image"] = avatar;
     }
 
-    // 2. Cover image verification
-    const coverImage =
-      body.coverImage || body["profile.coverImage"] || body.profile?.coverImage;
-    if (coverImage && typeof coverImage === "string") {
-      const isDataUrl = coverImage.startsWith("data:image/");
-      const isRelativeUrl = coverImage.startsWith("/");
-      const isHttpsUrl = coverImage.startsWith("https://") || coverImage.startsWith("http://");
-      const isCloudinaryVerified = verifyAssetOwnership(coverImage, user.id, "cover_image");
+    // 2. Cover image verification — strictly allowed for active storefront owners only
+    const hasCoverField =
+      body.coverImage !== undefined ||
+      body["profile.coverImage"] !== undefined ||
+      body.profile?.coverImage !== undefined;
+    const rawCover =
+      body.coverImage ?? body["profile.coverImage"] ?? body.profile?.coverImage;
 
-      if (!isCloudinaryVerified && !isDataUrl && !isRelativeUrl && !isHttpsUrl) {
-        return NextResponse.json(
-          {
-            success: false,
-            error:
-              "Security rejection: Invalid cover image format or unauthorized asset.",
-          },
-          { status: 403 }
+    if (hasCoverField) {
+      const activeStore = await StoreModel.findOne({
+        ownerId: String(user.id),
+        status: "active",
+      });
+      const trimmedCover = typeof rawCover === "string" ? rawCover.trim() : "";
+
+      if (!activeStore) {
+        if (trimmedCover) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Cover photo is only available to storefront owners.",
+            },
+            { status: 403 }
+          );
+        }
+      } else if (!trimmedCover) {
+        await StoreModel.updateOne(
+          { _id: activeStore._id },
+          { $set: { coverImage: "" } }
+        );
+      } else {
+        const isDataUrl = trimmedCover.startsWith("data:image/");
+        const isRelativeUrl = trimmedCover.startsWith("/");
+        const isHttpsUrl =
+          trimmedCover.startsWith("https://") || trimmedCover.startsWith("http://");
+        const isCloudinaryVerified =
+          verifyAssetOwnership(trimmedCover, user.id, "store_cover") ||
+          verifyAssetOwnership(trimmedCover, user.id, "cover_image");
+
+        if (!isCloudinaryVerified && !isDataUrl && !isRelativeUrl && !isHttpsUrl) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Security rejection: Invalid cover image format or unauthorized asset.",
+            },
+            { status: 403 }
+          );
+        }
+        await StoreModel.updateOne(
+          { _id: activeStore._id },
+          { $set: { coverImage: trimmedCover } }
         );
       }
-      updateFields["profile.coverImage"] = coverImage;
+      // Never store cover photo on personal non-store profile
+      updateFields["profile.coverImage"] = "";
     }
 
     // 3. Name and Bio updates

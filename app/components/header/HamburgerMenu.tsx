@@ -123,77 +123,15 @@ export function HamburgerMenu({ isOpen, onClose, notificationCount = 3 }: Hambur
 
                     <Section label="Navigation">
                         <NavRow icon={Home} label="Home" onClick={() => nav("/home")} />
-                        <NavRow icon={AlertCircle} label="Looking For (Wanted)" onClick={() => nav("/wanted")} accent />
-                        <NavRow icon={Store} label="Campus Storefronts" onClick={() => nav("/stores")} />
-                        <NavRow icon={Wrench} label="Campus Services" onClick={() => nav("/services")} />
+                        <NavRow icon={AlertCircle} label="Campus Radar" onClick={() => nav("/wanted")} accent />
+                        <NavRow icon={Store} label="Stores" onClick={() => nav("/stores")} />
                         <NavRow icon={Bell} label="Notifications" badge={notificationCount} onClick={() => nav("/notifications")} />
-                        <NavRow icon={BookOpen} label="About" onClick={() => nav("/about-us")} />
-                        <NavRow icon={LifeBuoy} label="Help" onClick={() => nav("/help-support")} />
-                        <NavRow icon={Settings} label="Settings" onClick={() => nav("/settings")} />
                     </Section>
 
-                    {user && user.role === "seller" && (
-                        <Section label="Seller Tools">
-                            <NavRow icon={Store} label="Seller Dashboard" onClick={() => nav("/dashboard")} accent />
-                            <NavRow icon={Package} label="My Listings" onClick={() => nav("/dashboard/products")} />
-                            <NavRow icon={MessageSquare} label="Customer Messages" onClick={() => nav("/messages")} />
-                        </Section>
-                    )}
-
-                    {user && (
-                        <Section label="Account">
-                            <NavRow icon={User} label="My Profile" onClick={() => nav("/profile")} />
-                            <NavRow icon={MessageSquare} label="Messages" onClick={() => nav("/messages")} />
-                            {user.role !== "seller" && user.role !== "admin" && user.sellerStatus !== "approved" && (
-                                <NavRow 
-                                    icon={Store} 
-                                    label={user.sellerStatus === "pending" ? "Verification Pending" : "Become a Seller"} 
-                                    onClick={() => nav("/register/seller")} 
-                                />
-                            )}
-                        </Section>
-                    )}
-
-                    <Section label="Shop by Category">
-                        <button
-                            onClick={() => setCategoriesOpen((v) => !v)}
-                            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary rounded-xl transition-colors group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <Tag className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <span className="font-medium text-sm">All Categories</span>
-                            </div>
-                            <ChevronDown
-                                className={`w-4 h-4 text-muted-foreground/50 transition-transform duration-200 ${categoriesOpen ? "rotate-180" : ""}`}
-                            />
-                        </button>
-
-                        {categoriesOpen && (
-                            <div className="ml-4 mt-1 space-y-0.5 border-l border-border/40 pl-3">
-                                {CATEGORIES.map((cat, idx) => {
-                                    const Icon = IconMap[cat.lucideIcon || "Package"];
-                                    return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => nav(`/listings?category=${cat.name}`)}
-                                            className="w-full flex items-center gap-3 px-2 py-2 hover:bg-secondary rounded-lg transition-colors group text-left"
-                                        >
-                                            <Icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                                            <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">{cat.name}</span>
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={() => nav("/listings")}
-                                    className="w-full flex items-center gap-3 px-2 py-2 hover:bg-primary/5 rounded-lg transition-colors text-primary font-bold text-xs uppercase tracking-widest"
-                                >
-                                    View All Listings {"->"}
-                                </button>
-                            </div>
-                        )}
+                    <Section label="Features">
+                        <NavRow icon={Tag} label="Sell an Item" onClick={() => nav("/listings/create")} accent />
+                        <NavRow icon={Store} label="Storefront Manager" onClick={() => nav("/stores?view=storefront")} />
                     </Section>
-
-                    
                 </div>
 
                 {user && (

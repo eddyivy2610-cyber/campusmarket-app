@@ -20,6 +20,7 @@ import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
 import { RadarSkeleton } from "../components/common/LoadingSystem";
 import { useAuth } from "../context/AuthContext";
+import { getDefaultAvatarUrl } from "@/lib/avatarUtils";
 
 interface OfferReplyItem {
   id: string;
@@ -29,6 +30,8 @@ interface OfferReplyItem {
   authorDept: string;
   authorAvatar?: string;
   authorStoreSlug?: string | null;
+  parentReplyId?: string | null;
+  replyToName?: string | null;
   authorTime: string;
   isVerified: boolean;
   message: string;
@@ -381,12 +384,26 @@ function RadarContent() {
       isCancelled = true;
     };
   }, [user?.id, user?.campus, userStoreInfo, JSON.stringify(user?.preferences?.discovery)]);
+  const REPLIES_PAGE_SIZE = 3;
   const [expandedPostIds, setExpandedPostIds] = useState<
     Record<string, boolean>
   >(() => {
     const initialId = searchParams.get("id");
     return initialId ? { [initialId]: true } : {};
   });
+  const [visibleReplyCountByPost, setVisibleReplyCountByPost] = useState<
+    Record<string, number>
+  >({});
+  const [expandedThreadIds, setExpandedThreadIds] = useState<Record<string, boolean>>({});
+  const [visibleSubReplyCountByThread, setVisibleSubReplyCountByThread] = useState<
+    Record<string, number>
+  >({});
+  const [activeReplyTargetByPost, setActiveReplyTargetByPost] = useState<
+    Record<string, { replyId: string; rootReplyId: string; authorName: string } | null>
+  >({});
+  const [nestedReplyTextByPost, setNestedReplyTextByPost] = useState<
+    Record<string, string>
+  >({});
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
 
   // Compact Request Form State (Hidden by default until "+ Post a request" is clicked)
@@ -406,6 +423,39 @@ function RadarContent() {
 
   const toggleExpandReplies = (id: string) => {
     setExpandedPostIds((prev) => ({ ...prev, [id]: !prev[id] }));
+    setVisibleReplyCountByPost((counts) => ({
+      ...counts,
+      [id]: REPLIES_PAGE_SIZE,
+    }));
+  };
+
+  const showMoreReplies = (id: string, total: number) => {
+    setVisibleReplyCountByPost((prev) => ({
+      ...prev,
+      [id]: Math.min(total, (prev[id] ?? REPLIES_PAGE_SIZE) + REPLIES_PAGE_SIZE),
+    }));
+  };
+
+  const resetVisibleReplies = (id: string) => {
+    setVisibleReplyCountByPost((prev) => ({
+      ...prev,
+      [id]: REPLIES_PAGE_SIZE,
+    }));
+  };
+
+  const toggleExpandThread = (rootReplyId: string) => {
+    setExpandedThreadIds((prev) => ({ ...prev, [rootReplyId]: !prev[rootReplyId] }));
+    setVisibleSubReplyCountByThread((counts) => ({
+      ...counts,
+      [rootReplyId]: REPLIES_PAGE_SIZE,
+    }));
+  };
+
+  const showMoreSubReplies = (rootReplyId: string, total: number) => {
+    setVisibleSubReplyCountByThread((prev) => ({
+      ...prev,
+      [rootReplyId]: Math.min(total, (prev[rootReplyId] ?? REPLIES_PAGE_SIZE) + REPLIES_PAGE_SIZE),
+    }));
   };
 
   // Submit new compact Radar request
@@ -420,17 +470,12 @@ function RadarContent() {
 
     try {
       setIsSubmittingPost(true);
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
-          : null;
 
       const res = await fetch("/api/radar", {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           requestText: requestInput.trim(),
@@ -491,17 +536,9 @@ function RadarContent() {
     if (!confirmed) return;
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
-          : null;
-
       const res = await fetch(`/api/radar/${encodeURIComponent(postId)}`, {
         method: "DELETE",
         credentials: "include",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
       });
 
       const json = await res.json();
@@ -522,10 +559,47 @@ function RadarContent() {
     }
   };
 
-  // Submit inline reply
-  const handleReplySubmit = async (post: RadarPost, e: React.FormEvent) => {
-    e.preventDefault();
-    const text = (replyTextByPost[post.id] || "").trim();
+  // Submit a real moderation report for a Radar post
+  const handleReportPost = async (postId: string) => {
+    setOpenMenuPostId(null);
+    if (!user) {
+      router.push("/register");
+      return;
+    }
+    const details = window.prompt("Why are you reporting this request? (optional)");
+    if (details === null) return; // cancelled
+
+    try {
+      const trimmed = details.trim().slice(0, 1000);
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: "radar",
+          targetId: postId,
+          reason: trimmed ? "other" : "spam",
+          details: trimmed,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.success) {
+        showToast("Reported to Campus Hive team");
+      } else {
+        showToast(json?.error || json?.message || "Could not submit report");
+      }
+    } catch {
+      showToast("Could not submit report");
+    }
+  };
+
+  // Submit inline reply (top-level or reply-to-reply)
+  const submitRadarReply = async (
+    post: RadarPost,
+    rawText: string,
+    target?: { replyId: string; rootReplyId: string; authorName: string } | null
+  ) => {
+    const text = rawText.trim();
     if (!text) return;
 
     if (!user) {
@@ -534,46 +608,58 @@ function RadarContent() {
     }
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token") || localStorage.getItem("campus_token")
-          : null;
-
       const res = await fetch(`/api/radar/${encodeURIComponent(post.id)}/replies`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          ...(target?.replyId ? { parentReplyId: target.replyId } : {}),
+        }),
       });
 
-      const json = await res.json();
-      const newReply: OfferReplyItem =
-        json.success && json.data
-          ? json.data
-          : {
-              id: `rep-${Date.now()}`,
-              userId: user.id,
-              authorName: user.name || "Campus Member",
-              authorHandle: user.handle || user.email?.split("@")[0] || "member",
-              authorDept: user.campus || "Main Campus",
-              authorTime: "Just now",
-              isVerified: Boolean(user.studentVerified),
-              message: text,
-            };
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success || !json?.data) {
+        showToast(json?.error || "Could not post reply");
+        return;
+      }
+      const newReply: OfferReplyItem = json.data;
 
       const updated = posts.map((p) =>
         p.id === post.id ? { ...p, replies: [...p.replies, newReply] } : p
       );
       savePosts(updated);
-      setReplyTextByPost((prev) => ({ ...prev, [post.id]: "" }));
+
+      if (target) {
+        setNestedReplyTextByPost((prev) => ({ ...prev, [post.id]: "" }));
+        setActiveReplyTargetByPost((prev) => ({ ...prev, [post.id]: null }));
+        setExpandedThreadIds((prev) => ({ ...prev, [target.rootReplyId]: true }));
+        setVisibleSubReplyCountByThread((prev) => ({
+          ...prev,
+          [target.rootReplyId]: Math.max(prev[target.rootReplyId] ?? REPLIES_PAGE_SIZE, 999),
+        }));
+      } else {
+        setReplyTextByPost((prev) => ({ ...prev, [post.id]: "" }));
+      }
       setExpandedPostIds((prev) => ({ ...prev, [post.id]: true }));
       showToast("Reply posted!");
     } catch {
       showToast("Could not post reply");
     }
+  };
+
+  const handleReplySubmit = async (post: RadarPost, e: React.FormEvent) => {
+    e.preventDefault();
+    await submitRadarReply(post, replyTextByPost[post.id] || "");
+  };
+
+  const handleNestedReplySubmit = async (post: RadarPost, e: React.FormEvent) => {
+    e.preventDefault();
+    const target = activeReplyTargetByPost[post.id];
+    if (!target) return;
+    await submitRadarReply(post, nestedReplyTextByPost[post.id] || "", target);
   };
 
   return (
@@ -717,18 +803,12 @@ function RadarContent() {
                 status: "Available",
                 href: `/wanted?id=${post.id}`,
                 participantId: targetParticipantId,
-                participantName: post.requesterName,
-                participantSubtitle: `${post.isVerified ? "Student" : "Campus Member"} · ${post.requesterLocation}`,
-                participantAvatar:
-                  post.requesterAvatar ||
-                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent((post.requesterHandle || "").replace(/^@/, "") || post.requesterName || "student")}`,
-                participantVerified: post.isVerified ? "true" : "false",
               }).toString()}`;
 
               const cleanHandle = (post.requesterHandle || "").replace(/^@/, "");
               const resolvedRequesterAvatar =
                 post.requesterAvatar ||
-                `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanHandle || post.requesterName || "student")}`;
+                getDefaultAvatarUrl(cleanHandle || post.requesterName || "student");
               const userProfileHref = post.requesterStoreSlug
                 ? `/profile/${post.requesterStoreSlug}`
                 : null;
@@ -829,10 +909,7 @@ function RadarContent() {
                               ) : (
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setOpenMenuPostId(null);
-                                    showToast("Reported to Campus Hive team");
-                                  }}
+                                  onClick={() => void handleReportPost(post.id)}
                                   className="block w-full text-left px-3 py-1.5 rounded-lg hover:bg-[#F7F8FA] dark:hover:bg-white/5 text-rose-600 font-medium cursor-pointer"
                                 >
                                   Report post
@@ -908,81 +985,278 @@ function RadarContent() {
                             </button>
                           </form>
 
-                          {post.replies.map((reply) => {
-                            const isOwnReply = Boolean(user && reply.userId && String(reply.userId) === String(user.id));
-                            const replyChatHref = `/messages?${new URLSearchParams({
-                              from: "radar",
-                              contextType: "wanted",
-                              contextId: post.id,
-                              title: post.requestText.slice(0, 70),
-                              price: "Radar request",
-                              status: "Available",
-                              href: `/wanted?id=${post.id}`,
-                              participantId:
-                                reply.userId ||
-                                `wanted-reply-${reply.authorName
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9]/g, "-")}`,
-                              participantName: reply.authorName,
-                              participantSubtitle: `${reply.isVerified ? "Student" : "Campus Member"} · ${reply.authorDept}`,
-                              participantVerified: reply.isVerified ? "true" : "false",
-                            }).toString()}`;
+                          {(() => {
+                            const topLevelReplies = [
+                              ...post.replies.filter((r) => !r.parentReplyId),
+                            ].reverse();
+                            const childRepliesByRoot: Record<string, OfferReplyItem[]> = {};
+                            for (const r of post.replies) {
+                              if (r.parentReplyId) {
+                                if (!childRepliesByRoot[r.parentReplyId]) {
+                                  childRepliesByRoot[r.parentReplyId] = [];
+                                }
+                                childRepliesByRoot[r.parentReplyId].push(r);
+                              }
+                            }
+
+                            const visibleCount = visibleReplyCountByPost[post.id] ?? REPLIES_PAGE_SIZE;
+                            const visibleReplies = topLevelReplies.slice(0, visibleCount);
+                            const remainingCount = topLevelReplies.length - visibleReplies.length;
+                            const nextBatchSize = Math.min(REPLIES_PAGE_SIZE, remainingCount);
+                            const activeTarget = activeReplyTargetByPost[post.id] || null;
+
+                            const renderReplyCard = (
+                              reply: OfferReplyItem,
+                              rootReplyId: string,
+                              isChild = false
+                            ) => {
+                              const isOwnReply = Boolean(
+                                user && reply.userId && String(reply.userId) === String(user.id)
+                              );
+                              const replyChatHref = `/messages?${new URLSearchParams({
+                                from: "radar",
+                                contextType: "wanted",
+                                contextId: post.id,
+                                title: post.requestText.slice(0, 70),
+                                price: "Radar request",
+                                status: "Available",
+                                href: `/wanted?id=${post.id}`,
+                                participantId:
+                                  reply.userId ||
+                                  `wanted-reply-${reply.authorName
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9]/g, "-")}`,
+                              }).toString()}`;
+
+                              return (
+                                <div
+                                  key={reply.id}
+                                  className={`radius-native px-3 py-2.5 rounded-lg bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/5 flex items-start justify-between gap-2.5 text-[12.5px] ${
+                                    isChild ? "text-[12px]" : ""
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-2.5 min-w-0">
+                                    <img
+                                      src={
+                                        reply.authorAvatar ||
+                                        getDefaultAvatarUrl(
+                                          (reply.authorHandle || "").replace(/^@/, "") ||
+                                            reply.authorName ||
+                                            "student"
+                                        )
+                                      }
+                                      alt={reply.authorName}
+                                      className={`${
+                                        isChild ? "w-5 h-5" : "w-6 h-6"
+                                      } rounded-full object-cover shrink-0 mt-0.5 bg-[#FFF8E1] dark:bg-white/5`}
+                                    />
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-1.5">
+                                        {reply.authorStoreSlug ? (
+                                          <Link
+                                            href={`/profile/${reply.authorStoreSlug}`}
+                                            className="font-bold text-[#171717] dark:text-white hover:underline"
+                                          >
+                                            {reply.authorName}
+                                          </Link>
+                                        ) : (
+                                          <span className="font-bold text-[#171717] dark:text-white">
+                                            {reply.authorName}
+                                          </span>
+                                        )}
+                                        {isChild && reply.replyToName && (
+                                          <span className="text-[11px] font-medium text-[#68707A] dark:text-neutral-400">
+                                            → {reply.replyToName}
+                                          </span>
+                                        )}
+                                        <span className="text-[11px] text-[#8C929C]">
+                                          · {reply.authorTime}
+                                        </span>
+                                      </div>
+                                      <p className="mt-0.5 text-[#4A5058] dark:text-neutral-300 leading-snug">
+                                        {reply.message}
+                                      </p>
+                                      <div className="mt-1 flex items-center gap-3">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setActiveReplyTargetByPost((prev) => ({
+                                              ...prev,
+                                              [post.id]:
+                                                prev[post.id]?.replyId === reply.id
+                                                  ? null
+                                                  : {
+                                                      replyId: reply.id,
+                                                      rootReplyId,
+                                                      authorName: reply.authorName,
+                                                    },
+                                            }))
+                                          }
+                                          className="text-[11px] font-semibold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors cursor-pointer"
+                                        >
+                                          Reply
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {isOwnReply ? (
+                                    <span className="shrink-0 text-[11px] font-medium text-[#8C929C] dark:text-neutral-400">
+                                      Your reply
+                                    </span>
+                                  ) : (
+                                    <Link
+                                      href={replyChatHref}
+                                      className="shrink-0 text-[11.5px] font-bold text-[#B45309] dark:text-[#FFC928] hover:underline"
+                                    >
+                                      Chat →
+                                    </Link>
+                                  )}
+                                </div>
+                              );
+                            };
 
                             return (
-                              <div
-                                key={reply.id}
-                                className="radius-native px-3 py-2.5 rounded-lg bg-[#F7F8FA] dark:bg-white/[0.03] border border-[#ECEEF2] dark:border-white/5 flex items-start justify-between gap-2.5 text-[12.5px]"
-                              >
-                                <div className="flex items-start gap-2.5 min-w-0">
-                                  <img
-                                    src={
-                                      reply.authorAvatar ||
-                                      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                                        (reply.authorHandle || "").replace(/^@/, "") || reply.authorName || "student"
-                                      )}`
-                                    }
-                                    alt={reply.authorName}
-                                    className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5 bg-[#FFF8E1] dark:bg-white/5"
-                                  />
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      {reply.authorStoreSlug ? (
-                                        <Link
-                                          href={`/profile/${reply.authorStoreSlug}`}
-                                          className="font-bold text-[#171717] dark:text-white hover:underline"
-                                        >
-                                          {reply.authorName}
-                                        </Link>
-                                      ) : (
-                                        <span className="font-bold text-[#171717] dark:text-white">
-                                          {reply.authorName}
-                                        </span>
-                                      )}
-                                      <span className="text-[11px] text-[#8C929C]">
-                                        · {reply.authorTime}
-                                      </span>
-                                    </div>
-                                    <p className="mt-0.5 text-[#4A5058] dark:text-neutral-300 leading-snug">
-                                      {reply.message}
-                                    </p>
-                                  </div>
-                                </div>
+                              <>
+                                {visibleReplies.map((reply) => {
+                                  const children = childRepliesByRoot[reply.id] || [];
+                                  const isThreadExpanded = Boolean(expandedThreadIds[reply.id]);
+                                  const visibleSubCount =
+                                    visibleSubReplyCountByThread[reply.id] ?? REPLIES_PAGE_SIZE;
+                                  const visibleChildren = children.slice(0, visibleSubCount);
+                                  const remainingSubCount = children.length - visibleChildren.length;
+                                  const nextSubBatch = Math.min(REPLIES_PAGE_SIZE, remainingSubCount);
+                                  const isReplyingInThisThread =
+                                    activeTarget?.rootReplyId === reply.id;
 
-                                {isOwnReply ? (
-                                  <span className="shrink-0 text-[11px] font-medium text-[#8C929C] dark:text-neutral-400">
-                                    Your reply
-                                  </span>
-                                ) : (
-                                  <Link
-                                    href={replyChatHref}
-                                    className="shrink-0 text-[11.5px] font-bold text-[#B45309] dark:text-[#FFC928] hover:underline"
-                                  >
-                                    Chat →
-                                  </Link>
+                                  return (
+                                    <div key={reply.id} className="space-y-1.5">
+                                      {renderReplyCard(reply, reply.id, false)}
+
+                                      {/* Inline Reply-to-Reply Composer for this thread */}
+                                      {isReplyingInThisThread && activeTarget && (
+                                        <form
+                                          onSubmit={(e) => handleNestedReplySubmit(post, e)}
+                                          className="ml-6 pl-2.5 border-l-2 border-[#FFC928]/70 flex items-center gap-1.5 pt-0.5"
+                                        >
+                                          <input
+                                            type="text"
+                                            autoFocus
+                                            value={nestedReplyTextByPost[post.id] || ""}
+                                            onChange={(e) =>
+                                              setNestedReplyTextByPost((prev) => ({
+                                                ...prev,
+                                                [post.id]: e.target.value,
+                                              }))
+                                            }
+                                            placeholder={`Reply to ${activeTarget.authorName}...`}
+                                            className="radius-native flex-1 rounded-lg bg-[#F7F8FA] dark:bg-white/5 border border-[#E8E8E8] dark:border-white/10 px-2.5 py-1.5 text-[12px] text-[#171717] dark:text-white placeholder:text-[#8C929C] focus:outline-none focus:border-[#FFC928]"
+                                          />
+                                          <button
+                                            type="submit"
+                                            className="radius-native px-2.5 py-1.5 rounded-lg bg-[#FFC928] hover:bg-[#F2BD1E] text-[#171717] font-bold text-[11.5px] shrink-0 cursor-pointer"
+                                          >
+                                            Reply
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setActiveReplyTargetByPost((prev) => ({
+                                                ...prev,
+                                                [post.id]: null,
+                                              }))
+                                            }
+                                            className="px-2 py-1.5 rounded-lg text-[11.5px] font-medium text-[#8C929C] hover:text-[#171717] dark:hover:text-white cursor-pointer"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </form>
+                                      )}
+
+                                      {/* Nested Sub-Replies Toggle & Paginated Thread */}
+                                      {children.length > 0 && (
+                                        <div className="ml-6 pl-2.5 border-l-2 border-[#ECEEF2] dark:border-white/10 space-y-1.5">
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleExpandThread(reply.id)}
+                                            className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors cursor-pointer"
+                                          >
+                                            {isThreadExpanded ? (
+                                              <ChevronUp className="w-3 h-3" />
+                                            ) : (
+                                              <ChevronDown className="w-3 h-3" />
+                                            )}
+                                            <span>
+                                              {isThreadExpanded
+                                                ? "Hide replies"
+                                                : `View ${children.length} ${
+                                                    children.length === 1 ? "reply" : "replies"
+                                                  }`}
+                                            </span>
+                                          </button>
+
+                                          {isThreadExpanded && (
+                                            <div className="space-y-1.5">
+                                              {visibleChildren.map((child) =>
+                                                renderReplyCard(child, reply.id, true)
+                                              )}
+                                              {remainingSubCount > 0 && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    showMoreSubReplies(reply.id, children.length)
+                                                  }
+                                                  className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors cursor-pointer"
+                                                >
+                                                  <ChevronDown className="w-3 h-3" />
+                                                  <span>
+                                                    Show {nextSubBatch} more{" "}
+                                                    {nextSubBatch === 1 ? "reply" : "replies"} (
+                                                    {remainingSubCount} left)
+                                                  </span>
+                                                </button>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+
+                                {(remainingCount > 0 || visibleCount > REPLIES_PAGE_SIZE) && (
+                                  <div className="pt-0.5 flex items-center justify-between gap-3">
+                                    {remainingCount > 0 ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => showMoreReplies(post.id, topLevelReplies.length)}
+                                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#68707A] dark:text-neutral-400 hover:text-[#171717] dark:hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <ChevronDown className="w-3.5 h-3.5" />
+                                        <span>
+                                          Show {nextBatchSize} more{" "}
+                                          {nextBatchSize === 1 ? "reply" : "replies"} ({remainingCount} left)
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <span />
+                                    )}
+
+                                    {visibleCount > REPLIES_PAGE_SIZE && (
+                                      <button
+                                        type="button"
+                                        onClick={() => resetVisibleReplies(post.id)}
+                                        className="inline-flex items-center gap-1 text-[11.5px] font-medium text-[#8C929C] hover:text-[#171717] dark:hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <ChevronUp className="w-3.5 h-3.5" />
+                                        <span>Show less</span>
+                                      </button>
+                                    )}
+                                  </div>
                                 )}
-                              </div>
+                              </>
                             );
-                          })}
+                          })()}
                         </div>
                       )}
                     </div>

@@ -41,23 +41,6 @@ const NAV_LINKS = [
   { label: "Stores", href: "/stores", icon: Store },
 ];
 
-const MOBILE_CATEGORIES = [
-  { label: "Electronics", href: "/explore?category=Electronics", icon: Laptop },
-  { label: "Fashion", href: "/explore?category=Fashion", icon: Shirt },
-  {
-    label: "Books & Academic",
-    href: "/explore?category=Books%20%26%20Academic%20Supplies",
-    icon: BookOpen,
-  },
-  {
-    label: "Hostel Essentials",
-    href: "/explore?category=Hostel%20Essentials",
-    icon: Building2,
-  },
-  { label: "Services", href: "/explore?category=Services", icon: Sparkles },
-  { label: "More Categories", href: "/explore", icon: LayoutGrid },
-];
-
 const MOBILE_FEATURES = [
   {
     id: "sell",
@@ -394,46 +377,7 @@ export function RebrandHeader() {
               </div>
             </div>
 
-            {/* 2. Categories Section */}
-            <div className="py-2.5 border-b border-[#ECEEF2] dark:border-white/10">
-              <div className="px-4 py-1.5 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8C929C] dark:text-neutral-400">
-                  Our Categories
-                </span>
-                <Link
-                  href="/explore"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-[11.5px] font-bold text-[#D99B00] dark:text-[#FFC928] hover:underline"
-                >
-                  See All
-                </Link>
-              </div>
-
-              <div className="space-y-0.5 mt-0.5">
-                {MOBILE_CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
-                  return (
-                    <Link
-                      key={cat.label}
-                      href={cat.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-between px-4 py-2.5 text-[13.5px] font-medium text-[#22252A] dark:text-neutral-300 hover:bg-[#F7F8FA] dark:hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon
-                          className="w-[18px] h-[18px] text-[#5B636E] dark:text-neutral-400"
-                          strokeWidth={1.8}
-                        />
-                        <span>{cat.label}</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-[#8C929C]" strokeWidth={1.8} />
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 3. Features Section with Pending Indicators */}
+            {/* 2. Features Section with Pending Indicators */}
             <div className="py-2.5">
               <div className="px-4 py-1.5 flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8C929C] dark:text-neutral-400">

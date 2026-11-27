@@ -353,7 +353,8 @@ export async function POST(req: NextRequest) {
         100
       ),
       avatar: resolvedStoreAvatar,
-      isVerified: Boolean(body.participantVerified ?? true),
+      // Never trust client-supplied verification claims
+      isVerified: false,
       accountType:
         body.accountType === "student_store" ||
         body.accountType === "approved_business"

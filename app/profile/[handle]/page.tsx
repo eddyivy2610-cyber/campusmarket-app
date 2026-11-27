@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { getDefaultAvatarUrl } from "@/lib/avatarUtils";
 import {
   MessageSquare,
   UserPlus,
@@ -519,8 +520,7 @@ export default function ProfilePage() {
     .toLowerCase();
 
   const { user, login, isLoading: authLoading } = useAuth();
-  const { detectedLocation, selectedCampus, detectBrowserLocation } = useCampus();
-  const autoLocationSavedRef = useRef(false);
+  const { selectedCampus } = useCampus();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [isFollowing, setIsFollowing] = useState(false);
   const [showSalesMilestone, setShowSalesMilestone] = useState<boolean>(true);
@@ -546,45 +546,6 @@ export default function ProfilePage() {
   const [liveUserProfile, setLiveUserProfile] = useState<any>(null);
   const [liveProfileError, setLiveProfileError] = useState(false);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
-
-  useEffect(() => {
-    if (
-      authLoading ||
-      isProfileLoading ||
-      !user?.id ||
-      rawHandle !== "me" && rawHandle !== (user.handle || "").toLowerCase()
-    ) {
-      return;
-    }
-    const hasCampus = Boolean(liveUserProfile?.campus || user?.campus);
-    if (hasCampus || autoLocationSavedRef.current) return;
-
-    if (!detectedLocation) {
-      void detectBrowserLocation(false);
-      return;
-    }
-
-    autoLocationSavedRef.current = true;
-    apiPatch("/api/users/profile", { campus: detectedLocation })
-      .then(() => {
-        login({ ...user, campus: detectedLocation });
-        setLiveUserProfile((prev: any) =>
-          prev ? { ...prev, campus: detectedLocation } : prev
-        );
-      })
-      .catch(() => {
-        autoLocationSavedRef.current = false;
-      });
-  }, [
-    authLoading,
-    isProfileLoading,
-    user,
-    rawHandle,
-    liveUserProfile?.campus,
-    detectedLocation,
-    detectBrowserLocation,
-    login,
-  ]);
 
   // Profile context switch: default to "personal" user details, with switcher for "store"
   const [activeProfileMode, setActiveProfileMode] = useState<"personal" | "store">("personal");
@@ -952,17 +913,10 @@ export default function ProfilePage() {
   ).trim();
   const personalAvatar =
     rawAvatar ||
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${personalHandleValue}`;
+    getDefaultAvatarUrl(personalHandleValue);
 
-  const storeCover = (primaryStore?.coverImage || "").trim();
-  const rawCover = (
-    liveUserProfile?.profile?.coverImage ||
-    liveUserProfile?.coverImage ||
-    (!user ? savedOwnProfile?.coverImage : "") ||
-    ""
-  ).trim();
-  const personalCoverImage =
-    rawCover && rawCover !== storeCover ? rawCover : "";
+  // Cover photo is strictly a storefront-owner feature (empty by default; never shown on personal profiles)
+  const personalCoverImage = "";
 
   const dynamicRatingBreakdown = [5, 4, 3, 2, 1].map((stars) => ({
     stars,
@@ -1005,7 +959,7 @@ export default function ProfilePage() {
     location:
       liveUserProfile?.campus ||
       user?.campus ||
-      (isOwnProfile ? detectedLocation || selectedCampus.shortName : "") ||
+      (isOwnProfile ? selectedCampus.shortName : "") ||
       "Campus",
     bio: personalBio || "Campus student on Campus Hive.",
     avatar: personalAvatar,
@@ -1081,7 +1035,7 @@ export default function ProfilePage() {
           bio: savedOwnProfile.bio ?? baseProfile.bio,
           location: savedOwnProfile.location || baseProfile.location,
           avatar: savedOwnProfile.avatar || baseProfile.avatar,
-          coverImage: savedOwnProfile.coverImage || baseProfile.coverImage,
+          coverImage: baseProfile.coverImage,
           // Never allow profile edits to silently alter verified student status
           isStudentSeller: baseProfile.isStudentSeller,
           isVerified: baseProfile.isVerified,
