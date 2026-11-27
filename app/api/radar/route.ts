@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import RadarPostModel from "@/models/RadarPost";
 import UserModel from "@/models/User";
+import StoreModel from "@/models/Store";
 import { requireAuth } from "@/lib/authServer";
 import { createEntityIdentity } from "@/lib/slugUtils";
 
@@ -27,6 +28,26 @@ export async function GET(req: NextRequest) {
       .limit(limit)
       .lean();
 
+    const replyUserIds = Array.from(
+      new Set(
+        posts.flatMap((p: any) =>
+          Array.isArray(p.replies)
+            ? p.replies.map((r: any) => String(r?.userId || "")).filter(Boolean)
+            : []
+        )
+      )
+    );
+    const activeStores = replyUserIds.length
+      ? await StoreModel.find({ ownerId: { $in: replyUserIds }, status: "active" })
+          .select("ownerId name slug logo campus isVerified")
+          .lean()
+      : [];
+    const storeByOwner = new Map<string, any>();
+    for (const s of activeStores as any[]) {
+      const k = String(s.ownerId);
+      if (!storeByOwner.has(k)) storeByOwner.set(k, s);
+    }
+
     const mapped = posts.map((p: any) => ({
       id: String(p._id),
       userId: String(p.userId),
@@ -41,19 +62,23 @@ export async function GET(req: NextRequest) {
       campus: p.campus || "Main Campus",
       timeAgo: formatTimeAgo(p.createdAt),
       replies: Array.isArray(p.replies)
-        ? p.replies.map((r: any) => ({
-            id: r.id || String(r._id),
-            userId: String(r.userId),
-            authorName: r.authorName,
-            authorHandle: r.authorHandle,
-            authorDept: r.authorDept,
-            authorAvatar: r.authorAvatar,
-            parentReplyId: r.parentReplyId || null,
-            replyToName: r.replyToName || null,
-            isVerified: Boolean(r.isVerified),
-            message: r.message,
-            authorTime: formatTimeAgo(r.createdAt),
-          }))
+        ? p.replies.map((r: any) => {
+            const st = storeByOwner.get(String(r.userId || ""));
+            return {
+              id: r.id || String(r._id),
+              userId: String(r.userId),
+              authorName: st?.name || r.authorName,
+              authorHandle: st?.slug || r.authorHandle,
+              authorDept: st?.campus || r.authorDept,
+              authorAvatar: st?.logo || r.authorAvatar,
+              authorStoreSlug: st?.slug || r.authorStoreSlug || null,
+              parentReplyId: r.parentReplyId || null,
+              replyToName: r.replyToName || null,
+              isVerified: Boolean(st?.isVerified || r.isVerified),
+              message: r.message,
+              authorTime: formatTimeAgo(r.createdAt),
+            };
+          })
         : [],
     }));
 

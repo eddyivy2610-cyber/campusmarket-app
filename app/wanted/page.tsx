@@ -1028,6 +1028,23 @@ function RadarContent() {
                                     .replace(/[^a-z0-9]/g, "-")}`,
                               }).toString()}`;
 
+                              const replyAvatarImg = (
+                                <img
+                                  src={
+                                    reply.authorAvatar ||
+                                    getDefaultAvatarUrl(
+                                      (reply.authorHandle || "").replace(/^@/, "") ||
+                                        reply.authorName ||
+                                        "student"
+                                    )
+                                  }
+                                  alt={reply.authorName}
+                                  className={`${
+                                    isChild ? "w-5 h-5" : "w-6 h-6"
+                                  } rounded-full object-cover shrink-0 mt-0.5 bg-[#FFF8E1] dark:bg-white/5`}
+                                />
+                              );
+
                               return (
                                 <div
                                   key={reply.id}
@@ -1036,20 +1053,16 @@ function RadarContent() {
                                   }`}
                                 >
                                   <div className="flex items-start gap-2.5 min-w-0">
-                                    <img
-                                      src={
-                                        reply.authorAvatar ||
-                                        getDefaultAvatarUrl(
-                                          (reply.authorHandle || "").replace(/^@/, "") ||
-                                            reply.authorName ||
-                                            "student"
-                                        )
-                                      }
-                                      alt={reply.authorName}
-                                      className={`${
-                                        isChild ? "w-5 h-5" : "w-6 h-6"
-                                      } rounded-full object-cover shrink-0 mt-0.5 bg-[#FFF8E1] dark:bg-white/5`}
-                                    />
+                                    {reply.authorStoreSlug ? (
+                                      <Link
+                                        href={`/profile/${reply.authorStoreSlug}`}
+                                        className="shrink-0"
+                                      >
+                                        {replyAvatarImg}
+                                      </Link>
+                                    ) : (
+                                      replyAvatarImg
+                                    )}
                                     <div className="min-w-0">
                                       <div className="flex flex-wrap items-center gap-1.5">
                                         {reply.authorStoreSlug ? (

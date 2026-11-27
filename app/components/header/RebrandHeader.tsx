@@ -220,25 +220,27 @@ export function RebrandHeader() {
               )}
             </Link>
 
-            <Link
-              href="/messages"
-              aria-label="Messages"
-              title="Messages"
-              className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors ${pathname?.startsWith("/messages")
-                ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
-                : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
-                }`}
-            >
-              <MessageCircleMore className="w-[19px] h-[19px]" strokeWidth={1.8} />
-              {unreadMessagesCount > 0 && (
-                <span
-                  aria-label={`${unreadMessagesCount} unread messages`}
-                  className="
-                    absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#14161D]
-                  "
-                />
-              )}
-            </Link>
+            {user && (
+              <Link
+                href="/messages"
+                aria-label="Messages"
+                title="Messages"
+                className={`radius-native relative h-9 w-9 rounded-full flex items-center justify-center transition-colors ${pathname?.startsWith("/messages")
+                  ? "bg-[#FFF3C4] text-[#171717] dark:bg-[#FFC928]/20 dark:text-[#FFC928]"
+                  : "text-[#22252A] dark:text-neutral-200 hover:bg-[#F3F4F6] dark:hover:bg-white/10"
+                  }`}
+              >
+                <MessageCircleMore className="w-[19px] h-[19px]" strokeWidth={1.8} />
+                {unreadMessagesCount > 0 && (
+                  <span
+                    aria-label={`${unreadMessagesCount} unread messages`}
+                    className="
+                      absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#14161D]
+                    "
+                  />
+                )}
+              </Link>
+            )}
 
             <Link
               href="/profile"
@@ -250,7 +252,7 @@ export function RebrandHeader() {
                 }`}
             >
               <User
-                className={`w-[19px] h-[19px] ${!user ? "text-[#FFC928]" : ""}`}
+                className={`w-[19px] h-[19px] ${user ? "text-[#FFC928]" : ""}`}
                 strokeWidth={1.8}
               />
             </Link>

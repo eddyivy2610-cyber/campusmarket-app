@@ -124,21 +124,38 @@ export async function GET(req: NextRequest) {
           }
 
           const avatarByUserId = new Map<string, string>();
+          const storeByOwnerId = new Map<string, any>();
           if (missingUserIds.size > 0) {
             try {
-              const userDocs: any[] = await UserModel.find({
-                _id: { $in: Array.from(missingUserIds).map((id) => new mongoose.Types.ObjectId(id)) },
-              })
-                .select("avatar profile.avatar")
-                .lean();
+              const idArray = Array.from(missingUserIds).map((id) => new mongoose.Types.ObjectId(id));
+              const [userDocs, storeDocs]: [any[], any[]] = await Promise.all([
+                UserModel.find({ _id: { $in: idArray } })
+                  .select("avatar profile.avatar profile.bio campus")
+                  .lean(),
+                StoreModel.find({ ownerId: { $in: Array.from(missingUserIds) }, status: "active" })
+                  .select("ownerId name slug description logo isVerified")
+                  .lean(),
+              ]);
               for (const u of userDocs) {
                 const av = u?.profile?.avatar || u?.avatar;
                 if (av) avatarByUserId.set(String(u._id), String(av));
               }
+              for (const s of storeDocs) {
+                const k = String(s.ownerId);
+                if (!storeByOwnerId.has(k)) storeByOwnerId.set(k, s);
+              }
             } catch {}
           }
 
-          if (!currentUser.avatar && avatarByUserId.has(currentUser.id)) {
+          const myStore = storeByOwnerId.get(currentUser.id);
+          if (myStore) {
+            currentUser.name = String(myStore.name);
+            currentUser.subtitle = String(myStore.description || "Campus Store");
+            if (myStore.logo) currentUser.avatar = String(myStore.logo);
+            currentUser.accountType = "student_store";
+            currentUser.storeSlug = String(myStore.slug || "");
+            currentUser.hasStore = true;
+          } else if (!currentUser.avatar && avatarByUserId.has(currentUser.id)) {
             currentUser.avatar = avatarByUserId.get(currentUser.id);
           }
 
@@ -159,10 +176,22 @@ export async function GET(req: NextRequest) {
                   return pid && pid !== currentUser.id;
                 })
               : null;
+            const otherStore = storeByOwnerId.get(otherId);
             const resolvedOtherAvatar =
-              (rawOther as any)?.avatar || avatarByUserId.get(otherId) || undefined;
+              otherStore?.logo || (rawOther as any)?.avatar || avatarByUserId.get(otherId) || undefined;
             const otherParticipant: ChatParticipantProfile =
-              rawOther && typeof rawOther === "object" && "name" in rawOther
+              otherStore
+                ? {
+                    id: otherId,
+                    name: String(otherStore.name),
+                    subtitle: String(otherStore.description || (rawOther as any)?.subtitle || "Campus Store"),
+                    avatar: resolvedOtherAvatar,
+                    isVerified: Boolean(otherStore.isVerified || (rawOther as any)?.isVerified),
+                    accountType: "student_store",
+                    storeSlug: String(otherStore.slug || ""),
+                    hasStore: true,
+                  }
+                : rawOther && typeof rawOther === "object" && "name" in rawOther
                 ? {
                     ...rawOther,
                     id: rawOther.id ? String(rawOther.id) : otherId,

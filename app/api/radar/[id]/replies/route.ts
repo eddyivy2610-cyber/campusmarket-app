@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import RadarPostModel from "@/models/RadarPost";
 import UserModel from "@/models/User";
+import StoreModel from "@/models/Store";
 import { requireAuth } from "@/lib/authServer";
 
 export async function POST(
@@ -70,24 +71,34 @@ export async function POST(
           : null;
     }
 
-    const dbUser = await UserModel.findById(user.id).lean();
-    const authorName =
-      dbUser?.profile?.displayName ||
-      dbUser?.name ||
-      user.name ||
-      "Campus Member";
-    const authorHandle =
-      dbUser?.profile?.handle ||
-      user.email?.split("@")[0] ||
-      "member";
-    const authorAvatar =
-      dbUser?.profile?.avatar ||
-      "";
-    const authorDept =
-      dbUser?.campus ||
-      user.campus ||
-      "Main Campus";
-    const isVerified = Boolean(dbUser?.studentVerified ?? user.studentVerified);
+    const [dbUser, activeStore]: [any, any] = await Promise.all([
+      UserModel.findById(user.id).lean(),
+      StoreModel.findOne({ ownerId: String(user.id), status: "active" })
+        .select("name slug logo campus isVerified")
+        .lean(),
+    ]);
+
+    const authorName = activeStore?.name
+      ? String(activeStore.name)
+      : dbUser?.profile?.displayName ||
+        dbUser?.name ||
+        user.name ||
+        "Campus Member";
+    const authorHandle = activeStore?.slug
+      ? String(activeStore.slug)
+      : dbUser?.profile?.handle ||
+        user.email?.split("@")[0] ||
+        "member";
+    const authorAvatar = activeStore?.logo
+      ? String(activeStore.logo)
+      : dbUser?.profile?.avatar || "";
+    const authorStoreSlug = activeStore?.slug ? String(activeStore.slug) : null;
+    const authorDept = activeStore?.campus
+      ? String(activeStore.campus)
+      : dbUser?.campus || user.campus || "Main Campus";
+    const isVerified = Boolean(
+      activeStore?.isVerified || dbUser?.studentVerified || user.studentVerified
+    );
 
     const newReply = {
       id: `rep-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -96,6 +107,7 @@ export async function POST(
       authorHandle,
       authorDept,
       authorAvatar,
+      authorStoreSlug,
       parentReplyId: resolvedParentReplyId,
       replyToName: resolvedReplyToName,
       isVerified,
