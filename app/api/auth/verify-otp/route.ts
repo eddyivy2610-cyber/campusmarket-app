@@ -10,6 +10,7 @@ import {
 } from "@/lib/authTokens";
 import { issueTrackedRefreshToken } from "@/lib/refreshTokens";
 import dbConnect from "@/lib/dbConnect";
+import { applyRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,24 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const { email, otp } = body;
+    const normalizedEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
+
+    if (process.env.NODE_ENV !== "test") {
+      const rlIp = applyRateLimit(req, "verify_otp_ip", {
+        maxRequests: 12,
+        windowMs: 10 * 60 * 1000,
+      });
+      if (!rlIp.allowed && rlIp.response) return rlIp.response;
+      if (normalizedEmail) {
+        const rlEmail = applyRateLimit(
+          req,
+          "verify_otp_email",
+          { maxRequests: 8, windowMs: 10 * 60 * 1000 },
+          normalizedEmail
+        );
+        if (!rlEmail.allowed && rlEmail.response) return rlEmail.response;
+      }
+    }
 
     const result = await verifyOtpCode(email, otp);
 

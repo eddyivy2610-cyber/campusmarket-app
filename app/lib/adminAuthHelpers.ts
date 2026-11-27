@@ -3,7 +3,12 @@ import crypto from "node:crypto";
 export const GENERIC_ADMIN_REG_ERROR = "Administrator registration request could not be processed.";
 
 export function getAdminRegistrationKey(): string {
-  return process.env.ADMIN_REGISTRATION_KEY || "8d5d7b74307df7e49fa1f5958b0a7297a8560e547ba6432d";
+  const configured = process.env.ADMIN_REGISTRATION_KEY?.trim();
+  if (configured) return configured;
+  if (process.env.NODE_ENV === "test") {
+    return "test_only_admin_reg_key_do_not_use_in_prod";
+  }
+  return "";
 }
 
 /**
@@ -12,6 +17,9 @@ export function getAdminRegistrationKey(): string {
  */
 export function constantTimeKeyCompare(providedKey: string, expectedKey: string): boolean {
   if (typeof providedKey !== "string" || typeof expectedKey !== "string") {
+    return false;
+  }
+  if (!providedKey.trim() || !expectedKey.trim()) {
     return false;
   }
   const hashA = crypto.createHash("sha256").update(providedKey).digest();

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const token = typeof body.token === "string" ? body.token : "";
   const password = typeof body.password === "string" ? body.password : "";
-  if (!token || password.length < 8 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+  if (!token || token.length > 256 || password.length < 8 || password.length > 128 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
     return NextResponse.json({ success: false, message: "Invalid or expired reset link." }, { status: 400 });
   }
   await dbConnect();

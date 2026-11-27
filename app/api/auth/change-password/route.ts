@@ -13,12 +13,23 @@ import {
   isDatabaseUnavailable,
   databaseUnavailableResponse,
 } from "@/lib/databaseErrors";
+import { applyRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const { user, errorResponse } = await requireAuth(req);
   if (!user || errorResponse) return errorResponse;
+
+  if (process.env.NODE_ENV !== "test") {
+    const rl = applyRateLimit(
+      req,
+      "change_password",
+      { maxRequests: 6, windowMs: 15 * 60 * 1000 },
+      user.id
+    );
+    if (!rl.allowed && rl.response) return rl.response;
+  }
 
   const body = await req.json().catch(() => ({}));
   const currentPassword =
@@ -31,6 +42,16 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         error: "Current password and new password are required.",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (currentPassword.length > 128 || newPassword.length > 128) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Password must be 128 characters or fewer.",
       },
       { status: 400 }
     );

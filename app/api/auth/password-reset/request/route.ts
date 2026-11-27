@@ -5,11 +5,10 @@ import UserModel from "@/models/User";
 import PasswordResetTokenModel from "@/models/PasswordResetToken";
 import { createPasswordResetToken, PASSWORD_RESET_TTL_MS } from "@/lib/passwordReset";
 import { checkPasswordResetRateLimit } from "@/lib/upstashRateLimit";
+import { getClientIp } from "@/lib/rateLimit";
 import { sendPasswordResetEmail } from "@/lib/email";
 
 const GENERIC_RESPONSE = { success: true, message: "If an account exists for that email, a reset link has been sent." };
-
-function ip(req: NextRequest) { return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown"; }
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -17,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!/^\S+@\S+\.\S+$/.test(email)) return NextResponse.json(GENERIC_RESPONSE, { status: 202 });
   const startedAt = Date.now();
   try {
-    const limit = await checkPasswordResetRateLimit(email, ip(req));
+    const limit = await checkPasswordResetRateLimit(email, getClientIp(req));
     if (!limit.allowed) return NextResponse.json(GENERIC_RESPONSE, { status: 202 });
     await dbConnect();
     const user = await UserModel.findOne({ email }).select("_id email accountStatus").lean();

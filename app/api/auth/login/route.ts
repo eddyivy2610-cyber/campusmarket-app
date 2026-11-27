@@ -5,6 +5,7 @@ import UserModel from "@/models/User";
 import { createAccessToken, isRequestHttps, setAccessTokenCookie, setRefreshTokenCookie } from "@/lib/authTokens";
 import { issueTrackedRefreshToken } from "@/lib/refreshTokens";
 import { checkLoginRateLimit } from "@/lib/upstashRateLimit";
+import { getClientIp } from "@/lib/rateLimit";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 
 const GENERIC_LOGIN_ERROR = "Invalid email or password.";
@@ -40,14 +41,6 @@ function getDummyPasswordHash(): Promise<string> {
     dummyHashPromise = argon2.hash(DUMMY_PASSWORD_SEED);
   }
   return dummyHashPromise;
-}
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown"
-  );
 }
 
 export async function POST(req: NextRequest) {

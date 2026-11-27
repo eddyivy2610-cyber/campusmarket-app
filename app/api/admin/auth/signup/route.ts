@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import { requireAdmin } from "@/lib/authServer";
+import { getClientIp } from "@/lib/rateLimit";
 import {
   GENERIC_ADMIN_REG_ERROR,
   getAdminRegistrationKey,
@@ -12,8 +13,7 @@ import {
 } from "@/lib/adminAuthHelpers";
 
 export async function POST(req: NextRequest) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  const clientIp = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip") || "unknown-ip";
+  const clientIp = getClientIp(req);
 
   // Check if admin signup is explicitly disabled in environment
   if (process.env.DISABLE_ADMIN_SIGNUP === "true") {

@@ -13,6 +13,11 @@ function checkLocalFallbackLimit(
   windowSeconds: number
 ): UpstashRateLimitResult {
   const now = Date.now();
+  if (localFallbackCounters.size > 5000) {
+    for (const [k, v] of localFallbackCounters) {
+      if (v.expiresAt <= now) localFallbackCounters.delete(k);
+    }
+  }
   const existing = localFallbackCounters.get(key);
   if (!existing || existing.expiresAt <= now) {
     localFallbackCounters.set(key, { count: 1, expiresAt: now + windowSeconds * 1000 });
@@ -53,7 +58,7 @@ export async function checkUpstashLimit(
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify([
       ["INCR", key],
-      ["EXPIRE", key, String(windowSeconds)],
+      ["EXPIRE", key, String(windowSeconds), "NX"],
     ]),
     cache: "no-store",
   });
@@ -69,7 +74,17 @@ export async function checkLoginRateLimit(
 ): Promise<UpstashRateLimitResult> {
   const config = getUpstashConfig();
   if (!config) {
-    return { allowed: true, count: 0, retryAfterSeconds: LOGIN_WINDOW_SECONDS };
+    const emailRes = checkLocalFallbackLimit(
+      `campushive:login:email:${email.toLowerCase().trim()}`,
+      5,
+      LOGIN_WINDOW_SECONDS
+    );
+    if (!emailRes.allowed) return emailRes;
+    return checkLocalFallbackLimit(
+      `campushive:login:ip:${ip || "unknown"}`,
+      20,
+      LOGIN_WINDOW_SECONDS
+    );
   }
   const { url, token } = config;
   const keys = [
@@ -78,7 +93,7 @@ export async function checkLoginRateLimit(
   ];
   const commands = keys.flatMap((key) => [
     ["INCR", key],
-    ["EXPIRE", key, String(LOGIN_WINDOW_SECONDS)],
+    ["EXPIRE", key, String(LOGIN_WINDOW_SECONDS), "NX"],
   ]);
 
   const response = await fetch(`${url}/pipeline`, {
@@ -108,7 +123,17 @@ export async function checkPasswordResetRateLimit(email: string, ip: string) {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
     if (process.env.NODE_ENV !== "production") {
-      return { allowed: true, count: 0, retryAfterSeconds: LOGIN_WINDOW_SECONDS };
+      const emailRes = checkLocalFallbackLimit(
+        `campushive:password-reset:email:${email.toLowerCase().trim()}`,
+        3,
+        LOGIN_WINDOW_SECONDS
+      );
+      if (!emailRes.allowed) return emailRes;
+      return checkLocalFallbackLimit(
+        `campushive:password-reset:ip:${ip || "unknown"}`,
+        10,
+        LOGIN_WINDOW_SECONDS
+      );
     }
     throw new Error("Upstash rate limiting is not configured.");
   }
@@ -116,7 +141,10 @@ export async function checkPasswordResetRateLimit(email: string, ip: string) {
     `campushive:password-reset:email:${email.toLowerCase().trim()}`,
     `campushive:password-reset:ip:${ip || "unknown"}`,
   ];
-  const commands = keys.flatMap((key) => [["INCR", key], ["EXPIRE", key, String(LOGIN_WINDOW_SECONDS)]]);
+  const commands = keys.flatMap((key) => [
+    ["INCR", key],
+    ["EXPIRE", key, String(LOGIN_WINDOW_SECONDS), "NX"],
+  ]);
   const response = await fetch(`${url}/pipeline`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },

@@ -9,6 +9,7 @@ import {
   ServerAuthUser,
 } from "@/lib/authTokens";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/adminAuthHelpers";
+import { getClientIp } from "@/lib/rateLimit";
 import UserModel from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
 
@@ -28,8 +29,7 @@ function safeCompareSecret(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const forwarded = req.headers.get("x-forwarded-for");
-  const clientIp = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip") || "unknown-ip";
+  const clientIp = getClientIp(req);
 
   if (!checkRateLimit(clientIp)) {
     return NextResponse.json(

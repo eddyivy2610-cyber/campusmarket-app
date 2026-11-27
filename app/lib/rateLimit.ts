@@ -76,6 +76,13 @@ export function getClientIp(req: NextRequest): string {
     return trueClientIp.trim();
   }
 
+  // Vercel Edge Verified Client IP
+  const vercelIp = req.headers.get("x-vercel-forwarded-for");
+  if (vercelIp) {
+    const first = vercelIp.split(",")[0]?.trim();
+    if (first && isValidIp(first)) return first;
+  }
+
   // X-Real-IP (Nginx / Ingress proxy)
   const realIp = req.headers.get("x-real-ip");
   if (realIp && isValidIp(realIp.trim())) {
@@ -189,15 +196,15 @@ export async function checkRateLimitAsync(
       }
     } catch (err) {
       if (process.env.NODE_ENV === "production") {
-        console.error("[ALERT] [RateLimit] Upstash unavailable; failing open for non-OTP middleware limit:", err);
-        return { allowed: true, limit: config.maxRequests, remaining: config.maxRequests, resetTimeMs: Date.now() + config.windowMs, retryAfterSec: Math.ceil(config.windowMs / 1000), source: "upstash" };
+        console.error("[ALERT] [RateLimit] Upstash unavailable; enforcing bounded in-memory fallback:", err);
+        return { ...checkRateLimit(key, config), source: "memory" };
       }
     }
   }
 
   if (process.env.NODE_ENV === "production") {
-    console.error("[ALERT] [RateLimit] Upstash is not configured; failing open for non-OTP middleware limit.");
-    return { allowed: true, limit: config.maxRequests, remaining: config.maxRequests, resetTimeMs: Date.now() + config.windowMs, retryAfterSec: Math.ceil(config.windowMs / 1000), source: "upstash" };
+    console.error("[ALERT] [RateLimit] Upstash is not configured; enforcing bounded in-memory fallback.");
+    return { ...checkRateLimit(key, config), source: "memory" };
   }
 
   // Development/test fallback only.
