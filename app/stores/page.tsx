@@ -31,7 +31,7 @@ import {
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
 import { RebrandFooter } from "../components/sections/RebrandFooter";
-import { PageSkeleton } from "../components/common/LoadingSystem";
+import { PageSkeleton, StoreDirectoryGridSkeleton } from "../components/common/LoadingSystem";
 import { StorefrontManager, StorefrontTab } from "../components/storefront/StorefrontManager";
 import {
   StoreBusinessType,
@@ -74,6 +74,7 @@ function StoresContent() {
   const campusMenuRef = useRef<HTMLDivElement>(null);
   const [savedStoreIds, setSavedStoreIds] = useState<Record<string, boolean>>({});
   const [dbStores, setDbStores] = useState<StoreProfile[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(true);
 
   useEffect(() => {
     if (!isCampusMenuOpen) return;
@@ -102,7 +103,8 @@ function StoresContent() {
     let isCancelled = false;
     async function fetchLiveStores() {
       try {
-        const res = await fetch("/api/stores?status=active&limit=50");
+        setIsLoadingStores(true);
+        const res = await fetch("/api/stores?status=active&limit=50", { cache: "no-store" });
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && !isCancelled) {
           const mapped: StoreProfile[] = json.data.map((item: any) => {
@@ -147,6 +149,8 @@ function StoresContent() {
         }
       } catch (err) {
         console.warn("Could not load live stores:", err);
+      } finally {
+        if (!isCancelled) setIsLoadingStores(false);
       }
     }
     fetchLiveStores();
@@ -337,23 +341,30 @@ function StoresContent() {
                 aria-hidden="true"
               />
 
-              <button
-                type="button"
-                onClick={handleOpenStoreClick}
-                className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#FFC928] hover:bg-[#FFC928]/10 px-3.5 py-1.5 text-[12.5px] font-bold text-[#171717] dark:text-white shrink-0 transition-all cursor-pointer shadow-2xs"
-              >
-                {hasOpenedStore ? (
-                  <>
-                    <Store className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FFC928]" />
-                    <span>Manage store</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Open a store</span>
-                  </>
-                )}
-              </button>
+              {hasOpenedStore === null ? (
+                <div
+                  aria-hidden="true"
+                  className="hive-skeleton h-8 w-28 rounded-xl shrink-0"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleOpenStoreClick}
+                  className="radius-native inline-flex items-center gap-1.5 rounded-xl border border-[#DCE0E6] dark:border-white/15 bg-white dark:bg-white/5 hover:border-[#FFC928] hover:bg-[#FFC928]/10 px-3.5 py-1.5 text-[12.5px] font-bold text-[#171717] dark:text-white shrink-0 transition-all cursor-pointer shadow-2xs"
+                >
+                  {hasOpenedStore ? (
+                    <>
+                      <Store className="w-3.5 h-3.5 text-[#D97706] dark:text-[#FFC928]" />
+                      <span>Manage store</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Open a store</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ) : (
             /* STOREFRONT MODE: BUTTON/NAV MOVES TO LEFT, HEADING EXCHANGES TO RIGHT */
@@ -566,8 +577,10 @@ function StoresContent() {
                 </div>
               </div>
 
-              {/* Empty state if no stores found */}
-              {filteredStores.length === 0 ? (
+              {/* Loading / Empty state if no stores found */}
+              {isLoadingStores ? (
+                <StoreDirectoryGridSkeleton count={8} />
+              ) : filteredStores.length === 0 ? (
                 <div className="radius-native py-16 px-4 text-center rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10">
                   <Store className="w-12 h-12 text-[#8C929C] mx-auto mb-3 opacity-40" />
                   <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">

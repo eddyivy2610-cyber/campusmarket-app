@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 
 import { RebrandHeader } from "../components/header/RebrandHeader";
+import { MessagesSkeleton } from "../components/common/LoadingSystem";
 import {
   subscribeToConversation,
   sendTypingIndicator,
@@ -1351,16 +1352,21 @@ function MessagesWorkspace() {
             {/* Scrollable Conversations List or Empty State */}
             <div className="flex-1 overflow-y-auto divide-y divide-[#F2F4F7] dark:divide-white/5 flex flex-col">
               {isLoadingList ? (
-                <div className="p-5 space-y-4">
-                  {[1, 2, 3].map((n) => (
-                    <div
-                      key={n}
-                      className="flex items-center gap-3 animate-pulse"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-[#ECEEF2] dark:bg-white/10 shrink-0" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3 w-1/2 rounded bg-[#ECEEF2] dark:bg-white/10" />
-                        <div className="h-2.5 w-3/4 rounded bg-[#ECEEF2] dark:bg-white/10" />
+                <div
+                  role="status"
+                  aria-busy="true"
+                  aria-label="Loading conversations..."
+                  className="p-4 space-y-4"
+                >
+                  {Array.from({ length: 6 }, (_, n) => (
+                    <div key={n} className="flex items-start gap-3">
+                      <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+                      <div className="flex-1 space-y-2 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="hive-skeleton h-3.5 w-28 rounded" />
+                          <div className="hive-skeleton h-2.5 w-10 rounded" />
+                        </div>
+                        <div className="hive-skeleton h-3 w-4/5 rounded" />
                       </div>
                     </div>
                   ))}
@@ -1544,7 +1550,39 @@ function MessagesWorkspace() {
             }`}
           >
             {!activeConv ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+              isLoadingList ? (
+                <div
+                  role="status"
+                  aria-busy="true"
+                  aria-label="Loading conversation workspace..."
+                  className="flex-1 flex flex-col"
+                >
+                  <div className="px-5 py-3.5 border-b border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] flex items-center gap-3">
+                    <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+                    <div className="space-y-1.5">
+                      <div className="hive-skeleton h-4 w-36 rounded" />
+                      <div className="hive-skeleton h-2.5 w-24 rounded" />
+                    </div>
+                  </div>
+                  <div className="flex-1 p-6 space-y-4 overflow-hidden">
+                    <div className="flex justify-start">
+                      <div className="hive-skeleton h-12 w-64 rounded-2xl" />
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="hive-skeleton h-10 w-52 rounded-2xl" />
+                    </div>
+                    <div className="flex justify-start">
+                      <div className="hive-skeleton h-16 w-72 rounded-2xl" />
+                    </div>
+                  </div>
+                  <div className="px-5 py-3.5 border-t border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] flex items-center gap-3">
+                    <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+                    <div className="hive-skeleton h-10 flex-1 rounded-full" />
+                    <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                 <div className="max-w-sm">
                   <div className="text-[15px] text-[#3B4148] dark:text-neutral-200 leading-relaxed">
                     <div>
@@ -1573,6 +1611,7 @@ function MessagesWorkspace() {
                   </div>
                 </div>
               </div>
+              )
             ) : (
             <>
               {/* 1. Participant Header */}
@@ -1755,8 +1794,24 @@ function MessagesWorkspace() {
                 )}
 
                 {isLoadingThread ? (
-                  <div className="py-12 text-center text-[13px] text-[#8C929C]">
-                    Loading messages...
+                  <div
+                    role="status"
+                    aria-busy="true"
+                    aria-label="Loading thread messages..."
+                    className="py-4 space-y-4"
+                  >
+                    <div className="flex justify-start">
+                      <div className="hive-skeleton h-12 w-60 rounded-2xl" />
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="hive-skeleton h-10 w-48 rounded-2xl" />
+                    </div>
+                    <div className="flex justify-start">
+                      <div className="hive-skeleton h-16 w-72 rounded-2xl" />
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="hive-skeleton h-11 w-40 rounded-2xl" />
+                    </div>
                   </div>
                 ) : threadError ? (
                   <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-2">
@@ -2108,8 +2163,9 @@ export default function MessagesPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen flex items-center justify-center bg-[#F7F8FA] text-[#171717] text-sm font-semibold">
-          Loading Campus Hive Messages...
+        <div className="h-screen flex flex-col bg-[#F7F8FA] dark:bg-[#0E1015] overflow-hidden">
+          <RebrandHeader />
+          <MessagesSkeleton />
         </div>
       }
     >

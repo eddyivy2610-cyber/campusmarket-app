@@ -227,7 +227,7 @@ export function ButtonRing({
     md: "w-5 h-5 border-[2.5px]",
   };
 
-  return (
+      return (
     <span
       role="status"
       aria-label={label}
@@ -239,5 +239,110 @@ export function ButtonRing({
       />
       <span className="sr-only">{label}</span>
     </span>
+  );
+}
+
+// 8. Stores Directory 4-Column Card Grid Skeleton
+export function StoreDirectoryGridSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Loading campus stores..."
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5"
+    >
+      {Array.from({ length: count }, (_, idx) => (
+        <div
+          key={idx}
+          className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 space-y-3"
+        >
+          <div className="hive-skeleton h-[150px] sm:h-[160px] w-full rounded-xl" />
+          <div className="space-y-2 px-0.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="hive-skeleton h-4 w-3/5 rounded-md" />
+              <div className="hive-skeleton h-4 w-10 rounded-full" />
+            </div>
+            <div className="hive-skeleton h-3 w-full rounded" />
+            <div className="hive-skeleton h-3 w-2/3 rounded" />
+          </div>
+          <div className="pt-2 border-t border-[#F2F4F7] dark:border-white/5 flex items-center justify-between">
+            <div className="hive-skeleton h-3 w-24 rounded" />
+            <div className="hive-skeleton h-3 w-14 rounded" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// 9. Messages Workspace Full Skeleton (Suspense & Initial Load)
+export function MessagesSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Loading messages..."
+      className="flex-1 w-full max-w-[1380px] mx-auto px-5 sm:px-8 lg:px-12 py-5 sm:py-6 flex overflow-hidden"
+    >
+      <div className="flex-1 flex w-full overflow-hidden rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 shadow-[0_2px_18px_rgba(15,23,42,0.04)]">
+        {/* Left Conversations Column */}
+        <div className="w-full lg:w-[320px] xl:w-[350px] shrink-0 flex flex-col border-r border-[#ECEEF2] dark:border-white/10">
+          <div className="px-5 pt-4 pb-3 border-b border-[#ECEEF2] dark:border-white/10 space-y-3">
+            <div className="hive-skeleton h-5 w-32 rounded-md" />
+            <div className="hive-skeleton h-9 w-full rounded-xl" />
+            <div className="flex items-center gap-4 pt-1">
+              {[36, 48, 72, 54].map((w, i) => (
+                <div key={i} style={{ width: w }} className="hive-skeleton h-3.5 rounded" />
+              ))}
+            </div>
+          </div>
+
+          <div className="divide-y divide-[#F2F4F7] dark:divide-white/5 p-3.5 space-y-3">
+            {Array.from({ length: 6 }, (_, idx) => (
+              <div key={idx} className="pt-2 first:pt-0 flex items-start gap-3">
+                <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="hive-skeleton h-3.5 w-28 rounded" />
+                    <div className="hive-skeleton h-2.5 w-10 rounded" />
+                  </div>
+                  <div className="hive-skeleton h-3 w-4/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Centre Chat Pane */}
+        <div className="hidden lg:flex flex-1 flex-col bg-[#F2F4F7] dark:bg-[#101218]">
+          <div className="px-5 py-3.5 border-b border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] flex items-center gap-3">
+            <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+            <div className="space-y-1.5">
+              <div className="hive-skeleton h-4 w-36 rounded" />
+              <div className="hive-skeleton h-2.5 w-24 rounded" />
+            </div>
+          </div>
+          <div className="flex-1 p-6 space-y-4 overflow-hidden">
+            <div className="flex justify-start">
+              <div className="hive-skeleton h-12 w-64 rounded-2xl" />
+            </div>
+            <div className="flex justify-end">
+              <div className="hive-skeleton h-10 w-52 rounded-2xl" />
+            </div>
+            <div className="flex justify-start">
+              <div className="hive-skeleton h-16 w-72 rounded-2xl" />
+            </div>
+            <div className="flex justify-end">
+              <div className="hive-skeleton h-11 w-44 rounded-2xl" />
+            </div>
+          </div>
+          <div className="px-5 py-3.5 border-t border-[#ECEEF2] dark:border-white/10 bg-white dark:bg-[#14161D] flex items-center gap-3">
+            <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+            <div className="hive-skeleton h-10 flex-1 rounded-full" />
+            <div className="hive-skeleton w-10 h-10 rounded-full shrink-0" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

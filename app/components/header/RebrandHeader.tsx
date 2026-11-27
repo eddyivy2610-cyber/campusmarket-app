@@ -385,9 +385,6 @@ export function RebrandHeader() {
                 <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#8C929C] dark:text-neutral-400">
                   Features
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5F6F8] dark:bg-white/5 text-[#8C929C]">
-                  Preview
-                </span>
               </div>
 
               <div className="divide-y divide-[#F1F3F6] dark:divide-white/5 px-4">
@@ -413,6 +410,7 @@ export function RebrandHeader() {
                       {item.isReady ? (
                         <span
                           title="Feature ready to use"
+                          aria-label="Feature ready to use"
                           className="w-4 h-4 rounded-full bg-[#22C55E] flex items-center justify-center shrink-0"
                         >
                           <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
@@ -420,10 +418,10 @@ export function RebrandHeader() {
                       ) : (
                         <span
                           title="Feature in development - Coming soon"
-                          className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25 flex items-center gap-1 shrink-0"
+                          aria-label="Coming soon"
+                          className="w-4 h-4 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0"
                         >
-                          <Clock className="w-2.5 h-2.5 stroke-[2.2]" />
-                          <span>Soon</span>
+                          <Clock className="w-3 h-3" strokeWidth={2.3} />
                         </span>
                       )}
                     </>

@@ -118,22 +118,10 @@ function RadarContent() {
     return [];
   });
 
-  const [posts, setPosts] = useState<RadarPost[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("ch_radar_posts");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.filter((p: any) => !String(p.id).startsWith("req-"));
-          }
-        }
-      } catch {}
-    }
-    return INITIAL_RADAR_POSTS;
-  });
+  const [posts, setPosts] = useState<RadarPost[]>(INITIAL_RADAR_POSTS);
 
-  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
   const [userStoreInfo, setUserStoreInfo] = useState<{ id?: string; slug?: string; name?: string } | null>(null);
 
@@ -142,14 +130,15 @@ function RadarContent() {
     let isCancelled = false;
     async function checkMyStore() {
       try {
-        const res = await fetch("/api/stores/me", { credentials: "include" });
+        const res = await fetch("/api/stores/me", { credentials: "include", cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          if (data?.store && !isCancelled) {
+          const ownedStore = data?.data?.store || data?.store;
+          if (ownedStore && !isCancelled) {
             setUserStoreInfo({
-              id: String(data.store._id || data.store.id || ""),
-              slug: String(data.store.slug || "").toLowerCase(),
-              name: String(data.store.name || "").toLowerCase(),
+              id: String(ownedStore._id || ownedStore.id || ""),
+              slug: String(ownedStore.slug || "").toLowerCase(),
+              name: String(ownedStore.name || "").toLowerCase(),
             });
           }
         }
@@ -163,19 +152,19 @@ function RadarContent() {
     };
   }, [currentUserId]);
 
-  // Fetch live radar posts from database
+  // Fetch live radar posts from database (purge any legacy cached/hardcoded localStorage entries)
   useEffect(() => {
     let isCancelled = false;
+    try {
+      localStorage.removeItem("ch_radar_posts");
+    } catch {}
     async function fetchRadarPosts() {
       try {
         setIsLoadingPosts(true);
-        const res = await fetch("/api/radar");
+        const res = await fetch("/api/radar", { cache: "no-store", credentials: "include" });
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && !isCancelled) {
           setPosts(json.data);
-          try {
-            localStorage.setItem("ch_radar_posts", JSON.stringify(json.data));
-          } catch {}
         }
       } catch (err) {
         console.warn("Could not fetch live radar posts:", err);
@@ -191,9 +180,6 @@ function RadarContent() {
 
   const savePosts = (newPosts: RadarPost[]) => {
     setPosts(newPosts);
-    try {
-      localStorage.setItem("ch_radar_posts", JSON.stringify(newPosts));
-    } catch {}
   };
 
   const [suggestedProfiles, setSuggestedProfiles] = useState<SuggestedProfile[]>([]);
@@ -205,6 +191,7 @@ function RadarContent() {
 
     async function loadLiveSuggestions() {
       try {
+        setIsLoadingSuggestions(true);
         let localUser: any = null;
         if (typeof window !== "undefined") {
           try {
@@ -376,6 +363,10 @@ function RadarContent() {
         }
       } catch {
         // Retain fallback profiles
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingSuggestions(false);
+        }
       }
     }
 
@@ -501,30 +492,7 @@ function RadarContent() {
         showToast(json.error);
       }
     } catch {
-      // Fallback: save locally with user's real account identity
-      const newPost: RadarPost = {
-        id: `post-${Date.now()}`,
-        userId: user.id,
-        requesterName: user.name || "Campus Student",
-        requesterHandle: user.handle || user.email?.split("@")[0] || "student",
-        requesterLocation: user.campus || "Main Campus",
-        requesterAvatar: user.avatar || user.image || "",
-        timeAgo: "Just now",
-        isVerified: Boolean(user.studentVerified),
-        requestText: requestInput.trim(),
-        category: "all",
-        replies: [],
-      };
-
-      savePosts([newPost, ...posts]);
-      const newIds = [newPost.id, ...myPostIds];
-      setMyPostIds(newIds);
-      try {
-        localStorage.setItem("ch_my_radar_ids", JSON.stringify(newIds));
-      } catch {}
-      setRequestInput("");
-      setIsPostFormOpen(false);
-      showToast("Request posted!");
+      showToast("Could not post request. Please check your connection and try again.");
     } finally {
       setIsSubmittingPost(false);
     }
@@ -757,7 +725,42 @@ function RadarContent() {
             {/* LEFT COLUMN: ULTRA-COMPACT RADAR POSTS (7/8 Cols)           */}
             {/* ----------------------------------------------------------- */}
             <div className="lg:col-span-7 xl:col-span-8 space-y-2.5">
-            {posts.length === 0 ? (
+            {isLoadingPosts ? (
+              <div
+                role="status"
+                aria-busy="true"
+                aria-label="Loading Campus Radar requests..."
+                className="space-y-2.5"
+              >
+                {Array.from({ length: 5 }, (_, idx) => (
+                  <div
+                    key={idx}
+                    className="radius-native rounded-xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 px-4 py-3.5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="hive-skeleton w-9 h-9 rounded-full shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="hive-skeleton h-3.5 w-28 rounded" />
+                            <div className="hive-skeleton h-2.5 w-12 rounded" />
+                          </div>
+                          <div className="hive-skeleton h-4 w-4 rounded" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="hive-skeleton h-3.5 w-full rounded" />
+                          <div className="hive-skeleton h-3.5 w-3/4 rounded" />
+                        </div>
+                        <div className="pt-1 flex items-center justify-between">
+                          <div className="hive-skeleton h-3 w-16 rounded" />
+                          <div className="hive-skeleton h-3 w-10 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : posts.length === 0 ? (
               <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#E8E8E8] dark:border-white/10 p-10 text-center">
                 <Radio className="w-10 h-10 mx-auto text-[#8C929C] mb-3 opacity-60" />
                 <h3 className="text-[16px] font-bold text-[#171717] dark:text-white">
@@ -768,8 +771,11 @@ function RadarContent() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => desktopTextareaRef.current?.focus()}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] text-[#171717] font-bold text-[13px] hover:bg-[#E5B524] transition-colors"
+                  onClick={() => {
+                    setIsPostFormOpen(true);
+                    setTimeout(() => desktopTextareaRef.current?.focus(), 30);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC928] text-[#171717] font-bold text-[13px] hover:bg-[#E5B524] transition-colors cursor-pointer"
                 >
                   <Sparkles className="w-4 h-4" />
                   Post a Request
@@ -1327,7 +1333,27 @@ function RadarContent() {
               </div>
 
               <div className="divide-y divide-[#F2F4F7] dark:divide-white/5">
-                {suggestedProfiles.length === 0 ? (
+                {isLoadingSuggestions ? (
+                  <div
+                    role="status"
+                    aria-busy="true"
+                    aria-label="Loading suggested campus contacts..."
+                    className="divide-y divide-[#F2F4F7] dark:divide-white/5"
+                  >
+                    {Array.from({ length: 3 }, (_, idx) => (
+                      <div key={idx} className="py-3 flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="hive-skeleton w-9 h-9 rounded-full shrink-0" />
+                          <div className="space-y-1.5 flex-1">
+                            <div className="hive-skeleton h-3.5 w-28 rounded" />
+                            <div className="hive-skeleton h-2.5 w-36 rounded" />
+                          </div>
+                        </div>
+                        <div className="hive-skeleton h-6 w-16 rounded-lg shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                ) : suggestedProfiles.length === 0 ? (
                   <div className="py-6 text-center text-[12px] text-[#8C929C]">
                     No campus stores or contacts suggested yet.
                   </div>

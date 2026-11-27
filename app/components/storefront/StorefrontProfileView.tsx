@@ -312,16 +312,40 @@ export function StorefrontProfileView({ slug }: StorefrontProfileViewProps) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F7F8FA] dark:bg-[#0E1015] text-[#171717] dark:text-white antialiased">
         <RebrandHeader />
-        <main className="flex-1 w-full max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 py-8">
-          <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 overflow-hidden animate-pulse">
-            <div className="h-28 sm:h-32 w-full bg-[#E8ECF2] dark:bg-white/5" />
-            <div className="p-6 flex items-center gap-5">
-              <div className="w-24 h-24 rounded-full bg-[#E8ECF2] dark:bg-white/10 -mt-14 shrink-0" />
-              <div className="space-y-2 flex-1">
-                <div className="h-6 w-48 bg-[#E8ECF2] dark:bg-white/10 rounded" />
-                <div className="h-4 w-72 bg-[#E8ECF2] dark:bg-white/10 rounded" />
+        <main
+          role="status"
+          aria-busy="true"
+          aria-label="Loading storefront..."
+          className="flex-1 w-full max-w-[1380px] mx-auto px-4 sm:px-8 lg:px-12 py-8 space-y-6"
+        >
+          <div className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 overflow-hidden">
+            <div className="hive-skeleton h-28 sm:h-36 w-full" />
+            <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="flex items-center gap-5">
+                <div className="hive-skeleton w-24 h-24 rounded-full -mt-14 shrink-0 border-4 border-white dark:border-[#14161D]" />
+                <div className="space-y-2 flex-1">
+                  <div className="hive-skeleton h-6 w-48 rounded-lg" />
+                  <div className="hive-skeleton h-4 w-72 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="hive-skeleton h-9 w-24 rounded-xl" />
+                <div className="hive-skeleton h-9 w-24 rounded-xl" />
               </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }, (_, idx) => (
+              <div
+                key={idx}
+                className="radius-native rounded-2xl bg-white dark:bg-[#14161D] border border-[#ECEEF2] dark:border-white/10 p-3 space-y-3"
+              >
+                <div className="hive-skeleton aspect-4/3 w-full rounded-xl" />
+                <div className="hive-skeleton h-4 w-4/5 rounded" />
+                <div className="hive-skeleton h-4 w-1/3 rounded" />
+              </div>
+            ))}
           </div>
         </main>
         <RebrandFooter />
