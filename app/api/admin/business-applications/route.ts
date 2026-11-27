@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 import BusinessApplicationModel from "@/models/BusinessApplication";
+import UserModel from "@/models/User";
 import { requireAdmin } from "@/lib/authServer";
+import { computeCampusDistanceKm } from "@/lib/marketplaceValidation";
 
 /**
  * GET /api/admin/business-applications
@@ -37,10 +40,39 @@ export async function GET(req: NextRequest) {
       .sort({ createdAt: -1 })
       .lean();
 
+    const applicantObjectIds = Array.from(
+      new Set(
+        applications
+          .map((a: any) => String(a.applicantId || ""))
+          .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      )
+    );
+    const users = applicantObjectIds.length
+      ? await UserModel.find({ _id: { $in: applicantObjectIds } })
+          .select("+safetyLocation")
+          .lean()
+      : [];
+    const safetyMap = new Map<string, any>();
+    for (const u of users as any[]) {
+      if (u?.safetyLocation) {
+        safetyMap.set(String(u._id), u.safetyLocation);
+      }
+    }
+
+    const enriched = applications.map((app: any) => {
+      const safetyLocation = safetyMap.get(String(app.applicantId)) || null;
+      const distanceToCampusKm = computeCampusDistanceKm(app.campus, safetyLocation);
+      return {
+        ...app,
+        safetyLocation,
+        distanceToCampusKm,
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      data: applications,
-      count: applications.length,
+      data: enriched,
+      count: enriched.length,
     });
   } catch (error: any) {
     console.error("[GET /api/admin/business-applications] Error:", error);

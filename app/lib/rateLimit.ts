@@ -52,6 +52,8 @@ export const RATE_LIMIT_PRESETS: Record<string, RateLimitConfig> = {
   FOLLOW: { maxRequests: 20, windowMs: 60 * 1000 },
   // Store creation: 6 attempts per minute per user/IP (prevents store name cycling)
   STORE_CREATE: { maxRequests: 6, windowMs: 60 * 1000 },
+  // Listing creation: 10 listings per 10 minutes per user/IP (prevents listing spam floods)
+  LISTING_CREATE: { maxRequests: 10, windowMs: 10 * 60 * 1000 },
   // General API: 120 per minute
   DEFAULT: { maxRequests: 120, windowMs: 60 * 1000 },
 };

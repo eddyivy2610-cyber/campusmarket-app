@@ -14,6 +14,16 @@ import {
   decodeListingCursor,
 } from "@/lib/listingCursor";
 import { createEntityIdentity } from "@/lib/slugUtils";
+import { applyRateLimit, RATE_LIMIT_PRESETS } from "@/lib/rateLimit";
+import {
+  LISTING_DESCRIPTION_MAX_LENGTH,
+  LISTING_MAX_IMAGES,
+  LISTING_MAX_PRICE_NGN,
+  LISTING_TITLE_MAX_LENGTH,
+  LISTING_TITLE_MIN_LENGTH,
+  MAX_ACTIVE_LISTINGS_PER_STORE,
+  checkListingContentSafety,
+} from "@/lib/marketplaceValidation";
 
 /**
  * GET /api/listings
@@ -278,6 +288,13 @@ export async function POST(req: NextRequest) {
     const { user, errorResponse } = await requireCompletedOnboarding(req);
     if (!user || errorResponse) return errorResponse;
 
+    if (process.env.NODE_ENV !== "test") {
+      const rl = applyRateLimit(req, "listing_create", RATE_LIMIT_PRESETS.LISTING_CREATE, user.id);
+      if (!rl.allowed && rl.response) {
+        return rl.response;
+      }
+    }
+
     await dbConnect();
 
     let body: any;
@@ -336,54 +353,139 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const numericPrice = Number(price);
-    if (isNaN(numericPrice) || numericPrice < 0) {
+    const cleanTitle = String(title).trim();
+    const cleanDescription = String(description).trim();
+    if (
+      cleanTitle.length < LISTING_TITLE_MIN_LENGTH ||
+      cleanTitle.length > LISTING_TITLE_MAX_LENGTH
+    ) {
       return NextResponse.json(
-        { success: false, error: "Price must be a valid non-negative number." },
+        {
+          success: false,
+          error: `Listing title must be between ${LISTING_TITLE_MIN_LENGTH} and ${LISTING_TITLE_MAX_LENGTH} characters.`,
+        },
+        { status: 400 }
+      );
+    }
+    if (cleanDescription.length > LISTING_DESCRIPTION_MAX_LENGTH) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Listing description cannot exceed ${LISTING_DESCRIPTION_MAX_LENGTH} characters.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const safetyCheck = checkListingContentSafety(cleanTitle, cleanDescription);
+    if (!safetyCheck.safe) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: safetyCheck.reason || "Listing violates marketplace safety policies.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const numericPrice = Number(price);
+    if (
+      !Number.isFinite(numericPrice) ||
+      numericPrice < 0 ||
+      numericPrice > LISTING_MAX_PRICE_NGN
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Price must be between ₦0 and ₦${LISTING_MAX_PRICE_NGN.toLocaleString("en-NG")}.`,
+        },
         { status: 400 }
       );
     }
 
     // 4. Security validation for listing image assets
+    if (body.images !== undefined && !Array.isArray(body.images)) {
+      return NextResponse.json(
+        { success: false, error: "Images must be an array of URLs." },
+        { status: 400 }
+      );
+    }
     if (Array.isArray(body.images)) {
+      if (body.images.length > LISTING_MAX_IMAGES) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `A listing can contain at most ${LISTING_MAX_IMAGES} images.`,
+          },
+          { status: 400 }
+        );
+      }
       for (const imgUrl of body.images) {
-        if (typeof imgUrl === "string") {
-          if (imgUrl.includes("/authenticated/") || imgUrl.includes("campushive/private_docs")) {
+        if (typeof imgUrl !== "string" || !imgUrl.trim()) {
+          return NextResponse.json(
+            { success: false, error: "Invalid image URL in listing images." },
+            { status: 400 }
+          );
+        }
+        const trimmedImg = imgUrl.trim();
+        if (
+          trimmedImg.includes("/authenticated/") ||
+          trimmedImg.includes("campushive/private_docs") ||
+          trimmedImg.includes("business_document") ||
+          /^(?:javascript|vbscript|file|http):/i.test(trimmedImg)
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              error:
+                "Security rejection: Unsafe or private document URL cannot be attached to public marketplace listings.",
+            },
+            { status: 400 }
+          );
+        }
+        if (trimmedImg.includes("cloudinary.com")) {
+          const isOwner = verifyAssetOwnership(trimmedImg, user.id, "listing_image");
+          if (!isOwner) {
             return NextResponse.json(
               {
                 success: false,
                 error:
-                  "Security rejection: Private business documents cannot be attached to public marketplace listings.",
+                  "Security rejection: Listing image does not belong to your account or has an invalid structure.",
               },
-              { status: 400 }
+              { status: 403 }
             );
           }
-          if (imgUrl.includes("cloudinary.com")) {
-            const isOwner = verifyAssetOwnership(imgUrl, user.id, "listing_image");
-            if (!isOwner) {
-              return NextResponse.json(
-                {
-                  success: false,
-                  error:
-                    "Security rejection: Listing image does not belong to your account or has an invalid structure.",
-                },
-                { status: 403 }
-              );
-            }
-          }
         }
+      }
+    }
+
+    const canonicalStoreId = String(linkedStore._id);
+    if (body.status !== "draft") {
+      const currentActiveCount = await ListingModel.countDocuments({
+        storeId: canonicalStoreId,
+        status: "active",
+      });
+      if (currentActiveCount >= MAX_ACTIVE_LISTINGS_PER_STORE) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Active listing limit (${MAX_ACTIVE_LISTINGS_PER_STORE}) reached for this store.`,
+          },
+          { status: 409 }
+        );
       }
     }
 
     // 5. Sanitize inputs
     const sanitized = sanitizeListingInput({
       ...body,
+      title: cleanTitle,
+      description: cleanDescription,
       categoryFields: body.categoryFields || body.specs || {},
     });
 
     // 6. Create listing with strictly server-enforced storeId and sellerId === store.ownerId
-    const identity = createEntityIdentity(title);
-    const canonicalStoreId = String(linkedStore._id);
+    const identity = createEntityIdentity(cleanTitle);
     const newListing = new ListingModel({
       ...sanitized,
       publicId: identity.publicId,

@@ -9,6 +9,14 @@ import { updateSlugPreservingSuffix } from "@/lib/slugUtils";
 import { requireAuth, assertUserOwnsStore, getServerAuthUser } from "@/lib/authServer";
 import { applyCacheHeaders, isRequestSafeForPublicCache } from "@/lib/cacheHeaders";
 import { verifyAssetOwnership } from "@/lib/uploadPolicy";
+import {
+  LISTING_DESCRIPTION_MAX_LENGTH,
+  LISTING_MAX_IMAGES,
+  LISTING_MAX_PRICE_NGN,
+  LISTING_TITLE_MAX_LENGTH,
+  LISTING_TITLE_MIN_LENGTH,
+  checkListingContentSafety,
+} from "@/lib/marketplaceValidation";
 
 /**
  * GET /api/listings/[id]
@@ -213,7 +221,35 @@ export async function PATCH(
     const sanitized = sanitizeListingInput(body);
 
     // Apply allowed updates
+    if (
+      (listing.pausedBy && listing.pausedBy !== "seller") ||
+      listing.removedBy === "admin" ||
+      listing.removedBy === "account_ban"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Forbidden: This listing is restricted by moderation and cannot be modified by the seller.",
+        },
+        { status: 403 }
+      );
+    }
+
     if (sanitized.title !== undefined) {
+      const cleanTitle = String(sanitized.title).trim();
+      if (
+        cleanTitle.length < LISTING_TITLE_MIN_LENGTH ||
+        cleanTitle.length > LISTING_TITLE_MAX_LENGTH
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Listing title must be between ${LISTING_TITLE_MIN_LENGTH} and ${LISTING_TITLE_MAX_LENGTH} characters.`,
+          },
+          { status: 400 }
+        );
+      }
+      sanitized.title = cleanTitle;
       if (sanitized.title !== listing.title) {
         const oldSlug = listing.slug;
         const suffix = listing.slugSuffix || deriveSlugSuffix(listing.publicId || generateUUIDv7(), 8);
@@ -240,7 +276,31 @@ export async function PATCH(
         }
       }
     }
-    if (sanitized.description !== undefined) listing.description = sanitized.description;
+    if (sanitized.description !== undefined) {
+      const cleanDesc = String(sanitized.description).trim();
+      if (cleanDesc.length > LISTING_DESCRIPTION_MAX_LENGTH) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Listing description cannot exceed ${LISTING_DESCRIPTION_MAX_LENGTH} characters.`,
+          },
+          { status: 400 }
+        );
+      }
+      listing.description = cleanDesc;
+    }
+
+    const contentSafety = checkListingContentSafety(listing.title, listing.description);
+    if (!contentSafety.safe) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: contentSafety.reason || "Listing violates marketplace safety policies.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (sanitized.category !== undefined) listing.category = sanitized.category;
     if (sanitized.subcategory !== undefined) listing.subcategory = sanitized.subcategory;
     if (sanitized.campus !== undefined) listing.campus = sanitized.campus;
@@ -252,11 +312,23 @@ export async function PATCH(
           { status: 400 }
         );
       }
+      if (sanitized.images.length > LISTING_MAX_IMAGES) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `A listing can contain at most ${LISTING_MAX_IMAGES} images.`,
+          },
+          { status: 400 }
+        );
+      }
       for (const imgUrl of sanitized.images) {
         if (
           typeof imgUrl !== "string" ||
+          !imgUrl.trim() ||
           imgUrl.includes("/authenticated/") ||
-          imgUrl.includes("campushive/private_docs")
+          imgUrl.includes("campushive/private_docs") ||
+          imgUrl.includes("business_document") ||
+          /^(?:javascript|vbscript|file|http):/i.test(imgUrl.trim())
         ) {
           return NextResponse.json(
             { success: false, error: "Invalid image URL or private document provided as listing image." },
@@ -285,9 +357,12 @@ export async function PATCH(
 
     if (body.price !== undefined) {
       const numPrice = Number(body.price);
-      if (isNaN(numPrice) || numPrice < 0) {
+      if (!Number.isFinite(numPrice) || numPrice < 0 || numPrice > LISTING_MAX_PRICE_NGN) {
         return NextResponse.json(
-          { success: false, error: "Price must be a non-negative number." },
+          {
+            success: false,
+            error: `Price must be between ₦0 and ₦${LISTING_MAX_PRICE_NGN.toLocaleString("en-NG")}.`,
+          },
           { status: 400 }
         );
       }

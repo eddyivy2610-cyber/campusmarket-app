@@ -29,6 +29,9 @@ import { executeInTransaction } from "@/lib/transactionHelper";
 import { isDatabaseUnavailable, databaseUnavailableResponse } from "@/lib/databaseErrors";
 import { createNotification } from "@/lib/notificationService";
 import { generateUUIDv7 } from "@/lib/uuidv7";
+import { validateDisplayName } from "@/lib/nameValidation";
+import { validatePhoneInput, validateStoreName } from "@/lib/marketplaceValidation";
+import { verifyAssetOwnership } from "@/lib/uploadPolicy";
 
 /**
  * Checks whether a candidate slug is currently reserved in SlugRedirectModel
@@ -249,8 +252,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Validate slug if explicitly provided, or derive deterministic slug from store name
+    // Validate store name & slug
     const rawName = String(body.name || "").trim();
+    if (rawName) {
+      const storeNameCheck = validateStoreName(rawName);
+      if (!storeNameCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: storeNameCheck.error || "Invalid store name." },
+          { status: 400 }
+        );
+      }
+    }
     if (body.slug !== undefined && String(body.slug).trim() !== "") {
       const slugCheck = validateStoreSlugFormat(String(body.slug));
       if (!slugCheck.valid) {
@@ -319,6 +331,46 @@ export async function POST(req: NextRequest) {
           },
           { status: 400 }
         );
+      }
+
+      const fullNameCheck = validateDisplayName(fullName);
+      if (!fullNameCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: fullNameCheck.error || "Invalid full name." },
+          { status: 400 }
+        );
+      }
+
+      const phoneCheck = validatePhoneInput(contact.phone);
+      if (!phoneCheck.valid) {
+        return NextResponse.json(
+          { success: false, error: phoneCheck.error || "Invalid contact phone number." },
+          { status: 400 }
+        );
+      }
+
+      const rawVerificationDoc = String(
+        body.sellerType === "student" ? body.studentIdImage || "" : body.locationProofDocument || ""
+      ).trim();
+      if (rawVerificationDoc) {
+        if (/^(?:javascript|vbscript|file|http):/i.test(rawVerificationDoc)) {
+          return NextResponse.json(
+            { success: false, error: "Unsafe verification document URL." },
+            { status: 400 }
+          );
+        }
+        if (rawVerificationDoc.includes("cloudinary.com")) {
+          const ownsDoc = verifyAssetOwnership(rawVerificationDoc, user.id, "business_document");
+          if (!ownsDoc) {
+            return NextResponse.json(
+              {
+                success: false,
+                error: "Security rejection: Verification document does not belong to your account.",
+              },
+              { status: 403 }
+            );
+          }
+        }
       }
 
       // Optional retry for a specific rejected/unverified store owned by user

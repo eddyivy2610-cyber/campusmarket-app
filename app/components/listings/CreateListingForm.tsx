@@ -27,6 +27,13 @@ import { useCampus } from "../../context/CampusContext";
 import { listingService } from "../../lib/listingService";
 import { apiGet, apiPost } from "../../lib/apiClient";
 import { SPRING_SMOOTH } from "@/lib/motion";
+import {
+  LISTING_DESCRIPTION_MAX_LENGTH,
+  LISTING_MAX_IMAGES,
+  LISTING_TITLE_MAX_LENGTH,
+  checkListingContentSafety,
+  validateListingPrice,
+} from "@/lib/marketplaceValidation";
 
 const DRAFT_STORAGE_KEY = "ch_create_listing_draft_v2";
 
@@ -249,18 +256,40 @@ export function CreateListingForm() {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!title.trim() || title.trim().length < 3) {
+    const trimmedTitle = title.trim();
+    const trimmedDesc = description.trim();
+    if (!trimmedTitle || trimmedTitle.length < 3) {
       newErrors.title = "Enter a clear title (at least 3 characters).";
+    } else if (trimmedTitle.length > LISTING_TITLE_MAX_LENGTH) {
+      newErrors.title = `Title must be ${LISTING_TITLE_MAX_LENGTH} characters or fewer.`;
     }
+
     const cleanPrice = Number(price.replace(/,/g, ""));
-    if (!price.trim() || Number.isNaN(cleanPrice) || cleanPrice < 0) {
-      newErrors.price = "Enter a valid price in Naira (₦).";
+    const priceCheck = validateListingPrice(price.trim() ? cleanPrice : Number.NaN, {
+      listingType,
+      pricingModel: servicePricingModel,
+    });
+    if (!price.trim() || !priceCheck.valid) {
+      newErrors.price = priceCheck.error || "Enter a valid price in Naira (₦).";
     }
-    if (!description.trim() || description.trim().length < 10) {
+
+    if (!trimmedDesc || trimmedDesc.length < 10) {
       newErrors.description = "Add a short description (at least 10 characters).";
+    } else if (trimmedDesc.length > LISTING_DESCRIPTION_MAX_LENGTH) {
+      newErrors.description = `Description cannot exceed ${LISTING_DESCRIPTION_MAX_LENGTH.toLocaleString()} characters.`;
     }
+
+    if (!newErrors.title && !newErrors.description) {
+      const safety = checkListingContentSafety(trimmedTitle, trimmedDesc);
+      if (!safety.safe) {
+        newErrors.description = safety.reason || "Listing contains prohibited content.";
+      }
+    }
+
     if (images.length === 0) {
       newErrors.images = "Upload at least 1 photo.";
+    } else if (images.length > LISTING_MAX_IMAGES) {
+      newErrors.images = `Upload at most ${LISTING_MAX_IMAGES} photos.`;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

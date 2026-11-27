@@ -31,8 +31,8 @@ export function SellListingLink({
     try {
       const res: any = await apiGet("/api/stores/me");
       const stores: any[] = res?.data?.stores || res?.stores || (Array.isArray(res?.data) ? res.data : []);
-      const hasStore = stores.some((s) => s && s.status !== "deleted");
-      router.push(hasStore ? "/listings/create" : "/onboarding/seller");
+      const hasActiveStore = stores.some((s) => s && s.status === "active");
+      router.push(hasActiveStore ? "/listings/create" : "/onboarding/seller");
     } catch (err: any) {
       if (err?.status === 401) {
         router.push("/login?next=/listings/create");
